@@ -5,6 +5,9 @@
     build's runtime, or the OS when no runtime is set (editor and test builds).
   -->
   <PropertyGroup>
+    <!-- Otherwise the SDK drops the runtime when building this as a reference, and a Windows export made on Linux
+         would get the Linux files. -->
+    <IsRidAgnostic>false</IsRidAgnostic>
     <SteamNativeRuntime Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</SteamNativeRuntime>
     <SteamNativeRuntime Condition="'$(SteamNativeRuntime)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">win-x64</SteamNativeRuntime>
     <SteamNativeRuntime Condition="'$(SteamNativeRuntime)' == ''">linux-x64</SteamNativeRuntime>
