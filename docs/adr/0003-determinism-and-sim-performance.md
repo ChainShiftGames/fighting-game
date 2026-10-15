@@ -16,8 +16,11 @@ hidden randomness can make two PCs drift apart.
 2. **Banned in the sim assembly:** `float`, `double`, `decimal`, `System.Random`, `DateTime`/`Stopwatch`,
    `Dictionary`/`HashSet` iteration, LINQ, `async`, mutable static state. Randomness comes from a seeded PRNG
    stored in the game state.
-3. The ban is enforced by `Microsoft.CodeAnalysis.BannedApiAnalyzers` (plus a check for float types) as build
-   errors, so violations fail CI regardless of who wrote the code.
+3. The ban is enforced as build errors, so violations fail CI regardless of who wrote the code:
+   `Microsoft.CodeAnalysis.BannedApiAnalyzers` with `src/Sim/BannedSymbols.txt` for APIs, plus our own analyzer in
+   `tools/Analyzers` for what an API list can't express: float types (FG0001), `foreach` over hash-based
+   collections (FG0002), `async` (FG0003) and mutable static state (FG0004). The analyzer is built with
+   `Microsoft.CodeAnalysis.CSharp` and `Microsoft.CodeAnalysis.Analyzers` (MIT, build-time only, never shipped).
 4. **Rollback window:** 8 frames by default, configurable.
 5. **Speed budget:** one logic frame (both characters, all mechanics) takes **≤ 1 ms on a Steam Deck** and
    allocates no memory. This is the project's only performance budget; there are no graphics budgets.

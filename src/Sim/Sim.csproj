@@ -1,3 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+    <!-- Banned APIs fail the build even if warnings-as-errors is ever relaxed (ADR-0003). -->
+    <WarningsAsErrors>$(WarningsAsErrors);RS0030;RS0031</WarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Determinism checks (ADR-0003). Both are build-time analyzers, not runtime dependencies (ADR-0009). -->
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+    <AdditionalFiles Include="BannedSymbols.txt" />
+    <ProjectReference Include="..\..\tools\Analyzers\Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
 </Project>

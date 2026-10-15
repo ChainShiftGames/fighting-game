@@ -65,14 +65,14 @@ Done when:
 - [x] a deliberately mis-named private field fails the build
 
 ### P0-04 Banned APIs in the game logic
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `src/Sim/`, `src/Sim/BannedSymbols.txt`
+Status: done · Needs: P0-02 · Parallel: yes · Where: `src/Sim/`, `src/Sim/BannedSymbols.txt`
 Read: ADR-0003
 - Add `Microsoft.CodeAnalysis.BannedApiAnalyzers` to `Sim` with the list from ARCHITECTURE.md §4.
 - Verify `float`/`double`/`decimal` declarations are caught. If the analyzer can't, add a small custom analyzer
   in `tools/Analyzers/`.
 
 Done when:
-- [ ] using `float`, `System.Random`, `DateTime` or LINQ in `Sim` fails the build (one test file proving each)
+- [x] using `float`, `System.Random`, `DateTime` or LINQ in `Sim` fails the build (one test file proving each)
 
 ### P0-05 Architecture tests
 Status: done · Needs: P0-02 · Parallel: yes · Where: `tests/Architecture.Tests/`

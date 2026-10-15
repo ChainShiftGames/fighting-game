@@ -1,0 +1,56 @@
+// APIs banned in the game logic (ARCHITECTURE.md §4, ADR-0003). Reported as RS0030 build errors; never suppress.
+// Format: <doc comment ID>;<message>. N: bans a whole namespace.
+// What this file can't catch is in tools/Analyzers: float types (FG0001), foreach over hash-based collections
+// (FG0002), async (FG0003), mutable static state (FG0004).
+
+// Randomness: use the seeded PRNG in the game state.
+T:System.Random;Use the seeded PRNG stored in the game state
+N:System.Security.Cryptography;Use the seeded PRNG stored in the game state
+M:System.Guid.NewGuid;Use the seeded PRNG stored in the game state
+M:System.Guid.CreateVersion7;Use the seeded PRNG stored in the game state
+M:System.Guid.CreateVersion7(System.DateTimeOffset);Use the seeded PRNG stored in the game state
+// Seeded randomly per process, so results differ between PCs.
+T:System.HashCode;Hash codes are randomised per process; write an explicit integer hash
+M:System.String.GetHashCode;Hash codes are randomised per process; write an explicit integer hash
+
+// Clocks: time in the game logic is the frame number.
+T:System.DateTime;Use the frame number
+T:System.DateTimeOffset;Use the frame number
+T:System.TimeProvider;Use the frame number
+T:System.TimeZoneInfo;Use the frame number
+T:System.Diagnostics.Stopwatch;Use the frame number
+T:System.Environment;Machine and process state differ between PCs (TickCount, ProcessorCount, variables)
+
+// Floating point. These lines catch member access (double.Parse, double.MaxValue); FG0001 catches the rest.
+T:System.Single;Integers only (subpixels, ADR-0003)
+T:System.Double;Integers only (subpixels, ADR-0003)
+T:System.Decimal;Integers only (subpixels, ADR-0003)
+T:System.Half;Integers only (subpixels, ADR-0003)
+T:System.MathF;Integers only; use the integer maths helpers
+T:System.Numerics.Vector2;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Vector3;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Vector4;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Quaternion;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Matrix3x2;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Matrix4x4;Integers only (subpixels, ADR-0003)
+T:System.Numerics.Plane;Integers only (subpixels, ADR-0003)
+
+// Hash-based collection iteration: order isn't guaranteed. Lookups are allowed; foreach is caught by FG0002.
+M:System.Collections.Generic.Dictionary`2.GetEnumerator;Iteration order isn't guaranteed
+M:System.Collections.Generic.Dictionary`2.KeyCollection.GetEnumerator;Iteration order isn't guaranteed
+M:System.Collections.Generic.Dictionary`2.ValueCollection.GetEnumerator;Iteration order isn't guaranteed
+M:System.Collections.Generic.HashSet`1.GetEnumerator;Iteration order isn't guaranteed
+T:System.Collections.Hashtable;Iteration order isn't guaranteed
+N:System.Collections.Concurrent;No threads in the game logic
+
+// LINQ: allocates and hides iteration order. Covers query syntax too (it compiles to Enumerable calls).
+N:System.Linq;No LINQ in the game logic; write a loop
+
+// async, tasks and threads: the logic runs on one thread, one frame at a time.
+N:System.Threading;No threads or tasks in the game logic
+
+// I/O: the logic only sees its inputs and the game state.
+N:System.IO;No I/O in the game logic
+N:System.Net;No I/O in the game logic
+T:System.Console;No I/O in the game logic
+T:System.Diagnostics.Process;No I/O in the game logic
