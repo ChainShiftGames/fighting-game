@@ -1,18 +1,16 @@
 # Fighting Game — Roadmap & Open Questions
 
-> Companion to [CURRENT_STATE.md](CURRENT_STATE.md).
+> Companion to [CURRENT_STATE.md](CURRENT_STATE.md). Decisions are recorded as ADRs in [docs/adr](docs/adr).
 
 - Still to review later: Ikemen GO / MUGEN character format, Snopek's Godot rollback addon (frame-timing pitfalls),
   GDC "8 Frames in 16ms" (NetherRealm rollback), GDC 2015 Guilty Gear Xrd art talk, Infil's netcode article, Dustloop wiki.
 
-> **About the `[GAP-n]` markers (review, Oct 2026):** each one marks a technical detail that is missing and needs a
-> decision, spec or ADR before we can reach the "robust, AAA-quality" bar. **Needed by** is the latest phase in which
-> it has to be settled. [§9](#9-technical-gap-index) lists them all by priority. Remove a marker once its ADR/spec exists.
+**How to read this file.** Each phase lists its scope, its exit criteria, the technical decisions already made for it,
+and what's still open. `(GAP-n)` tags trace back to the Oct 2026 gap review. **Open** = needs discussion before or
+during the phase; **Later** = consciously postponed and must not block current work.
 
-> **[GAP-0] Missing architecture section.** CURRENT_STATE.md stops after §3 (Meter), and this file starts at §7, so
-> §4–6 don't exist. Nothing anywhere describes the architecture that every phase below depends on: the boundary
-> between sim and presentation, solution/project layout, the determinism contract, the data formats, the networking
-> layers or the tech stack versions. **Needed by: Phase 0.**
+**Overall direction:** systems first, visuals later. Development uses placeholder art until most systems are built.
+Visual decisions never block gameplay work. DLC is far off and must not shape current design.
 
 ---
 
@@ -22,180 +20,138 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 0 — Foundation & spikes
 
-- Repo structure, CI (GitHub Actions: build, test, Godot headless smoke), CLAUDE.md files, ADRs, spec template, session-start hook.
+- Repo structure, CI (GitHub Actions), CLAUDE.md files, ADRs, spec template, session-start hook.
+- `ARCHITECTURE.md` describing how the code is split and how one frame flows.
 - **Spike A (netcode):** Godot .NET + Backdash + toy sim (two squares); SyncTest in CI; two instances over UDP with simulated lag.
-- **Spike B (art):** VRoid model → Blender → Godot toon shader, 5 stepped animations, one palette swap.
-  Tests whether Claude + Blender MCP + learning key-pose animation is viable.
-- **Spike C (Steam):** Steam Networking Sockets adapter using test AppID 480 (no fee needed yet).
-- **Exit:** ADR per spike; go/no-go on Backdash and on the art pipeline (no-go → decide on outsourcing; gameplay work is not blocked).
+- **Spike C (Steam):** Steamworks.NET adapter over Steam's relay using test AppID 480 (no fee needed yet).
+- *Spike B (art) moved to Phase 4.*
+- **Exit:** ADR per spike; go/no-go on Backdash; versions pinned; architecture doc agreed.
 
-> **[GAP-1] Repo & solution layout.** Is the simulation a pure C# class library with no Godot dependency (so it can be
-> unit-tested, run headless and soak-tested without the engine), with Godot only as a presentation/host layer? This is
-> the most important structural decision and it isn't written down. We also need the project list (e.g. `Sim`,
-> `Sim.Tests`, `Netcode`, `Platform.Steam`, `Game` (Godot), `Tools`) and the allowed dependency directions.
->
-> **[GAP-2] Pinned toolchain.** No Godot version (4.x minor, .NET variant), .NET SDK/TFM, C# language version or
-> Backdash version is pinned, and there is no engine upgrade policy. Godot .NET has platform export limits, so
-> confirm Windows + Linux export works with the chosen version.
->
-> **[GAP-3] Determinism contract.** "Integer math" isn't a spec. Define: the fixed-point format (e.g. Q16.16 vs
-> int64 subpixels); sim units (e.g. 1 px = 1000 units, stage width in units); lookup tables for trig/sqrt; a
-> PRNG that is seeded and stored in game state; banned APIs in the sim assembly (`float`/`double`, `System.Random`,
-> `DateTime`, `Dictionary`/`HashSet` iteration order, LINQ, `async`, static mutable state), **enforced by a Roslyn
-> analyzer or banned-API list in CI** rather than review discipline. Also confirm Windows ↔ Linux cross-play
-> determinism (the Deck may run the native Linux build or Windows under Proton).
->
-> **[GAP-4] Spike A has no quantitative pass/fail.** Add numbers. For example: max rollback window (7–8 frames);
-> worst-case cost of resimulating N frames + render within the 16.67 ms budget on Steam Deck (sim step target e.g.
-> < 0.5 ms for 2 characters); save/load state cost and size; checksum cost; zero allocations per sim tick (GC pauses
-> break rollback).
->
-> **[GAP-5] Backdash due diligence.** Licence, maintenance activity, bus factor, spectator support, input-size limits,
-> custom transport API (needed for Steam), and the exit strategy if it's abandoned. Should we fork/vendor it?
->
-> **[GAP-6] Game loop & frame pacing.** Godot's `_PhysicsProcess` / `_Process` are not a rollback-safe fixed-step
-> loop. Specify: who owns the 60 Hz tick; when input is polled relative to the tick (latency!); behaviour on
-> 120/144 Hz monitors and VRR; vsync / frame-pacing policy; what happens when a frame is late (skip, slow down, time
-> sync). Snopek's pitfalls note belongs here. **Needed by: Phase 0 (Spike A).**
->
-> **[GAP-7] Spike B: undefined viability criteria and pipeline specifics.** "Viable" needs measurable criteria (hours
-> per animation, quality bar judged against a reference frame from Xrd). Also missing: VRoid licence terms for
-> commercial use and redistribution of derived models; how edited/custom normals survive Blender → glTF → Godot import;
-> how stepped (constant interpolation) animation is authored and exported; **how animation frames are sampled from the
-> sim frame number** (not delta time) so visuals stay in sync after rollback; and where hitboxes are authored relative
-> to animations.
->
-> **[GAP-8] Spike C: Steam binding choice.** Steamworks.NET vs Facepunch.Steamworks vs GodotSteam (.NET): pick one in
-> an ADR. Also cover: Steam Datagram Relay (hides IPs, adds latency?) vs direct P2P, unreliable vs reliable channels
-> for inputs, NAT traversal fallback, and AppID 480 limitations.
->
-> **[GAP-9] CI specifics.** GitHub Actions runners have no GPU. We need a Godot headless .NET setup, cached export
-> templates, test frameworks (xUnit/NUnit for the sim, GdUnit4 or similar for Godot), a Linux + Windows matrix (to
-> catch cross-platform determinism drift), CI time budgets, and a way for cloud Claude sessions to run the same checks.
+**Decided**
+- **Code structure** ([ADR-0001](docs/adr/0001-pure-csharp-simulation.md), GAP-1): game logic is a pure C# library
+  with no Godot dependency. Godot only reads devices, draws and plays sound. Dependencies point one way:
+  Godot game → netcode → logic.
+- **Versions** ([ADR-0001](docs/adr/0001-pure-csharp-simulation.md), GAP-2): latest stable Godot 4.x .NET and the
+  .NET LTS it supports, pinned in `global.json` and the ADR at Spike A. Upgrades are deliberate PRs.
+- **Determinism** ([ADR-0003](docs/adr/0003-determinism-and-sim-performance.md), GAP-3): integers only in game logic
+  (1 px = 1000 units), seeded PRNG in game state. Floats, `System.Random`, clocks, unordered collection iteration,
+  LINQ, `async` and mutable statics are banned in the logic, enforced as build errors by
+  `Microsoft.CodeAnalysis.BannedApiAnalyzers`.
+- **Speed budget** ([ADR-0003](docs/adr/0003-determinism-and-sim-performance.md), GAP-4, GAP-29): rollback window
+  8 frames by default, configurable. One logic frame ≤ 1 ms on Steam Deck, no memory allocation per frame. This is
+  the only performance budget; there are no graphics budgets.
+- **Game loop** ([ADR-0004](docs/adr/0004-game-loop-and-camera.md), GAP-6): our own fixed 60 Hz loop, input read
+  right before each logic frame, vsync on by default with an off toggle, logic stays 60 Hz on high-refresh screens.
+  Backdash time sync keeps online players in step.
+- **Backdash** (GAP-5): MIT licence, free to use, modify and ship. Kept behind our own match interface so it can be
+  forked or replaced.
+- **Steam** ([ADR-0005](docs/adr/0005-online-architecture.md), GAP-8): Steamworks.NET (plain C#, MIT) with Steam's
+  relay as a custom Backdash transport. GodotSteam rejected because it would tie networking to Godot.
+- **CI** ([ADR-0006](docs/adr/0006-testing-and-ci.md), GAP-9): minimal. Every PR: build, logic tests, SyncTest and
+  the logic speed benchmark on Linux. Windows build nightly. No UI/visual tests.
+- **Repo & files** (GAP-34): free and GitHub-only, no Git LFS for now (placeholder art is small); revisit when real
+  art lands. Claude proposes naming conventions in `CONVENTIONS.md`, the devs confirm, Claude follows them.
+
+**Open**
+- Contents of `ARCHITECTURE.md` (GAP-0): to be agreed with the devs before writing.
 
 ### Phase 1 — Simulation core, placeholder art, offline
 
 - Integer math, entities, input layer (devices, remapping, SOCD) + motion parser, move state machine, base character,
   box collision, hit/block, hitstun/blockstun/hitstop, health, rounds, walls/corners, camera.
 - Placeholder character "Testman" (~10 moves), hitbox overlay, scenario tests, 10k-frame SyncTest in CI.
+- Built-in input latency counter.
 - **Exit:** both devs play local versus on controllers and it already feels responsive; CI green.
 
-> **[GAP-10] Character / move data format.** Define the schema before any moves are written: frame data
-> (startup/active/recovery), per-frame hit/hurt/push/throw boxes, cancel windows, hit properties, and the move
-> state machine definition. Also define the storage format (Godot `Resource`? JSON? custom binary?), how it's baked
-> into integer sim data, its versioning/migration rules, and validation. The Phase 3 editor and Phase 8 replay
-> versioning both depend on it. **Needed by: Phase 1.**
->
-> **[GAP-11] Input layer spec.** SOCD modes to support (last-input-priority, neutral, up-priority; per-device default);
-> input buffer length and per-motion leniency windows; motion priority when several match on the same frame
-> (e.g. 236 vs 623 vs 41236, special button vs motion); how Steam Input and the raw joypad backend coexist without
-> double inputs; and the input frame format that's sent over the network (bitfield size).
->
-> **[GAP-12] Hit resolution rules.** Same-frame trades, P1/P2 processing order (must be symmetric — no port bias),
-> multi-hit rules, hit vs throw priority, throw vs throw clashes, pushbox resolution against walls and in the corner,
-> crossup side switching. All of this has to be deterministic and documented.
->
-> **[GAP-13] Camera is gameplay.** The max distance between players and wall/corner behaviour depend on the camera, so
-> the camera's horizontal position must live in the **sim**, with zoom/shake in presentation. Currently it's
-> listed without a side.
->
-> **[GAP-14] "Feels responsive" is not measurable.** Define a latency target (input-to-photon, e.g. ≤ 4 frames
-> local on a 60 Hz display, benchmarked against Strive) and how it's measured (high-speed camera / LED input lag
-> tester). Add it as a tracked metric.
->
-> **[GAP-15] Scenario test format.** How a scenario is written (input script + expected state assertions? golden
-> replay + checksum?) so Claude sessions and humans can both write them. Add a **golden-replay regression suite**:
-> recorded matches whose per-frame checksums must not change unless intentionally re-blessed.
+**Decided**
+- **Character data** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-10): JSON, one file per character
+  and one per move, each with a schema version; converted to compact integer data at load. Works with Godot via
+  `System.Text.Json`; the export presets must include the JSON files (checked in CI).
+- **Input defaults** ([ADR-0002](docs/adr/0002-input-defaults.md), GAP-11): SOCD left+right = neutral, up+down = up,
+  switchable. Button buffer 2 frames; motion window 12 frames. All are data values, easy to tweak in development,
+  and part of the match rules.
+- **Camera** ([ADR-0004](docs/adr/0004-game-loop-and-camera.md), GAP-13): horizontal position and max player
+  distance are game logic; zoom, shake and flashes are visual only.
+- **Input latency** ([ADR-0004](docs/adr/0004-game-loop-and-camera.md), GAP-14): top priority, as low as possible.
+  Measured automatically by a built-in counter from input read to frame shown, tracked at every milestone.
+- **Tests** ([ADR-0006](docs/adr/0006-testing-and-ci.md), GAP-15): plain-text scenario tests that humans and AI
+  agents can write ("P1 does 5A point blank → P2 is hit on frame 5"), plus golden replays whose checksums must not
+  change unless intended.
+- **AI-written code** (GAP-52): no extra rules beyond normal CI.
+
+**Open / Later**
+- **Hit resolution rules** (GAP-12, Later): same-frame trades, P1/P2 symmetry, throw vs strike priority. Kept
+  configurable so both options stay possible.
+- **Attack button layout** (§8 Q3): blocks Testman's move list and the input format, so it should be decided before
+  this phase starts.
 
 ### Phase 2 — Online
 
-- Backdash integration behind our sessions; P2P over UDP, then over Steam (minimal lobby / friend invite).
+- Backdash integration behind our match interface; P2P over UDP (dev only), then over Steam (minimal lobby / friend invite).
 - Network simulator panel, desync detection + dumps, replays, input delay settings.
 - **Exit:** play each other online over Steam from different networks, feels good at ~100 ms; 1-hour bot-vs-bot soak without desync.
 - Online comes this early to validate the architecture while the codebase is still small.
 
-> **[GAP-16] Session abstraction API.** "Behind our sessions" needs an interface spec (local, P2P, SyncTest, replay,
-> spectator) so Backdash stays swappable (see GAP-5).
->
-> **[GAP-17] Rollback presentation side effects.** VFX, SFX, voice lines, screen shake and controller rumble
-> triggered during resimulation must not double-fire or linger after a rollback. We need a strategy (e.g.
-> events keyed by frame + id, reconciled after rollback). This is unaddressed and hard to retrofit. **Needed by:
-> Phase 2.**
->
-> **[GAP-18] Network parameters.** Default input delay and the auto-delay algorithm, max rollback frames, time-sync /
-> frame-advantage correction, and the disconnect timeout and what it means (round result? match void?). Also: pause
-> behaviour online, a connection quality indicator, and the exact meaning of "~100 ms" (RTT, not one-way?). Add a
-> test matrix for jitter and packet loss (e.g. 100 ms RTT, ±20 ms jitter, 2 % loss).
->
-> **[GAP-19] Desync tooling spec.** Checksum algorithm and frequency, what a desync dump contains (state per frame
-> from both peers, inputs, build hash), how dumps are collected from players (upload? clipboard?), and a
-> diff/bisect tool.
->
-> **[GAP-20] Version handshake.** Peers must verify identical build/sim/data hashes, plus identical match config
-> (rules modules, variants — see GAP-24) before a match starts.
->
-> **[GAP-21] Replay format.** Header (build hash, data version, config, characters, palettes, seed), input stream,
-> compression, file extension, and a forward-compatibility strategy (see Phase 8).
->
-> **[GAP-22] Soak test infrastructure.** Where does a 1-hour bot-vs-bot run happen (CI job or nightly)? Over a
-> simulated in-process transport with injected loss? What determines the bot inputs (seeded random for
-> reproducibility)?
->
-> **[GAP-23] Security / privacy baseline.** Raw UDP P2P leaks IP addresses (use Steam relay by default?), validation of
-> malformed packets, and a basic threat model (input-only sync limits cheating, but not macros, lag switching or
-> result spoofing — relevant for ranked).
+**Decided** (all [ADR-0005](docs/adr/0005-online-architecture.md) unless noted)
+- **Match interface** (GAP-16): one match-driver interface for local, online, replay, training and test matches.
+- **Effects during rollback** (GAP-17): the logic emits events tagged with their frame; presentation plays each once
+  and cancels effects whose event disappears after a rollback.
+- **Network defaults** (GAP-18): online should feel as close to local as possible. Automatic input delay of 1–2
+  frames based on ping (player override 0–4). Warning after 3 s without data; match ends without a result after
+  10 s. Test conditions: 100 ms ping, ±20 ms jitter, 2 % packet loss.
+- **Desyncs** (GAP-19): per-frame state checksum compared between players; on mismatch both sides save a dump
+  (state, inputs, version); a dev tool shows what differs. The two devs exchange dump files manually.
+- **Handshake** (GAP-20): game version, game-data hash and match rules exchanged before a match; mismatch shows
+  "versions differ — update the game".
+- **Replays** (GAP-21): small binary file with a header (version, data hash, rules, characters, colours) and the
+  compressed inputs.
+- **Soak test** ([ADR-0006](docs/adr/0006-testing-and-ci.md), GAP-22): two bots, 1 hour, simulated lag/loss,
+  seeded inputs. Runs on demand via a manual CI trigger, not nightly.
+- **Security** (GAP-23): Steam first. All traffic through Steam's relay (hides IPs); direct UDP only for dev testing;
+  malformed packets dropped.
 
 ### Phase 3 — Systems & the Lab
 
 - Full module system: gatlings, counter/punish counter, proration, meter + supers, throws/tech, pushback guard,
   instant block, burst, Roman Cancel v1 + switchable variants, special button + dash button behaviour.
 - Training mode (frame meter, record/playback, savestates), control panel, character editor v1, simple CPU bot.
-- **Exit:** Testman has the full system kit; a new move can be created in the editor without code; variants switch live.
+- **Exit:** Testman has the full system kit; a new move can be created in the editor without code; variants switch between rounds.
 
-> **[GAP-24] "Module system" is undefined.** What is a module (an interface? a rules component in the sim pipeline?),
-> how its execution order is fixed and deterministic, how its config is represented, and how "switch live" works
-> without breaking state (only between rounds? part of game state so it rolls back?). Online, module config must be
-> negotiated and checksummed (GAP-20).
->
-> **[GAP-25] Sim introspection for the frame meter.** The frame meter needs the sim to expose per-frame state
-> classification (startup/active/recovery/stun/invuln/throw-invuln) in a defined format.
->
-> **[GAP-26] Savestates = rollback serialization?** Confirm that training savestates reuse rollback snapshots, and
-> define whether they persist to disk (then they need versioning).
->
-> **[GAP-27] Character editor architecture.** Is it a Godot editor plugin, an in-game tool or a standalone app? How it
-> reads/writes the GAP-10 format, hot reload into a running match, validation (e.g. no active frames without
-> hitboxes), undo, and merge-friendliness of the data files for two devs + Claude editing in parallel.
->
-> **[GAP-28] CPU bot architecture.** Does it run as an input provider outside the sim, so it's reusable for soak tests
-> and replays (deterministic if seeded)? Will it use scripted, state-machine or utility AI? Does it have a
-> reaction-time model?
+**Decided**
+- **Modules** ([ADR-0005](docs/adr/0005-online-architecture.md), GAP-24): most mechanics are toggles that don't touch
+  the core. Rules are locked during a match; changing them in training restarts the round. Online, both players see
+  and accept the rules before the match.
+- **Frame meter** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-25): the logic reports each fighter's
+  frame state (startup/active/recovery/stun/invincible) every frame.
+- **Savestates** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-26): reuse rollback snapshots, kept in
+  memory for as long as training mode is open (no time limit); not saved to disk.
+- **Character editor** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-27): Godot editor plugin that can
+  change every aspect of a character (moves, frame data, hit/hurt/push/throw boxes, cancels, all mechanics), with a
+  frame-by-frame preview and live reload into a running training match.
+- **CPU bot** (GAP-28): presses buttons like a player and never touches internals; simple state machine; difficulty
+  via reaction time; the same bot drives soak tests.
 
 ### Phase 4 — Vertical slice (most important milestone)
 
+- **Spike B (art)** first: VRoid model → Blender → Godot toon shader, 5 stepped animations, one palette swap. Tests
+  whether Claude + Blender MCP + learning key-pose animation is viable; no-go → decide on outsourcing.
 - First real character with final-quality art, final toon shader, stage 1, hit VFX, SFX, HUD.
 - Game feel tuning pass: hitstop, screen shake, camera.
-- **Exit:** online mirror match that genuinely feels great; external FGC playtest passes.
+- **Exit:** online mirror match that genuinely feels great; external FGC playtest done and both devs say it passes.
 - Then: Steamworks partner account, $100 app fee, store art + short trailer → Steam "Coming Soon" page live *(timing proposal)*.
 
-> **[GAP-29] Performance budgets (missing for the whole project).** Define these per frame on the min-spec target
-> (Steam Deck): CPU ms for sim × rollback window, render ms, draw calls, triangles and bones per character,
-> texture memory, VRAM, load times, RAM. Also a **min-spec PC** definition. Without budgets, "perf on Steam Deck"
-> in Phase 7 is too late. **Needed by: Phase 4 (start measuring in Phase 1).**
->
-> **[GAP-30] Toon shader technical spec.** Godot renderer choice (Forward+ vs Mobile vs Compatibility, as it affects
-> Deck performance); lighting model (per-character fixed light direction, shadow thresholds, vertex-colour / ILM-style
-> control textures); outline method and width scaling with camera distance; anti-aliasing; how palette textures
-> map onto materials.
->
-> **[GAP-31] Audio architecture.** Godot built-in audio vs FMOD/Wwise (licensing!), bus layout, rollback-safe playback
-> (GAP-17), voice/SFX priorities and limits, and loudness standard (e.g. −14/−16 LUFS).
->
-> **[GAP-32] VFX authoring pipeline.** 2D sprite effects vs particles, how they share the toon colour treatment, and
-> how they're positioned from sim data (hit spark at hitbox intersection point).
->
-> **[GAP-33] "FGC playtest passes" has no criteria.** Define a survey/scorecard (input feel, readability,
-> netcode feel at given ping) and a pass threshold.
+**Decided** ([ADR-0008](docs/adr/0008-presentation-direction.md))
+- **Visual toggles** (GAP-30): most visual effects (outlines, shading style, shake, flashes, hit effects) are toggles,
+  so the visual direction can be iterated on without code changes.
+- **Target look** (GAP-30): fixed light per character, Xrd-style hard shading, constant-thickness outlines, 4× MSAA.
+- **Audio** (GAP-31): Godot's built-in audio, FMOD only if we hit limits. Loudness target −16 LUFS.
+- **Playtest pass** (GAP-33): a playtest passes when both devs say it passes.
+
+**Later**
+- **Spike B criteria** (GAP-7): proposals kept for then: about a day or less per animation, check VRoid Studio's
+  commercial-use terms, custom normals via Blender Data Transfer, stepped keys, animation frame chosen from the logic
+  frame number.
+- **Hit effects** (GAP-32): implementation decided later; must not impede development.
 
 ### Phase 5 — Roster & content
 
@@ -203,20 +159,15 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
   menus, character select, settings, rebinding UI.
 - **Exit:** launch content complete; every character passes the uniqueness check.
 
-> **[GAP-34] Asset pipeline & large files.** Git LFS (GitHub LFS storage/bandwidth costs, and cloud Claude sessions
-> cloning LFS) vs a separate asset store; folder/naming conventions, Godot import presets, and source-art
-> (`.blend`) vs exported-art storage. **Needed by: Phase 0** (art lands in the repo with Spike B).
->
-> **[GAP-35] Save data & settings persistence.** File locations per OS, format, versioning/migration, and which files
-> go to Steam Cloud (Phase 6). This includes keybinds per device and video/audio settings.
->
-> **[GAP-36] Localization & fonts.** Not mentioned anywhere. Which languages ship? String table system, and fonts with
-> CJK coverage (FGC audience is heavily JP/KR/CN), text expansion in the UI. Retrofitting this late is expensive.
->
-> **[GAP-37] Accessibility.** Colour-blind-safe hit/guard feedback, remappable everything, text size (overlaps with Deck
-> readability), screen-shake/flash toggles (photosensitivity).
->
-> **[GAP-38] "Uniqueness check" is undefined.** Write down the checklist.
+**Decided**
+- **Settings** (GAP-35): settings and keybinds as versioned JSON in Godot's `user://` folder, synced via Steam Cloud.
+- **Languages** (GAP-36): English at launch; all text through Godot translation tables and a Japanese-capable font,
+  so adding languages later is cheap.
+- **Accessibility** ([ADR-0008](docs/adr/0008-presentation-direction.md), GAP-37): full remapping, shake/flash
+  toggles, colour-blind-safe colours, scalable text, input display, and **directional audio** (sounds panned by
+  on-screen position, distinct cues) for blind players.
+- **Uniqueness check** (GAP-38): distinct game plan, at least one unique mechanic, distinct silhouette and sound, no
+  copied moves. Details left to implementation time.
 
 ### Phase 6 — Online features & Steam integration
 
@@ -225,21 +176,11 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 - CI exports Windows + Linux builds and uploads to a Steam beta branch automatically (SteamPipe / steamcmd).
 - **Exit:** closed beta via Steam Playtest.
 
-> **[GAP-39] Quick match algorithm.** Steam lobby search filters, ping-based filtering (Steam's ping location API),
-> region handling, and the fallback when the pool is small (a common problem for indie FGs). Plan for low
-> player counts explicitly.
->
-> **[GAP-40] Steam Deck Verified details.** Native Linux build vs Proton on Deck (affects GAP-3), suspend/resume during
-> an online match, the default Steam Input config and glyph API, on-screen keyboard for text input, and
-> no-launcher requirements.
->
-> **[GAP-41] Release engineering.** Version numbering scheme, branching/release strategy, build signing (Windows
-> code signing?), steamcmd credentials in CI (dedicated build account, Steam Guard handling, secret storage),
-> debug symbol storage, and how to roll back a bad Steam build.
->
-> **[GAP-42] Crash reporting & telemetry.** Not planned at all. Crash dump capture for .NET + native Godot crashes
-> (e.g. Sentry/Backtrace), opt-in gameplay/netcode telemetry (rollback frames, desync rate, RTT distribution), and
-> **GDPR**: privacy policy and consent, since we're EU-based. **Needed by: Phase 6 (closed beta needs crash data).**
+**Later** (revisit before this phase)
+- Quick match with a small player pool: ping/region filtering, fallback (GAP-39).
+- Steam Deck: native Linux vs Proton, suspend/resume during online matches, glyphs, on-screen keyboard (GAP-40).
+- Release engineering: version scheme, branching, build signing, steamcmd secrets, rolling back a bad build (GAP-41).
+- Crash reporting, telemetry and GDPR (GAP-42).
 
 ### Phase 7 — Beta, polish, launch
 
@@ -247,51 +188,33 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 - Steam Next Fest demo — **OPEN** (Next Fest runs Feb/Jun/Oct; registration months ahead).
 - Release review (a few days), 1.0 launch.
 
-> **[GAP-43] Live-ops / patch process.** Hotfix flow, how online enforces "same build" across a patch rollout, and
-> communicating breaking changes (replays, savestates).
->
-> **[GAP-44] Demo build technicals.** If yes to Next Fest: a separate AppID, content stripping (no unshipped
-> characters in the build), and demo-specific build config in CI.
+**Later**
+- Hotfix and patch rollout process; keeping online on the same build during a rollout (GAP-43).
+- Demo build: separate AppID, stripping unshipped content (GAP-44).
 
 ### Phase 8 — Post-launch
 
 - Ranked, spectators, additional (paid) characters, balance patches.
 - Replays record their game version; old replays play only on that version or are marked unsupported.
 
-> **[GAP-45] Backend for ranked.** P2P result reporting can be spoofed. Ranked needs either a backend service
-> (hosting, cost, auth via Steam session tickets, rating algorithm e.g. Glicko-2, ops responsibility for a 2-person
-> team) or acceptance of Steam leaderboards' weaker guarantees. This is the only server component in the whole plan,
-> and it's currently implicit.
->
-> **[GAP-46] Spectator architecture.** Input broadcast with delay, relayed via a host peer or Steam? Does Backdash
-> support it (GAP-5)? How many spectators?
->
-> **[GAP-47] DLC & online compatibility.** Every client must contain every character's data (and probably its
-> assets) to play against DLC owners. Only *selection* is entitlement-gated. This affects content packaging from
-> Phase 5 on, so decide it early.
->
-> **[GAP-48] Replay compatibility strategy.** "Plays only on that version" implies either shipping multiple sim
-> versions, Steam beta branches per old version, or converting replays to video. Pick one; the GAP-10 data
-> versioning must support it.
+**Decided** (light)
+- **DLC** (GAP-47): everyone downloads all character data; buying only unlocks picking a character, so anyone can
+  fight against it. Far off; must not affect current development.
+
+**Later**
+- Ranked backend vs Steam leaderboards; result spoofing in P2P (GAP-45).
+- Spectator architecture (GAP-46).
+- How old replays stay playable (GAP-48).
 
 ### Cross-cutting
 
-- Art track in parallel from Phase 2 onward (art is the main bottleneck), once Spike B says go.
+- Art track once most systems are built and Spike B says go; placeholders until then. Art is the main bottleneck.
 - Weekly playtests; docs updated with code; ADRs for decisions.
 
-> **[GAP-49] Test strategy overview.** One document tying together unit tests (sim), scenario tests, golden replays
-> (GAP-15), SyncTest, soak (GAP-22), perf regression tests (GAP-29), and Godot smoke tests, with what runs on PR vs
-> nightly.
->
-> **[GAP-50] Logging & diagnostics.** Structured logging that's safe inside the sim (zero allocations, no I/O in the tick),
-> log levels per build type, and an in-game debug overlay spec (beyond the hitbox overlay).
->
-> **[GAP-51] Third-party licence audit.** Track the licence of every dependency and asset (Backdash, Steam
-> binding, VRoid, fonts, audio middleware, shaders) in one file, checked before release.
->
-> **[GAP-52] Claude-in-the-loop guardrails.** Cloud sessions writing sim code: CI must catch determinism violations
-> (GAP-3 analyzer), data-format breaks (GAP-10 validation) and perf regressions (GAP-29) automatically, since
-> humans won't spot them in review.
+**Later**
+- Test strategy overview: what runs on PRs vs on demand (GAP-49).
+- Logging that's safe inside the game logic, and a debug overlay (GAP-50).
+- Third-party licence audit file (GAP-51).
 
 ---
 
@@ -299,38 +222,11 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 1. Signature hook mechanic.
 2. Setting, tone, name.
-3. Attack button layout.
+3. Attack button layout. **Needed before Phase 1** (Testman's moves and the input format depend on it).
 4. Roman Cancel design + alternatives.
 5. Steam Next Fest demo: yes/no.
 6. Store page timing (proposal: right after the vertical slice).
 7. Final roster size and characters (after core works; proposal: 4 at launch).
-8. Art pipeline viability (answered by Spike B).
-
-> **[GAP-53] The open questions are all design/business ones.** Add the technical open questions: Steam binding
-> (GAP-8), fixed-point format (GAP-3), data format (GAP-10), audio middleware (GAP-31), Godot renderer (GAP-30),
-> ranked backend (GAP-45), DLC packaging (GAP-47).
->
-> Note: the attack button layout (Q3) also blocks the input frame format (GAP-11) and Testman's move list, so it
-> should be decided before Phase 1, not just "consulting Robin".
-
----
-
-## 9. Technical gap index
-
-Ordered by when the decision blocks work. Each gap should become an ADR or spec.
-
-| Needed by | Gaps | Why it blocks |
-|---|---|---|
-| **Phase 0** | 0, 1, 2, 3, 4, 5, 6, 8, 9, 34 | Architecture, determinism and loop timing shape every line of sim code; spikes need pass/fail numbers; art enters the repo in Spike B. |
-| **Phase 0 (Spike B)** | 7 | Art go/no-go is meaningless without criteria and licence clearance. |
-| **Phase 1** | 10, 11, 12, 13, 14, 15, 52, Q3 | Move data format and input/hit rules are the core sim contracts; retrofitting them means rewriting Testman. |
-| **Phase 2** | 16, 17, 18, 19, 20, 21, 22, 23 | Rollback side effects and version handshake are painful to retrofit. |
-| **Phase 3** | 24, 25, 26, 27, 28 | Module system and editor architecture. |
-| **Phase 4** | 29, 30, 31, 32, 33 | Budgets and the render/audio stack must be fixed before final-quality art is produced. |
-| **Phase 5** | 35, 36, 37, 38, 47 | Localization and DLC packaging decisions affect all content made from here. |
-| **Phase 6** | 39, 40, 41, 42 | Beta needs crash reporting, release engineering and GDPR compliance. |
-| **Phase 7–8** | 43, 44, 45, 46, 48 | Live ops, ranked backend, spectators, replay compatibility. |
-| **Continuous** | 49, 50, 51, 53 | Test strategy, diagnostics, licences, technical open questions. |
-
-**Highest-risk gaps (tackle first):** GAP-0/1 (architecture), GAP-3 (determinism enforcement), GAP-6 (game loop &
-input timing), GAP-10 (move data format), GAP-17 (rollback side effects), GAP-29 (perf budgets).
+8. Art pipeline viability (answered by Spike B, now in Phase 4).
+9. Contents of `ARCHITECTURE.md` (GAP-0).
+10. Technical questions postponed to later phases: see each phase's **Later** list (GAP-53).
