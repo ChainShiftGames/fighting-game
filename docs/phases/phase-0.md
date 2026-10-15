@@ -121,13 +121,14 @@ Done when:
 - [x] tests: same inputs → same checksum; save/restore round-trip is identical
 
 ### P0-11 Match driver interface + SyncTest
-Status: todo · Needs: P0-10 · Parallel: no · Where: `src/Netcode/`, `tests/`
+Status: done · Needs: P0-10 · Parallel: no · Where: `src/Netcode/`, `tests/`
 Read: ADR-0005, ADR-0006
 - First version of `IMatchDriver` (local + Backdash-backed implementations).
 - Backdash SyncTest session over the toy sim: 10,000 frames with seeded random inputs in CI.
 
 Done when:
-- [ ] SyncTest runs in the PR pipeline and fails on a deliberately added non-determinism
+- [x] SyncTest runs in the PR pipeline and fails on a deliberately added non-determinism
+  (`tests/Netcode.Tests/Drivers/SyncTestTests.cs`, run by the CI `Test` step)
 
 ### P0-12 Godot host and 60 Hz loop
 Status: todo · Needs: P0-11 · Parallel: no · Where: `game/`
