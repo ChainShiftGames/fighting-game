@@ -3,8 +3,10 @@ using FightingGame.Debug;
 using FightingGame.Diagnostics;
 using FightingGame.Input;
 using FightingGame.Loop;
+using FightingGame.Platform;
 using FightingGame.Presentation;
 using FightingGame.Settings;
+using FightingGame.UI;
 using Godot;
 using Netcode.Drivers;
 using Sim.Toy;
@@ -24,6 +26,9 @@ public partial class Main : Node2D
     private const Key ToggleVsyncKey = Key.F2;
     private const Key ToggleOverlayKey = Key.F3;
 
+    // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
+    private const uint SteamAppId = 480;
+
     private readonly PlayerSettingsStore _settingsStore = new(PlayerSettingsPath);
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
@@ -32,9 +37,11 @@ public partial class Main : Node2D
     private MatchLoop<ToyState>? _loop;
     private ToyMatchView? _view;
     private DeveloperOverlay? _overlay;
+    private IPlatformServices? _platform;
 
     public override void _Ready()
     {
+        _platform = PlatformStartup.Start(SteamAppId);
         _settings = _settingsStore.Load();
         ApplyVsync();
 
@@ -55,11 +62,16 @@ public partial class Main : Node2D
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
 
+        var playerName = new PlayerNameLabel();
+        AddChild(playerName);
+        playerName.Show(_platform);
+
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
 
     public override void _Process(double delta)
     {
+        _platform!.Update();
         long now = Stopwatch.GetTimestamp();
         int framesRun = _loop!.Advance(now);
         _logicRate.Count(framesRun, now);
@@ -97,6 +109,7 @@ public partial class Main : Node2D
     {
         RenderingServer.FramePostDraw -= OnFramePostDraw;
         _driver?.Dispose();
+        _platform?.Dispose();
     }
 
     private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
