@@ -16,6 +16,9 @@ public static class PeerSession
 {
     private const int FramesPerSecond = 60;
 
+    // Backdash requires a non-zero port even when the transport has none (Steam relay); the socket ignores it.
+    private const int PortForTransportsWithoutPorts = 1;
+
     /// <summary>A match driver for an online match against one other PC.</summary>
     public static IMatchDriver<TState> CreateDriver<TState>(
         IMatchSimulation<TState> simulation, PeerMatchSettings settings, PeerTransport transport)
@@ -35,7 +38,7 @@ public static class PeerSession
         return RollbackNetcode
             .WithInputType(type => type.Struct<InputWord>())
             .WithPlayers(playersInPortOrder)
-            .WithPort(settings.LocalPort)
+            .WithPort(settings.LocalPort > 0 ? settings.LocalPort : PortForTransportsWithoutPorts)
             .WithFrameRate(FramesPerSecond)
             .WithInputDelayFrames(settings.InputDelayFrames)
             .WithStateSizeHint(Unsafe.SizeOf<TState>())

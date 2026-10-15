@@ -6,7 +6,7 @@ namespace Netcode.Online;
 /// <summary>How to set up a two-PC rollback match (developer settings until there is an options menu).</summary>
 public sealed record PeerMatchSettings
 {
-    /// <summary>UDP port this PC listens on. Ignored by relay transports.</summary>
+    /// <summary>UDP port this PC listens on. Relay transports (Steam) have no port and leave it at 0.</summary>
     public int LocalPort { get; init; }
 
     /// <summary>
