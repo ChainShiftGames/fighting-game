@@ -1,0 +1,16 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+TestResults/
+*.binlog
+
+# Godot
+.godot/
+/game/android/
+/game/build/
+*.translation
+mono_crash.*.json

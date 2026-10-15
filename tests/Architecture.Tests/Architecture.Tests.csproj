@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
+    <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
+    <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
+  </ItemGroup>
+</Project>

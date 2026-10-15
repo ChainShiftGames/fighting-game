@@ -1,0 +1,10 @@
+<Project>
+  <!-- Central package versions. Every package here needs an ADR (ARCHITECTURE.md §11). -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ADR-0012 -->
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+  </ItemGroup>
+</Project>

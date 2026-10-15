@@ -1,0 +1,12 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup>
+    <!-- Godot.NET.Sdk defaults to net8.0; we target the pinned LTS (ADR-0001). -->
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Netcode\Netcode.csproj" />
+    <ProjectReference Include="..\src\Platform.Steam\Platform.Steam.csproj" />
+    <ProjectReference Include="..\src\Sim.Data\Sim.Data.csproj" />
+  </ItemGroup>
+</Project>
