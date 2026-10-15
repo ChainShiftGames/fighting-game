@@ -83,14 +83,14 @@ Done when:
 - [ ] adding a Godot reference to `Sim` or a `Sim → Netcode` reference makes the tests fail
 
 ### P0-06 CI pipeline
-Status: in progress (p0-06-ci) · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
+Status: done · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
 Read: ADR-0006
 - **PR (Linux):** restore, build, format check, all tests.
 - **Nightly:** Windows build + Godot headless export for Windows and Linux (export templates cached).
 - **Manual (`workflow_dispatch`):** soak test job, placeholder until P2-12.
 
 Done when:
-- [ ] PRs show the check; nightly and manual jobs run successfully once
+- [x] PRs show the check; nightly and manual jobs run successfully once
 
 ### P0-07 Agent and team docs
 Status: done · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
