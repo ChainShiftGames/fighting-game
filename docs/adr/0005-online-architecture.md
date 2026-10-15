@@ -22,5 +22,5 @@
    shows "versions differ — update the game".
 7. **Replays:** a small binary file with a header (version, data hash, rules, characters, colours) and the
    compressed inputs.
-8. **Match rules** (toggleable mechanics) are locked during a match. Changing them in training restarts the
+8. **Match rules** (toggleable mechanics; developer settings, see ARCHITECTURE.md §6) are locked during a match. Changing them in training restarts the
    round. Online, both players see and accept the rules before the match.

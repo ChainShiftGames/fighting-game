@@ -15,6 +15,8 @@ consistently. Buffering decides how early a button press may come and still coun
 2. **Button buffer:** 2 frames by default, configurable.
 3. **Motion-input window:** a motion (236, 623, …) must be completed within 12 frames by default; separate
    from the button buffer and adjustable per motion.
-4. All values live in configuration data, not hard-coded, and are easy to tweak during development (no rebuild).
-   They are part of the match rules sent in the online handshake (ADR-0005) so both players resolve inputs
-   identically.
+4. **SOCD mode is a player setting.** It's applied on the player's own machine before the input word is created,
+   so it never needs syncing.
+5. **Button buffer and motion window are developer settings** in configuration data, easy to tweak during
+   development (no rebuild). They're part of the match rules compared in the online handshake (ADR-0005), so
+   both players resolve inputs identically. (See ARCHITECTURE.md §6 for developer vs player settings.)

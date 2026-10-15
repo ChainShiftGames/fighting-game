@@ -7,7 +7,7 @@
 
 1. We run our **own fixed 60 Hz loop** (not Godot's physics tick). Godot's frame callback only feeds it time.
 2. Controller input is read **immediately before** each logic frame, to keep input latency minimal.
-3. Display defaults to **60 fps with vsync on**; a setting turns vsync off for lower latency. On 120/144 Hz
+3. Display defaults to **60 fps with vsync on**; a player setting turns vsync off for lower latency. On 120/144 Hz
    screens the logic still runs at 60 Hz.
 4. Online, Backdash's time sync slightly adjusts pacing so both players stay in step.
 5. **Camera:** its horizontal position and the maximum distance between players are part of the game logic

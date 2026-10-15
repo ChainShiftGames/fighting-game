@@ -1,6 +1,7 @@
 # Fighting Game — Roadmap & Open Questions
 
-> Companion to [CURRENT_STATE.md](CURRENT_STATE.md). Decisions are recorded as ADRs in [docs/adr](docs/adr).
+> Companion to [CURRENT_STATE.md](CURRENT_STATE.md). Rules for all code: [ARCHITECTURE.md](ARCHITECTURE.md).
+> Decisions: [docs/adr](docs/adr). Actionable tasks per phase: [docs/phases](docs/phases/README.md).
 
 - Still to review later: Ikemen GO / MUGEN character format, Snopek's Godot rollback addon (frame-timing pitfalls),
   GDC "8 Frames in 16ms" (NetherRealm rollback), GDC 2015 Guilty Gear Xrd art talk, Infil's netcode article, Dustloop wiki.
@@ -19,6 +20,8 @@ Visual decisions never block gameplay work. DLC is far off and must not shape cu
 Each phase ends with exit criteria verified by humans playing, not just green CI.
 
 ### Phase 0 — Foundation & spikes
+
+Tasks: [docs/phases/phase-0.md](docs/phases/phase-0.md)
 
 - Repo structure, CI (GitHub Actions), CLAUDE.md files, ADRs, spec template, session-start hook.
 - `ARCHITECTURE.md` describing how the code is split and how one frame flows.
@@ -53,9 +56,11 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
   art lands. Claude proposes naming conventions in `CONVENTIONS.md`, the devs confirm, Claude follows them.
 
 **Open**
-- Contents of `ARCHITECTURE.md` (GAP-0): to be agreed with the devs before writing.
+- [ARCHITECTURE.md](ARCHITECTURE.md) (GAP-0): top-level rules drafted; to be reviewed by both devs.
 
 ### Phase 1 — Simulation core, placeholder art, offline
+
+Tasks: [docs/phases/phase-1.md](docs/phases/phase-1.md)
 
 - Integer math, entities, input layer (devices, remapping, SOCD) + motion parser, move state machine, base character,
   box collision, hit/block, hitstun/blockstun/hitstop, health, rounds, walls/corners, camera.
@@ -87,6 +92,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 2 — Online
 
+Tasks: [docs/phases/phase-2.md](docs/phases/phase-2.md)
+
 - Backdash integration behind our match interface; P2P over UDP (dev only), then over Steam (minimal lobby / friend invite).
 - Network simulator panel, desync detection + dumps, replays, input delay settings.
 - **Exit:** play each other online over Steam from different networks, feels good at ~100 ms; 1-hour bot-vs-bot soak without desync.
@@ -112,6 +119,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 3 — Systems & the Lab
 
+Tasks: [docs/phases/phase-3.md](docs/phases/phase-3.md)
+
 - Full module system: gatlings, counter/punish counter, proration, meter + supers, throws/tech, pushback guard,
   instant block, burst, Roman Cancel v1 + switchable variants, special button + dash button behaviour.
 - Training mode (frame meter, record/playback, savestates), control panel, character editor v1, simple CPU bot.
@@ -132,6 +141,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
   via reaction time; the same bot drives soak tests.
 
 ### Phase 4 — Vertical slice (most important milestone)
+
+Tasks: [docs/phases/phase-4.md](docs/phases/phase-4.md)
 
 - **Spike B (art)** first: VRoid model → Blender → Godot toon shader, 5 stepped animations, one palette swap. Tests
   whether Claude + Blender MCP + learning key-pose animation is viable; no-go → decide on outsourcing.
@@ -155,6 +166,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 5 — Roster & content
 
+Tasks: [docs/phases/phase-5.md](docs/phases/phase-5.md)
+
 - Characters 2–4 (each proves new engine features), 2–3 stages, music, palettes/costumes,
   menus, character select, settings, rebinding UI.
 - **Exit:** launch content complete; every character passes the uniqueness check.
@@ -171,6 +184,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 6 — Online features & Steam integration
 
+Tasks: [docs/phases/phase-6.md](docs/phases/phase-6.md)
+
 - Lobby UI (public/private), quick match via Steam matchmaking, rematch, replay browser.
 - Achievements, cloud saves, Steam Input, Steam Deck requirements (button glyphs, readable text at 1280×800, locked 60 fps).
 - CI exports Windows + Linux builds and uploads to a Steam beta branch automatically (SteamPipe / steamcmd).
@@ -184,6 +199,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 
 ### Phase 7 — Beta, polish, launch
 
+Tasks: [docs/phases/phase-7.md](docs/phases/phase-7.md)
+
 - Open Playtest; balance + netcode fixes from feedback; performance on Steam Deck.
 - Steam Next Fest demo — **OPEN** (Next Fest runs Feb/Jun/Oct; registration months ahead).
 - Release review (a few days), 1.0 launch.
@@ -193,6 +210,8 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 - Demo build: separate AppID, stripping unshipped content (GAP-44).
 
 ### Phase 8 — Post-launch
+
+Tasks: [docs/phases/phase-8.md](docs/phases/phase-8.md)
 
 - Ranked, spectators, additional (paid) characters, balance patches.
 - Replays record their game version; old replays play only on that version or are marked unsupported.
@@ -228,5 +247,5 @@ Each phase ends with exit criteria verified by humans playing, not just green CI
 6. Store page timing (proposal: right after the vertical slice).
 7. Final roster size and characters (after core works; proposal: 4 at launch).
 8. Art pipeline viability (answered by Spike B, now in Phase 4).
-9. Contents of `ARCHITECTURE.md` (GAP-0).
+9. Review of the [ARCHITECTURE.md](ARCHITECTURE.md) draft (GAP-0).
 10. Technical questions postponed to later phases: see each phase's **Later** list (GAP-53).
