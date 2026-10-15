@@ -47,6 +47,8 @@ Read: ADR-0001
 - Project references exactly as in ARCHITECTURE.md §2.
 - `Directory.Build.props`: nullable enabled, warnings as errors, pinned `LangVersion`, deterministic builds.
 - `.gitignore` for .NET + Godot; `data/` folder with a placeholder `README.md`.
+- Godot MCP addon (devs already use it) enabled in `game/` for development only: its addon folder and helper
+  autoload are excluded from every export preset.
 
 Done when:
 - [ ] `dotnet build` and `dotnet test` succeed on a clean clone

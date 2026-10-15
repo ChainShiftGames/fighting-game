@@ -22,6 +22,19 @@ Subagents don't see this conversation. Every subagent prompt must include:
 - The folders it may touch (the task's `Where:`), and that it must not touch anything else.
 - What to return: a short summary of changes and anything unresolved, not file contents.
 
+## Godot editor MCP (`godot-ai` tools)
+
+Both devs have the Godot MCP configured. Use it to raise quality on anything in `game/`: build and inspect scenes,
+run the project, read editor and game logs, take screenshots to verify visuals, check input mappings.
+- It needs a running Godot editor with the project open. Check with the session/editor-state tool first.
+- **Editor not open?** If you judge the MCP would clearly help the task (e.g. verifying a scene or visual result),
+  ask the human to open the editor and say why. Otherwise carry on by editing files directly.
+- The editor works on the folder it was opened from. When you work in a worktree, ask the human to open that
+  worktree's `game/` or say which checks still need doing after merge.
+- Not needed for `src/` work: game logic, netcode and Steam code are plain C# built and tested with `dotnet`.
+- Nothing may depend on it: cloud sessions and CI don't have it. Its addon and helper autoload are dev-only and
+  excluded from export presets.
+
 ## Writing docs (token budget)
 
 - One source of truth per fact: link to it, never copy it.
