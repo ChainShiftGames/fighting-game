@@ -40,7 +40,7 @@ Done when:
 - [x] ADR-0001 lists exact versions
 
 ### P0-02 Solution skeleton
-Status: todo · Needs: P0-01 · Parallel: no · Where: repo root, `src/`, `game/`, `tests/`, `tools/`
+Status: done · Needs: P0-01 · Parallel: no · Where: repo root, `src/`, `game/`, `tests/`, `tools/`
 Read: ADR-0001
 - Create `FightingGame.sln` with `src/Sim`, `src/Sim.Data`, `src/Netcode`, `src/Platform.Steam`, the Godot project
   in `game/`, `tests/Sim.Tests`, `tests/Architecture.Tests`, `tools/`.
@@ -51,8 +51,8 @@ Read: ADR-0001
   autoload are excluded from every export preset.
 
 Done when:
-- [ ] `dotnet build` and `dotnet test` succeed on a clean clone
-- [ ] Godot opens `game/` and builds the C# project
+- [x] `dotnet build` and `dotnet test` succeed on a clean clone
+- [x] Godot opens `game/` and builds the C# project
 
 ### P0-03 Code style and naming
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `.editorconfig`
