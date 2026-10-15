@@ -13,5 +13,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0007](0007-character-data-and-editor.md) | JSON character data, Godot editor plugin, frame meter data, in-memory savestates |
 | [0008](0008-presentation-direction.md) | Placeholders first, visual toggles, target look, Godot audio, accessibility incl. directional audio |
 | [0009](0009-architecture-tests.md) | ArchUnitNET tests enforcing dependency and module rules |
+| [0010](0010-attack-button-layout.md) | A B C D + Special + Dash, button set in data, 16-bit input word with spare bits |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

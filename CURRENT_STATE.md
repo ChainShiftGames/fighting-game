@@ -40,7 +40,7 @@
 - **Plus a GBVS-style special button** that performs specials without motion inputs, with a tunable trade-off
   (e.g. less damage or a cooldown). One shared scheme for everyone — **no separate "modern" control mode**.
 - **Dedicated dash button.**
-- Exact attack button layout (e.g. 4 buttons L/M/H/U vs GG-style 5) — **OPEN** (consulting Robin).
+- **Attack buttons: A, B, C, D** (plus Special and Dash). Defined in data so the layout can change later (ADR-0010).
 - Throw: forward/back + two buttons *(proposal)*, ~5f tech window.
 - Input buffer and leniency windows are tunable. Negative edge / button priority later.
 - **Full controller support:** remapping, SOCD cleaning (hitbox/leverless controllers), deadzones, input display.

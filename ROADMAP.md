@@ -87,8 +87,8 @@ Tasks: [docs/phases/phase-1.md](docs/phases/phase-1.md)
 **Open / Later**
 - **Hit resolution rules** (GAP-12, Later): same-frame trades, P1/P2 symmetry, throw vs strike priority. Kept
   configurable so both options stay possible.
-- **Attack button layout** (§8 Q3): blocks Testman's move list and the input format, so it should be decided before
-  this phase starts.
+- **Attack button layout** (§8 Q3): **decided**: A B C D + Special + Dash, defined in data so it stays open to
+  change ([ADR-0010](docs/adr/0010-attack-button-layout.md)).
 
 ### Phase 2 — Online
 
@@ -241,7 +241,7 @@ Tasks: [docs/phases/phase-8.md](docs/phases/phase-8.md)
 
 1. Signature hook mechanic.
 2. Setting, tone, name.
-3. Attack button layout. **Needed before Phase 1** (Testman's moves and the input format depend on it).
+3. ~~Attack button layout~~ **Decided:** A B C D, defined in data ([ADR-0010](docs/adr/0010-attack-button-layout.md)).
 4. Roman Cancel design + alternatives.
 5. Steam Next Fest demo: yes/no.
 6. Store page timing (proposal: right after the vertical slice).

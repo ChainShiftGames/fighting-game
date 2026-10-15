@@ -6,7 +6,6 @@ controllers, fully driven by data.
 **Exit (from ROADMAP):** both devs play local versus on controllers and it already feels responsive; CI green.
 
 **Before starting:**
-- Attack button layout decided (ROADMAP §8 Q3). Testman's moves and the input word depend on it.
 - Phase 0 exit passed.
 
 ```mermaid
@@ -68,16 +67,19 @@ Done when:
 
 ### P1-05 Input word and history
 Status: todo · Needs: P1-02 · Parallel: yes · Where: `src/Sim/Input/`
-Read: ADR-0002, CURRENT_STATE §3 Controls
-- 16-bit input word: 4 direction bits + buttons from the agreed layout (attack buttons, special, dash) + spare bits.
+Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
+- Button set loaded from data (`data/input/buttons.json`): A, B, C, D, Special, Dash. **Developer setting.**
+- 16-bit input word: 4 direction bits + 6 button bits from the button set + 6 spare bits.
+- No logic branches on a specific button name or count; everything goes through the button set.
 - Per-player input history in game state for motion detection and buffering.
 
 Done when:
-- [ ] layout documented in code and in the Phase 2 network docs
+- [ ] a scenario test with a 5-button set passes without code changes
+- [ ] input word layout documented in code
 
 ### P1-04 Device layer and SOCD
 Status: todo · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
-Read: ADR-0002, CURRENT_STATE §3 Controls
+Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Godot keyboard + joypad reading → per-player bindings → SOCD cleaning → input word.
 - SOCD mode: default left+right = neutral, up+down = up (ADR-0002). **Player setting.**
 - Bindings and deadzones: **player settings** (saved properly in Phase 5; a dev file is fine for now).
@@ -88,7 +90,7 @@ Done when:
 
 ### P1-06 Motion parser and buffer
 Status: todo · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
-Read: ADR-0002, CURRENT_STATE §3 Controls
+Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Data-driven motion definitions (236, 214, 623, 41236, 63214, 22, 236236, 632146).
 - Motion window 12 frames, button buffer 2 frames. **Developer settings**, part of the match rules.
 - Priority order when several motions match on the same frame, defined in data.
@@ -177,8 +179,9 @@ Read: ADR-0004
 
 ### P1-17 Testman
 Status: todo · Needs: P1-12 · Parallel: yes · Where: `data/characters/testman/`
-Read: ADR-0007, CURRENT_STATE §3 Controls/Offense
-- ~10 moves in JSON: light/medium/heavy normals, a low, an overhead, a projectile, a reversal, a super placeholder.
+Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
+- ~10 moves in JSON on the A/B/C/D buttons: standing and crouching normals, a low, an overhead, a projectile, a
+  reversal, a super placeholder.
 
 ### P1-18 Scenario test runner
 Status: todo · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
