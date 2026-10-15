@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Backdash" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Sim\Sim.csproj" />
   </ItemGroup>
 </Project>
