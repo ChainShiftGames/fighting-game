@@ -131,14 +131,14 @@ Done when:
   (`tests/Netcode.Tests/Drivers/SyncTestTests.cs`, run by the CI `Test` step)
 
 ### P0-12 Godot host and 60 Hz loop
-Status: todo · Needs: P0-11 · Parallel: no · Where: `game/`
+Status: done · Needs: P0-11 · Parallel: no · Where: `game/`
 Read: ADR-0004
 - Own fixed 60 Hz loop driven from Godot's frame callback (ADR-0004); devices read right before each logic frame.
 - Draw the two squares from state; vsync on by default (**player setting** to turn it off).
 - Input-latency counter prototype in a developer overlay (**developer setting**).
 
 Done when:
-- [ ] local two-player control on keyboard + controller at a steady 60 Hz on a 144 Hz monitor
+- [x] local two-player control on keyboard + controller at a steady 60 Hz on a 144 Hz monitor (checked by hand)
 
 ### P0-13 Two instances over UDP with simulated lag
 Status: todo · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
