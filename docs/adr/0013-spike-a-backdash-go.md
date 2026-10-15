@@ -58,7 +58,8 @@ it. ADR-0001 pinned Backdash 0.7.8-preview and asked for this go/no-go. Rules it
 
 - Phase 1 builds the real simulation on the current drivers; SyncTest and the peer tests stay in every PR.
 - Follow-ups before the Phase 0 exit:
-  - Steam Deck benchmark run (P0-14 manual step); add its numbers here.
+  - Steam Deck benchmark run (P0-14 manual step); add its numbers here. Deferred: neither dev has a Steam Deck;
+    run it once one is available.
   - ~~Measure Backdash's per-frame cost and allocations through `RollbackMatchDriver`, in the benchmark.~~ Done:
     `--backdash` in `tools/Benchmarks` (Measurements); include it in the Deck run.
 - Later: tune Godot's frame queue for vsync latency (ADR-0004 §6), automatic input delay (ADR-0005 §4), desync
