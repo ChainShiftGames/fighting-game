@@ -17,6 +17,8 @@ public sealed class SteamPlatform : IPlatformServices
 
     public string PlayerName { get; }
 
+    public IMatchmaking? OpenMatchmaking() => new SteamLobbyMatchmaking(_session);
+
     public void Update() => _session.RunCallbacks();
 
     public void Dispose() => _session.Dispose();

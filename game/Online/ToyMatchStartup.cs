@@ -1,50 +1,55 @@
 using System.Globalization;
 using FightingGame.Input;
-using Godot;
 using Netcode.Drivers;
 using Netcode.Online;
 using Sim.Toy;
 
 namespace FightingGame.Online;
 
-/// <summary>Sets up the Spike A toy match: local two-player by default, online when the command line asks for it.</summary>
-public static class ToyMatchStartup
+/// <summary>Builds the Spike A toy match: local two-player, or online against one other PC.</summary>
+public sealed class ToyMatchStartup
 {
-    public static ToyMatch Create(ToyRules rules, string[] args, float stickDeadzone)
+    private readonly ToyRules _rules;
+    private readonly float _stickDeadzone;
+
+    /// <param name="stickDeadzone">Stick travel before it counts as a direction (player setting).</param>
+    public ToyMatchStartup(ToyRules rules, float stickDeadzone)
     {
-        var simulation = new ToyMatchSimulation(new ToySimulation(rules));
-        PeerMatchSettings? online = OnlineLaunchOptions.Parse(args, out string error);
-        if (error.Length > 0)
-        {
-            GD.PushError($"Ignoring online options, starting a local match: {error}");
-        }
+        _rules = rules;
+        _stickDeadzone = stickDeadzone;
+    }
 
-        if (online is null)
-        {
-            PlayerInputReader[] localPlayers =
-            [
-                new(new KeyboardDevice(KeyboardLayout.Player1Default), new GamepadDevice(0, stickDeadzone)),
-                new(new KeyboardDevice(KeyboardLayout.Player2Default), new GamepadDevice(1, stickDeadzone)),
-            ];
-            return new ToyMatch(new LocalMatchDriver<ToyState>(simulation), localPlayers, "local", IsOnline: false);
-        }
+    public ToyMatch CreateLocal()
+    {
+        PlayerInputReader[] players =
+        [
+            new(new KeyboardDevice(KeyboardLayout.Player1Default), new GamepadDevice(0, _stickDeadzone)),
+            new(new KeyboardDevice(KeyboardLayout.Player2Default), new GamepadDevice(1, _stickDeadzone)),
+        ];
+        return new ToyMatch(new LocalMatchDriver<ToyState>(Simulation()), players, "local", IsOnline: false);
+    }
 
+    /// <param name="opponentName">Shown in the overlay; the address when there is no name.</param>
+    public ToyMatch CreateOnline(PeerMatchSettings settings, PeerTransport transport, string opponentName)
+    {
         // One player on this PC, on either keyboard layout or the first gamepad.
-        PlayerInputReader[] onlinePlayer =
+        PlayerInputReader[] player =
         [
             new(
                 new KeyboardDevice(KeyboardLayout.Player1Default),
                 new KeyboardDevice(KeyboardLayout.Player2Default),
-                new GamepadDevice(0, stickDeadzone)),
+                new GamepadDevice(0, _stickDeadzone)),
         ];
-        var driver = new RollbackMatchDriver<ToyState>(simulation, PeerSession.Build<ToyState>(online));
-        return new ToyMatch(driver, onlinePlayer, Describe(online), IsOnline: true);
+        IMatchDriver<ToyState> driver = PeerSession.CreateDriver(Simulation(), settings, transport);
+        return new ToyMatch(driver, player, Describe(settings, opponentName), IsOnline: true);
     }
 
-    private static string Describe(PeerMatchSettings online) => string.Create(
+    private ToyMatchSimulation Simulation() => new(new ToySimulation(_rules));
+
+    private static string Describe(PeerMatchSettings settings, string opponentName) => string.Create(
         CultureInfo.InvariantCulture,
-        $"online P{(online.LocalIsPlayer1 ? 1 : 2)} :{online.LocalPort} -> {online.RemoteEndPoint}, " +
-        $"rollback {online.RollbackFrames} f, delay {online.InputDelayFrames} f, " +
-        $"sim {online.NetworkSimulation.PingMilliseconds} ms ±{online.NetworkSimulation.JitterMilliseconds} ms " +
-        $"{online.NetworkSimulation.PacketLossPercent} % loss");
+        $"online P{(settings.LocalIsPlayer1 ? 1 : 2)} vs {opponentName}, " +
+        $"rollback {settings.RollbackFrames} f, delay {settings.InputDelayFrames} f, " +
+        $"sim {settings.NetworkSimulation.PingMilliseconds} ms ±{settings.NetworkSimulation.JitterMilliseconds} ms " +
+        $"{settings.NetworkSimulation.PacketLossPercent} % loss");
 }

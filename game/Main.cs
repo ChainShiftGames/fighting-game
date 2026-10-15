@@ -32,12 +32,15 @@ public partial class Main : Node2D
     private readonly PlayerSettingsStore _settingsStore = new(PlayerSettingsPath);
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
+    private readonly ToyRules _rules = ToyRules.Default;
     private PlayerSettings _settings = new();
+    private MatchLauncher? _launcher;
     private ToyMatch? _match;
     private MatchLoop<ToyState>? _loop;
     private ToyMatchView? _view;
     private DeveloperOverlay? _overlay;
     private MatchStatusLabel? _status;
+    private MatchmakingMenu? _matchmakingMenu;
     private IPlatformServices? _platform;
     private bool _stopped;
     private bool _wasWaiting = true;
@@ -48,15 +51,8 @@ public partial class Main : Node2D
         _settings = _settingsStore.Load();
         ApplyVsync();
 
-        ToyRules rules = ToyRules.Default;
-        _match = ToyMatchStartup.Create(rules, OS.GetCmdlineUserArgs(), StickDeadzone);
-        GD.Print($"Match: {_match.Description}");
-        _loop = new MatchLoop<ToyState>(
-            new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), _match.Driver, _match.LocalPlayers, _latency);
-
         _view = new ToyMatchView();
         AddChild(_view);
-        _view.Show(_match.Driver, rules);
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
@@ -68,12 +64,31 @@ public partial class Main : Node2D
         _status = new MatchStatusLabel();
         AddChild(_status);
 
+        _matchmakingMenu = new MatchmakingMenu { Visible = false };
+        AddChild(_matchmakingMenu);
+
+        _launcher = new MatchLauncher(new ToyMatchStartup(_rules, StickDeadzone), _platform, OS.GetCmdlineUserArgs());
+        if (_launcher.Matchmaking is { } matchmaking)
+        {
+            _matchmakingMenu.Show(matchmaking);
+        }
+
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
 
     public override void _Process(double delta)
     {
         _platform!.Update();
+        if (_match is null && _launcher!.TakeReadyMatch() is { } ready)
+        {
+            StartMatch(ready);
+        }
+
+        if (_match is null)
+        {
+            return;
+        }
+
         long now = Stopwatch.GetTimestamp();
         int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
@@ -85,7 +100,7 @@ public partial class Main : Node2D
         if (_overlay!.Visible)
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
-            _overlay.ShowMatch(_match!.Description, _match.Driver.CurrentFrame);
+            _overlay.ShowMatch(_match.Description, _match.Driver.CurrentFrame);
         }
     }
 
@@ -111,8 +126,13 @@ public partial class Main : Node2D
     public override void _ExitTree()
     {
         RenderingServer.FramePostDraw -= OnFramePostDraw;
-        GD.Print($"Match ended at frame {_match?.Driver.CurrentFrame}.");
-        _match?.Driver.Dispose();
+        if (_match is not null)
+        {
+            GD.Print($"Match ended at frame {_match.Driver.CurrentFrame}.");
+            _match.Driver.Dispose();
+        }
+
+        _launcher?.Dispose();
         _platform?.Dispose();
     }
 
@@ -144,6 +164,16 @@ public partial class Main : Node2D
             _status!.Show($"DESYNC — match stopped\n{desync.Message}");
             return 0;
         }
+    }
+
+    private void StartMatch(ToyMatch match)
+    {
+        _match = match;
+        GD.Print($"Match: {match.Description}");
+        _loop = new MatchLoop<ToyState>(
+            new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), match.Driver, match.LocalPlayers, _latency);
+        _view!.Show(match.Driver, _rules);
+        _matchmakingMenu!.Visible = false;
     }
 
     private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());

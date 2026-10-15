@@ -181,13 +181,15 @@ Done when:
   checks that each export ships its Steam libraries
 
 ### P0-21 Steam relay transport
-Status: todo · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
+Status: done · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
 Read: ADR-0005
 - Implement the Backdash transport over Steam Networking Messages (relay). Unreliable channel for inputs.
 - Friend invite → connect → toy-sim match.
 
 Done when:
-- [ ] two devs on different networks play the toy sim over Steam without exchanging IP addresses
+- [x] two devs on different networks play the toy sim over Steam without exchanging IP addresses (two PCs on
+  separate home networks, `FightingGame.exe -- --steam` with AppID 480, friends-only lobby joined through a Steam
+  invite; felt smooth; port-0 transport covered by `PortlessTransportTests`)
 
 ### P0-22 Steam spike decision
 Status: todo · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
