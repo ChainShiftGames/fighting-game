@@ -141,7 +141,7 @@ Done when:
 - [x] local two-player control on keyboard + controller at a steady 60 Hz on a 144 Hz monitor (checked by hand)
 
 ### P0-13 Two instances over UDP with simulated lag
-Status: todo · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
+Status: in progress (p0-13-udp-lag) · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
 Read: ADR-0003, ADR-0005
 - Backdash peer session over UDP between two instances (same PC and two PCs).
 - Simulated latency, jitter and loss (Backdash options if available, otherwise a lag-injecting transport wrapper).

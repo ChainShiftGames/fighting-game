@@ -1,19 +1,19 @@
 using System.Diagnostics;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
-using FightingGame.Input;
 using FightingGame.Loop;
+using FightingGame.Online;
 using FightingGame.Platform;
 using FightingGame.Presentation;
 using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
-using Netcode.Drivers;
+using Netcode.Desync;
 using Sim.Toy;
 
 namespace FightingGame;
 
-/// <summary>Startup for the Spike A local match: builds the pieces, then feeds the loop time each displayed frame.</summary>
+/// <summary>Startup for the Spike A toy match: builds the pieces, then feeds the loop time each displayed frame.</summary>
 public partial class Main : Node2D
 {
     private const string PlayerSettingsPath = "user://player_settings.json";
@@ -33,11 +33,14 @@ public partial class Main : Node2D
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
     private PlayerSettings _settings = new();
-    private LocalMatchDriver<ToyState>? _driver;
+    private ToyMatch? _match;
     private MatchLoop<ToyState>? _loop;
     private ToyMatchView? _view;
     private DeveloperOverlay? _overlay;
+    private MatchStatusLabel? _status;
     private IPlatformServices? _platform;
+    private bool _stopped;
+    private bool _wasWaiting = true;
 
     public override void _Ready()
     {
@@ -46,18 +49,14 @@ public partial class Main : Node2D
         ApplyVsync();
 
         ToyRules rules = ToyRules.Default;
-        _driver = new LocalMatchDriver<ToyState>(new ToyMatchSimulation(new ToySimulation(rules)));
-        PlayerInputReader[] players =
-        [
-            new(new KeyboardDevice(KeyboardLayout.Player1Default), new GamepadDevice(0, StickDeadzone)),
-            new(new KeyboardDevice(KeyboardLayout.Player2Default), new GamepadDevice(1, StickDeadzone)),
-        ];
+        _match = ToyMatchStartup.Create(rules, OS.GetCmdlineUserArgs(), StickDeadzone);
+        GD.Print($"Match: {_match.Description}");
         _loop = new MatchLoop<ToyState>(
-            new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), _driver, players, _latency);
+            new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), _match.Driver, _match.LocalPlayers, _latency);
 
         _view = new ToyMatchView();
         AddChild(_view);
-        _view.Show(_driver, rules);
+        _view.Show(_match.Driver, rules);
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
@@ -66,6 +65,9 @@ public partial class Main : Node2D
         AddChild(playerName);
         playerName.Show(_platform);
 
+        _status = new MatchStatusLabel();
+        AddChild(_status);
+
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
 
@@ -73,7 +75,7 @@ public partial class Main : Node2D
     {
         _platform!.Update();
         long now = Stopwatch.GetTimestamp();
-        int framesRun = _loop!.Advance(now);
+        int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
         if (framesRun > 0)
         {
@@ -83,6 +85,7 @@ public partial class Main : Node2D
         if (_overlay!.Visible)
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
+            _overlay.ShowMatch(_match!.Description, _match.Driver.CurrentFrame);
         }
     }
 
@@ -108,8 +111,39 @@ public partial class Main : Node2D
     public override void _ExitTree()
     {
         RenderingServer.FramePostDraw -= OnFramePostDraw;
-        _driver?.Dispose();
+        GD.Print($"Match ended at frame {_match?.Driver.CurrentFrame}.");
+        _match?.Driver.Dispose();
         _platform?.Dispose();
+    }
+
+    // A desync stops the match and stays on screen: it is never hidden or corrected (ARCHITECTURE.md §8).
+    private int RunDueFrames(long now)
+    {
+        if (_stopped)
+        {
+            return 0;
+        }
+
+        try
+        {
+            int framesRun = _loop!.Advance(now);
+            bool waiting = _match!.IsOnline && _match.Driver.CurrentFrame == 0;
+            if (_wasWaiting && !waiting)
+            {
+                GD.Print("Match running.");
+            }
+
+            _wasWaiting = waiting;
+            _status!.Show(waiting ? "Waiting for the other player…" : string.Empty);
+            return framesRun;
+        }
+        catch (DesyncDetectedException desync)
+        {
+            _stopped = true;
+            GD.PushError($"Desync: {desync.Message}");
+            _status!.Show($"DESYNC — match stopped\n{desync.Message}");
+            return 0;
+        }
     }
 
     private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
