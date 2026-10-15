@@ -111,14 +111,14 @@ Done when:
 ## B. Spike A — netcode
 
 ### P0-10 Toy simulation
-Status: todo · Needs: P0-04 · Parallel: no · Where: `src/Sim/`
+Status: done · Needs: P0-04 · Parallel: no · Where: `src/Sim/`
 Read: ADR-0003
 - Two squares that move left/right/jump from an input word. Integer positions (1 px = 1000 units).
 - Flat, fixed-size state struct; `Tick(inputs)`; snapshot = copy; checksum = hash over state bytes.
 - Zero allocations per tick.
 
 Done when:
-- [ ] tests: same inputs → same checksum; save/restore round-trip is identical
+- [x] tests: same inputs → same checksum; save/restore round-trip is identical
 
 ### P0-11 Match driver interface + SyncTest
 Status: todo · Needs: P0-10 · Parallel: no · Where: `src/Netcode/`, `tests/`
