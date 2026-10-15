@@ -6,6 +6,11 @@ namespace Netcode.Desync;
 /// <remarks>Never caught to carry on: a desync is always reported, never hidden (ARCHITECTURE.md §8).</remarks>
 public sealed class DesyncDetectedException : Exception
 {
+    public DesyncDetectedException(string message)
+        : base(message)
+    {
+    }
+
     public DesyncDetectedException(string message, Exception innerException)
         : base(message, innerException)
     {

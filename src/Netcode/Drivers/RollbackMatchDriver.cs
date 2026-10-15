@@ -20,6 +20,8 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
     private readonly NetcodePlayer[] _localPlayers;
     private TState _state;
     private int _currentFrame;
+    private int _framesToWait;
+    private string? _desync;
 
     public RollbackMatchDriver(IMatchSimulation<TState> simulation, INetcodeSession<InputWord> session)
     {
@@ -43,6 +45,18 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
         try
         {
             _session.BeginFrame();
+            if (_desync is not null)
+            {
+                throw new DesyncDetectedException(_desync);
+            }
+
+            // Time sync: this PC is ahead of the other one, so it waits a frame for it to catch up (ADR-0004 §4).
+            if (_framesToWait > 0)
+            {
+                _framesToWait--;
+                return false;
+            }
+
             for (int i = 0; i < _localPlayers.Length; i++)
             {
                 InputWord input = localInputs[i];
@@ -82,14 +96,17 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
     {
     }
 
-    // Frame pacing belongs to the host's 60 Hz loop; online time sync is P0-13.
-    void INetcodeSessionHandler.TimeSync(FrameSpan framesAhead)
-    {
-    }
+    void INetcodeSessionHandler.TimeSync(FrameSpan framesAhead) => _framesToWait = framesAhead.Frames;
 
-    // Connection events matter from P0-13 (online play).
+    // Raised from Backdash's callback, thrown from the host's next frame so the host sees it (ARCHITECTURE.md §8).
     void INetcodeSessionHandler.OnPeerEvent(NetcodePlayer player, in PeerEventInfo evt)
     {
+        if (evt.Type == PeerEvent.ChecksumMismatch)
+        {
+            ChecksumMismatchEventInfo mismatch = evt.ChecksumMismatch;
+            _desync = $"Checksums differ at frame {mismatch.MismatchFrame.Number}: " +
+                $"this PC {mismatch.LocalChecksum}, other PC {mismatch.RemoteChecksum}.";
+        }
     }
 
     private bool RunSynchronizedFrame()
