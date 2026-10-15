@@ -4,10 +4,10 @@ using Netcode.Online;
 
 namespace Platform.Steam.Transport;
 
-/// <summary>The Steam relay as a peer transport for one opponent.</summary>
+/// <summary>Steam Networking Messages as a peer transport for one opponent.</summary>
 public static class SteamTransport
 {
-    public static PeerTransport For(ulong opponentSteamId) => new(new SocketFactory(opponentSteamId));
+    public static PeerTransport For(ulong opponentSteamId) => new(new SocketFactory(opponentSteamId), new SteamSessionLink(opponentSteamId));
 
     private sealed class SocketFactory(ulong opponentSteamId) : IPeerSocketFactory
     {

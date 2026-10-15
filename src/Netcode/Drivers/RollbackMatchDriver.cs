@@ -3,6 +3,7 @@ using Backdash;
 using Backdash.Core;
 using Backdash.Serialization;
 using Netcode.Desync;
+using Netcode.Online;
 using Sim.Input;
 
 namespace Netcode.Drivers;
@@ -22,6 +23,10 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
     private int _currentFrame;
     private int _framesToWait;
     private string? _desync;
+    private int _rollbacks;
+    private long _rolledBackFrames;
+    private int _longestRollbackFrames;
+    private int _framesInThisRollback;
 
     public RollbackMatchDriver(IMatchSimulation<TState> simulation, INetcodeSession<InputWord> session)
     {
@@ -74,6 +79,30 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
         }
     }
 
+    /// <summary>
+    /// Reads Backdash's network stats for the other player plus the rollbacks so far. False when there is no other
+    /// player (SyncTest) or no reading yet.
+    /// </summary>
+    public bool TryReadConnection(out ConnectionStats stats)
+    {
+        if (!_session.TryGetRemotePlayer(out NetcodePlayer? remote) || !_session.UpdateNetworkStats(remote))
+        {
+            stats = default;
+            return false;
+        }
+
+        PeerNetworkStats network = remote.NetworkStats;
+        stats = new ConnectionStats(
+            (int)network.Ping.TotalMilliseconds,
+            network.LocalFramesBehind.Frames,
+            network.RemoteFramesBehind.Frames,
+            network.PendingInputCount,
+            _rollbacks,
+            _rolledBackFrames,
+            _longestRollbackFrames);
+        return true;
+    }
+
     public void Dispose() => _session.Dispose();
 
     void INetcodeSessionHandler.SaveState(Frame frame, ref readonly BinaryBufferWriter writer) =>
@@ -86,7 +115,22 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
     }
 
     // Backdash resimulates a frame during a rollback.
-    void INetcodeSessionHandler.AdvanceFrame() => RunSynchronizedFrame();
+    void INetcodeSessionHandler.AdvanceFrame()
+    {
+        _framesInThisRollback++;
+        RunSynchronizedFrame();
+    }
+
+    // A rollback's length is counted in resimulated frames: by the time Backdash calls BeginRollback the current
+    // frame already equals the frame it passes, so the numbers there don't show how far back it went.
+    void INetcodeSessionHandler.BeginRollback(Frame frame) => _framesInThisRollback = 0;
+
+    void INetcodeSessionHandler.EndRollback(Frame frame)
+    {
+        _rollbacks++;
+        _rolledBackFrames += _framesInThisRollback;
+        _longestRollbackFrames = Math.Max(_longestRollbackFrames, _framesInThisRollback);
+    }
 
     void INetcodeSessionHandler.OnSessionStart()
     {

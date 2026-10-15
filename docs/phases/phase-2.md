@@ -40,7 +40,7 @@ Read: ADR-0003, ADR-0005
 ### P2-03 Transports
 Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Transport/`, `src/Platform.Steam/`
 Read: ADR-0005
-- `ITransport`: direct UDP (development only) and Steam relay (from Spike C, hardened).
+- `ITransport`: direct UDP (development only) and Steam Networking Messages (from Spike C, hardened; ADR-0014).
 - Malformed or oversized packets are dropped and counted.
 
 ### P2-04 Minimal Steam lobby
