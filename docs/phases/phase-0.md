@@ -93,7 +93,7 @@ Done when:
 - [ ] PRs show the check; nightly and manual jobs run successfully once
 
 ### P0-07 Agent and team docs
-Status: in progress (p0-07-agent-docs) · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
+Status: done · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
 Read: docs/phases/README.md
 - Root `CLAUDE.md` already exists (imports ARCHITECTURE.md, context-finding and subagent rules). Fill in its
   **Commands** section with the real build/test/format commands; keep it short.
@@ -105,8 +105,8 @@ Read: docs/phases/README.md
 - Optional SessionStart hook running `dotnet restore` for cloud sessions (no reminder needed: CLAUDE.md is loaded).
 
 Done when:
-- [ ] both devs approved CONVENTIONS.md
-- [ ] a fresh agent session can build and test using only what CLAUDE.md says
+- [x] both devs approved CONVENTIONS.md
+- [x] a fresh agent session can build and test using only what CLAUDE.md says
 
 ## B. Spike A — netcode
 
