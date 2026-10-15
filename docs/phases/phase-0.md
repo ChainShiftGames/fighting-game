@@ -75,12 +75,12 @@ Done when:
 - [ ] using `float`, `System.Random`, `DateTime` or LINQ in `Sim` fails the build (one test file proving each)
 
 ### P0-05 Architecture tests
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `tests/Architecture.Tests/`
+Status: done · Needs: P0-02 · Parallel: yes · Where: `tests/Architecture.Tests/`
 Read: ADR-0009
 - Implement the checks listed in ADR-0009 with ArchUnitNET.
 
 Done when:
-- [ ] adding a Godot reference to `Sim` or a `Sim → Netcode` reference makes the tests fail
+- [x] adding a Godot reference to `Sim` or a `Sim → Netcode` reference makes the tests fail
 
 ### P0-06 CI pipeline
 Status: done · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
