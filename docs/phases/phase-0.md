@@ -170,13 +170,14 @@ Read: ADR-0003, ADR-0005
 ## C. Spike C — Steam
 
 ### P0-20 Steam initialisation
-Status: in progress (p0-20-steam-init) · Needs: P0-11 · Parallel: yes · Where: `src/Platform.Steam/`, `game/`
+Status: done · Needs: P0-11 · Parallel: yes · Where: `src/Platform.Steam/`, `game/`
 Read: ADR-0005
 - Steamworks.NET with test AppID 480; native Steam libraries copied next to the game executable.
 - The game must still run without Steam (dev/test).
 
 Done when:
-- [ ] game starts with Steam running (shows the user name) and without Steam (falls back cleanly)
+- [x] game starts with Steam running (shows the user name) and without Steam (falls back cleanly); nightly export
+  checks that each export ships its Steam libraries
 
 ### P0-21 Steam relay transport
 Status: todo · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
