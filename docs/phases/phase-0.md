@@ -29,15 +29,15 @@ graph LR
 ## A. Repo and tooling
 
 ### P0-01 Pin the toolchain
-Status: todo · Needs: — · Parallel: no · Where: `global.json`, `docs/adr/0001-*.md`
+Status: done · Needs: — · Parallel: no · Where: `global.json`, `docs/adr/0001-*.md`
 Read: ADR-0001
 - Choose the latest stable Godot 4.x .NET release and the .NET LTS SDK it supports.
 - Add `global.json` pinning the SDK; record exact Godot, .NET, C# and Backdash versions in ADR-0001.
 - Confirm Godot .NET can export Windows and Linux builds with that version.
 
 Done when:
-- [ ] `dotnet --version` in the repo matches `global.json`
-- [ ] ADR-0001 lists exact versions
+- [x] `dotnet --version` in the repo matches `global.json`
+- [x] ADR-0001 lists exact versions
 
 ### P0-02 Solution skeleton
 Status: todo · Needs: P0-01 · Parallel: no · Where: repo root, `src/`, `game/`, `tests/`, `tools/`
