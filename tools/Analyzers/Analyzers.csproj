@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Roslyn analyzers for the determinism rules BannedApiAnalyzers can't express (ADR-0003).
+       Sim uses this as a build-time analyzer only, never as a runtime reference (ADR-0009). -->
+  <PropertyGroup>
+    <!-- Every Roslyn host (dotnet build, IDEs) can load netstandard2.0 analyzers. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsPackable>false</IsPackable>
+    <!-- RS2008: release tracking is for analyzers shipped as NuGet packages; these stay in the repo. -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Microsoft.CodeAnalysis.CSharp is pinned to the same Roslyn baseline as BannedApiAnalyzers (4.12), so any
+         compiler or IDE that runs those also runs these. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

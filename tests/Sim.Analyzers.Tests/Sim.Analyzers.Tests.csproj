@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Proves the determinism bans on Sim (ADR-0003): compiles snippets with Sim's analyzers and BannedSymbols.txt. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <!-- Only downloaded, not applied to this project: the tests load its analyzer DLLs themselves. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers"
+                      GeneratePathProperty="true"
+                      IncludeAssets="none"
+                      PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Analyzers\Analyzers.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgMicrosoft_CodeAnalysis_BannedApiAnalyzers)\analyzers\dotnet\cs\*.dll"
+          Link="BannedApiAnalyzers\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\Sim\BannedSymbols.txt" Link="BannedSymbols.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
