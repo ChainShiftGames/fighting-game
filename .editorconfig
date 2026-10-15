@@ -1,0 +1,145 @@
+# Code style for the whole repo (P0-03). Naming follows ARCHITECTURE.md §5; violations fail the build
+# (EnforceCodeStyleInBuild + TreatWarningsAsErrors in Directory.Build.props). CI checks formatting with
+# `dotnet format --verify-no-changes`.
+root = true
+
+# Files we own. end_of_line is deliberately not set: git normalises line endings on checkout.
+[*.{cs,csx,csproj,props,targets,json,md,yml,yaml,xml,ps1,sh}]
+charset = utf-8
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,props,targets,json,yml,yaml,xml}]
+indent_size = 2
+
+[*.md]
+# Trailing double spaces are a Markdown line break.
+trim_trailing_whitespace = false
+
+[*.{cs,csx}]
+indent_size = 4
+max_line_length = 120
+
+# ---------- Naming (ARCHITECTURE.md §5) ----------
+# Rule order: most specific first.
+
+dotnet_diagnostic.IDE1006.severity = error
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.i_pascal_case.capitalization = pascal_case
+dotnet_naming_style.i_pascal_case.required_prefix = I
+
+dotnet_naming_style.t_pascal_case.capitalization = pascal_case
+dotnet_naming_style.t_pascal_case.required_prefix = T
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+# Constants (fields and locals): PascalCase, e.g. MaxRollbackFrames.
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_rule.constants_are_pascal_case.symbols = constants
+dotnet_naming_rule.constants_are_pascal_case.style = pascal_case
+dotnet_naming_rule.constants_are_pascal_case.severity = error
+
+# Private fields (including static readonly): _camelCase, e.g. _inputHistory.
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_rule.private_fields_are_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_are_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = error
+
+# Non-private fields: PascalCase, e.g. public int Hitstun.
+dotnet_naming_symbols.non_private_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_fields.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_rule.non_private_fields_are_pascal_case.symbols = non_private_fields
+dotnet_naming_rule.non_private_fields_are_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_fields_are_pascal_case.severity = error
+
+# Interfaces: I + PascalCase, e.g. IMatchDriver.
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_rule.interfaces_are_i_pascal_case.symbols = interfaces
+dotnet_naming_rule.interfaces_are_i_pascal_case.style = i_pascal_case
+dotnet_naming_rule.interfaces_are_i_pascal_case.severity = error
+
+# Type parameters: T + PascalCase, e.g. TModule.
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_rule.type_parameters_are_t_pascal_case.symbols = type_parameters
+dotnet_naming_rule.type_parameters_are_t_pascal_case.style = t_pascal_case
+dotnet_naming_rule.type_parameters_are_t_pascal_case.severity = error
+
+# Types and members: PascalCase, e.g. HitResolver, ResolveHits().
+dotnet_naming_symbols.types_and_members.applicable_kinds = namespace, class, struct, enum, delegate, method, property, event, local_function
+dotnet_naming_symbols.types_and_members.applicable_accessibilities = *
+dotnet_naming_rule.types_and_members_are_pascal_case.symbols = types_and_members
+dotnet_naming_rule.types_and_members_are_pascal_case.style = pascal_case
+dotnet_naming_rule.types_and_members_are_pascal_case.severity = error
+
+# Locals and parameters: camelCase, e.g. frameIndex.
+dotnet_naming_symbols.locals_and_parameters.applicable_kinds = local, parameter
+dotnet_naming_rule.locals_and_parameters_are_camel_case.symbols = locals_and_parameters
+dotnet_naming_rule.locals_and_parameters_are_camel_case.style = camel_case
+dotnet_naming_rule.locals_and_parameters_are_camel_case.severity = error
+
+# ---------- Layout ----------
+
+# Allman braces, the .NET default.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+# ---------- Style (enforced in build) ----------
+
+# Usings: System first, outside the namespace.
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_diagnostic.IDE0065.severity = warning
+
+# File-scoped namespaces: one less indentation level everywhere.
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_diagnostic.IDE0161.severity = warning
+
+# Always use braces, even for one-line ifs.
+csharp_prefer_braces = true:warning
+dotnet_diagnostic.IDE0011.severity = warning
+
+# Always write accessibility modifiers.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_diagnostic.IDE0040.severity = warning
+
+# Language keywords over framework names (int, not Int32).
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+dotnet_diagnostic.IDE0049.severity = warning
+
+# No `this.` qualification; the _camelCase prefix already marks fields.
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+dotnet_diagnostic.IDE0003.severity = warning
+
+# ---------- Not ours / generated: never format or lint ----------
+
+[{game/addons/**,game/.godot/**,**/obj/**,**/bin/**}]
+generated_code = true
+charset = unset
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+max_line_length = unset
