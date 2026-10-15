@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Speed and allocation benchmark for the game logic (ADR-0003, P0-14). Hand-rolled: no benchmark package has
+       an ADR. Run in Release; see README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
+  </ItemGroup>
+</Project>

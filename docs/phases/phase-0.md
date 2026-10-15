@@ -151,7 +151,7 @@ Done when:
 - [ ] playable at 100 ms / ±20 ms / 2 % loss without desync for 10 minutes
 
 ### P0-14 Speed and allocation benchmarks
-Status: todo · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
+Status: in progress (p0-14-benchmarks) · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
 Read: ADR-0003
 - Measure one tick, 8-frame resimulation, snapshot save/load and checksum; report allocations.
 - Add to CI with a threshold; record a manual run on a Steam Deck.
