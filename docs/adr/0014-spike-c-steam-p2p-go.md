@@ -35,7 +35,9 @@ over 150–180 s on both PCs. Steam chose a **direct** route (see Problems 1).
 3. **Steam IDs ride in Backdash's `SocketAddress` padding** (Backdash identifies peers by address bytes). Works with
    0.7.8-preview; a Backdash upgrade must rerun `PortlessTransportTests` and a Steam match.
 4. **Backdash's ping is ~20 ms above Steam's.** Likely frame-paced handling: each side reads packets once per 16.7 ms
-   frame. Not broken down yet; matters for the automatic input delay (ADR-0005 §4), which should use Backdash's ping.
+   frame. Single readings can also be far *below* the real round trip (4–5 ms first samples in the match; 8 ms in a
+   CI run with 100 ms simulated). Not broken down yet; matters for the automatic input delay (ADR-0005 §4), which
+   should use Backdash's ping averaged over time, never one reading.
 5. **Invites only reach a running game.** Under AppID 480 Steam can't launch the game into a lobby; the launch
    argument (`+connect_lobby`) isn't handled yet.
 6. **AppID 480 is shared** (Spacewar): fine between the devs, not for outside playtests.
