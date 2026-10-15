@@ -12,7 +12,9 @@ between modules). Review alone won't reliably catch it.
 
 1. Add a `tests/Architecture.Tests` project using **ArchUnitNET** (Apache-2.0, free for commercial use).
 2. It runs with the normal tests on every PR and checks:
-   - project dependency directions match ARCHITECTURE.md §2;
+   - compiled assembly references match the runtime dependency graph in ARCHITECTURE.md §2 (build-time analyzer
+     references are not runtime dependencies and are not checked);
+   - `Sim` reads gameplay settings only from `MatchRules` (ADR-0011);
    - `Sim` and `Netcode` have no Godot references;
    - the `Sim` core doesn't reference any module namespace;
    - modules don't reference each other;

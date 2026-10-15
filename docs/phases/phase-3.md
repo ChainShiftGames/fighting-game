@@ -4,7 +4,7 @@
 a simple CPU opponent.
 
 **Exit (from ROADMAP):** Testman has the full system kit; a new move can be created in the editor without code;
-variants switch between rounds.
+variants switch between rounds in dev builds.
 
 **Before starting:** Phase 2 exit passed. Roman Cancel v1 design (ROADMAP §8 Q4) at least sketched.
 
@@ -24,23 +24,22 @@ graph LR
 
 ## A. Module system
 
-### P3-01 Module system
+### P3-01 Module toggling for development
 Status: todo · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
-Read: ADR-0005, ADR-0009
-- `IMechanicModule` with hooks at the pipeline points from P1-03 (e.g. on hit, on block, on input, end of frame).
-- Each module owns a fixed-size state slice in `MatchState` and its own config.
-- Match rules = the set of enabled modules + their configs. **Developer settings**, hashed for the handshake,
-  locked during a match; changing them in training restarts the round.
+Read: ADR-0005, ADR-0011
+- The module contract and `MatchRules` already exist (P1-20). This task adds switching modules and their configs
+  during development: changes apply by restarting the round.
+- Release data contains one fixed rule set; players can never change it (ADR-0005 §8).
 - Registration in one composition root. Namespace pattern `Sim.Modules.<Name>` (ADR-0009).
 
 Done when:
-- [ ] a sample module can be removed by deleting its folder + registration line; core tests still pass
-- [ ] architecture tests enforce "core doesn't reference modules, modules don't reference each other"
+- [ ] switching a module on/off in a dev build restarts the round with the new rules and a new rules hash
+- [ ] a release build has no way to change match rules
 
 ## B. Mechanic modules
 
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
-**Read:** ADR-0005 (match rules), the P3-01 section above, and the `CURRENT_STATE §3` subsection for the mechanic
+**Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
 (Offense: P3-10–12 · Meter: P3-13, P3-18 · Defense: P3-14–17 · Controls: P3-19–20 · Movement: P3-21).
 Each is toggleable (**developer setting**), has scenario tests, and passes the removal test.
 
@@ -90,7 +89,7 @@ Read: ADR-0007
 ### P3-34 Developer control panel
 Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
 Read: ADR-0005
-- Toggle modules and edit their configs live (restarts the round). **Developer settings**, hidden in release builds.
+- Toggle modules and edit their configs (restarts the round). **Developer settings**; not present in release builds.
 
 ## D. Character editor
 

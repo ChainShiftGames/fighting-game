@@ -11,7 +11,8 @@ controllers, fully driven by data.
 ```mermaid
 graph LR
   T01[P1-01 Math] --> T02[P1-02 State]
-  T02 --> T03[P1-03 Tick pipeline]
+  T02 --> T20[P1-20 Module contract]
+  T20 --> T03[P1-03 Tick pipeline]
   T02 --> T05[P1-05 Input word]
   T05 --> T06[P1-06 Motion parser]
   T02 --> T07[P1-07 Data schema]
@@ -25,7 +26,8 @@ graph LR
   T03 --> T14[P1-14 Events]
   T05 --> T04[P1-04 Device layer]
   T14 --> T15[P1-15 Presentation v0]
-  T12 --> T17[P1-17 Testman]
+  T12 --> T21[P1-21 Entity pool]
+  T21 --> T17[P1-17 Testman]
   T03 --> T18[P1-18 Scenario tests]
   T17 --> T19[P1-19 SyncTest + golden replays]
 ```
@@ -45,7 +47,7 @@ Done when:
 Status: todo · Needs: P1-01 · Parallel: no · Where: `src/Sim/State/`
 Read: ADR-0003
 - `MatchState` with fixed-size fighter states, input history ring buffers, round/timer, PRNG seed, and reserved
-  per-module state slices (filled in Phase 3).
+  per-module state slices (layout from P1-20).
 - No references, no strings, no collections: blittable structs and fixed buffers.
 - Snapshot save/restore as a copy; checksum as a hash over the bytes (own FNV-1a/xxHash implementation, no package).
 
@@ -53,11 +55,26 @@ Done when:
 - [ ] save → mutate → restore gives an identical checksum
 - [ ] benchmark: save + restore + checksum well under the 1 ms tick budget
 
+### P1-20 Module contract and match rules
+Status: todo · Needs: P1-02 · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim/Rules/`, `tests/`
+Read: ADR-0011
+- `IMechanicModule` hooks, per-module fixed-size state slices, core request types, module order from data.
+- `MatchRules`: one blittable struct with every gameplay-affecting setting (**developer settings**); hash over the
+  whole struct.
+- One test-only module proving the contract.
+
+Done when:
+- [ ] deleting the test module's folder and registration line still compiles and passes core tests
+- [ ] a test changes every `MatchRules` field in turn and the hash changes each time
+- [ ] architecture test: `Sim` reads gameplay settings only from `MatchRules`
+
 ### P1-03 Tick pipeline
-Status: todo · Needs: P1-02 · Parallel: no · Where: `src/Sim/Pipeline/`
-Read: ADR-0003
+Status: todo · Needs: P1-20 · Parallel: no · Where: `src/Sim/Pipeline/`
+Read: ADR-0003, ADR-0011
 - One small system class per step in ARCHITECTURE.md §4's fixed order; the pipeline only runs them in order.
-- Module hook points defined as interfaces (empty implementations come in Phase 3).
+- Calls module hooks and applies core requests in a fixed order (ADR-0011).
+- Implements the reserved core capabilities: per-fighter time scale, global freeze with exemptions, cancel from any
+  state, per-fighter hitstop override. Each proven by a test with a test-only module.
 - P1/P2 processed symmetrically: both read the previous frame's state, results are applied together.
 
 Done when:
@@ -71,28 +88,31 @@ Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Button set loaded from data (`data/input/buttons.json`): A, B, C, D, Special, Dash. **Developer setting.**
 - 16-bit input word: 4 direction bits + 6 button bits from the button set + 6 spare bits.
 - No logic branches on a specific button name or count; everything goes through the button set.
+- **SOCD fixed rule** applied here, in the logic's input step: left+right = neutral, up+down = up (ADR-0002).
+  Not a setting.
 - Per-player input history in game state for motion detection and buffering.
 
 Done when:
-- [ ] a scenario test with a 5-button set passes without code changes
+- [ ] a test with a 5-button set passes without code changes
+- [ ] tests: raw left+right gives neutral, raw up+down gives up
 - [ ] input word layout documented in code
 
-### P1-04 Device layer and SOCD
+### P1-04 Device layer
 Status: todo · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
-- Godot keyboard + joypad reading → per-player bindings → SOCD cleaning → input word.
-- SOCD mode: default left+right = neutral, up+down = up (ADR-0002). **Player setting.**
+- Godot keyboard + joypad reading → per-player bindings → raw input word (no SOCD cleaning here; the logic does it).
 - Bindings and deadzones: **player settings** (saved properly in Phase 5; a dev file is fine for now).
 - Steam Input and raw joypad must not produce double inputs.
 
 Done when:
-- [ ] scenario: holding left+right on a leverless controller produces neutral; switching the mode changes it
+- [ ] a leverless controller holding left+right sends both bits; the logic resolves it to neutral
+- [ ] rebinding a button in the dev file works on keyboard and controller
 
 ### P1-06 Motion parser and buffer
 Status: todo · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Data-driven motion definitions (236, 214, 623, 41236, 63214, 22, 236236, 632146).
-- Motion window 12 frames, button buffer 2 frames. **Developer settings**, part of the match rules.
+- Motion window 12 frames, button buffer 2 frames. **Developer settings** in `MatchRules`.
 - Priority order when several motions match on the same frame, defined in data.
 
 Done when:
@@ -156,6 +176,18 @@ Status: todo · Needs: P1-12 · Parallel: yes · Where: `src/Sim/Match/`
 Read: CURRENT_STATE §3 Match
 - 99 s timer, best of 3, round reset, KO and time-out. Values are **developer settings**.
 
+### P1-21 Entity pool (projectiles)
+Status: todo · Needs: P1-12 · Parallel: no · Where: `src/Sim/Entities/`, `tests/`
+Read: ADR-0011
+- Fixed-size entity pool in `MatchState`; pool size per player is a **developer setting** in `MatchRules`.
+- Each entity: owner, position/velocity, boxes and lifetime from move data.
+- Hits against fighters reuse P1-12's hit and block rules; projectile vs projectile clashes use a durability count.
+- Spawned by moves (data) and by modules (core request, ADR-0011).
+
+Done when:
+- [ ] scenario tests: projectile hits, is blocked, expires, clashes and trades with another projectile
+- [ ] pool full → spawn is refused deterministically (documented behaviour)
+
 ### P1-14 Frame-tagged events
 Status: todo · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`
 Read: ADR-0005
@@ -178,7 +210,7 @@ Read: ADR-0004
 - Measure from device read to the frame being shown (ADR-0004). Developer overlay; recorded per milestone.
 
 ### P1-17 Testman
-Status: todo · Needs: P1-12 · Parallel: yes · Where: `data/characters/testman/`
+Status: todo · Needs: P1-21 · Parallel: yes · Where: `data/characters/testman/`
 Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
 - ~10 moves in JSON on the A/B/C/D buttons: standing and crouching normals, a low, an overhead, a projectile, a
   reversal, a super placeholder.

@@ -1,6 +1,6 @@
-# ADR-0002: Input defaults (SOCD and button buffer)
+# ADR-0002: Input rules (SOCD and button buffer)
 
-- **Status:** Accepted (Oct 2026)
+- **Status:** Accepted (Oct 2026; SOCD revised Oct 2026)
 - **Gaps:** ROADMAP GAP-11
 
 ## Context
@@ -10,13 +10,12 @@ consistently. Buffering decides how early a button press may come and still coun
 
 ## Decision
 
-1. **SOCD default:** left + right = neutral, up + down = up (the common tournament standard).
-   It is a setting; other modes (e.g. last-input-priority) can be selected.
-2. **Button buffer:** 2 frames by default, configurable.
-3. **Motion-input window:** a motion (236, 623, …) must be completed within 12 frames by default; separate
-   from the button buffer and adjustable per motion.
-4. **SOCD mode is a player setting.** It's applied on the player's own machine before the input word is created,
-   so it never needs syncing.
-5. **Button buffer and motion window are developer settings** in configuration data, easy to tweak during
-   development (no rebuild). They're part of the match rules compared in the online handshake (ADR-0005), so
-   both players resolve inputs identically. (See ARCHITECTURE.md §6 for developer vs player settings.)
+1. **SOCD is a fixed input-priority rule, not a setting:** left + right = neutral, up + down = up.
+2. It's applied **inside the game logic's input step**. Devices send raw directions (the 4 direction bits can carry
+   left + right together), so local play, online, replays and bots all use exactly one rule. Changing it needs a
+   code change and an ADR.
+3. **Button buffer:** 2 frames by default. **Motion-input window:** a motion (236, 623, …) must be completed within
+   12 frames by default; separate from the button buffer and adjustable per motion.
+4. **Button buffer and motion windows are developer settings** in configuration data, easy to tweak during
+   development (no rebuild). They live in `MatchRules` (ADR-0011) and are compared in the online handshake, so
+   both players resolve inputs identically.

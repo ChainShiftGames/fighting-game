@@ -31,6 +31,7 @@ Tasks: [docs/phases/phase-0.md](docs/phases/phase-0.md)
 - **Exit:** ADR per spike; go/no-go on Backdash; versions pinned; architecture doc agreed.
 
 **Decided**
+- **Architecture** (GAP-0): [ARCHITECTURE.md](ARCHITECTURE.md) reviewed and accepted by both devs (Oct 2026).
 - **Code structure** ([ADR-0001](docs/adr/0001-pure-csharp-simulation.md), GAP-1): game logic is a pure C# library
   with no Godot dependency. Godot only reads devices, draws and plays sound. Dependencies point one way:
   Godot game → netcode → logic.
@@ -55,8 +56,6 @@ Tasks: [docs/phases/phase-0.md](docs/phases/phase-0.md)
 - **Repo & files** (GAP-34): free and GitHub-only, no Git LFS for now (placeholder art is small); revisit when real
   art lands. Claude proposes naming conventions in `CONVENTIONS.md`, the devs confirm, Claude follows them.
 
-**Open**
-- [ARCHITECTURE.md](ARCHITECTURE.md) (GAP-0): top-level rules drafted; to be reviewed by both devs.
 
 ### Phase 1 — Simulation core, placeholder art, offline
 
@@ -72,9 +71,14 @@ Tasks: [docs/phases/phase-1.md](docs/phases/phase-1.md)
 - **Character data** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-10): JSON, one file per character
   and one per move, each with a schema version; converted to compact integer data at load. Works with Godot via
   `System.Text.Json`; the export presets must include the JSON files (checked in CI).
-- **Input defaults** ([ADR-0002](docs/adr/0002-input-defaults.md), GAP-11): SOCD left+right = neutral, up+down = up,
-  switchable. Button buffer 2 frames; motion window 12 frames. All are data values, easy to tweak in development,
-  and part of the match rules.
+- **Input rules** ([ADR-0002](docs/adr/0002-input-defaults.md), GAP-11): SOCD is a fixed rule in the logic, not a
+  setting (left+right = neutral, up+down = up). Button buffer 2 frames and motion window 12 frames are developer
+  settings in `MatchRules`, easy to tweak in development.
+- **Module contract** ([ADR-0011](docs/adr/0011-module-contract.md), GAP-24): built in P1-20 before the core
+  pipeline. Modules use hooks, their own state slice and core requests. The core reserves per-fighter time scale,
+  global freeze, cancel from any state, hitstop override and entity spawning (for Roman Cancel and the signature
+  mechanic). All gameplay settings live in one `MatchRules` struct, fully hashed and tested per field.
+- **Entities** (P1-21): fixed-size projectile/entity pool with boxes, lifetime, hit and clash rules.
 - **Camera** ([ADR-0004](docs/adr/0004-game-loop-and-camera.md), GAP-13): horizontal position and max player
   distance are game logic; zoom, shake and flashes are visual only.
 - **Input latency** ([ADR-0004](docs/adr/0004-game-loop-and-camera.md), GAP-14): top priority, as low as possible.
@@ -124,12 +128,12 @@ Tasks: [docs/phases/phase-3.md](docs/phases/phase-3.md)
 - Full module system: gatlings, counter/punish counter, proration, meter + supers, throws/tech, pushback guard,
   instant block, burst, Roman Cancel v1 + switchable variants, special button + dash button behaviour.
 - Training mode (frame meter, record/playback, savestates), control panel, character editor v1, simple CPU bot.
-- **Exit:** Testman has the full system kit; a new move can be created in the editor without code; variants switch between rounds.
+- **Exit:** Testman has the full system kit; a new move can be created in the editor without code; variants switch between rounds in dev builds.
 
 **Decided**
-- **Modules** ([ADR-0005](docs/adr/0005-online-architecture.md), GAP-24): most mechanics are toggles that don't touch
-  the core. Rules are locked during a match; changing them in training restarts the round. Online, both players see
-  and accept the rules before the match.
+- **Modules** ([ADR-0011](docs/adr/0011-module-contract.md) contract, [ADR-0005](docs/adr/0005-online-architecture.md)
+  §8 policy, GAP-24): most mechanics are toggles that don't touch the core. **Game rules are locked for players**:
+  shipped builds use one fixed rule set. Only in development can the devs change rules (the round restarts).
 - **Frame meter** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-25): the logic reports each fighter's
   frame state (startup/active/recovery/stun/invincible) every frame.
 - **Savestates** ([ADR-0007](docs/adr/0007-character-data-and-editor.md), GAP-26): reuse rollback snapshots, kept in
@@ -247,5 +251,4 @@ Tasks: [docs/phases/phase-8.md](docs/phases/phase-8.md)
 6. Store page timing (proposal: right after the vertical slice).
 7. Final roster size and characters (after core works; proposal: 4 at launch).
 8. Art pipeline viability (answered by Spike B, now in Phase 4).
-9. Review of the [ARCHITECTURE.md](ARCHITECTURE.md) draft (GAP-0).
-10. Technical questions postponed to later phases: see each phase's **Later** list (GAP-53).
+9. Technical questions postponed to later phases: see each phase's **Later** list (GAP-53).

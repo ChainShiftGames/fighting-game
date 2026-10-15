@@ -3,9 +3,9 @@
 **Goal:** a repo that enforces the architecture from the first commit, and proof that rollback (Backdash) and Steam
 networking work with our setup.
 
-**Exit (from ROADMAP):** ADR per spike; go/no-go on Backdash; versions pinned; ARCHITECTURE.md agreed.
+**Exit (from ROADMAP):** ADR per spike; go/no-go on Backdash; versions pinned.
 
-**Before starting:** ARCHITECTURE.md reviewed by both devs.
+**Before starting:** nothing. ARCHITECTURE.md was reviewed and accepted by both devs (Oct 2026).
 
 ```mermaid
 graph LR

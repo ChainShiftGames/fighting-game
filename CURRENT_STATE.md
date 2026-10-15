@@ -43,7 +43,7 @@
 - **Attack buttons: A, B, C, D** (plus Special and Dash). Defined in data so the layout can change later (ADR-0010).
 - Throw: forward/back + two buttons *(proposal)*, ~5f tech window.
 - Input buffer and leniency windows are tunable. Negative edge / button priority later.
-- **Full controller support:** remapping, SOCD cleaning (hitbox/leverless controllers), deadzones, input display.
+- **Full controller support:** remapping, SOCD cleaning as a fixed rule (left+right = neutral, up+down = up; ADR-0002), deadzones, input display.
 
 ### Movement
 - Walk, dash (run or step per character), backdash with invulnerability, jump with prejump, high jump.

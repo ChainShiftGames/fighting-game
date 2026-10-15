@@ -33,12 +33,19 @@ graph LR
   Netcode --> Sim
   Game --> SimData[Sim.Data]
   SimData --> Sim
-  Tests[tests/ + tools/] --> Netcode
+  Tests[tests/] --> Netcode
   Tests --> SimData
+  Tests --> Sim
+  Tools[tools/] --> Netcode
+  Tools --> SimData
+  Tools --> Sim
+  Sim -. build-time analyzer .-> Analyzers[tools/Analyzers]
 ```
 
 **Rules**
-- Dependencies only point the way the arrows show. `Sim` depends on nothing in this repo.
+- Runtime dependencies only point the way the solid arrows show. `Sim` depends on nothing in this repo at runtime.
+- The dashed arrow is a build-time analyzer reference, not a runtime dependency; architecture tests check
+  compiled references only (ADR-0009).
 - `Sim` and `Netcode` never reference Godot. Only `game/` may use Godot types.
 - Steam is only accessed through `Platform.Steam`, so the game still runs without Steam (dev, tests).
 
@@ -88,7 +95,11 @@ sequenceDiagram
 - This is the only performance budget in the project.
 
 **Fixed tick order** (details in the Phase 1 doc):
-input → move state machines → movement → pushboxes/walls/camera → hit detection → hit resolution → mechanics modules → round/timer.
+input (incl. the fixed SOCD rule) → move state machines → movement → pushboxes/walls/camera → hit detection → hit resolution → mechanics modules → round/timer.
+
+**Mechanics plug in only through the module contract** ([ADR-0011](docs/adr/0011-module-contract.md)): hooks, own
+state slice, core requests. The core provides per-fighter time scale, global freeze, cancel from any state, hitstop
+override and entity spawning. Gameplay settings are read only from the `MatchRules` struct.
 
 ## 5. Code design
 
@@ -161,15 +172,17 @@ These rules apply to all code, and agents must follow them even when one big cla
 | Where | Dev config file + debug/control panel | Options menu |
 | In shipped builds | Hidden; values baked into release data | Visible |
 | Stored | `data/` (versioned in git) | `user://` settings JSON, Steam Cloud |
-| Examples | Mechanic module toggles and variants, visual-effect toggles, input buffer and motion windows, rollback window, network simulator, frame data | Keybinds, SOCD mode, vsync, input-delay override, audio volume, language, accessibility options |
+| Examples | Mechanic module toggles and variants, visual-effect toggles, input buffer and motion windows, rollback window, network simulator, frame data | Keybinds, vsync, input-delay override, audio volume, language, accessibility options |
 
 **Rules**
 - **Feature and mechanic toggles are developer settings by default.** A toggle only becomes a player setting by an
   explicit decision.
-- Developer settings that affect gameplay are part of the **match rules**: locked during a match, hashed and
-  compared before online matches.
+- **Game rules are locked for players.** Developer settings that affect gameplay form the **match rules**
+  (`MatchRules`, ADR-0011): fixed in shipped builds, tweakable only during development, hashed and compared before
+  online matches.
 - Player settings must **never** change game logic results. Anything a player sets that affects inputs is
-  applied before the input word is created (e.g. SOCD cleaning, keybinds), so it doesn't need syncing.
+  applied before the input word is created (e.g. keybinds, deadzones), so it doesn't need syncing.
+- Some things are neither: fixed rules such as SOCD resolution are code, not settings.
 
 ## 7. Character data
 
@@ -219,7 +232,7 @@ These rules apply to all code, and agents must follow them even when one big cla
   re-runs the frames in between.
 - **Desync:** the two players' games disagree about the state; detected by comparing checksums.
 - **Input word:** one player's buttons and direction for one frame, packed into 16 bits.
-- **SOCD:** opposite directions held at once (left+right) on leverless controllers, and how they're resolved.
+- **SOCD:** opposite directions held at once (left+right) on leverless controllers. Fixed rule: left+right = neutral, up+down = up.
 - **Match rules:** the gameplay-affecting developer settings for a match (enabled mechanics, input windows…).
 - **Frame data:** startup, active and recovery frames of a move.
 - **Hitstun / blockstun / hitstop:** frames a character can't act after being hit / blocking / the brief freeze on impact.

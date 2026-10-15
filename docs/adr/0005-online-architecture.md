@@ -22,5 +22,7 @@
    shows "versions differ — update the game".
 7. **Replays:** a small binary file with a header (version, data hash, rules, characters, colours) and the
    compressed inputs.
-8. **Match rules** (toggleable mechanics; developer settings, see ARCHITECTURE.md §6) are locked during a match. Changing them in training restarts the
-   round. Online, both players see and accept the rules before the match.
+8. **Match rules** (toggleable mechanics and gameplay values; ADR-0011) are **locked for players**. Shipped builds
+   use one fixed rule set baked into the release data; players can't view or change it. Only during development
+   can the devs tweak rules (debug panel; changing them restarts the round). The handshake still compares the
+   rules hash, so a modified or dev build can't join a normal match.
