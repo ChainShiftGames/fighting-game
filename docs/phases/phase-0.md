@@ -160,8 +160,8 @@ Read: ADR-0003
 
 Done when:
 - [x] CI fails if a tick allocates (verified by injecting an allocation)
-- [ ] numbers recorded in the Spike A ADR: done in P0-15; dev-PC numbers in `tools/Benchmarks/README.md`, Steam
-  Deck run still to do by hand
+- [x] numbers recorded in the Spike A ADR: done in P0-15; dev-PC numbers in `tools/Benchmarks/README.md`. Steam
+  Deck run deferred: neither dev has a Steam Deck; run it by hand once one is available (ARCHITECTURE.md §4 budget)
 
 ### P0-15 Spike A decision
 Status: done (ADR-0013, accepted by both devs) · Needs: P0-13, P0-14 · Parallel: no · Where: `docs/adr/`
@@ -192,11 +192,11 @@ Done when:
   invite; felt smooth; port-0 transport covered by `PortlessTransportTests`)
 
 ### P0-22 Steam spike decision
-Status: in progress (p0-22-network-stats) · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
+Status: done (ADR-0014, accepted by both devs) · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
 Read: ADR-0005
 - ADR: relay latency measured, issues, go/no-go.
 
 ## Phase exit checklist
-- [ ] Spike A and Spike C ADRs merged with go decisions (or a plan B)
+- [x] Spike A and Spike C ADRs merged with go decisions (or a plan B): ADR-0013, ADR-0014
 - [x] All CI checks active; architecture and banned-API tests proven to catch violations (P0-04, P0-05, P0-06)
-- [ ] Both devs played the toy sim online and agree it feels responsive
+- [x] Both devs played the toy sim online and agree it feels responsive (P0-13 over Tailscale, P0-21/P0-22 over Steam)

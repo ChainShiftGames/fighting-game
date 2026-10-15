@@ -17,6 +17,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0011](0011-module-contract.md) | Module contract, reserved core capabilities (time scale, freeze, cancel, hitstop, entities), `MatchRules` struct + hash test |
 | [0012](0012-dev-and-test-dependencies.md) | xUnit v3 on Microsoft.Testing.Platform; Godot AI editor addon vendored dev-only, excluded from exports, telemetry off |
 | [0013](0013-spike-a-backdash-go.md) | Spike A: Backdash stays (no fork) on 0.7.8-preview through Phase 1; measurements, problems found, follow-ups |
-| [0014](0014-spike-c-steam-p2p-go.md) | Spike C (proposed): Steam Networking Messages stays; Steam picks direct (friends) or relay; measurements, problems, follow-ups |
+| [0014](0014-spike-c-steam-p2p-go.md) | Spike C: Steam Networking Messages stays; Steam picks direct (friends) or relay; measurements, problems, follow-ups |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

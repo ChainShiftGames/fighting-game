@@ -1,6 +1,6 @@
 # ADR-0014: Spike C: Steam peer-to-peer for online matches
 
-- **Status:** Proposed (Oct 2026). Amends ADR-0005 §1 (route of online traffic).
+- **Status:** Accepted (Oct 2026), approved by both devs. Amends ADR-0005 §1 (route of online traffic).
 
 ## Context
 
