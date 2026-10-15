@@ -3,7 +3,10 @@ using Godot;
 
 namespace FightingGame.Debug;
 
-/// <summary>Developer overlay (developer setting, F3): logic rate, frame rate, vsync, input latency and the match.</summary>
+/// <summary>
+/// Developer overlay (developer setting, F3): logic rate, frame rate, vsync, input latency, the match and, online,
+/// its connection.
+/// </summary>
 public partial class DeveloperOverlay : CanvasLayer
 {
     private const int Margin = 12;
@@ -22,6 +25,10 @@ public partial class DeveloperOverlay : CanvasLayer
             $"input to draw: avg {latencyAverageMs:F1} ms, max {latencyMaxMs:F1} ms");
     }
 
-    public void ShowMatch(string description, int frame) =>
-        _label.Text = string.Create(CultureInfo.InvariantCulture, $"{_timing}\n{description} | frame {frame}");
+    /// <param name="connection">Online connection readings, one per line; empty for local matches.</param>
+    public void ShowMatch(string description, int frame, string connection)
+    {
+        string match = string.Create(CultureInfo.InvariantCulture, $"{_timing}\n{description} | frame {frame}");
+        _label.Text = connection.Length == 0 ? match : $"{match}\n{connection}";
+    }
 }

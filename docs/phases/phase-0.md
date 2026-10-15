@@ -192,7 +192,7 @@ Done when:
   invite; felt smooth; port-0 transport covered by `PortlessTransportTests`)
 
 ### P0-22 Steam spike decision
-Status: todo · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
+Status: in progress (p0-22-network-stats) · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
 Read: ADR-0005
 - ADR: relay latency measured, issues, go/no-go.
 

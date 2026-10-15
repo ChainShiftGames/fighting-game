@@ -20,7 +20,7 @@ public static class PeerSession
     private const int PortForTransportsWithoutPorts = 1;
 
     /// <summary>A match driver for an online match against one other PC.</summary>
-    public static IMatchDriver<TState> CreateDriver<TState>(
+    public static RollbackMatchDriver<TState> CreateDriver<TState>(
         IMatchSimulation<TState> simulation, PeerMatchSettings settings, PeerTransport transport)
         where TState : unmanaged =>
         new RollbackMatchDriver<TState>(simulation, Build<TState>(settings, transport));

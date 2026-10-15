@@ -83,7 +83,7 @@ public sealed class SteamMessagesSocket : IPeerSocket
     public void Close()
     {
         _received.Writer.TryComplete();
-        SteamNetworkingIdentity opponent = Identity(_opponentSteamId);
+        SteamNetworkingIdentity opponent = SteamIdentity.For(_opponentSteamId);
         SteamNetworkingMessages.CloseSessionWithUser(ref opponent);
     }
 
@@ -93,17 +93,10 @@ public sealed class SteamMessagesSocket : IPeerSocket
         _sessionRequests.Dispose();
     }
 
-    private static SteamNetworkingIdentity Identity(ulong steamId)
-    {
-        var identity = default(SteamNetworkingIdentity);
-        identity.SetSteamID64(steamId);
-        return identity;
-    }
-
     // Reports the packet as sent even when Steam refuses it: for an unreliable channel that's a lost packet.
     private int Send(ReadOnlySpan<byte> packet, ulong steamId)
     {
-        SteamNetworkingIdentity recipient = Identity(steamId);
+        SteamNetworkingIdentity recipient = SteamIdentity.For(steamId);
         lock (_sendLock)
         {
             packet.CopyTo(_sendBuffer);
