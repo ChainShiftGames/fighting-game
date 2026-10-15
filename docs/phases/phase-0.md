@@ -141,7 +141,7 @@ Done when:
 - [x] local two-player control on keyboard + controller at a steady 60 Hz on a 144 Hz monitor (checked by hand)
 
 ### P0-13 Two instances over UDP with simulated lag
-Status: in progress (p0-13-udp-lag) · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
+Status: done · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
 Read: ADR-0003, ADR-0005
 - Backdash peer session over UDP between two instances (same PC and two PCs).
 - Simulated latency, jitter and loss (Backdash options if available, otherwise a lag-injecting transport wrapper).
@@ -149,7 +149,8 @@ Read: ADR-0003, ADR-0005
 - Rollback window 8 frames (**developer setting**).
 
 Done when:
-- [ ] playable at 100 ms / ±20 ms / 2 % loss without desync for 10 minutes
+- [x] playable at 100 ms / ±20 ms / 2 % loss without desync for 10 minutes (two PCs over the internet via a
+  Tailscale direct link, ~36 ms real ping + `--lag`, 10+ min clean; same PC covered by `PeerSessionTests`)
 
 ### P0-14 Speed and allocation benchmarks
 Status: done · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
