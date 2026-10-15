@@ -5,10 +5,47 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
     <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
     <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
   </ItemGroup>
+
+  <!--
+    The tests inspect every runtime assembly in ARCHITECTURE.md §2 from its build output. Tests may only reference
+    Sim, Sim.Data and Netcode, so Platform.Steam and the game are built here without a reference (no compiled or
+    runtime dependency, only build order) and every path reaches the tests as assembly metadata.
+  -->
+  <ItemGroup>
+    <ReferencedArchitectureProject Include="@(ProjectReference)" />
+    <UnreferencedArchitectureProject Include="..\..\src\Platform.Steam\Platform.Steam.csproj" />
+    <UnreferencedArchitectureProject Include="..\..\game\FightingGame.csproj" />
+  </ItemGroup>
+
+  <Target Name="CollectArchitectureAssemblies" BeforeTargets="GetAssemblyAttributes"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="@(UnreferencedArchitectureProject)" Targets="Build"
+             RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained"
+             BuildInParallel="$(BuildInParallel)">
+      <Output TaskParameter="TargetOutputs" ItemName="_ArchitectureAssembly" />
+    </MSBuild>
+    <!-- Already built through ResolveProjectReferences; GetTargetPath only asks for the output path. -->
+    <MSBuild Projects="@(ReferencedArchitectureProject)" Targets="GetTargetPath"
+             RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained"
+             BuildInParallel="$(BuildInParallel)">
+      <Output TaskParameter="TargetOutputs" ItemName="_ArchitectureAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ArchitectureAssembly</_Parameter1>
+        <_Parameter2>%(_ArchitectureAssembly.FullPath)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>RepositoryRoot</_Parameter1>
+        <_Parameter2>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 </Project>
