@@ -7,6 +7,8 @@
     <!-- Off so no `using System.Linq;` sneaks into Sim; every using is explicit. -->
     <ImplicitUsings>disable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Reports the .editorconfig naming and style rules (IDE*) at build time, so they fail the build (P0-03). -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>

@@ -55,14 +55,14 @@ Done when:
 - [x] Godot opens `game/` and builds the C# project
 
 ### P0-03 Code style and naming
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `.editorconfig`
+Status: done · Needs: P0-02 · Parallel: yes · Where: `.editorconfig`
 Read: —
 - `.editorconfig` encoding ARCHITECTURE.md §5 naming (PascalCase, `IInterface`, `_camelCase` private fields,
   camelCase locals) as errors; formatting rules.
 - CI runs `dotnet format --verify-no-changes`.
 
 Done when:
-- [ ] a deliberately mis-named private field fails the build
+- [x] a deliberately mis-named private field fails the build
 
 ### P0-04 Banned APIs in the game logic
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `src/Sim/`, `src/Sim/BannedSymbols.txt`
