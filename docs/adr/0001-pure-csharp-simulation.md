@@ -29,12 +29,16 @@ running the engine. Godot's node tree, physics and frame callbacks don't give us
 | Target framework | `net10.0` for every project | `Directory.Build.props` (P0-02) |
 | C# | 14 | `LangVersion` in `Directory.Build.props` (P0-02) |
 | Backdash | 0.7.8-preview (MIT) | `src/Netcode/*.csproj` (P0-11) |
+| Steamworks.NET | 2025.164.1 (MIT), Steamworks SDK 1.64 natives; vendored | `src/Platform.Steam/Native/` (P0-20) |
 
 - .NET 10 is the only LTS supported past Nov 2026 (.NET 8 and 9 both end 10 Nov 2026). Godot 4.5+ needs .NET 8+;
   GodotSharp 4.7.2 targets net8.0 and is consumed from net10.0.
 - `latestPatch` accepts newer 10.0.4xx patch SDKs only; a new feature band is a deliberate upgrade PR.
 - Backdash has no stable release yet. 0.7.8-preview (Jul 2026, net8.0) was chosen over 0.8.0-preview (Oct 2026,
   net10.0, one day old at pin time) for maturity. Revisit at the Spike A go/no-go (P0-15).
+- Steamworks.NET is vendored (win-x64 and linux-x64 builds plus Valve's redistributable natives), not taken from
+  NuGet: NuGet stops at 2024.8.0, whose `OptionValue` type .NET 10 refuses to load (upstream issue #740, fixed in
+  2025.16x). Upgrade all files from one release together; checksums in `src/Platform.Steam/Native/README.md`.
 - Windows and Linux export with this Godot version is confirmed by the nightly headless export job (P0-06).
 
 ## Consequences

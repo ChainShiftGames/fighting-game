@@ -124,7 +124,10 @@ jobs:
           "$GODOT_BIN" --headless --path game --export-release "Windows Desktop" build/windows/FightingGame.exe
           test -f game/build/windows/FightingGame.exe
           test -f game/build/windows/FightingGame.pck
-          ls -la game/build/windows
+          ls -laR game/build/windows
+          # P0-20: the Steam libraries ship with the export, and Steamworks.NET is the Windows build of it.
+          test -n "$(find game/build/windows -name steam_api64.dll)"
+          cmp "$(find game/build/windows -name Steamworks.NET.dll)" src/Platform.Steam/Native/win-x64/Steamworks.NET.dll
 
       - name: Export Linux
         run: |
@@ -132,7 +135,9 @@ jobs:
           "$GODOT_BIN" --headless --path game --export-release "Linux" build/linux/FightingGame.x86_64
           test -f game/build/linux/FightingGame.x86_64
           test -f game/build/linux/FightingGame.pck
-          ls -la game/build/linux
+          ls -laR game/build/linux
+          test -n "$(find game/build/linux -name libsteam_api.so)"
+          cmp "$(find game/build/linux -name Steamworks.NET.dll)" src/Platform.Steam/Native/linux-x64/Steamworks.NET.dll
 
       - name: Upload Windows build
         uses: actions/upload-artifact@v7

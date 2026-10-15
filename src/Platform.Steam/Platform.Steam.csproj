@@ -1,4 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Steamworks.NET 2025.164.1 (Steamworks SDK 1.64) is vendored in Native/, not taken from NuGet: NuGet stops at
+    2024.8.0, which has a type .NET 10 can't load (ADR-0001). Its managed DLL differs per platform, so pick the
+    build's runtime, or the OS when no runtime is set (editor and test builds).
+  -->
+  <PropertyGroup>
+    <!-- Otherwise the SDK drops the runtime when building this as a reference, and a Windows export made on Linux
+         would get the Linux files. -->
+    <IsRidAgnostic>false</IsRidAgnostic>
+    <SteamNativeRuntime Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</SteamNativeRuntime>
+    <SteamNativeRuntime Condition="'$(SteamNativeRuntime)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">win-x64</SteamNativeRuntime>
+    <SteamNativeRuntime Condition="'$(SteamNativeRuntime)' == ''">linux-x64</SteamNativeRuntime>
+    <SteamNativeLibrary Condition="'$(SteamNativeRuntime)' == 'win-x64'">steam_api64.dll</SteamNativeLibrary>
+    <SteamNativeLibrary Condition="'$(SteamNativeRuntime)' == 'linux-x64'">libsteam_api.so</SteamNativeLibrary>
+  </PropertyGroup>
+  <Target Name="CheckSteamNativeRuntime" BeforeTargets="ResolveAssemblyReferences" Condition="'$(SteamNativeLibrary)' == ''">
+    <Error Text="No vendored Steam libraries for runtime '$(SteamNativeRuntime)'; only win-x64 and linux-x64 are supported." />
+  </Target>
+  <ItemGroup>
+    <!-- Out of the default item glob: reference resolution searches those files before HintPath and would pick
+         whichever platform's Steamworks.NET.dll it finds first. -->
+    <None Remove="Native\**" />
+    <Reference Include="Steamworks.NET">
+      <HintPath>Native\$(SteamNativeRuntime)\Steamworks.NET.dll</HintPath>
+    </Reference>
+    <!-- Valve's native Steam API, copied next to the assemblies of every project using this one. -->
+    <None Include="Native\$(SteamNativeRuntime)\$(SteamNativeLibrary)" Link="$(SteamNativeLibrary)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Netcode\Netcode.csproj" />
   </ItemGroup>
