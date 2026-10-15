@@ -1,0 +1,151 @@
+# Nightly pipeline (ADR-0006): Windows build + tests, and Godot headless exports for Windows and Linux.
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  # The only place the CI Godot version is pinned; must match ADR-0001 and game/FightingGame.csproj.
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  windows-build-test:
+    name: windows-build-test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'Directory.Packages.props', '**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        run: dotnet test -c Release --no-build
+
+  godot-export:
+    name: godot-export
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # The vendored godot_ai editor addon loads during the import pass (ADR-0012).
+      GODOT_AI_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'Directory.Packages.props', '**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Editor + only the release templates we export with; the full template archive is ~1.2 GB.
+      # Bump the key suffix when the extracted template list changes.
+      - name: Cache Godot editor and export templates
+        id: godot-cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable.mono
+          key: godot-${{ env.GODOT_VERSION }}-stable-mono-linux-v1
+
+      - name: Download Godot editor and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          editor_zip="Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip"
+          templates_tpz="Godot_v${GODOT_VERSION}-stable_mono_export_templates.tpz"
+          download="$RUNNER_TEMP/godot-download"
+          mkdir -p "$download"
+          cd "$download"
+          curl -fsSL --retry 3 -O "$base/SHA512-SUMS.txt" -O "$base/$editor_zip" -O "$base/$templates_tpz"
+          grep -F -e "  $editor_zip" -e "  $templates_tpz" SHA512-SUMS.txt > expected.sha512
+          test "$(wc -l < expected.sha512)" -eq 2
+          sha512sum -c expected.sha512
+          mkdir -p "$HOME/godot"
+          unzip -q "$editor_zip" -d "$HOME/godot"
+          templates="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable.mono"
+          mkdir -p "$templates"
+          unzip -q -j "$templates_tpz" \
+            'templates/version.txt' \
+            'templates/linux_release.x86_64' \
+            'templates/windows_release_x86_64.exe' \
+            -d "$templates"
+          ls -la "$HOME/godot"/* "$templates"
+
+      - name: Locate Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin="$HOME/godot/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64"
+          chmod +x "$bin"
+          "$bin" --version
+          echo "GODOT_BIN=$bin" >> "$GITHUB_ENV"
+
+      # Export needs the .godot/ import cache, which a fresh checkout doesn't have.
+      - name: Import project
+        run: '"$GODOT_BIN" --headless --path game --import'
+
+      - name: Export Windows
+        run: |
+          mkdir -p game/build/windows
+          "$GODOT_BIN" --headless --path game --export-release "Windows Desktop" build/windows/FightingGame.exe
+          test -f game/build/windows/FightingGame.exe
+          test -f game/build/windows/FightingGame.pck
+          ls -la game/build/windows
+
+      - name: Export Linux
+        run: |
+          mkdir -p game/build/linux
+          "$GODOT_BIN" --headless --path game --export-release "Linux" build/linux/FightingGame.x86_64
+          test -f game/build/linux/FightingGame.x86_64
+          test -f game/build/linux/FightingGame.pck
+          ls -la game/build/linux
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v7
+        with:
+          name: FightingGame-windows
+          path: game/build/windows/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v7
+        with:
+          name: FightingGame-linux
+          path: game/build/linux/
+          if-no-files-found: error
+          retention-days: 14
