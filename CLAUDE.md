@@ -42,6 +42,22 @@ run the project, read editor and game logs, take screenshots to verify visuals, 
 - New decision → new ADR + one line in `docs/adr/README.md`.
 - Keep task sections self-contained so an agent can read one task without the rest of the file.
 
+## Conventions
+
+Folder layout, file/asset naming, branches and commit messages: [CONVENTIONS.md](CONVENTIONS.md).
+
 ## Commands
 
-Added in P0-02/P0-06 (build, test, format check). Until then there is no code.
+Run from the repo root. All must pass before a PR (ARCHITECTURE.md §10).
+
+```
+dotnet build                          # whole solution, including game/ (no Godot editor needed)
+dotnet test                           # all tests/ projects (Microsoft.Testing.Platform)
+dotnet format --verify-no-changes     # style check; run `dotnet format` to fix
+```
+
+Godot editor-side build (only when `game/` changed and Godot is installed; see [game/CLAUDE.md](game/CLAUDE.md)):
+
+```
+Godot_v4.7.2-stable_mono_win64_console.exe --headless --path game --editor --build-solutions --quit
+```

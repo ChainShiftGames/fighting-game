@@ -93,7 +93,7 @@ Done when:
 - [ ] PRs show the check; nightly and manual jobs run successfully once
 
 ### P0-07 Agent and team docs
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
+Status: in progress (p0-07-agent-docs) · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
 Read: docs/phases/README.md
 - Root `CLAUDE.md` already exists (imports ARCHITECTURE.md, context-finding and subagent rules). Fill in its
   **Commands** section with the real build/test/format commands; keep it short.
