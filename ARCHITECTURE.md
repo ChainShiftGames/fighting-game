@@ -208,7 +208,8 @@ These rules apply to all code, and agents must follow them even when one big cla
 
 ## 11. Working rules
 
-- Decisions with lasting impact get an ADR in `docs/adr/` (next free number), approved by both devs.
+- Decisions with lasting impact get an ADR in `docs/adr/` (next free number, plus one line in
+  `docs/adr/README.md`), approved by both devs.
 - Don't add dependencies (NuGet, Godot addons) without an ADR; check that their licence allows commercial use.
 - Keep docs in the same PR as the code they describe.
 

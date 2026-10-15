@@ -30,6 +30,7 @@ graph LR
 
 ### P0-01 Pin the toolchain
 Status: todo · Needs: — · Parallel: no · Where: `global.json`, `docs/adr/0001-*.md`
+Read: ADR-0001
 - Choose the latest stable Godot 4.x .NET release and the .NET LTS SDK it supports.
 - Add `global.json` pinning the SDK; record exact Godot, .NET, C# and Backdash versions in ADR-0001.
 - Confirm Godot .NET can export Windows and Linux builds with that version.
@@ -40,6 +41,7 @@ Done when:
 
 ### P0-02 Solution skeleton
 Status: todo · Needs: P0-01 · Parallel: no · Where: repo root, `src/`, `game/`, `tests/`, `tools/`
+Read: ADR-0001
 - Create `FightingGame.sln` with `src/Sim`, `src/Sim.Data`, `src/Netcode`, `src/Platform.Steam`, the Godot project
   in `game/`, `tests/Sim.Tests`, `tests/Architecture.Tests`, `tools/`.
 - Project references exactly as in ARCHITECTURE.md §2.
@@ -52,6 +54,7 @@ Done when:
 
 ### P0-03 Code style and naming
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `.editorconfig`
+Read: —
 - `.editorconfig` encoding ARCHITECTURE.md §5 naming (PascalCase, `IInterface`, `_camelCase` private fields,
   camelCase locals) as errors; formatting rules.
 - CI runs `dotnet format --verify-no-changes`.
@@ -61,6 +64,7 @@ Done when:
 
 ### P0-04 Banned APIs in the game logic
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `src/Sim/`, `src/Sim/BannedSymbols.txt`
+Read: ADR-0003
 - Add `Microsoft.CodeAnalysis.BannedApiAnalyzers` to `Sim` with the list from ARCHITECTURE.md §4.
 - Verify `float`/`double`/`decimal` declarations are caught. If the analyzer can't, add a small custom analyzer
   in `tools/Analyzers/`.
@@ -70,6 +74,7 @@ Done when:
 
 ### P0-05 Architecture tests
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `tests/Architecture.Tests/`
+Read: ADR-0009
 - Implement the checks listed in ADR-0009 with ArchUnitNET.
 
 Done when:
@@ -77,6 +82,7 @@ Done when:
 
 ### P0-06 CI pipeline
 Status: todo · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
+Read: ADR-0006
 - **PR (Linux):** restore, build, format check, all tests.
 - **Nightly:** Windows build + Godot headless export for Windows and Linux (export templates cached).
 - **Manual (`workflow_dispatch`):** soak test job, placeholder until P2-12.
@@ -85,21 +91,26 @@ Done when:
 - [ ] PRs show the check; nightly and manual jobs run successfully once
 
 ### P0-07 Agent and team docs
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md`, `CONVENTIONS.md`, `docs/adr/template.md`, `.github/`
-- Root `CLAUDE.md`: read ARCHITECTURE.md first, how to pick tasks (docs/phases/README.md), build/test commands.
-- `CONVENTIONS.md` proposal: folder layout inside each project, file and asset naming, branch and commit naming.
-  **Devs confirm before merge.**
-- ADR template; PR template with a checklist (single responsibility, settings audience, tests, docs).
-- Session-start hook that reminds agents to read ARCHITECTURE.md and runs `dotnet restore`.
+Status: todo · Needs: P0-02 · Parallel: yes · Where: `CLAUDE.md` files, `CONVENTIONS.md`, `docs/adr/`, `.github/`, `.claude/`
+Read: docs/phases/README.md
+- Root `CLAUDE.md` already exists (imports ARCHITECTURE.md, context-finding and subagent rules). Fill in its
+  **Commands** section with the real build/test/format commands; keep it short.
+- Per-project `CLAUDE.md` files (`src/Sim/`, `game/`, …) only where a folder has local commands or gotchas. They
+  link to ARCHITECTURE.md sections instead of repeating rules.
+- `CONVENTIONS.md` proposal: folder layout inside each project, file and asset naming, commit message format.
+  **Devs confirm before merge.** Add one line pointing to it in `CLAUDE.md`.
+- `docs/adr/template.md`; PR template with a checklist (single responsibility, settings audience, tests, docs).
+- Optional SessionStart hook running `dotnet restore` for cloud sessions (no reminder needed: CLAUDE.md is loaded).
 
 Done when:
 - [ ] both devs approved CONVENTIONS.md
-- [ ] a fresh agent session sees the reminder
+- [ ] a fresh agent session can build and test using only what CLAUDE.md says
 
 ## B. Spike A — netcode
 
 ### P0-10 Toy simulation
 Status: todo · Needs: P0-04 · Parallel: no · Where: `src/Sim/`
+Read: ADR-0003
 - Two squares that move left/right/jump from an input word. Integer positions (1 px = 1000 units).
 - Flat, fixed-size state struct; `Tick(inputs)`; snapshot = copy; checksum = hash over state bytes.
 - Zero allocations per tick.
@@ -109,6 +120,7 @@ Done when:
 
 ### P0-11 Match driver interface + SyncTest
 Status: todo · Needs: P0-10 · Parallel: no · Where: `src/Netcode/`, `tests/`
+Read: ADR-0005, ADR-0006
 - First version of `IMatchDriver` (local + Backdash-backed implementations).
 - Backdash SyncTest session over the toy sim: 10,000 frames with seeded random inputs in CI.
 
@@ -117,6 +129,7 @@ Done when:
 
 ### P0-12 Godot host and 60 Hz loop
 Status: todo · Needs: P0-11 · Parallel: no · Where: `game/`
+Read: ADR-0004
 - Own fixed 60 Hz loop driven from Godot's frame callback (ADR-0004); devices read right before each logic frame.
 - Draw the two squares from state; vsync on by default (**player setting** to turn it off).
 - Input-latency counter prototype in a developer overlay (**developer setting**).
@@ -126,6 +139,7 @@ Done when:
 
 ### P0-13 Two instances over UDP with simulated lag
 Status: todo · Needs: P0-12 · Parallel: no · Where: `src/Netcode/`, `game/`
+Read: ADR-0003, ADR-0005
 - Backdash peer session over UDP between two instances (same PC and two PCs).
 - Simulated latency, jitter and loss (Backdash options if available, otherwise a lag-injecting transport wrapper).
   Values are **developer settings**.
@@ -136,6 +150,7 @@ Done when:
 
 ### P0-14 Speed and allocation benchmarks
 Status: todo · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
+Read: ADR-0003
 - Measure one tick, 8-frame resimulation, snapshot save/load and checksum; report allocations.
 - Add to CI with a threshold; record a manual run on a Steam Deck.
 
@@ -144,12 +159,14 @@ Done when:
 
 ### P0-15 Spike A decision
 Status: todo · Needs: P0-13, P0-14 · Parallel: no · Where: `docs/adr/`
+Read: ADR-0003, ADR-0005
 - ADR: go/no-go on Backdash with measurements, problems found, and whether to fork/vendor it.
 
 ## C. Spike C — Steam
 
 ### P0-20 Steam initialisation
 Status: todo · Needs: P0-11 · Parallel: yes · Where: `src/Platform.Steam/`, `game/`
+Read: ADR-0005
 - Steamworks.NET with test AppID 480; native Steam libraries copied next to the game executable.
 - The game must still run without Steam (dev/test).
 
@@ -158,6 +175,7 @@ Done when:
 
 ### P0-21 Steam relay transport
 Status: todo · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
+Read: ADR-0005
 - Implement the Backdash transport over Steam Networking Messages (relay). Unreliable channel for inputs.
 - Friend invite → connect → toy-sim match.
 
@@ -166,6 +184,7 @@ Done when:
 
 ### P0-22 Steam spike decision
 Status: todo · Needs: P0-21 · Parallel: no · Where: `docs/adr/`
+Read: ADR-0005
 - ADR: relay latency measured, issues, go/no-go.
 
 ## Phase exit checklist

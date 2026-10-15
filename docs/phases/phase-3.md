@@ -26,6 +26,7 @@ graph LR
 
 ### P3-01 Module system
 Status: todo · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
+Read: ADR-0005, ADR-0009
 - `IMechanicModule` with hooks at the pipeline points from P1-03 (e.g. on hit, on block, on input, end of frame).
 - Each module owns a fixed-size state slice in `MatchState` and its own config.
 - Match rules = the set of enabled modules + their configs. **Developer settings**, hashed for the handshake,
@@ -39,6 +40,8 @@ Done when:
 ## B. Mechanic modules
 
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
+**Read:** ADR-0005 (match rules), the P3-01 section above, and the `CURRENT_STATE §3` subsection for the mechanic
+(Offense: P3-10–12 · Meter: P3-13, P3-18 · Defense: P3-14–17 · Controls: P3-19–20 · Movement: P3-21).
 Each is toggleable (**developer setting**), has scenario tests, and passes the removal test.
 
 | ID | Module | Key behaviour |
@@ -64,43 +67,52 @@ Done when (each):
 
 ### P3-30 Training mode shell
 Status: todo · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
+Read: ADR-0007
 - Training match driver; dummy options (stand, crouch, block all, block after first hit, jump, record).
   Dummy options are **player settings** in the training menu.
 
 ### P3-31 Frame meter
 Status: todo · Needs: P3-30 · Parallel: yes · Where: `src/Sim/Diagnostics/`, `game/Training/`
+Read: ADR-0007
 - Logic reports each fighter's frame state (startup/active/recovery/stun/invincible) every frame (ADR-0007).
 - Strive/SF6-style bar with frame advantage. Shown/hidden: **player setting**.
 
 ### P3-32 Record and playback
 Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Read: —
 - Record dummy inputs in slots, play back once/looped/randomised.
 
 ### P3-33 Savestates
 Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Read: ADR-0007
 - Reuse rollback snapshots; kept in memory while training is open, no time limit, not saved to disk (ADR-0007).
 
 ### P3-34 Developer control panel
 Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
+Read: ADR-0005
 - Toggle modules and edit their configs live (restarts the round). **Developer settings**, hidden in release builds.
 
 ## D. Character editor
 
 ### P3-40 Editor plugin shell
 Status: todo · Needs: — · Parallel: yes · Where: `game/addons/character_editor/`
+Read: ADR-0007
 - Godot editor plugin: open a character, list moves, save JSON via `Sim.Data` (same validation as the game).
 
 ### P3-41 Move and frame data editing
 Status: todo · Needs: P3-40 · Parallel: no · Where: `game/addons/character_editor/`
+Read: ADR-0007
 - Create/duplicate/delete moves; frame timeline with startup/active/recovery; cancel windows; hit properties;
   motion + button; per-module character data (e.g. meter gain).
 
 ### P3-42 Box editing
 Status: todo · Needs: P3-41 · Parallel: no · Where: `game/addons/character_editor/`
+Read: ADR-0007
 - Draw and resize hit/hurt/push/throw boxes per frame over the placeholder model; copy boxes between frames.
 
 ### P3-43 Live reload into training
 Status: todo · Needs: P3-41, P3-30 · Parallel: yes · Where: `game/`, `src/Sim.Data/`
+Read: ADR-0007
 - Saving in the editor reloads data into a running training match (round restarts).
 
 Done when (editor as a whole):
@@ -110,6 +122,7 @@ Done when (editor as a whole):
 
 ### P3-50 CPU bot v1
 Status: todo · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
+Read: ADR-0006
 - Input provider that presses buttons like a player; never reads internals it couldn't "see".
 - Simple state machine (approach, attack, block, punish); difficulty = reaction delay (**player setting** in
   versus CPU; **developer setting** for soak tests).
