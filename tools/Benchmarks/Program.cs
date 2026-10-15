@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Benchmarks.Drivers;
 using Benchmarks.Operations;
 using Sim.Toy;
 
@@ -42,6 +43,10 @@ internal static class Program
         ];
 
         ResultTable.Write(Console.Out, results);
+        if (options.IncludeBackdash)
+        {
+            ResultTable.WriteBackdash(Console.Out, MeasureBackdash(simulation, inputs, options));
+        }
 
         List<string> violations = BudgetCheck.FindViolations(results, tickResult, options.MaxTickMicroseconds);
         foreach (string violation in violations)
@@ -50,5 +55,24 @@ internal static class Program
         }
 
         return violations.Count == 0 ? Passed : BudgetExceeded;
+    }
+
+    // Not gated: Backdash's own time and allocations aren't ours to fix (ADR-0013), so they are only recorded.
+    private static List<FrameResult> MeasureBackdash(
+        ToySimulation simulation, InputSequence inputs, BenchmarkOptions options)
+    {
+        var timer = new FrameTimer(options);
+        return [Measure(timer, new SyncTestFrameBenchmark(simulation, inputs, options.RollbackFrames)),
+            Measure(timer, new PeerFrameBenchmark(simulation, inputs, options.RollbackFrames))];
+    }
+
+    // One session at a time: allocations are counted for the whole process, so another session's network threads
+    // must not be running.
+    private static FrameResult Measure(FrameTimer timer, IDriverBenchmark benchmark)
+    {
+        using (benchmark)
+        {
+            return timer.Measure(benchmark);
+        }
     }
 }
