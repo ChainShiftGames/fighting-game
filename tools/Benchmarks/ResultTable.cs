@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Benchmarks.Drivers;
 using Sim.Toy;
 
 namespace Benchmarks;
@@ -22,6 +23,40 @@ internal static class ResultTable
         }
 
         output.WriteLine();
+        WriteRows(output, results);
+    }
+
+    /// <summary>The Backdash frames, per match driver: reported only, never gated (see README.md).</summary>
+    public static void WriteBackdash(TextWriter output, IReadOnlyList<FrameResult> results)
+    {
+        output.WriteLine();
+        output.WriteLine("Whole frames through RollbackMatchDriver and Backdash (report only, not gated):");
+        output.WriteLine();
+        var timings = new List<OperationResult>(results.Count);
+        foreach (FrameResult result in results)
+        {
+            timings.Add(result.Timing);
+        }
+
+        WriteRows(output, timings);
+        foreach (FrameResult result in results)
+        {
+            if (result.WaitedFrames > 0)
+            {
+                output.WriteLine($"Note: {result.WaitedFrames} timed calls of {result.Timing.Name} only waited.");
+            }
+
+            if (result.Timing.AllocatedBytes > 0)
+            {
+                output.WriteLine($"Note: {result.Timing.Name} allocated {result.Timing.AllocatedBytes} bytes per " +
+                    $"driver, {result.FrameThreadBytes} of them on the frame thread, the rest in Backdash's " +
+                    "background threads.");
+            }
+        }
+    }
+
+    private static void WriteRows(TextWriter output, IReadOnlyList<OperationResult> results)
+    {
         output.WriteLine("| Operation | Mean µs | Median µs | p99 µs | Bytes/call | Calls |");
         output.WriteLine("|---|---:|---:|---:|---:|---:|");
         foreach (OperationResult result in results)

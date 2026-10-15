@@ -7,7 +7,8 @@ namespace Benchmarks;
 internal sealed record BenchmarkOptions
 {
     public const string Usage =
-        "Usage: Benchmarks [--max-tick-us <microseconds>] [--rollback-frames <n>] [--samples <n>] [--warmup-ms <n>]";
+        "Usage: Benchmarks [--max-tick-us <microseconds>] [--rollback-frames <n>] [--samples <n>] [--warmup-ms <n>] " +
+        "[--backdash]";
 
     // ADR-0003: the default rollback window.
     private const int DefaultRollbackFrames = 8;
@@ -20,6 +21,9 @@ internal sealed record BenchmarkOptions
 
     /// <summary>Fail if the tick's p99 exceeds this. Null: report times only, gate on allocations alone.</summary>
     public double? MaxTickMicroseconds { get; init; }
+
+    /// <summary>Also measure whole frames through Backdash's sessions. Reported only, never gated.</summary>
+    public bool IncludeBackdash { get; init; }
 
     public int RollbackFrames { get; init; } = DefaultRollbackFrames;
 
@@ -35,22 +39,30 @@ internal sealed record BenchmarkOptions
     {
         options = new BenchmarkOptions();
         error = string.Empty;
-        for (int i = 0; i < args.Length; i += 2)
+        for (int i = 0; i < args.Length; i++)
         {
-            if (i + 1 >= args.Length || !double.TryParse(args[i + 1], CultureInfo.InvariantCulture, out double value)
+            string name = args[i];
+            if (name == "--backdash")
+            {
+                options = options with { IncludeBackdash = true };
+                continue;
+            }
+
+            i++;
+            if (i >= args.Length || !double.TryParse(args[i], CultureInfo.InvariantCulture, out double value)
                 || value <= 0)
             {
-                error = $"'{args[i]}' needs a positive number.";
+                error = $"'{name}' needs a positive number.";
                 return false;
             }
 
-            if (args[i] is "--rollback-frames" or "--samples" && value % 1 != 0)
+            if (name is "--rollback-frames" or "--samples" && value % 1 != 0)
             {
-                error = $"'{args[i]}' needs a whole number.";
+                error = $"'{name}' needs a whole number.";
                 return false;
             }
 
-            switch (args[i])
+            switch (name)
             {
                 case "--max-tick-us":
                     options = options with { MaxTickMicroseconds = value };
@@ -65,7 +77,7 @@ internal sealed record BenchmarkOptions
                     options = options with { WarmUp = TimeSpan.FromMilliseconds(value) };
                     break;
                 default:
-                    error = $"Unknown option '{args[i]}'.";
+                    error = $"Unknown option '{name}'.";
                     return false;
             }
         }
