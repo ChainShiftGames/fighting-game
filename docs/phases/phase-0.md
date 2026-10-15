@@ -170,7 +170,7 @@ Read: ADR-0003, ADR-0005
 ## C. Spike C — Steam
 
 ### P0-20 Steam initialisation
-Status: todo · Needs: P0-11 · Parallel: yes · Where: `src/Platform.Steam/`, `game/`
+Status: in progress (p0-20-steam-init) · Needs: P0-11 · Parallel: yes · Where: `src/Platform.Steam/`, `game/`
 Read: ADR-0005
 - Steamworks.NET with test AppID 480; native Steam libraries copied next to the game executable.
 - The game must still run without Steam (dev/test).
