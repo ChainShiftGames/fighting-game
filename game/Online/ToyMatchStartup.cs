@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Globalization;
+using FightingGame.Diagnostics;
 using FightingGame.Input;
 using Netcode.Drivers;
 using Netcode.Online;
@@ -26,7 +28,7 @@ public sealed class ToyMatchStartup
             new(new KeyboardDevice(KeyboardLayout.Player1Default), new GamepadDevice(0, _stickDeadzone)),
             new(new KeyboardDevice(KeyboardLayout.Player2Default), new GamepadDevice(1, _stickDeadzone)),
         ];
-        return new ToyMatch(new LocalMatchDriver<ToyState>(Simulation()), players, "local", IsOnline: false);
+        return new ToyMatch(new LocalMatchDriver<ToyState>(Simulation()), players, "local", Connection: null);
     }
 
     /// <param name="opponentName">Shown in the overlay; the address when there is no name.</param>
@@ -40,8 +42,9 @@ public sealed class ToyMatchStartup
                 new KeyboardDevice(KeyboardLayout.Player2Default),
                 new GamepadDevice(0, _stickDeadzone)),
         ];
-        IMatchDriver<ToyState> driver = PeerSession.CreateDriver(Simulation(), settings, transport);
-        return new ToyMatch(driver, player, Describe(settings, opponentName), IsOnline: true);
+        RollbackMatchDriver<ToyState> driver = PeerSession.CreateDriver(Simulation(), settings, transport);
+        var connection = new ConnectionMeter(driver, transport.Link, Stopwatch.Frequency);
+        return new ToyMatch(driver, player, Describe(settings, opponentName), connection);
     }
 
     private ToyMatchSimulation Simulation() => new(new ToySimulation(_rules));

@@ -12,8 +12,8 @@ using Steamworks;
 namespace Platform.Steam.Transport;
 
 /// <summary>
-/// Backdash's network socket over Steam Networking Messages: packets go through Steam's relay, addressed by Steam
-/// ID, so neither player sees the other's IP address (ADR-0005 §1). Unreliable channel; Backdash resends itself.
+/// Backdash's network socket over Steam Networking Messages, addressed by Steam ID. Steam routes packets directly or
+/// through its relay as each player's Steam setting allows (ADR-0014). Unreliable channel; Backdash resends itself.
 /// </summary>
 public sealed class SteamMessagesSocket : IPeerSocket
 {
@@ -83,7 +83,7 @@ public sealed class SteamMessagesSocket : IPeerSocket
     public void Close()
     {
         _received.Writer.TryComplete();
-        SteamNetworkingIdentity opponent = Identity(_opponentSteamId);
+        SteamNetworkingIdentity opponent = SteamIdentity.For(_opponentSteamId);
         SteamNetworkingMessages.CloseSessionWithUser(ref opponent);
     }
 
@@ -93,17 +93,10 @@ public sealed class SteamMessagesSocket : IPeerSocket
         _sessionRequests.Dispose();
     }
 
-    private static SteamNetworkingIdentity Identity(ulong steamId)
-    {
-        var identity = default(SteamNetworkingIdentity);
-        identity.SetSteamID64(steamId);
-        return identity;
-    }
-
     // Reports the packet as sent even when Steam refuses it: for an unreliable channel that's a lost packet.
     private int Send(ReadOnlySpan<byte> packet, ulong steamId)
     {
-        SteamNetworkingIdentity recipient = Identity(steamId);
+        SteamNetworkingIdentity recipient = SteamIdentity.For(steamId);
         lock (_sendLock)
         {
             packet.CopyTo(_sendBuffer);

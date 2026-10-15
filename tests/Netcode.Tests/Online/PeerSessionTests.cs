@@ -34,6 +34,24 @@ public sealed class PeerSessionTests
     }
 
     [Fact]
+    public void ConnectionStatsShowThePingAndTheRollbacksOfABadNetwork()
+    {
+        using var player1 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47031, 47032, true);
+        using var player2 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47032, 47031, false);
+
+        RunUntil(player1, player2, Frames);
+
+        Assert.True(player1.TryReadConnection(out ConnectionStats stats));
+
+        // Backdash's ping is a sample, not the true round trip: it can read far lower (8 ms seen in CI here), so the
+        // test only checks that one is reported (ADR-0014, problem 4).
+        Assert.True(stats.PingMilliseconds > 0);
+        Assert.True(stats.Rollbacks > 0, "Random inputs at 100 ms should mispredict.");
+        Assert.InRange(stats.LongestRollbackFrames, 1, Settings(47031, 47032, true).RollbackFrames);
+        Assert.True(stats.RolledBackFrames >= stats.Rollbacks);
+    }
+
+    [Fact]
     public void ADesyncBetweenPeersIsCaught()
     {
         using var player1 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47021, 47022, true);
@@ -44,13 +62,15 @@ public sealed class PeerSessionTests
 
     private static RollbackMatchDriver<ToyState> CreateDriver(
         IMatchSimulation<ToyState> simulation, int localPort, int remotePort, bool localIsPlayer1) =>
-        new(simulation, PeerSession.Build<ToyState>(new PeerMatchSettings
-        {
-            LocalPort = localPort,
-            RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
-            LocalIsPlayer1 = localIsPlayer1,
-            NetworkSimulation = NetworkSimulation.TestConditions,
-        }, PeerTransport.DirectUdp));
+        new(simulation, PeerSession.Build<ToyState>(Settings(localPort, remotePort, localIsPlayer1), PeerTransport.DirectUdp));
+
+    private static PeerMatchSettings Settings(int localPort, int remotePort, bool localIsPlayer1) => new()
+    {
+        LocalPort = localPort,
+        RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
+        LocalIsPlayer1 = localIsPlayer1,
+        NetworkSimulation = NetworkSimulation.TestConditions,
+    };
 
     private static void RunUntil(RollbackMatchDriver<ToyState> player1, RollbackMatchDriver<ToyState> player2, int frames)
     {

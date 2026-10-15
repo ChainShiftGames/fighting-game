@@ -25,6 +25,7 @@ public partial class Main : Node2D
     private const int LatencyWindowFrames = 120;
     private const Key ToggleVsyncKey = Key.F2;
     private const Key ToggleOverlayKey = Key.F3;
+    private const int ConnectionLogIntervalSeconds = 30;
 
     // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
     private const uint SteamAppId = 480;
@@ -92,6 +93,7 @@ public partial class Main : Node2D
         long now = Stopwatch.GetTimestamp();
         int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
+        SampleConnection(now);
         if (framesRun > 0)
         {
             _view!.QueueRedraw();
@@ -100,7 +102,7 @@ public partial class Main : Node2D
         if (_overlay!.Visible)
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
-            _overlay.ShowMatch(_match.Description, _match.Driver.CurrentFrame);
+            _overlay.ShowMatch(_match.Description, _match.Driver.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
         }
     }
 
@@ -129,6 +131,7 @@ public partial class Main : Node2D
         if (_match is not null)
         {
             GD.Print($"Match ended at frame {_match.Driver.CurrentFrame}.");
+            LogConnection();
             _match.Driver.Dispose();
         }
 
@@ -174,6 +177,24 @@ public partial class Main : Node2D
             new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), match.Driver, match.LocalPlayers, _latency);
         _view!.Show(match.Driver, _rules);
         _matchmakingMenu!.Visible = false;
+    }
+
+    // Online, the log gets the connection readings every so often and at the end, for the P0-22 measurements.
+    private void SampleConnection(long now)
+    {
+        if (_match!.Connection is { } connection && connection.Sample(now) &&
+            connection.SampleCount % ConnectionLogIntervalSeconds == 0)
+        {
+            LogConnection();
+        }
+    }
+
+    private void LogConnection()
+    {
+        if (_match?.Connection is { } connection)
+        {
+            GD.Print($"Connection at frame {_match.Driver.CurrentFrame}: {connection.Describe(" | ")}");
+        }
     }
 
     private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
