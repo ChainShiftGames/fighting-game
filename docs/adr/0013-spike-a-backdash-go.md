@@ -1,6 +1,6 @@
 # ADR-0013: Spike A: keep Backdash for rollback
 
-- **Status:** Proposed (Oct 2026) <!-- Accepted once both devs approve (P0-15) -->
+- **Status:** Accepted (Oct 2026), approved by both devs
 
 ## Context
 

@@ -164,7 +164,7 @@ Done when:
   Deck run still to do by hand
 
 ### P0-15 Spike A decision
-Status: in progress (p0-15-spike-a-decision; ADR-0013 awaits both devs' approval) · Needs: P0-13, P0-14 · Parallel: no · Where: `docs/adr/`
+Status: done (ADR-0013, accepted by both devs) · Needs: P0-13, P0-14 · Parallel: no · Where: `docs/adr/`
 Read: ADR-0003, ADR-0005
 - ADR: go/no-go on Backdash with measurements, problems found, and whether to fork/vendor it.
 
