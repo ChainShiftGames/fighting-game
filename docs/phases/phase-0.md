@@ -152,13 +152,15 @@ Done when:
 - [ ] playable at 100 ms / ±20 ms / 2 % loss without desync for 10 minutes
 
 ### P0-14 Speed and allocation benchmarks
-Status: todo · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
+Status: done · Needs: P0-10 · Parallel: yes · Where: `tools/Benchmarks/`
 Read: ADR-0003
 - Measure one tick, 8-frame resimulation, snapshot save/load and checksum; report allocations.
 - Add to CI with a threshold; record a manual run on a Steam Deck.
 
 Done when:
-- [ ] numbers recorded in the Spike A ADR; CI fails if a tick allocates
+- [x] CI fails if a tick allocates (verified by injecting an allocation)
+- [ ] numbers recorded in the Spike A ADR: done in P0-15; dev-PC numbers in `tools/Benchmarks/README.md`, Steam
+  Deck run still to do by hand
 
 ### P0-15 Spike A decision
 Status: todo · Needs: P0-13, P0-14 · Parallel: no · Where: `docs/adr/`

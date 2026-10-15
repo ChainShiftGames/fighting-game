@@ -50,3 +50,8 @@ jobs:
 
       - name: Test
         run: dotnet test -c Release --no-build
+
+      # ADR-0003: fails if any measured logic operation allocates. The tick time limit is deliberately loose
+      # (CI runners aren't a Steam Deck); see tools/Benchmarks/README.md.
+      - name: Benchmark
+        run: dotnet run --project tools/Benchmarks -c Release --no-build -- --max-tick-us 1000
