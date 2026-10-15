@@ -83,7 +83,7 @@ Done when:
 - [ ] adding a Godot reference to `Sim` or a `Sim → Netcode` reference makes the tests fail
 
 ### P0-06 CI pipeline
-Status: todo · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
+Status: in progress (p0-06-ci) · Needs: P0-02 · Parallel: yes · Where: `.github/workflows/`
 Read: ADR-0006
 - **PR (Linux):** restore, build, format check, all tests.
 - **Nightly:** Windows build + Godot headless export for Windows and Linux (export templates cached).

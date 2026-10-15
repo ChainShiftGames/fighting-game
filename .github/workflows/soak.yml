@@ -1,0 +1,17 @@
+# On-demand bot soak test (ADR-0006): two bots, 1 hour, simulated lag/loss, fails on desync.
+name: Soak test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  soak:
+    name: soak
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Placeholder
+        run: echo "Bot soak test arrives in P2-12 (docs/phases/phase-2.md). Nothing to run yet."
