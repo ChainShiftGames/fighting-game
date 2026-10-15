@@ -10,6 +10,9 @@ public interface IPlatformServices : IDisposable
 
     string PlayerName { get; }
 
+    /// <summary>Starts looking for an online opponent; null when this platform has no online play.</summary>
+    IMatchmaking? OpenMatchmaking();
+
     /// <summary>Lets the platform do its per-frame work. Called once per displayed frame.</summary>
     void Update();
 }

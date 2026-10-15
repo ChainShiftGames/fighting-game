@@ -50,7 +50,7 @@ public sealed class PeerSessionTests
             RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
             LocalIsPlayer1 = localIsPlayer1,
             NetworkSimulation = NetworkSimulation.TestConditions,
-        }));
+        }, PeerTransport.DirectUdp));
 
     private static void RunUntil(RollbackMatchDriver<ToyState> player1, RollbackMatchDriver<ToyState> player2, int frames)
     {

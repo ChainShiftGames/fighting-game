@@ -7,6 +7,9 @@ public sealed class OfflinePlatform : IPlatformServices
 
     public string PlayerName => "Player";
 
+    // No platform, no one to play online with; direct UDP matches don't need matchmaking.
+    public IMatchmaking? OpenMatchmaking() => null;
+
     // Nothing to poll without a platform.
     public void Update()
     {

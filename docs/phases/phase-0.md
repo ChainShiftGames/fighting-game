@@ -181,7 +181,7 @@ Done when:
   checks that each export ships its Steam libraries
 
 ### P0-21 Steam relay transport
-Status: todo · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
+Status: in progress (p0-21-steam-relay) · Needs: P0-20, P0-13 · Parallel: no · Where: `src/Platform.Steam/`
 Read: ADR-0005
 - Implement the Backdash transport over Steam Networking Messages (relay). Unreliable channel for inputs.
 - Friend invite → connect → toy-sim match.

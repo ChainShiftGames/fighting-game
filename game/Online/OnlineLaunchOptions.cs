@@ -7,17 +7,23 @@ using Netcode.Transport;
 namespace FightingGame.Online;
 
 /// <summary>
-/// Reads an online test match from the command line (developer settings, until there is a lobby):
-/// <c>-- --online --port 7000 --remote 127.0.0.1:7001 --player 1 [--lag | --ping 100 --jitter 20 --loss 2] [--rollback 8]</c>.
+/// Reads an online test match from the command line (developer settings, until there is a menu). After <c>--</c>:
+/// <list type="bullet">
+/// <item><c>--steam</c>: find the opponent through a Steam lobby and invites, play over Steam's relay.</item>
+/// <item><c>--online --port 7000 --remote 127.0.0.1:7001 --player 1</c>: direct UDP (development only).</item>
+/// <item>Either one: <c>[--lag | --ping ms --jitter ms --loss %] [--rollback frames] [--delay frames]</c>.</item>
+/// </list>
 /// </summary>
 public static class OnlineLaunchOptions
 {
     public const string Usage =
-        "--online --port <local port> --remote <ip:port> --player <1|2> [--lag] [--ping <ms>] [--jitter <ms>] " +
-        "[--loss <percent>] [--rollback <frames>] [--delay <frames>]";
+        "--steam | --online --port <local port> --remote <ip:port> --player <1|2>, then optionally " +
+        "--lag, --ping <ms>, --jitter <ms>, --loss <percent>, --rollback <frames>, --delay <frames>";
 
-    /// <summary>Null settings and no error when the arguments don't ask for an online match.</summary>
-    public static PeerMatchSettings? Parse(string[] args, out string error)
+    public static bool WantsSteam(string[] args) => Array.IndexOf(args, "--steam") >= 0;
+
+    /// <summary>Settings for a direct UDP match; null with no error when the arguments don't ask for one.</summary>
+    public static PeerMatchSettings? ParseDirect(string[] args, out string error)
     {
         error = string.Empty;
         if (Array.IndexOf(args, "--online") < 0)
@@ -27,34 +33,39 @@ public static class OnlineLaunchOptions
 
         try
         {
-            NetworkSimulation simulation = Array.IndexOf(args, "--lag") >= 0
-                ? NetworkSimulation.TestConditions
-                : NetworkSimulation.None;
-            simulation = simulation with
-            {
-                PingMilliseconds = IntOption(args, "--ping", simulation.PingMilliseconds),
-                JitterMilliseconds = IntOption(args, "--jitter", simulation.JitterMilliseconds),
-                PacketLossPercent = IntOption(args, "--loss", simulation.PacketLossPercent),
-            };
-
             var settings = new PeerMatchSettings
             {
                 LocalPort = IntOption(args, "--port", null),
                 RemoteEndPoint = IPEndPoint.Parse(Option(args, "--remote")),
                 LocalIsPlayer1 = PlayerOption(args),
-                NetworkSimulation = simulation,
             };
-            return settings with
-            {
-                RollbackFrames = IntOption(args, "--rollback", settings.RollbackFrames),
-                InputDelayFrames = IntOption(args, "--delay", settings.InputDelayFrames),
-            };
+            return WithTuning(settings, args);
         }
         catch (FormatException exception)
         {
             error = $"{exception.Message} Usage: {Usage}";
             return null;
         }
+    }
+
+    /// <summary>Applies the rollback, delay and network-simulation options to any online match.</summary>
+    /// <exception cref="FormatException">An option has an invalid value.</exception>
+    public static PeerMatchSettings WithTuning(PeerMatchSettings settings, string[] args)
+    {
+        NetworkSimulation simulation = Array.IndexOf(args, "--lag") >= 0
+            ? NetworkSimulation.TestConditions
+            : NetworkSimulation.None;
+        return settings with
+        {
+            RollbackFrames = IntOption(args, "--rollback", settings.RollbackFrames),
+            InputDelayFrames = IntOption(args, "--delay", settings.InputDelayFrames),
+            NetworkSimulation = simulation with
+            {
+                PingMilliseconds = IntOption(args, "--ping", simulation.PingMilliseconds),
+                JitterMilliseconds = IntOption(args, "--jitter", simulation.JitterMilliseconds),
+                PacketLossPercent = IntOption(args, "--loss", simulation.PacketLossPercent),
+            },
+        };
     }
 
     private static bool PlayerOption(string[] args) => IntOption(args, "--player", null) switch
