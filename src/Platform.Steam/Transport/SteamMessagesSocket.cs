@@ -39,6 +39,7 @@ public sealed class SteamMessagesSocket : IPeerSocket
     {
         _opponentSteamId = opponentSteamId;
         _sessionRequests = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
+        SteamRelayOnly.Apply();
         SteamNetworkingUtils.InitRelayNetworkAccess();
     }
 
