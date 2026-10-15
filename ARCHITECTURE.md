@@ -17,7 +17,7 @@ FightingGame.sln
 src/Sim/             game logic (deterministic, engine-free)
 src/Sim.Data/        loads + validates character JSON, converts it to compact data for Sim
 src/Netcode/         match drivers (local, online, replay, training, test) + Backdash
-src/Platform.Steam/  Steamworks.NET: relay transport, lobbies, Steam features
+src/Platform.Steam/  Steamworks.NET: online transport, lobbies, Steam features
 game/                Godot project: devices, drawing, audio, UI; editor plugin in game/addons/
 data/                character, move and rules JSON
 tests/               logic tests, plain-text scenarios, golden replays
@@ -199,7 +199,8 @@ These rules apply to all code, and agents must follow them even when one big cla
 
 - All match types (local, online, replay, training, test) go through **one match-driver interface** in `Netcode`.
   Backdash is only used behind it.
-- Online traffic goes through **Steam's relay**. Direct UDP is for development only.
+- Online traffic goes through **Steam** (Networking Messages): direct or relayed as each player's Steam setting
+  allows (ADR-0014). Direct UDP is for development only.
 - Before an online match, players compare game version, data hash and match rules. Mismatches never start a match.
 - A desync (checksum mismatch) always produces a dump file. Never hide or auto-correct a desync.
 

@@ -12,8 +12,8 @@ using Steamworks;
 namespace Platform.Steam.Transport;
 
 /// <summary>
-/// Backdash's network socket over Steam Networking Messages: packets go through Steam's relay, addressed by Steam
-/// ID, so neither player sees the other's IP address (ADR-0005 §1). Unreliable channel; Backdash resends itself.
+/// Backdash's network socket over Steam Networking Messages, addressed by Steam ID. Steam routes packets directly or
+/// through its relay as each player's Steam setting allows (ADR-0014). Unreliable channel; Backdash resends itself.
 /// </summary>
 public sealed class SteamMessagesSocket : IPeerSocket
 {

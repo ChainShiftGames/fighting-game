@@ -198,5 +198,5 @@ Read: ADR-0005
 
 ## Phase exit checklist
 - [ ] Spike A and Spike C ADRs merged with go decisions (or a plan B)
-- [ ] All CI checks active; architecture and banned-API tests proven to catch violations
+- [x] All CI checks active; architecture and banned-API tests proven to catch violations (P0-04, P0-05, P0-06)
 - [ ] Both devs played the toy sim online and agree it feels responsive

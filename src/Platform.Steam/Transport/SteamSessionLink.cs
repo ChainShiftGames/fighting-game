@@ -3,14 +3,14 @@ using Steamworks;
 
 namespace Platform.Steam.Transport;
 
-/// <summary>Steam's own readings of the Networking Messages session with the opponent: relay ping and delivery.</summary>
-public sealed class SteamRelayLink : ITransportLink
+/// <summary>Steam's own readings of the Networking Messages session with the opponent: ping, route and delivery.</summary>
+public sealed class SteamSessionLink : ITransportLink
 {
     private const int UnknownDelivery = -1;
 
     private readonly ulong _opponentSteamId;
 
-    public SteamRelayLink(ulong opponentSteamId)
+    public SteamSessionLink(ulong opponentSteamId)
     {
         _opponentSteamId = opponentSteamId;
     }

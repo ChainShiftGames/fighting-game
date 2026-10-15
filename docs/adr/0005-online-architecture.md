@@ -1,6 +1,6 @@
 # ADR-0005: Online architecture
 
-- **Status:** Accepted (Oct 2026)
+- **Status:** Accepted (Oct 2026); §1 route amended by ADR-0014 (proposed)
 - **Gaps:** ROADMAP GAP-8, GAP-16 to GAP-21, GAP-23, GAP-24
 
 ## Decision
