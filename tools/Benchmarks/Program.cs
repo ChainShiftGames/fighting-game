@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Benchmarks.Drivers;
 using Benchmarks.Operations;
+using Sim.State;
 using Sim.Toy;
 
 namespace Benchmarks;
@@ -12,6 +13,9 @@ internal static class Program
     private const int Passed = 0;
     private const int BudgetExceeded = 1;
     private const int InvalidArguments = 2;
+
+    private const string ToyStateName = "toy";
+    private const string MatchStateName = "MatchState";
 
     public static int Main(string[] args)
     {
@@ -28,9 +32,16 @@ internal static class Program
 
         var tick = new TickOperation(simulation, inputs);
         var resimulation = new ResimulationOperation(simulation, inputs, options.RollbackFrames);
-        var snapshotSave = new SnapshotSaveOperation(simulation, options.RollbackFrames);
-        var snapshotLoad = new SnapshotLoadOperation(simulation, options.RollbackFrames);
-        var checksum = new ChecksumOperation(simulation);
+        ToyState toyState = simulation.CreateInitialState();
+        var snapshotSave = new SnapshotSaveOperation<ToyState>(ToyStateName, toyState, options.RollbackFrames);
+        var snapshotLoad = new SnapshotLoadOperation<ToyState>(ToyStateName, toyState, options.RollbackFrames);
+        var checksum = new ChecksumOperation<ToyState>(ToyStateName, toyState);
+
+        // The real match state has no tick yet (P1-03), but its size already sets the snapshot and checksum cost.
+        MatchState matchState = default;
+        var matchSave = new SnapshotSaveOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
+        var matchLoad = new SnapshotLoadOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
+        var matchChecksum = new ChecksumOperation<MatchState>(MatchStateName, matchState);
 
         OperationResult tickResult = timer.Measure(ref tick);
         List<OperationResult> results =
@@ -40,6 +51,9 @@ internal static class Program
             timer.Measure(ref snapshotSave),
             timer.Measure(ref snapshotLoad),
             timer.Measure(ref checksum),
+            timer.Measure(ref matchSave),
+            timer.Measure(ref matchLoad),
+            timer.Measure(ref matchChecksum),
         ];
 
         ResultTable.Write(Console.Out, results);

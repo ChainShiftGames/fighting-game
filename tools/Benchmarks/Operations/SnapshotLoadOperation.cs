@@ -1,25 +1,27 @@
 using System;
-using Sim.Toy;
 
 namespace Benchmarks.Operations;
 
 /// <summary>Loading a snapshot: copying a slot of the rollback-window ring back into the live state.</summary>
-internal struct SnapshotLoadOperation : IBenchmarkOperation
+internal struct SnapshotLoadOperation<TState> : IBenchmarkOperation
+    where TState : unmanaged
 {
-    private readonly ToyState[] _ring;
-    private ToyState _live;
+    private readonly TState[] _ring;
+    private readonly string _name;
+    private TState _live;
     private int _nextSlot;
 
-    public SnapshotLoadOperation(ToySimulation simulation, int rollbackFrames)
+    public SnapshotLoadOperation(string stateName, TState saved, int rollbackFrames)
     {
-        _ring = new ToyState[rollbackFrames];
-        _ring.AsSpan().Fill(simulation.CreateInitialState());
+        _ring = new TState[rollbackFrames];
+        _ring.AsSpan().Fill(saved);
+        _name = $"Snapshot load ({stateName})";
     }
 
-    public readonly string Name => "Snapshot load";
+    public readonly string Name => _name;
 
     // Read so the copy counts as used.
-    public readonly int LiveFrame => _live.Frame;
+    public readonly TState Live => _live;
 
     public void Run()
     {

@@ -71,23 +71,25 @@ The `Benchmark` step in `.github/workflows/ci.yml` runs `--max-tick-us 1000`, wi
 
 ## Results
 
-Toy simulation (P0-10), 8-frame rollback window. Times in µs per call.
+8-frame rollback window. Times in µs per call. Tick and resimulation run the toy simulation (P0-10) until the
+real tick exists (P1-03); snapshot and checksum rows are measured for both the toy state and `MatchState` (P1-02).
 
 | Machine | Operation | Mean µs | Median µs | p99 µs | Bytes/call |
 |---|---|---:|---:|---:|---:|
-| Windows dev PC (i7-12700F, Windows 11, .NET 10.0.13), 2026-10-15 | Tick | 0.0036 | 0.0031 | 0.0124 | 0 |
-| | Resimulate 8 frames | 0.0361 | 0.0341 | 0.0753 | 0 |
-| | Snapshot save | 0.0056 | 0.0054 | 0.0099 | 0 |
-| | Snapshot load | 0.0041 | 0.0040 | 0.0070 | 0 |
-| | Checksum | 0.0142 | 0.0131 | 0.0279 | 0 |
-| Steam Deck | Tick | | | | |
-| | Resimulate 8 frames | | | | |
-| | Snapshot save | | | | |
-| | Snapshot load | | | | |
-| | Checksum | | | | |
+| Windows dev PC (i7-12700F, Windows 11, .NET 10.0.13), 2026-10-15 | Tick (toy) | 0.0036 | 0.0031 | 0.0124 | 0 |
+| | Resimulate 8 frames (toy) | 0.0361 | 0.0341 | 0.0753 | 0 |
+| | Snapshot save (toy) | 0.0056 | 0.0054 | 0.0099 | 0 |
+| | Snapshot load (toy) | 0.0041 | 0.0040 | 0.0070 | 0 |
+| | Checksum (toy) | 0.0142 | 0.0131 | 0.0279 | 0 |
+| Windows dev PC (same), 2026-10-16 | Snapshot save (MatchState, 2,400 bytes) | 0.0357 | 0.0342 | 0.0609 | 0 |
+| | Snapshot load (MatchState) | 0.0203 | 0.0189 | 0.0309 | 0 |
+| | Checksum (MatchState) | 2.1359 | 2.1167 | 2.5194 | 0 |
+| Steam Deck (deferred: no Deck available) | all rows | | | | |
 
-The toy tick is ~3 ns, so the 1 ms budget isn't under pressure yet; the numbers matter again once Phase 1 adds
-real fighters and modules.
+- The toy tick is ~3 ns, so the 1 ms budget isn't under pressure yet.
+- `MatchState` save + load + checksum is ~2.2 µs, 0.2 % of the budget. The checksum dominates: FNV-1a goes byte
+  by byte. If it ever matters, hashing 8 bytes per step is a drop-in speed-up (it changes every checksum value, so
+  golden replays would need re-recording).
 
 ### Backdash frames
 
