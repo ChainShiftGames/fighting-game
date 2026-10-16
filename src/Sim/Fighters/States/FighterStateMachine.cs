@@ -94,7 +94,8 @@ public sealed class FighterStateMachine
         return true;
     }
 
-    // Advances the move frame; basic moves loop. Marks a whiff once the active frames pass without contact.
+    // Advances the move frame; basic moves loop. Marks a whiff once the active frames pass without contact (a clash
+    // is contact too, so it opens no whiff cancel).
     private static void StepFrame(ref FighterState fighter, in MoveData move)
     {
         fighter.MoveFrame++;
@@ -104,7 +105,7 @@ public sealed class FighterStateMachine
         }
 
         bool hasMissed = move.FirstActiveFrame != 0 && fighter.MoveFrame > move.LastActiveFrame &&
-            (fighter.MoveOutcome & (CancelOn.Hit | CancelOn.Block)) == 0;
+            (fighter.MoveOutcome & (CancelOn.Hit | CancelOn.Block | CancelOn.Clash)) == 0;
         if (hasMissed)
         {
             fighter.MoveOutcome |= CancelOn.Whiff;

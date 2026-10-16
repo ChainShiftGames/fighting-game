@@ -171,6 +171,18 @@ public sealed class FighterStateMachineTests
     }
 
     [Fact]
+    public void AClashedMoveIsNotMarkedAsAWhiff()
+    {
+        var driver = new FighterDriver(_character);
+        driver.Frame(ButtonA).Frames(5);
+        driver.Fighter.MoveOutcome |= CancelOn.Clash;
+
+        driver.Frame();
+
+        Assert.Equal(CancelOn.Clash, driver.Fighter.MoveOutcome);
+    }
+
+    [Fact]
     public void APendingCancelIsTakenFromAnyAction()
     {
         var driver = new FighterDriver(_character);
