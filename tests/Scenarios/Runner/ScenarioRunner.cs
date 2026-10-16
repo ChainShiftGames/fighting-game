@@ -1,14 +1,16 @@
 using System.IO;
 using Scenarios.Tests.Expectations;
 using Sim.Input;
+using Sim.Rules;
 using Sim.State;
 
 namespace Scenarios.Tests.Runner;
 
 /// <summary>Runs a scenario frame by frame and stops at the first expectation that doesn't hold.</summary>
 /// <remarks>
-/// Each frame: turn both players' facing-relative inputs into absolute words using the facing at the start of the
-/// frame, tick, then check that frame's expectations in file order.
+/// Setup values are written over the composed start state in file order. Each frame: turn both players'
+/// facing-relative inputs into absolute words using the facing at the start of the frame, tick, then check that
+/// frame's expectations in file order.
 /// </remarks>
 public static class ScenarioRunner
 {
@@ -22,8 +24,16 @@ public static class ScenarioRunner
 
     public static ScenarioResult Run(Scenario scenario)
     {
-        ScenarioMatch match = new(scenario.Setup);
+        ScenarioSetup setup = scenario.Setup;
+        MatchRules rules = setup.BuildRules();
+        ScenarioMatch match = new(
+            setup.Character(0), setup.Character(1), setup.Buttons, in rules, ScenarioStartSettings.Default);
         MatchState state = match.StartState();
+        foreach (SetupValue value in setup.Values)
+        {
+            value.Kind.Set(ref state, value.Player, value.Value);
+        }
+
         ScenarioFrame frame = new(scenario.Setup);
         for (int number = 1; number <= scenario.LastFrame; number++)
         {

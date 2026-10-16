@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Sim.Characters;
 using Sim.Input;
+using Sim.Rules;
 using Sim.State;
 
 namespace Scenarios.Tests.Runner;
@@ -31,6 +32,22 @@ public sealed class ScenarioSetup
 
     /// <summary>The lineup slot of an enabled module, or -1.</summary>
     public int ModuleSlot(string name) => _modules.FindIndex(module => module.Name == name);
+
+    /// <summary>The match rules: the enabled modules in lineup order, with their config.</summary>
+    public MatchRules BuildRules()
+    {
+        MatchRules rules = default;
+        for (int slot = 0; slot < _modules.Count; slot++)
+        {
+            rules.Modules[slot].Module = _modules[slot].Id;
+            for (int i = 0; i < _modules[slot].Config.Length; i++)
+            {
+                rules.Modules[slot].Config[i] = _modules[slot].Config[i];
+            }
+        }
+
+        return rules;
+    }
 
     internal void SetCharacter(int player, CharacterData character, ScenarioLocation location)
     {

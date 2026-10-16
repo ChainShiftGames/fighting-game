@@ -35,8 +35,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
 - **Units**: positions in subpixels (1 px = 1000), velocities in subpixels per frame, times in frames.
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
   real button set. `scenario_dummy` (moves `5a`, `idle`, `crouch`) is there until Testman (P1-17).
-- **Start state** (until round start, P1-13): fighters at x = ∓150000, y = 0, facing each other, full health, in
-  idle, round 1. Settable values below override it.
+- **Start state** (until round start, P1-13): fighters at x = ∓150000 (`ScenarioStartSettings`), y = 0, facing
+  each other, full health, in idle, round 1. Settable values below override it.
 - **What runs**: every stage built so far (input step, move state machines); the others still do nothing, so e.g.
   nothing moves or gets hit yet. `Runner/ScenarioMatch.cs` lists them.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
@@ -82,5 +82,7 @@ the failure report pick it up.
   `EventKind`.
 - Add a scenario using it, and a line to the table above.
 
-The runner itself is in `Runner/`; `ScenarioMatch` is the one place that composes the match (pipeline stages,
-match rules, start state), so new gameplay stages plug in there.
+The runner itself is in `Runner/`. `ScenarioMatch` is the one place that composes the match (characters, button
+set, match rules → pipeline stages and start state), so new gameplay stages plug in there; it uses only Sim types
+so it can move to src/ later. The start distance is the one gameplay value the runner fixes itself
+(`ScenarioStartSettings`), until round start (P1-13) puts it in data or match rules.
