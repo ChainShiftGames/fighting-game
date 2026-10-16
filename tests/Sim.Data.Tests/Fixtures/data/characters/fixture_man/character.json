@@ -1,0 +1,24 @@
+{
+  "$schema": "../../../../../../data/schema/character.schema.json",
+  "schemaVersion": 1,
+  "id": "fixture_man",
+  "displayName": "Fixture Man",
+  "stats": {
+    "health": 10000,
+    "walkForwardSpeed": 4000,
+    "walkBackSpeed": 3200,
+    "dashStyle": "run",
+    "prejumpFrames": 4,
+    "jumpVelocity": 20000,
+    "highJumpVelocity": 25000,
+    "jumpForwardSpeed": 4500,
+    "jumpBackSpeed": 4000,
+    "gravity": 1000,
+    "airActions": 2
+  },
+  "moves": ["236c", "5a", "2b", "j_b", "idle", "crouch"],
+  "states": {
+    "idle": "idle",
+    "crouch": "crouch"
+  }
+}

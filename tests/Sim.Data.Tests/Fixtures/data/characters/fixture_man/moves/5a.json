@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "5a",
+  "category": "normal",
+  "usableIn": "ground",
+  "input": { "motion": "5", "button": "a" },
+  "frameData": { "startup": 5, "active": 3, "recovery": 8 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 15, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "hurt", "firstFrame": 5, "lastFrame": 9, "x": 25000, "y": 80000, "width": 30000, "height": 15000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 15, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 5, "lastFrame": 7, "x": 25000, "y": 80000, "width": 40000, "height": 15000 }
+  ],
+  "cancels": [
+    { "firstFrame": 5, "lastFrame": 12, "on": ["hit", "block"], "into": ["2b"], "intoCategories": ["special", "super"] },
+    { "firstFrame": 8, "lastFrame": 15, "on": ["whiff"], "into": ["5a"] }
+  ],
+  "hit": {
+    "damage": 300,
+    "chipDamage": 0,
+    "guard": "mid",
+    "hitstun": 12,
+    "blockstun": 9,
+    "hitstop": 8,
+    "pushback": 12000
+  }
+}

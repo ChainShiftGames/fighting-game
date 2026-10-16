@@ -121,16 +121,18 @@ Done when:
 ## C. Character data
 
 ### P1-07 Character data schema v1
-Status: todo · Needs: P1-02 · Parallel: yes · Where: `data/schema/`, `src/Sim.Data/`
+Status: done · Needs: P1-02 · Parallel: yes · Where: `data/schema/`, `src/Sim.Data/`
 Read: ADR-0007
 - JSON schema: character file (stats, move list, state machine) and move file (frame data, per-frame boxes,
   cancel windows, hit properties, motion + button).
 - `Sim.Data`: load → validate (loud, specific errors) → convert to compact integer data → data hash.
-- Godot export preset includes `data/**/*.json`.
+- Godot export preset includes `data/**/*.json`. Moved to proposed ADR-0015: `data/` is outside `res://`, so a
+  preset filter alone can't reach it.
+- Format and loading pattern: [data/README.md](../../data/README.md).
 
 Done when:
-- [ ] invalid files give errors naming file, field and reason
-- [ ] same data → same hash on Windows and Linux
+- [x] invalid files give errors naming file, field and reason
+- [x] same data → same hash on Windows and Linux
 
 ## D. Gameplay core
 
