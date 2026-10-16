@@ -339,10 +339,20 @@ Done when:
 - [x] an agent can add a scenario without touching C#
 
 ### P1-19 SyncTest and golden replays
-Status: todo · Needs: P1-17, P1-18 · Parallel: no · Where: `tests/`
+Status: done · Needs: P1-17, P1-18 · Parallel: no · Where: `tests/`
 Read: ADR-0006
 - 10,000-frame SyncTest with Testman mirror and seeded random inputs in the PR pipeline.
 - Golden replays: input files + expected checksums; re-recorded only intentionally.
+- Built (`tests/Netcode.Tests/`): `Matches/MatchSyncTestTests` runs the real data's Testman mirror through
+  `SyncTestSession` (rollback 8) for 10,000 frames; `FightingInputs` is a seeded xorshift input generator (held
+  directions, presses, jumps, runs, 236/623/214/236236 motions), stable across .NET versions. Golden replays in
+  `GoldenReplays/Replays/*.replay`: characters, data hash, run-length input words, checksums every 600 frames and
+  at the end, played through `LocalMatchDriver`. A data hash mismatch fails first with its own message.
+  Re-record: `GOLDEN_REPLAYS_RECORD=1 dotnet test --project tests/Netcode.Tests` (keeps inputs, rewrites hash and
+  checksums; a file with only `seed`/`frames` gets generated inputs), and the PR says why.
+
+Done when:
+- [x] SyncTest on the Testman mirror runs in `dotnet test` (CI); two golden replays (1 and 3 minutes) pass
 
 ## Phase exit checklist
 - [ ] Local versus with Testman on controllers; both devs agree it feels responsive
