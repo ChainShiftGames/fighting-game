@@ -35,13 +35,13 @@ graph LR
 ## A. Logic foundation
 
 ### P1-01 Integer math library
-Status: todo · Needs: — · Parallel: yes · Where: `src/Sim/Math/`
+Status: done · Needs: — · Parallel: yes · Where: `src/Sim/Math/`
 Read: ADR-0003
 - Subpixel unit (1 px = 1000), 2D integer vector, integer AABB, clamp/sign/abs helpers.
 - Integer square root and lookup-table sine/cosine for the few places that need them.
 
 Done when:
-- [ ] unit tests cover overflow edges and rounding direction (always documented, always the same)
+- [x] unit tests cover overflow edges and rounding direction (always documented, always the same)
 
 ### P1-02 Game state layout
 Status: todo · Needs: P1-01 · Parallel: no · Where: `src/Sim/State/`

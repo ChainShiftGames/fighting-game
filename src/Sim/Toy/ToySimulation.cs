@@ -1,5 +1,6 @@
 using System;
 using Sim.Input;
+using Sim.Math;
 
 namespace Sim.Toy;
 
@@ -48,7 +49,7 @@ public sealed class ToySimulation
             fighter.VelocityY = 0;
         }
 
-        fighter.PositionX = Math.Clamp(fighter.PositionX, -_rules.StageHalfWidth, _rules.StageHalfWidth);
+        fighter.PositionX = IntMath.Clamp(fighter.PositionX, -_rules.StageHalfWidth, _rules.StageHalfWidth);
     }
 
     private static int WalkDirection(InputWord input)
