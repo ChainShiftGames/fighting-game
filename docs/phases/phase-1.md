@@ -178,9 +178,16 @@ Done when:
 - [x] scenario tests: corner push, crossup side switch, jumping over a cornered opponent
 
 ### P1-11 Camera logic
-Status: todo · Needs: P1-10 · Parallel: yes · Where: `src/Sim/Camera/`
+Status: done · Needs: P1-10 · Parallel: yes · Where: `src/Sim/Camera/`
 Read: ADR-0004
 - Horizontal camera position and max player distance in the logic (ADR-0004). Zoom/shake are presentation.
+- Built: `MatchState.Camera`, `MatchRules.MaxPlayerDistance` (developer setting, `data/rules/match.json`) and
+  `CameraStage`, run after the pushboxes and walls in the collision step via `Pipeline/StageSequence`. Behaviour
+  is in the `CameraStage` doc comment.
+
+Done when:
+- [x] scenario tests: camera follows and stops at the walls, fighters walking apart are held at the max distance
+  (`tests/Scenarios/Camera/`)
 
 ### P1-12 Hit and block
 Status: todo · Needs: P1-10 · Parallel: no · Where: `src/Sim/Combat/`
