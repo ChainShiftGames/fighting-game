@@ -30,6 +30,13 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json.</remarks>
     public int WallDistance;
 
+    /// <summary>The farthest two fighters may stand apart, outer pushbox edge to outer pushbox edge, in subpixels.</summary>
+    /// <remarks>
+    /// Developer setting, from data/rules/match.json. It is the width the logic camera sees (ADR-0004): the screen
+    /// edges hold fighters like walls. At most twice <see cref="WallDistance"/>.
+    /// </remarks>
+    public int MaxPlayerDistance;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

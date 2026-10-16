@@ -26,8 +26,20 @@ public sealed class MatchRulesFileTests
         MatchRules rules = Fixture.Load(_data).CreateMatchRules();
 
         Assert.Equal(
-            (12, 2, 150_000, 600_000),
-            (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance, rules.WallDistance));
+            (12, 2, 150_000, 600_000, 640_000),
+            (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance, rules.WallDistance, rules.MaxPlayerDistance));
+    }
+
+    [Theory]
+    [InlineData("1200001", "wallDistance")]
+    [InlineData("300000", "roundStartDistance")]
+    public void AMaxPlayerDistanceThatDoesNotFitTheStageIsReported(string maxPlayerDistance, string reasonNames)
+    {
+        _data.Replace(MatchRulesSchema.File, "640000", maxPlayerDistance);
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "maxPlayerDistance"), (error.File, error.Field));
+        Assert.Contains(reasonNames, error.Reason, StringComparison.Ordinal);
     }
 
     [Fact]

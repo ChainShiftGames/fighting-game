@@ -29,7 +29,8 @@ public sealed class ScenarioRunnerTests
         Assert.Contains("p1: damage = 0, facing = right, health = 10000, hitstop = 0, input = 5, move = idle, " +
             "move_frame = 2, state = idle, stun = 0, vx = 0, vy = 0, x = -1234, y = 0", result.Report);
         Assert.Contains("p2: ", result.Report);
-        Assert.Contains("match: freeze = 0, round = 1, timer = 0", result.Report);
+        Assert.Contains("match: camera = ", result.Report);
+        Assert.Contains("freeze = 0, round = 1, timer = 0", result.Report);
     }
 
     [Fact]
