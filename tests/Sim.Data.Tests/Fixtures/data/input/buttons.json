@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../../data/schema/buttons.schema.json",
+  "schemaVersion": 1,
+  "buttons": [
+    { "id": "a", "bit": 4 },
+    { "id": "b", "bit": 5 },
+    { "id": "c", "bit": 6 },
+    { "id": "d", "bit": 7 },
+    { "id": "special", "bit": 8 },
+    { "id": "dash", "bit": 9 }
+  ]
+}

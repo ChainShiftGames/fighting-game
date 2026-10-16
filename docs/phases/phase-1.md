@@ -83,7 +83,7 @@ Done when:
 ## B. Input
 
 ### P1-05 Input word and history
-Status: todo · Needs: P1-02 · Parallel: yes · Where: `src/Sim/Input/`
+Status: done · Needs: P1-02 · Parallel: yes · Where: `src/Sim/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Button set loaded from data (`data/input/buttons.json`): A, B, C, D, Special, Dash. **Developer setting.**
 - 16-bit input word: 4 direction bits + 6 button bits from the button set + 6 spare bits.
@@ -93,9 +93,9 @@ Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Per-player input history in game state for motion detection and buffering.
 
 Done when:
-- [ ] a test with a 5-button set passes without code changes
-- [ ] tests: raw left+right gives neutral, raw up+down gives up
-- [ ] input word layout documented in code
+- [x] a test with a 5-button set passes without code changes
+- [x] tests: raw left+right gives neutral, raw up+down gives up
+- [x] input word layout documented in code
 
 ### P1-04 Device layer
 Status: todo · Needs: P1-05 · Parallel: yes · Where: `game/Input/`

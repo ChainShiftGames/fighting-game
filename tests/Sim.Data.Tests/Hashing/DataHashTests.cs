@@ -17,7 +17,7 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    private const string FixtureHash = "6019a1a303c7f3221d8839896d0e31484dd04e8254f474f23139ad001e933431";
+    private const string FixtureHash = "26e7d58ef4d9de981b53ae2f50dc6062a590dde0482d466c5cbf8a8d8e01737a";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 
@@ -80,6 +80,7 @@ public sealed class DataHashTests
     }
 
     [Theory]
+    [InlineData("input/buttons.json", "\"bit\": 9", "\"bit\": 10")]
     [InlineData("characters/fixture_man/moves/5a.json", "\"damage\": 300", "\"damage\": 301")]
     [InlineData("characters/fixture_man/moves/5a.json", "\"button\": \"a\"", "\"button\": \"b\"")]
     [InlineData("characters/fixture_man/moves/2b.json", "\"x\": 30000", "\"x\": 30001")]

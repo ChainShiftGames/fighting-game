@@ -8,6 +8,7 @@ Character, move and rules JSON (ARCHITECTURE.md §7, ADR-0007). Loaded and valid
 data/schema/<kind>.schema.json                    JSON Schema per file kind (editor aid)
 data/characters/<id>/character.json               stats, move list, basic states
 data/characters/<id>/moves/<move_id>.json         one move: frame data, boxes, cancels, hit
+data/input/buttons.json                           button set: button ids and input word bits (ADR-0010)
 ```
 
 Naming: [CONVENTIONS.md](../CONVENTIONS.md). Example character: `tests/Sim.Data.Tests/Fixtures/data/`.
