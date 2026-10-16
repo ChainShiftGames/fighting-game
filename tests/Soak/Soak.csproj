@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Bot soak test (P2-12, ADR-0006): two in-process online peers for an hour. A console app, not a test project,
+       so `dotnet test` never runs it; the manual "Soak test" workflow does. Usage: Program.cs / SoakOptions.cs. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
+    <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
+    <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Shared with the Netcode tests rather than copied: the same seeded fighter inputs and in-memory transport
+         pair the online tests use, so the soak plays the matches those tests play, only longer. -->
+    <Compile Include="..\Netcode.Tests\Matches\FightingInputs.cs" Link="Shared\FightingInputs.cs" />
+    <Compile Include="..\Netcode.Tests\Transport\InMemoryTransport.cs" Link="Shared\InMemoryTransport.cs" />
+    <Compile Include="..\Netcode.Tests\Transport\OpenedTransport.cs" Link="Shared\OpenedTransport.cs" />
+  </ItemGroup>
+</Project>

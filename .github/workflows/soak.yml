@@ -1,17 +1,71 @@
-# On-demand bot soak test (ADR-0006): two bots, 1 hour, simulated lag/loss, fails on desync.
+# On-demand bot soak test (ADR-0006, P2-12): two in-process online peers, simulated lag/loss, seeded inputs,
+# 1 hour by default; fails on a desync or stall. Manual trigger only, never on PRs or a schedule.
 name: Soak test
 
 on:
   workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long to play matches, in minutes (developer setting)"
+        required: true
+        default: "60"
+      seed:
+        description: "Input seed to replay (developer setting); empty picks a random one, printed in the log"
+        required: false
+        default: ""
 
 permissions:
   contents: read
+
+concurrency:
+  group: soak-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
 
 jobs:
   soak:
     name: soak
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Room for a 60-minute soak plus setup; longer soaks need this raised (GitHub's limit is 360).
+    timeout-minutes: 90
     steps:
-      - name: Placeholder
-        run: echo "Bot soak test arrives in P2-12 (docs/phases/phase-2.md). Nothing to run yet."
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'Directory.Packages.props', '**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Build
+        run: dotnet build tests/Soak -c Release
+
+      # Inputs go through the environment, never pasted into the script.
+      - name: Soak
+        env:
+          SOAK_MINUTES: ${{ inputs.minutes }}
+          SOAK_SEED: ${{ inputs.seed }}
+        run: |
+          set -euo pipefail
+          args=(--minutes "$SOAK_MINUTES" --dump-dir soak-dumps)
+          if [ -n "$SOAK_SEED" ]; then
+            args+=(--seed "$SOAK_SEED")
+          fi
+          dotnet run --project tests/Soak -c Release --no-build -- "${args[@]}"
+
+      - name: Upload desync dumps
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: soak-dumps
+          path: soak-dumps/
+          if-no-files-found: ignore
+          retention-days: 14
