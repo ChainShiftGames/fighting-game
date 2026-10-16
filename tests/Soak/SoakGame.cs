@@ -1,4 +1,5 @@
 using Netcode.Drivers;
+using Netcode.Handshake;
 using Netcode.Transport;
 using Sim.Characters;
 using Sim.Composition;
@@ -16,6 +17,9 @@ namespace Soak;
 /// </summary>
 internal sealed class SoakGame
 {
+    // Both soak peers are this build, so the version handshake always agrees.
+    private const string GameVersion = "soak";
+
     private readonly GameData _data;
     private readonly CharacterData _character;
 
@@ -37,6 +41,10 @@ internal sealed class SoakGame
         $"{_character.Id} mirror, data hash {_data.Hash}, rollback window {RollbackFrames} frames, " +
         $"{Network.PingMilliseconds} ms ping ±{Network.JitterMilliseconds} ms, {Network.PacketLossPercent} % loss, " +
         "in-memory transport";
+
+    /// <summary>A fresh version handshake for one peer (ADR-0005 §6): each PC runs its own.</summary>
+    public VersionHandshake CreateHandshake() =>
+        new(new MatchIdentity(GameVersion, _data.Hash.ToBytes(), _data.CreateMatchRules()));
 
     /// <summary>A fresh simulation for one peer: peers never share one, as two PCs wouldn't.</summary>
     public IMatchSimulation<MatchState> CreateSimulation()

@@ -161,7 +161,8 @@ internal sealed class SoakMatch : IDisposable
             NetworkSimulation = game.Network,
         };
         RollbackMatchDriver<MatchState> driver =
-            PeerSession.CreateDriver(simulation, settings, new PeerTransport(new OpenedTransport(transport)));
+            PeerSession.CreateDriver(
+                simulation, settings, new PeerTransport(new OpenedTransport(transport)), game.CreateHandshake());
         connection = driver;
         return new TestMatchDriver<MatchState>(driver, [new FightingInputs(seed)]);
     }
