@@ -1,0 +1,124 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using Scenarios.Tests.Expectations;
+using Sim.Characters;
+using Sim.Modules;
+using Sim.Rules;
+
+namespace Scenarios.Tests.Runner;
+
+/// <summary>Reads the body of a <c>setup:</c> line: a character, a module, or a start-state value.</summary>
+/// <remarks>
+/// Forms: <c>p1 character &lt;id&gt;</c>, <c>module &lt;name&gt; [config integers…]</c> and
+/// <c>[p1|p2] &lt;keyword&gt; = &lt;value&gt;</c> for any expectation kind that is also an <see cref="ISettableKind"/>.
+/// </remarks>
+public sealed class SetupParser
+{
+    private readonly ScenarioData _data;
+    private readonly ModuleCatalog _modules = RegisteredModules.Create();
+
+    public SetupParser(ScenarioData data)
+    {
+        _data = data;
+    }
+
+    public void Parse(string body, ScenarioSetup setup, ScenarioLocation location)
+    {
+        string[] words = body.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        bool hasPlayer = ScenarioPlayers.TryParse(words[0], out int player);
+        string[] rest = hasPlayer ? words[1..] : words;
+        if (rest.Length == 0)
+        {
+            throw new ScenarioSyntaxException(location, $"'{body}' says nothing to set up");
+        }
+
+        switch (rest[0])
+        {
+            case "character":
+                SetCharacter(rest, player, setup, location);
+                break;
+            case "module":
+                RequireNoPlayer(hasPlayer, "modules are enabled for the whole match", location);
+                EnableModule(rest, setup, location);
+                break;
+            default:
+                AddValue(rest, player, setup, location);
+                break;
+        }
+    }
+
+    private void SetCharacter(string[] words, int player, ScenarioSetup setup, ScenarioLocation location)
+    {
+        if (player == ScenarioPlayers.None || words.Length != 2)
+        {
+            throw new ScenarioSyntaxException(location, "write 'setup: p1 character <id>'");
+        }
+
+        if (!_data.TryGetCharacter(words[1], out CharacterData? character))
+        {
+            throw new ScenarioSyntaxException(
+                location, $"no character '{words[1]}'; known: {string.Join(", ", _data.CharacterIds)}");
+        }
+
+        setup.SetCharacter(player, character!, location);
+    }
+
+    private void EnableModule(string[] words, ScenarioSetup setup, ScenarioLocation location)
+    {
+        if (words.Length < 2 || !_modules.TryFindId(words[1], out ModuleId id))
+        {
+            string known = string.Join(", ", Enumerable.Range(0, _modules.Count).Select(i => _modules[i].Name));
+            throw new ScenarioSyntaxException(location, $"write 'setup: module <name> [config…]'; modules: {known}");
+        }
+
+        string[] config = words[2..];
+        if (config.Length > ModuleConfig.Length)
+        {
+            throw new ScenarioSyntaxException(location, $"a module has at most {ModuleConfig.Length} config values");
+        }
+
+        int[] values = new int[config.Length];
+        for (int i = 0; i < config.Length; i++)
+        {
+            if (!int.TryParse(config[i], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out values[i]))
+            {
+                throw new ScenarioSyntaxException(location, $"module config value '{config[i]}' isn't an integer");
+            }
+        }
+
+        setup.EnableModule(new EnabledModule(words[1], id, values), location);
+    }
+
+    private static void AddValue(string[] words, int player, ScenarioSetup setup, ScenarioLocation location)
+    {
+        bool isSettable = ExpectationKinds.TryFind(words[0], out IExpectationKind? kind) && kind is ISettableKind;
+        if (!isSettable || kind is not ValueKind valueKind)
+        {
+            string settableKinds = string.Join(
+                ", ", ExpectationKinds.Values.Where(k => k is ISettableKind).Select(k => k.Keyword));
+            throw new ScenarioSyntaxException(
+                location, $"can't set '{words[0]}' in setup; settable: character, module, {settableKinds}");
+        }
+
+        ExpectationParser.RequireSubject(valueKind, player, location);
+        if (words.Length != 3 || words[1] != "=")
+        {
+            throw new ScenarioSyntaxException(location, $"write 'setup: {Subject(player)}{words[0]} = <value>'");
+        }
+
+        int value = ExpectationParser.ParseValue(valueKind, words[2], setup, player, location);
+        setup.AddValue(new SetupValue((ISettableKind)valueKind, player, value));
+    }
+
+    private static void RequireNoPlayer(bool hasPlayer, string reason, ScenarioLocation location)
+    {
+        if (hasPlayer)
+        {
+            throw new ScenarioSyntaxException(location, $"no player here: {reason}");
+        }
+    }
+
+    private static string Subject(int player) =>
+        player == ScenarioPlayers.None ? "" : ScenarioPlayers.Label(player) + " ";
+}

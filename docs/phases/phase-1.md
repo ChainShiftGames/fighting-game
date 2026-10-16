@@ -109,14 +109,20 @@ Done when:
 - [ ] rebinding a button in the dev file works on keyboard and controller
 
 ### P1-06 Motion parser and buffer
-Status: todo · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
+Status: done · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Data-driven motion definitions (236, 214, 623, 41236, 63214, 22, 236236, 632146).
 - Motion window 12 frames, button buffer 2 frames. **Developer settings** in `MatchRules`.
 - Priority order when several motions match on the same frame, defined in data.
+- Built: `data/input/motions.json` (rules in `data/README.md` → Motions), loader in `src/Sim.Data/Motions/`,
+  `MotionParser` + per-character `MoveInputMatcher` in `src/Sim/Input/Motions/`.
+- Follow-ups: wire `MoveInputMatcher` into `IMoveInput` (after P1-09); load motions in `GameDataLoader` (data hash,
+  `ApplyTo(ref MatchRules)`, check move motions exist); plain-text scenario versions once P1-18 lands; consume a
+  buffered press once it started a move.
 
 Done when:
-- [ ] scenario tests for each motion, buffer edges (frame 2 accepted, frame 3 rejected) and priority conflicts
+- [x] tests for each motion, buffer edges (frame 2 accepted, frame 3 rejected) and priority conflicts (unit tests
+  in `tests/Sim.Tests/Input/Motions/`; plain-text scenario versions follow P1-18)
 
 ## C. Character data
 
@@ -238,13 +244,14 @@ Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
   reversal, a super placeholder.
 
 ### P1-18 Scenario test runner
-Status: todo · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
+Status: done · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
 Read: ADR-0006
 - Plain-text format: setup (characters, positions), per-frame inputs, expectations ("P2 in hitstun on frame 5").
 - Runner reports the first failing expectation with the actual state.
+- Format and how to add an expectation kind: [tests/Scenarios/README.md](../../tests/Scenarios/README.md).
 
 Done when:
-- [ ] an agent can add a scenario without touching C#
+- [x] an agent can add a scenario without touching C#
 
 ### P1-19 SyncTest and golden replays
 Status: todo · Needs: P1-17, P1-18 · Parallel: no · Where: `tests/`

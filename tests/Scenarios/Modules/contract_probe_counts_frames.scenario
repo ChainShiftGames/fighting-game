@@ -1,0 +1,8 @@
+# Match rules: a module enabled in setup runs its hooks every frame (contract probe counts frames in slice int 0).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module contract_probe 12
+
+frame 1: expect module contract_probe[0] = 1
+frame 10: expect module contract_probe[0] = 10
+frames 1-10: expect module contract_probe[1] = 0   # no hits yet: hit resolution is not built

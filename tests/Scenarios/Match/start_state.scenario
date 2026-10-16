@@ -1,0 +1,18 @@
+# Start state: fighters face each other at the test start positions with full health; setup lines override it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -50000
+setup: p2 health = 9000
+
+# Nobody presses anything, so nobody moves.
+frames 1-30: expect p1 x = -50000
+frames 1-30: expect p2 x = 150000
+frames 1-30: expect p1 y = 0
+frames 1-30: expect p1 vx = 0
+frame 1: expect p1 facing = right
+frame 1: expect p2 facing = left
+frame 1: expect p1 x < 0
+frame 1: expect p1 health = 10000
+frame 1: expect p1 damage = 0
+frame 1: expect p2 damage = 1000
+frame 1: expect round = 1
