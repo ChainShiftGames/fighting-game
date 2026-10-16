@@ -85,12 +85,12 @@ public sealed class EntityHitResolutionStageTests
         Assert.Equal(0, EntityStages.Count(in state));
     }
 
-    // Decided rule: "back" is away from the projectile, not from its owner: a projectile from behind is blocked by
-    // holding toward the owner.
+    // Standard rule: "back" is away from the owner, not from the projectile: a projectile from behind (here at
+    // x = 120000, past P2) is still blocked by holding away from P1.
     [Theory]
-    [InlineData(InputWord.Left, true)]
-    [InlineData(InputWord.Right, false)]
-    public void AProjectileIsBlockedByHoldingAwayFromItself(int direction, bool isBlocked)
+    [InlineData(InputWord.Right, true)]
+    [InlineData(InputWord.Left, false)]
+    public void AProjectileFromBehindIsBlockedByHoldingAwayFromTheOwner(int direction, bool isBlocked)
     {
         MatchState state = Fighters();
         state.Inputs[1].Record(new InputWord((ushort)direction));
