@@ -60,7 +60,9 @@
         "blockstun": { "$ref": "#/$defs/id" },
         "crouchBlockstun": { "$ref": "#/$defs/id" },
         "knockdown": { "$ref": "#/$defs/id" },
-        "wakeUp": { "$ref": "#/$defs/id" }
+        "wakeUp": { "$ref": "#/$defs/id" },
+        "airDash": { "$ref": "#/$defs/id" },
+        "airBackdash": { "$ref": "#/$defs/id" }
       }
     }
   },

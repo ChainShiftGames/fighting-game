@@ -25,6 +25,8 @@ public enum FighterAction
     CrouchBlockstun,
     Knockdown,
     WakeUp,
+    AirDash,
+    AirBackdash,
 
     /// <summary>A normal, special, super or throw: the move's own frame data runs it.</summary>
     Attack,

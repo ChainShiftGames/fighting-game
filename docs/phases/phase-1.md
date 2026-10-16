@@ -150,10 +150,20 @@ Read: ADR-0007, CURRENT_STATE §3 Movement/Offense/Defense
 - Transitions and cancel windows come from data; the state machine contains no character-specific code.
 
 ### P1-09 Movement
-Status: todo · Needs: P1-08 · Parallel: no · Where: `src/Sim/Fighters/Movement/`
+Status: done · Needs: P1-08 · Parallel: no · Where: `src/Sim/Fighters/Movement/`
 Read: CURRENT_STATE §3 Movement
 - Walk, dash (run or step per character), backdash with invulnerability, jump with prejump, high jump, gravity.
 - Air actions (double jump, air dash) sharing a per-character budget. Values from data.
+- Built: `MovementStage` (pipeline Movement step). Velocity order: takeoff → move `velocity` data → walk speeds
+  (ground) or momentum + gravity (air). Dash/backdash/air dash speeds and backdash `invulnerable` frames are move
+  data (developer settings); jump values are character stats. State machine sets `Takeoff`, spends air actions;
+  movement refills them on landing. New basic states `airDash`, `airBackdash`.
+- For P1-06: implement `IMoveInput` dash (66 / 44, ground and air), `IsHighJumpTriggered` (2→8 family, checked on
+  the frame a prejump starts) and `IsAirJumpTriggered` (fresh up in the air). `ButtonPressMoveInput` is the
+  stand-in (dash button mask passed in by the caller).
+- Follow-ups: scenario tests (walk, jump arcs, high jump, run/step dash, backdash invulnerability, double jump,
+  air dash, budget refill) once P1-18's runner lands; P1-12 reads `MoveData.IsInvulnerableOn` and sets
+  `IsAirborne` + upward velocity for launchers.
 
 ### P1-10 Collision, walls and corners
 Status: todo · Needs: P1-09 · Parallel: no · Where: `src/Sim/Collision/`

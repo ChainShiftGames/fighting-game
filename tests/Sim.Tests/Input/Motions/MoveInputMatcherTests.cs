@@ -127,7 +127,7 @@ public sealed class MoveInputMatcherTests
         int[] basicStateMoves = new int[Enum.GetValues<BasicState>().Length];
         Array.Fill(basicStateMoves, CharacterData.NoMove);
         CharacterData character = new(
-            "test", "Test", default, ids.ToArray(), moves, [], [], [], [], basicStateMoves);
+            "test", "Test", default, ids.ToArray(), moves, [], [], [], [], [], basicStateMoves);
         return new MoveInputMatcher(TestMotions.Parser(), character);
     }
 }

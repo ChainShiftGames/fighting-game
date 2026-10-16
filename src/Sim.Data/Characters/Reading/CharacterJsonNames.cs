@@ -68,5 +68,7 @@ public static class CharacterJsonNames
         ("crouchBlockstun", BasicState.CrouchBlockstun),
         ("knockdown", BasicState.Knockdown),
         ("wakeUp", BasicState.WakeUp),
+        ("airDash", BasicState.AirDash),
+        ("airBackdash", BasicState.AirBackdash),
     ];
 }
