@@ -1,4 +1,5 @@
 using Sim.Characters;
+using Sim.Fighters.States;
 using Sim.State;
 
 namespace Sim.Match;
@@ -21,13 +22,11 @@ public sealed class RoundJudge
         _player2MaxHealth = player2.Stats.Health;
     }
 
-    public static bool IsKnockedOut(in FighterState fighter) => fighter.Health <= 0;
-
     /// <summary>The fighters still standing if anyone is KO'd (both after a double KO); none if nobody is.</summary>
     public static Winners KnockOutWinners(in FighterStates fighters)
     {
-        bool isPlayer1Out = IsKnockedOut(in fighters[0]);
-        bool isPlayer2Out = IsKnockedOut(in fighters[1]);
+        bool isPlayer1Out = KnockOut.IsKnockedOut(in fighters[0]);
+        bool isPlayer2Out = KnockOut.IsKnockedOut(in fighters[1]);
         if (isPlayer1Out == isPlayer2Out)
         {
             return isPlayer1Out ? Winners.Both : Winners.None;

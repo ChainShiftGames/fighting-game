@@ -40,7 +40,7 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   front) `236c` (mid fireball, 8000 per frame, durability 1, projectile 0), `236d` (low fireball at the floor, same
   speed, projectile 1), `214c` (slow mid fireball, 2000 per frame, lifetime 200, durability 2, projectile 2); basic
   moves `idle`, `crouch`, `dash`, `jump`, `landing`, `hitstun`,
-  `crouch_hitstun`, `blockstun`, `crouch_blockstun`. Frame and hit data are in its move files.
+  `crouch_hitstun`, `blockstun`, `crouch_blockstun`, `knockdown` (40 frames, no hurtbox). Frame and hit data are in its move files.
 - **Start state**: round 1 as `Sim.Match.RoundStart` sets it up: fighters at x = ∓`roundStartDistance` from
   `data/rules/match.json` (150000), y = 0, facing each other, full health, in idle, timer `roundTimerFrames` (5940).
   Settable values below override it; a later round starts from data again (full health), not from setup.

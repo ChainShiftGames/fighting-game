@@ -18,7 +18,7 @@
   },
   "moves": [
     "236b", "236c", "236d", "214c", "6b", "2a", "5a", "idle", "crouch", "dash", "jump", "landing", "hitstun",
-    "crouch_hitstun", "blockstun", "crouch_blockstun"
+    "crouch_hitstun", "blockstun", "crouch_blockstun", "knockdown"
   ],
   "states": {
     "idle": "idle",
@@ -29,6 +29,7 @@
     "hitstun": "hitstun",
     "crouchHitstun": "crouch_hitstun",
     "blockstun": "blockstun",
-    "crouchBlockstun": "crouch_blockstun"
+    "crouchBlockstun": "crouch_blockstun",
+    "knockdown": "knockdown"
   }
 }

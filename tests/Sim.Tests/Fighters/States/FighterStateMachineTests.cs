@@ -264,6 +264,18 @@ public sealed class FighterStateMachineTests
     }
 
     [Fact]
+    public void AKnockedOutFighterStaysDownOnTheKnockdownsLastFrame()
+    {
+        var driver = new FighterDriver(_character);
+        MoveEntry.EnterBasic(ref driver.Fighter, FighterAction.Knockdown, _character);
+        driver.Fighter.Health = 0;
+
+        driver.Frames(KnockdownFrames * 3, InputWord.Up);
+
+        Assert.Equal((FighterAction.Knockdown, KnockdownFrames), (driver.Action, driver.Fighter.MoveFrame));
+    }
+
+    [Fact]
     public void AirHitstunEndsInKnockdownOnLanding()
     {
         var driver = new FighterDriver(_character);

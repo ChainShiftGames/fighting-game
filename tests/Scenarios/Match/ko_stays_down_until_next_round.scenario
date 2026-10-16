@@ -1,0 +1,22 @@
+# A KO'd fighter stays down: P1's 5a takes P2's last 300 health on frame 5. A grounded KO knocks down at once
+# (whatever the hit's reaction) and P2 holds the knockdown's last frame through the 120-frame round-over pause
+# instead of waking up with 0 health. Round 2 resets it to idle with full health.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p2 health = 300
+
+frame 1: p1 5a
+
+frame 5: expect p2 event knock_out
+frame 5: expect p2 state = knockdown
+frames 5-124: expect p2 state = knockdown
+frames 5-124: expect p2 health = 0
+frame 124: expect round_phase = round_over
+frame 124: expect p2 move = knockdown
+frame 124: expect p2 move_frame = 40     # the knockdown's last frame (40 frames long)
+
+frame 125: expect round = 2
+frame 125: expect p2 state = idle
+frame 125: expect p2 health = 10000
