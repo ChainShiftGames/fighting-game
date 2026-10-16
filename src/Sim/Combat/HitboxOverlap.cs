@@ -5,7 +5,7 @@ using Sim.State;
 
 namespace Sim.Combat;
 
-/// <summary>Finds where one fighter's hitboxes touch the other fighter's hurtboxes this frame.</summary>
+/// <summary>Finds where one fighter's hit (or throw) boxes touch the other fighter's hurtboxes this frame.</summary>
 public static class HitboxOverlap
 {
     /// <summary>True when a hitbox of the attacker overlaps a hurtbox of the defender.</summary>
@@ -15,9 +15,20 @@ public static class HitboxOverlap
         in FighterState attacker,
         CharacterData defenderCharacter,
         in FighterState defender,
+        out IntVector2 point) =>
+        TryFind(BoxKind.Hit, attackerCharacter, in attacker, defenderCharacter, in defender, out point);
+
+    /// <summary>True when an attacker's <paramref name="kind"/> box (hit or throw) overlaps a defender's hurtbox.</summary>
+    /// <param name="point">The centre of the first overlapping pair (data order).</param>
+    public static bool TryFind(
+        BoxKind kind,
+        CharacterData attackerCharacter,
+        in FighterState attacker,
+        CharacterData defenderCharacter,
+        in FighterState defender,
         out IntVector2 point)
     {
-        foreach (AxisAlignedBox hitbox in new ActiveBoxes(attackerCharacter, in attacker, BoxKind.Hit))
+        foreach (AxisAlignedBox hitbox in new ActiveBoxes(attackerCharacter, in attacker, kind))
         {
             foreach (AxisAlignedBox hurtbox in new ActiveBoxes(defenderCharacter, in defender, BoxKind.Hurt))
             {

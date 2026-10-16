@@ -1,0 +1,24 @@
+# A forward throw (5 or 6 + a+b): scenario_dummy's throw is active on frames 5-7 and grabs a standing p2 60000 away
+# on frame 5. The tech window (throwTechWindowFrames 5 in data/rules/match.json) runs on frames 6-10; untouched,
+# the throw lands on frame 10: 1200 damage, knockdown, both fighters get its 8 frames of hitstop, and p2 is
+# released 75000 in front of p1 (the move's releaseX).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+
+frame 1: expect p1 move = forward_throw
+frame 4: expect p1 event throw_grab = 0
+frame 5: expect p1 event throw_grab
+frame 5: expect p2 state = thrown
+frames 5-9: expect p2 damage = 0
+frame 9: expect p2 state = thrown
+frame 10: expect p1 event throw_hit
+frame 10: expect p2 damage = 1200
+frame 10: expect p2 state = knockdown
+frame 10: expect p2 x = 45000           # -30000 + 75000
+frame 10: expect p1 hitstop = 8
+frame 10: expect p2 hitstop = 8
+frame 10: expect p1 event hit = 0

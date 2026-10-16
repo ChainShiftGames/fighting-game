@@ -44,6 +44,13 @@ public sealed class HitContacts
         _points[attacker] = point;
     }
 
+    /// <summary>Drops the attack of <paramref name="attacker"/> this frame, e.g. a strike losing to a throw.</summary>
+    public void Cancel(int attacker)
+    {
+        _touches[attacker] = false;
+        _points[attacker] = IntVector2.Zero;
+    }
+
     /// <summary>Records that a projectile of the opponent's touched <paramref name="defender"/>.</summary>
     public void RecordProjectileTouch(int defender) => _touchedByProjectile[defender] = true;
 

@@ -24,4 +24,10 @@ public enum BasicState
     WakeUp,
     AirDash,
     AirBackdash,
+
+    /// <summary>Held by the opponent's throw until the tech window closes (P1-23).</summary>
+    Thrown,
+
+    /// <summary>A throw was teched: both fighters separate (P1-23).</summary>
+    ThrowTech,
 }

@@ -70,6 +70,31 @@ public sealed class MatchRulesFileTests
             new CounterBonus { ExtraHitstun = 4, ExtraHitstop = 4, ExtraDamagePercent = 20 }, rules.PunishCounter);
     }
 
+    [Fact]
+    public void CreateMatchRulesAppliesTheThrowValues()
+    {
+        MatchRules rules = Fixture.Load(_data).CreateMatchRules();
+
+        Assert.Equal(
+            (5, 3, 3, ThrowPriority.Throw),
+            (rules.ThrowTechWindowFrames, rules.WakeUpThrowInvulnerableFrames, rules.LandingThrowInvulnerableFrames,
+                rules.ThrowVsStrike));
+    }
+
+    [Theory]
+    [InlineData("\"throwTechWindowFrames\": 5", "\"throwTechWindowFrames\": 0", "throwTechWindowFrames")]
+    [InlineData(
+        "\"landingThrowInvulnerableFrames\": 3", "\"landingThrowInvulnerableFrames\": 100",
+        "landingThrowInvulnerableFrames")]
+    [InlineData("\"throwVsStrike\": \"throw\"", "\"throwVsStrike\": \"both\"", "throwVsStrike")]
+    public void AWrongThrowValueNamesTheField(string from, string to, string field)
+    {
+        _data.Replace(MatchRulesSchema.File, from, to);
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, field), (error.File, error.Field));
+    }
+
     [Theory]
     [InlineData("counterHitExtraHitstun")]
     [InlineData("punishCounterExtraDamagePercent")]
@@ -161,7 +186,8 @@ public sealed class MatchRulesFileTests
               "roundTimerFrames": 5940, "roundsToWin": 2, "maxRounds": 5, "roundOverFrames": 120,
               "entitiesPerPlayer": 4, "counterHitExtraHitstun": 2, "counterHitExtraHitstop": 2,
               "counterHitExtraDamagePercent": 20, "punishCounterExtraHitstun": 4, "punishCounterExtraHitstop": 4,
-              "punishCounterExtraDamagePercent": 20 }
+              "punishCounterExtraDamagePercent": 20, "throwTechWindowFrames": 5, "wakeUpThrowInvulnerableFrames": 3,
+              "landingThrowInvulnerableFrames": 3, "throwVsStrike": "throw" }
             """);
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);

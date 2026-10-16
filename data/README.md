@@ -55,6 +55,19 @@ Matching rules (`src/Sim/Input/Motions/MotionParser.cs`); every leniency is in t
   jump, with its own short window) and the optional `dashButton` (a button id), which backdashes when pressed with
   back. The high jump is checked on the frame a prejump starts; a double jump is a fresh up press in the air.
 - Every move's `input.motion` must be in the list; `GameDataLoader` reports the move file otherwise.
+- `input.buttons` (instead of `button`) lists buttons pressed together, e.g. a throw's `["a", "b"]`: the press is
+  the frame the last of them goes down (the others may already be held).
+
+## Throws (P1-23)
+
+- A move with `throw` boxes throws; it needs a `throw` object (`releaseX`: where the opponent lands, forward of the
+  thrower; negative for a back throw) and a `hit` (damage, hitstop and reaction apply when it lands). It can't also
+  have hit boxes, and throws are ground moves. Category `throw` marks normal throws: their buttons are the throw
+  tech input. Rules: `src/Sim/Throws/` doc comments.
+- Give a throw enough recovery to cover the tech window (`throwTechWindowFrames`), or the thrower is free before
+  its throw lands.
+- Basic states `thrown` (held; no hurtbox, so nothing else hits it) and `throwTech` (its velocity separates the
+  fighters).
 
 ## Loading pattern (for every new data kind)
 

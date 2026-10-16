@@ -18,6 +18,7 @@ public static class DataSettingList
     private const int Second = 60;
     private const int MaxFrames = CharacterSchema.MaxMoveFrames;
     private const int MaxPercent = CharacterSchema.MaxExtraDamagePercent;
+    private const int MaxThrowFrames = MatchRulesSchema.MaxThrowFrames;
 
     public static DataFileSetting[] Numbers() =>
     [
@@ -35,6 +36,9 @@ public static class DataSettingList
         new("Punish counter extra hitstun", MatchRules, "punishCounterExtraHitstun", 0, MaxFrames, 1),
         new("Punish counter extra hitstop", MatchRules, "punishCounterExtraHitstop", 0, MaxFrames, 1),
         new("Punish counter extra damage %", MatchRules, "punishCounterExtraDamagePercent", 0, MaxPercent, 5),
+        new("Throw tech window", MatchRules, "throwTechWindowFrames", 1, MaxThrowFrames, 1),
+        new("Wake-up throw invulnerability", MatchRules, "wakeUpThrowInvulnerableFrames", 0, MaxThrowFrames, 1),
+        new("Landing throw invulnerability", MatchRules, "landingThrowInvulnerableFrames", 0, MaxThrowFrames, 1),
         new("Motion window", Motions, "motionWindow", 1, InputHistory.Capacity, 1),
         new("Button buffer", Motions, "buttonBuffer", 0, InputHistory.Capacity - 1, 1),
     ];
@@ -42,5 +46,6 @@ public static class DataSettingList
     public static DataFileChoice[] Choices() =>
     [
         new("Trade rule", MatchRules, "tradeRule", MatchRulesSchema.TradeRules.Names),
+        new("Throw vs strike", MatchRules, "throwVsStrike", MatchRulesSchema.ThrowPriorities.Names),
     ];
 }

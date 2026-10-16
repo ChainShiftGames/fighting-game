@@ -1,0 +1,12 @@
+# Tech window edge: the throw lands on frame 10, so a tech input on frame 11 is too late.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+frame 11: p2 a+b
+
+frame 10: expect p1 event throw_hit
+frame 11: expect p2 event throw_tech = 0
+frame 11: expect p2 damage = 1200

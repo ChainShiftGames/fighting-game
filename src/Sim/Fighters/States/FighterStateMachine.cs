@@ -11,9 +11,10 @@ namespace Sim.Fighters.States;
 /// Per frame, at most one transition: a pending cancel (core request, honoured from any state) first; otherwise the
 /// move frame advances and the current action decides. Free actions start moves in input priority, then dashes, then
 /// follow the held direction; in the air, air actions (double jump, air dash) come after moves. Attacks cancel
-/// through their data windows and end into a free action. Jumps go through <see cref="JumpActions"/>. A KO'd fighter
-/// (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own state, input
-/// and character data, so both fighters are treated alike.
+/// through their data windows and end into a free action. Jumps go through <see cref="JumpActions"/>. A thrown
+/// fighter is held until the throw stages let it go (<c>Sim.Throws</c>); a throw tech ends into a free action. A
+/// KO'd fighter (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own
+/// state, input and character data, so both fighters are treated alike.
 /// </remarks>
 public sealed class FighterStateMachine
 {
@@ -50,7 +51,9 @@ public sealed class FighterStateMachine
             case FighterAction.AirDash or FighterAction.AirBackdash:
                 AdvanceAirDash(ref fighter, in history, character, in move);
                 break;
-            case FighterAction.Landing or FighterAction.Backdash or FighterAction.WakeUp:
+            case FighterAction.Thrown:
+                break;
+            case FighterAction.Landing or FighterAction.Backdash or FighterAction.WakeUp or FighterAction.ThrowTech:
                 EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
                 break;
             case FighterAction.Dash:
@@ -278,5 +281,5 @@ public sealed class FighterStateMachine
     private static bool IsLooping(FighterAction action) => action is FighterAction.Idle or FighterAction.Crouch
         or FighterAction.WalkForward or FighterAction.WalkBack or FighterAction.Jump
         or FighterAction.Hitstun or FighterAction.CrouchHitstun or FighterAction.AirHitstun
-        or FighterAction.Blockstun or FighterAction.CrouchBlockstun;
+        or FighterAction.Blockstun or FighterAction.CrouchBlockstun or FighterAction.Thrown;
 }

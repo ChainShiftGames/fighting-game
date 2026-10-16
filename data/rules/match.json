@@ -15,5 +15,9 @@
   "counterHitExtraDamagePercent": 20,
   "punishCounterExtraHitstun": 4,
   "punishCounterExtraHitstop": 4,
-  "punishCounterExtraDamagePercent": 20
+  "punishCounterExtraDamagePercent": 20,
+  "throwTechWindowFrames": 5,
+  "wakeUpThrowInvulnerableFrames": 3,
+  "landingThrowInvulnerableFrames": 3,
+  "throwVsStrike": "throw"
 }

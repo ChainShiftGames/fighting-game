@@ -1,0 +1,12 @@
+# Landing protection ends: p2 touches down on frame 45 and is protected on frames 45-47; p1's throw, active on
+# frames 46-48, grabs it on frame 48.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p2 8
+frame 42: p1 5a+b
+
+frames 46-47: expect p1 event throw_grab = 0
+frame 48: expect p1 event throw_grab

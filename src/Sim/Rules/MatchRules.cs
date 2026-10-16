@@ -79,6 +79,22 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>punishCounter*</c>); its <c>IsSet</c> is unused.</remarks>
     public CounterBonus PunishCounter;
 
+    /// <summary>Frames after a grab in which the thrown fighter can tech by inputting a throw; at least 1.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>throwTechWindowFrames</c>).</remarks>
+    public int ThrowTechWindowFrames;
+
+    /// <summary>Frames after wake-up in which a fighter can't be thrown.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>wakeUpThrowInvulnerableFrames</c>).</remarks>
+    public int WakeUpThrowInvulnerableFrames;
+
+    /// <summary>Frames from landing (the first frame on the ground) in which a fighter can't be thrown.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>landingThrowInvulnerableFrames</c>).</remarks>
+    public int LandingThrowInvulnerableFrames;
+
+    /// <summary>Whether a throw or a strike wins when both connect on the same frame (GAP-12).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>throwVsStrike</c>).</remarks>
+    public ThrowPriority ThrowVsStrike;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

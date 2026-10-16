@@ -384,7 +384,7 @@ Done when:
   defender, the projectile rule, both ports (`tests/Scenarios/Combat/`, `Entities/projectile_counter_hits`)
 
 ### P1-23 Throws and tech (core)
-Status: todo · Needs: P1-22 · Parallel: no · Where: `src/Sim/`, `src/Sim.Data/`, `data/`, `tests/`
+Status: done · Needs: P1-22 · Parallel: no · Where: `src/Sim/`, `src/Sim.Data/`, `data/`, `tests/`
 Read: ADR-0017, ADR-0010, ADR-0011, CURRENT_STATE §3 Controls/Defense
 - Throws are moves (category `throw`): forward or back + two buttons (CURRENT_STATE §3 Controls proposal; the PR
   picks the pair, through the button set, and says why). Range: throw boxes (P1-10) against hurtboxes.
@@ -393,9 +393,18 @@ Read: ADR-0017, ADR-0010, ADR-0011, CURRENT_STATE §3 Controls/Defense
   and after landing (**developer settings**); airborne fighters can't be ground-thrown.
 - Throw vs throw on the same frame: tech (standard). Modules see connected throws through `IOnThrowHook`.
 - Testman: forward throw and back throw (`data/characters/testman/`).
+- Built: `src/Sim/Throws/` (rules in the stage doc comments): `ThrowDetectionStage` (hit detection step),
+  `ThrowHoldStage` then `ThrowResolutionStage` (first in hit resolution, before strikes), `ThrowProtectionStage`
+  (end of movement). Grab → `thrown` hold for the tech window → lands (damage, reaction, release at the move's
+  `throw.releaseX`) or techs (both `throwTech`). Data: `input.buttons`, `throw` object, basic states `thrown`,
+  `throwTech` (`data/README.md`). **Developer settings** in `data/rules/match.json`: `throwTechWindowFrames` 5,
+  `wakeUpThrowInvulnerableFrames` 3, `landingThrowInvulnerableFrames` 3, `throwVsStrike` (`throw` wins on the same
+  frame, GAP-12). Events `ThrowGrab`, `ThrowTech`, `ThrowHit`; `IOnThrowHook` runs when a throw lands.
+- Follow-ups: air throws, untechable command grabs, throw whiff vs. success animations, throw-only/strike-only
+  invulnerability in data.
 
 Done when:
-- [ ] scenario tests: forward and back throw, whiff out of range, tech inside and after the window, throw vs throw,
+- [x] scenario tests: forward and back throw, whiff out of range, tech inside and after the window, throw vs throw,
   no throw on a stunned, airborne or just-woken fighter, both ports (`tests/Scenarios/Throws/`)
 
 ### P1-24 Air block (module)

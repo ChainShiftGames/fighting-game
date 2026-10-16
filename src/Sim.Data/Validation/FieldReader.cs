@@ -109,6 +109,9 @@ public sealed class FieldReader
     public IReadOnlyList<TEnum> ChoiceArray<TEnum>(string name, JsonNames<TEnum> names, bool required)
         where TEnum : struct, Enum => ReadArray(name, required, (value, path) => ToChoice(value, path, names));
 
+    /// <summary>True when the object has the field, read or not; for choosing between alternative fields.</summary>
+    public bool Has(string name) => _object.TryGetProperty(name, out _);
+
     /// <summary>Reports <paramref name="name"/> if present: a field that this kind of object must not have.</summary>
     public void Forbid(string name, string reason)
     {

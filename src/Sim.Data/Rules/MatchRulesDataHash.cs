@@ -18,5 +18,9 @@ public static class MatchRulesDataHash
         hash.Add(file.EntitiesPerPlayer);
         hash.Add(file.CounterHit);
         hash.Add(file.PunishCounter);
+        hash.Add(file.Throws.TechWindowFrames);
+        hash.Add(file.Throws.WakeUpInvulnerableFrames);
+        hash.Add(file.Throws.LandingInvulnerableFrames);
+        hash.Add((int)file.Throws.ThrowVsStrike);
     }
 }

@@ -1,0 +1,11 @@
+# Tech window edge: a tech on frame 10, the last of the 5 window frames after a grab on frame 5, still techs.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+frame 10: p2 a+b
+
+frame 10: expect p2 event throw_tech
+frame 10: expect p2 damage = 0

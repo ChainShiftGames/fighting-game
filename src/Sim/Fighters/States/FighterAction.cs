@@ -27,6 +27,8 @@ public enum FighterAction
     WakeUp,
     AirDash,
     AirBackdash,
+    Thrown,
+    ThrowTech,
 
     /// <summary>A normal, special, super or throw: the move's own frame data runs it.</summary>
     Attack,

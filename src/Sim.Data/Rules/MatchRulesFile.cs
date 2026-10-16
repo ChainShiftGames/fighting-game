@@ -15,7 +15,8 @@ public sealed class MatchRulesFile
         RoundFormat rounds,
         int entitiesPerPlayer,
         CounterBonus counterHit,
-        CounterBonus punishCounter)
+        CounterBonus punishCounter,
+        ThrowFormat throws)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
@@ -25,6 +26,7 @@ public sealed class MatchRulesFile
         EntitiesPerPlayer = entitiesPerPlayer;
         CounterHit = counterHit;
         PunishCounter = punishCounter;
+        Throws = throws;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -51,6 +53,9 @@ public sealed class MatchRulesFile
     /// <summary>What a punish counter adds to hits without their own bonus (ADR-0017).</summary>
     public CounterBonus PunishCounter { get; }
 
+    /// <summary>Tech window, throw protection and throw against strike (P1-23).</summary>
+    public ThrowFormat Throws { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -65,5 +70,9 @@ public sealed class MatchRulesFile
         rules.EntitiesPerPlayer = EntitiesPerPlayer;
         rules.CounterHit = CounterHit;
         rules.PunishCounter = PunishCounter;
+        rules.ThrowTechWindowFrames = Throws.TechWindowFrames;
+        rules.WakeUpThrowInvulnerableFrames = Throws.WakeUpInvulnerableFrames;
+        rules.LandingThrowInvulnerableFrames = Throws.LandingInvulnerableFrames;
+        rules.ThrowVsStrike = Throws.ThrowVsStrike;
     }
 }

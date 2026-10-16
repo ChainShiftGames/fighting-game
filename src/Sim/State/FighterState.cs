@@ -53,4 +53,13 @@ public struct FighterState
     public FighterTiming Timing;
 
     public PendingCancel Cancel;
+
+    /// <summary>Frames the fighter can't be thrown, counting this one: wake-up and landing protection.</summary>
+    public int ThrowInvulnerableFramesLeft;
+
+    /// <summary>While <see cref="FighterAction.Thrown"/>: frames left to tech; the throw lands at 0.</summary>
+    public int ThrowTechFramesLeft;
+
+    /// <summary>While <see cref="FighterAction.Thrown"/>: the thrower's move, whose hit and release apply.</summary>
+    public int ThrownByMove;
 }

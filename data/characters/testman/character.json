@@ -17,10 +17,10 @@
     "airActions": 1
   },
   "moves": [
-    "236236d", "623c", "236c", "2a", "2b", "2c", "5a", "5b", "5c", "5d", "j_c",
+    "forward_throw", "back_throw", "236236d", "623c", "236c", "2a", "2b", "2c", "5a", "5b", "5c", "5d", "j_c",
     "idle", "crouch", "walk_forward", "walk_back", "prejump", "jump", "landing", "dash", "backdash", "air_dash",
     "air_backdash", "hitstun", "crouch_hitstun", "air_hitstun", "blockstun", "crouch_blockstun", "knockdown",
-    "wake_up"
+    "wake_up", "thrown", "throw_tech"
   ],
   "states": {
     "idle": "idle",
@@ -40,6 +40,8 @@
     "knockdown": "knockdown",
     "wakeUp": "wake_up",
     "airDash": "air_dash",
-    "airBackdash": "air_backdash"
+    "airBackdash": "air_backdash",
+    "thrown": "thrown",
+    "throwTech": "throw_tech"
   }
 }

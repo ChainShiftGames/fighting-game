@@ -1,0 +1,12 @@
+# A fighter in hitstun can't be thrown: as no_throw_in_blockstun, but p2 doesn't block the fireball.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module contract_probe 0 1 0 0
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+
+frame 2: expect p1 event projectile_hit
+frames 5-7: expect p2 state = hitstun
+frames 1-30: expect p1 event throw_grab = 0

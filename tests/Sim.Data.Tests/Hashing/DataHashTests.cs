@@ -17,9 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (P1-22): rules/match.json gained the counter hit and punish counter defaults, and hits (HitData)
-    // gained their own counter hit and punish counter bonuses.
-    private const string FixtureHash = "4b3e9ae467aaaaa8332a7469781812d325aac8a3e8bfa583a9b62ae72da9b495";
+    // Last change (P1-23): rules/match.json gained the throw values and moves (MoveData) a throw release point.
+    private const string FixtureHash = "e53f5718d4f31e4c3d8fef21ca40b0edf4968455ab415819e09a2cce8f85c107";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 
@@ -91,6 +90,8 @@ public sealed class DataHashTests
     [InlineData("characters/fixture_man/moves/236c.json", "\"durability\": 2", "\"durability\": 3")]
     [InlineData("rules/match.json", "\"entitiesPerPlayer\": 4", "\"entitiesPerPlayer\": 3")]
     [InlineData("rules/match.json", "\"counterHitExtraHitstun\": 2", "\"counterHitExtraHitstun\": 3")]
+    [InlineData("rules/match.json", "\"throwTechWindowFrames\": 5", "\"throwTechWindowFrames\": 6")]
+    [InlineData("rules/match.json", "\"throwVsStrike\": \"throw\"", "\"throwVsStrike\": \"strike\"")]
     [InlineData("rules/match.json", "\"punishCounterExtraDamagePercent\": 20", "\"punishCounterExtraDamagePercent\": 25")]
     [InlineData(
         "characters/fixture_man/moves/5a.json",
