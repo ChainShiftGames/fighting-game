@@ -44,7 +44,7 @@ Done when:
 - [x] unit tests cover overflow edges and rounding direction (always documented, always the same)
 
 ### P1-02 Game state layout
-Status: todo · Needs: P1-01 · Parallel: no · Where: `src/Sim/State/`
+Status: done · Needs: P1-01 · Parallel: no · Where: `src/Sim/State/`
 Read: ADR-0003
 - `MatchState` with fixed-size fighter states, input history ring buffers, round/timer, PRNG seed, and reserved
   per-module state slices (layout from P1-20).
@@ -52,8 +52,8 @@ Read: ADR-0003
 - Snapshot save/restore as a copy; checksum as a hash over the bytes (own FNV-1a/xxHash implementation, no package).
 
 Done when:
-- [ ] save → mutate → restore gives an identical checksum
-- [ ] benchmark: save + restore + checksum well under the 1 ms tick budget
+- [x] save → mutate → restore gives an identical checksum
+- [x] benchmark: save + restore + checksum well under the 1 ms tick budget
 
 ### P1-20 Module contract and match rules
 Status: todo · Needs: P1-02 · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim/Rules/`, `tests/`
