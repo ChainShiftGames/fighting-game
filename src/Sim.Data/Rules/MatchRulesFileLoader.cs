@@ -19,12 +19,39 @@ public static class MatchRulesFileLoader
         file.Ignore("$schema");
         int roundStartDistance = file.RequiredInt("roundStartDistance", 0, MatchRulesSchema.MaxDistance);
         int wallDistance = file.RequiredInt("wallDistance", 1, MatchRulesSchema.MaxDistance);
-        if (errors.Count == errorsBefore && roundStartDistance >= wallDistance)
+        int maxPlayerDistance = file.RequiredInt("maxPlayerDistance", 1, 2 * MatchRulesSchema.MaxDistance);
+        if (errors.Count == errorsBefore)
         {
-            file.Error("roundStartDistance", $"must be less than wallDistance ({wallDistance}), or rounds start in the wall");
+            CheckFitsTheStage(file, roundStartDistance, wallDistance, maxPlayerDistance);
         }
 
         file.Finish();
-        return errors.Count > errorsBefore ? null : new MatchRulesFile(roundStartDistance, wallDistance);
+        return errors.Count > errorsBefore
+            ? null
+            : new MatchRulesFile(roundStartDistance, wallDistance, maxPlayerDistance);
+    }
+
+    private static void CheckFitsTheStage(FieldReader file, int roundStartDistance, int wallDistance, int maxPlayerDistance)
+    {
+        if (roundStartDistance >= wallDistance)
+        {
+            file.Error("roundStartDistance", $"must be less than wallDistance ({wallDistance}), or rounds start in the wall");
+
+            // No max distance fits such a stage, so reporting one too would only hide the real mistake.
+            return;
+        }
+
+        if (maxPlayerDistance > 2 * wallDistance)
+        {
+            file.Error(
+                "maxPlayerDistance",
+                $"must be at most twice wallDistance ({2 * wallDistance}), or the camera sees past the stage walls");
+        }
+        else if (maxPlayerDistance <= 2 * roundStartDistance)
+        {
+            file.Error(
+                "maxPlayerDistance",
+                $"must be more than twice roundStartDistance ({2 * roundStartDistance}), or rounds start off screen");
+        }
     }
 }

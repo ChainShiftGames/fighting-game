@@ -1,0 +1,14 @@
+# The camera centres on both pushboxes and stops where the screen would show past a wall (P1-11): with walls at
+# +-600000 and a 640000-wide screen, the camera never passes +-280000.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = 200000
+setup: p2 x = 300000
+
+# Centred on the fighters (their midpoint, as the pushboxes are the same size).
+frame 1: expect camera = 250000
+
+# p1 walks p2 into the corner: p2 stops at 580000, p1 at 540000, and the camera is held at the wall limit.
+frames 2-220: p1 6
+frames 180-220: expect p2 x = 580000
+frames 180-220: expect camera = 280000

@@ -20,6 +20,7 @@ public struct MatchState
     public RandomState Random;
     public FreezeState Freeze;
     public FighterStates Fighters;
+    public CameraState Camera;
     public InputHistories Inputs;
     public ModuleStates Modules;
 

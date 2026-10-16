@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change: rules/match.json gained wallDistance (P1-10).
-    private const string FixtureHash = "99c85613d4dd94332777eb79e424c62b84001ae32fb4ef221eec45795ba1edc4";
+    // Last change: rules/match.json gained maxPlayerDistance (P1-11).
+    private const string FixtureHash = "68bcb820299d8745e13dce601df489c852b322ab62518d62611302147e590e3d";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

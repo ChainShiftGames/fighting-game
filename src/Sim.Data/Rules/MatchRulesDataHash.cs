@@ -9,5 +9,6 @@ public static class MatchRulesDataHash
     {
         hash.Add(file.RoundStartDistance);
         hash.Add(file.WallDistance);
+        hash.Add(file.MaxPlayerDistance);
     }
 }
