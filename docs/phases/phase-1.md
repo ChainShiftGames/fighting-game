@@ -98,11 +98,14 @@ Done when:
 - [x] input word layout documented in code
 
 ### P1-04 Device layer
-Status: todo · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
+Status: in progress (p1-04-device-layer) · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Godot keyboard + joypad reading → per-player bindings → raw input word (no SOCD cleaning here; the logic does it).
 - Bindings and deadzones: **player settings** (saved properly in Phase 5; a dev file is fine for now).
-- Steam Input and raw joypad must not produce double inputs.
+  Dev file: `user://dev_bindings.jsonc`, created from `game/Input/default_bindings.jsonc` on first run.
+- Steam Input and raw joypad must not produce double inputs. Rule in `JoypadRoster`: joypads on Steam Input's
+  ignore list are never read; every other joypad fills exactly one player slot.
+- Tests: `tests/FightingGame.Tests` (ADR-0016).
 
 Done when:
 - [ ] a leverless controller holding left+right sends both bits; the logic resolves it to neutral

@@ -40,6 +40,9 @@ public sealed class MatchLoop<TState>
         _inputs = new InputWord[players.Length];
     }
 
+    /// <summary>The raw words read for the last logic frame, one per local player (for the developer overlay).</summary>
+    public ReadOnlySpan<InputWord> LastInputs => _inputs;
+
     /// <summary>Runs every logic frame due at <paramref name="timestamp"/>; returns how many ran.</summary>
     public int Advance(long timestamp)
     {
