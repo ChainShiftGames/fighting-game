@@ -8,5 +8,6 @@ public static class MatchRulesDataHash
     public static void Append(DataHashBuilder hash, MatchRulesFile file)
     {
         hash.Add(file.RoundStartDistance);
+        hash.Add(file.WallDistance);
     }
 }

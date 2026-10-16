@@ -25,7 +25,28 @@ public sealed class MatchRulesFileTests
     {
         MatchRules rules = Fixture.Load(_data).CreateMatchRules();
 
-        Assert.Equal((12, 2, 150_000), (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance));
+        Assert.Equal(
+            (12, 2, 150_000, 600_000),
+            (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance, rules.WallDistance));
+    }
+
+    [Fact]
+    public void WallsAtTheStageCentreAreReported()
+    {
+        _data.Replace(MatchRulesSchema.File, "600000", "0");
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "wallDistance"), (error.File, error.Field));
+    }
+
+    [Fact]
+    public void RoundsStartingInsideTheWallAreReported()
+    {
+        _data.Replace(MatchRulesSchema.File, "600000", "150000");
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "roundStartDistance"), (error.File, error.Field));
+        Assert.Contains("wallDistance", error.Reason, StringComparison.Ordinal);
     }
 
     [Fact]

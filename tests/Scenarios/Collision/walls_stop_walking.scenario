@@ -1,0 +1,10 @@
+# A wall stops a fighter's pushbox at +-wallDistance (600000), here p1 walking back into the left wall (P1-10).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -570000
+
+# 3200 per frame back: 3 frames to -579600, then the wall holds the pushbox edge at -600000.
+frames 1-20: p1 4
+frame 3: expect p1 x = -579600
+frames 4-20: expect p1 x = -580000
+frames 1-20: expect p1 facing = right

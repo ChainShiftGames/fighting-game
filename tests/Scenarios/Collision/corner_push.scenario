@@ -1,0 +1,16 @@
+# Walking into a standing opponent pushes it at half the walk speed until it reaches the wall; from then on the
+# cornered fighter stays put and the walker stops, pushboxes flush (P1-10). Walls are at +-wallDistance (600000).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = 500000
+setup: p2 x = 540000
+
+# Pushboxes are 40000 wide, so the fighters start flush. Each frame p1 walks 4000 into p2 and both give 2000.
+frames 1-30: p1 6
+frame 10: expect p1 x = 520000
+frame 10: expect p2 x = 560000
+
+# p2's pushbox reaches the wall (600000) on frame 20.
+frames 20-30: expect p2 x = 580000
+frames 20-30: expect p1 x = 540000
+frames 20-30: expect p1 state = walk_forward

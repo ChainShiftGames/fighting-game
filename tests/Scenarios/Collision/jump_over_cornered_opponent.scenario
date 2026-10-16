@@ -1,0 +1,19 @@
+# A cornered opponent can't be crossed up: the wall stops the jumper right above it, and on the way down the
+# jumper is pushed back out in front, keeping its side. Nobody turns (P1-10).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = 490000
+setup: p2 x = 580000
+
+frames 1-5: p1 9
+
+# p2's pushbox touches the wall (600000) all the time; p1 reaches the wall above p2 on frame 24.
+frames 1-50: expect p2 x = 580000
+frames 1-50: expect p2 facing = left
+frames 24-39: expect p1 x = 580000
+
+# On frame 40 p1 comes down into p2's pushbox at the same x and is pushed out on the side it faces.
+frames 40-50: expect p1 x = 540000
+frame 45: expect p1 y = 0
+frame 46: expect p1 state = landing
+frames 1-50: expect p1 facing = right

@@ -16,10 +16,12 @@
     "gravity": 1000,
     "airActions": 2
   },
-  "moves": ["236b", "5a", "idle", "crouch", "dash"],
+  "moves": ["236b", "5a", "idle", "crouch", "dash", "jump", "landing"],
   "states": {
     "idle": "idle",
     "crouch": "crouch",
-    "dash": "dash"
+    "dash": "dash",
+    "jump": "jump",
+    "landing": "landing"
   }
 }
