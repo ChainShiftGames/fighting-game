@@ -21,5 +21,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0015](0015-shipping-game-data.md) | Exports read `data/**/*.json` embedded in `Sim.Data.dll`; editor and tests read the `data/` folder |
 | [0016](0016-game-tests.md) | `tests/FightingGame.Tests` may reference `game/` for engine-free tests; only `game/` and its tests use Godot |
 | [0017](0017-core-throws-counter-hits.md) | Throws (with tech) and counter hits are core, always present; air block is a removable module |
+| [0018](0018-replay-format.md) | Replay file layout, same-build-only playback, full `MatchRules` in the header, recording around the game logic |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

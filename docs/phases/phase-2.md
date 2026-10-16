@@ -97,7 +97,7 @@ Done when:
 - [ ] a deliberately injected desync produces dumps and the tool names the exact field
 
 ### P2-10 Replays
-Status: todo · Needs: P2-01 · Parallel: yes · Where: `src/Netcode/Replays/`
+Status: done · Needs: P2-01 · Parallel: yes · Where: `src/Netcode/Replays/`
 Read: ADR-0005
 - Binary format: header (version, data hash, rules, characters, colours) + compressed inputs.
 - Recorder for every match; replay driver plays it back; replays from another version are rejected cleanly.
