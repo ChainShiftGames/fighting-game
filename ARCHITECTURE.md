@@ -20,7 +20,7 @@ src/Netcode/         match drivers (local, online, replay, training, test) + Bac
 src/Platform.Steam/  Steamworks.NET: online transport, lobbies, Steam features
 game/                Godot project: devices, drawing, audio, UI; editor plugin in game/addons/
 data/                character, move and rules JSON
-tests/               logic tests, plain-text scenarios, golden replays
+tests/               logic tests, plain-text scenarios, golden replays, engine-free game/ tests
 tools/               desync diff, speed benchmark, replay inspector
 docs/adr/            decision records
 ```
@@ -36,6 +36,7 @@ graph LR
   Tests[tests/] --> Netcode
   Tests --> SimData
   Tests --> Sim
+  GameTests[tests/FightingGame.Tests] --> Game
   Tools[tools/] --> Netcode
   Tools --> SimData
   Tools --> Sim
@@ -46,7 +47,9 @@ graph LR
 - Runtime dependencies only point the way the solid arrows show. `Sim` depends on nothing in this repo at runtime.
 - The dashed arrow is a build-time analyzer reference, not a runtime dependency; architecture tests check
   compiled references only (ADR-0009).
-- `Sim` and `Netcode` never reference Godot. Only `game/` may use Godot types.
+- `Sim` and `Netcode` never reference Godot. Only `game/` and its tests may use Godot types.
+- Only `tests/FightingGame.Tests` may reference `game/`, and it tests only code that runs without the engine
+  (ADR-0016).
 - Steam is only accessed through `Platform.Steam`, so the game still runs without Steam (dev, tests).
 
 ## 3. One frame
@@ -193,7 +196,7 @@ These rules apply to all code, and agents must follow them even when one big cla
 - All game data together produces a **data hash** used in the online version check and in replays.
 - Everything about a character must be editable as data (moves, frame data, boxes, cancels, mechanics). Don't
   hard-code character-specific behaviour in the core; use a module (§5).
-- Godot export presets must include `data/**/*.json`.
+- Exported builds read `data/**/*.json` embedded in `Sim.Data` (ADR-0015); the editor and tests read `data/`.
 
 ## 8. Online and match drivers
 

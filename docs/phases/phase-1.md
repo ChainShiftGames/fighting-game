@@ -98,15 +98,18 @@ Done when:
 - [x] input word layout documented in code
 
 ### P1-04 Device layer
-Status: todo · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
+Status: done · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Godot keyboard + joypad reading → per-player bindings → raw input word (no SOCD cleaning here; the logic does it).
 - Bindings and deadzones: **player settings** (saved properly in Phase 5; a dev file is fine for now).
-- Steam Input and raw joypad must not produce double inputs.
+  Dev file: `user://dev_bindings.jsonc`, created from `game/Input/default_bindings.jsonc` on first run.
+- Steam Input and raw joypad must not produce double inputs. Rule in `JoypadRoster`: joypads on Steam Input's
+  ignore list are never read; every other joypad fills exactly one player slot.
+- Tests: `tests/FightingGame.Tests` (ADR-0016).
 
 Done when:
-- [ ] a leverless controller holding left+right sends both bits; the logic resolves it to neutral
-- [ ] rebinding a button in the dev file works on keyboard and controller
+- [x] a leverless controller holding left+right sends both bits; the logic resolves it to neutral
+- [x] rebinding a button in the dev file works on keyboard and controller
 
 ### P1-06 Motion parser and buffer
 Status: done · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
@@ -132,8 +135,8 @@ Read: ADR-0007
 - JSON schema: character file (stats, move list, state machine) and move file (frame data, per-frame boxes,
   cancel windows, hit properties, motion + button).
 - `Sim.Data`: load → validate (loud, specific errors) → convert to compact integer data → data hash.
-- Godot export preset includes `data/**/*.json`. Moved to proposed ADR-0015: `data/` is outside `res://`, so a
-  preset filter alone can't reach it.
+- Godot export preset includes `data/**/*.json`. Replaced by
+  [ADR-0015](../adr/0015-shipping-game-data.md): `data/` is outside `res://`, so exports embed it in `Sim.Data`.
 - Format and loading pattern: [data/README.md](../../data/README.md).
 
 Done when:

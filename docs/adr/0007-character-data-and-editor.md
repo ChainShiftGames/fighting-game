@@ -21,4 +21,5 @@
 JSON works fine with Godot: the C# code reads it with `System.Text.Json`, both in the game and in the editor
 plugin. One gotcha: Godot doesn't treat `.json` as a resource it imports, so the export presets must include
 the data files (e.g. include filter `data/**/*.json`), otherwise exported builds ship without characters.
-A CI check on the exported build will catch this.
+A CI check on the exported build will catch this. *Amended by ADR-0015: `data/` is outside `res://`, so exports
+embed the data in `Sim.Data.dll` instead.*

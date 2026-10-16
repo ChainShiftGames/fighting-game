@@ -12,40 +12,45 @@ namespace FightingGame.Online;
 public sealed class ToyMatchStartup
 {
     private readonly ToyRules _rules;
-    private readonly float _stickDeadzone;
+    private readonly PlayerBindings[] _bindings;
+    private readonly IDeviceState _devices;
+    private readonly JoypadRoster _joypads;
 
-    /// <param name="stickDeadzone">Stick travel before it counts as a direction (player setting).</param>
-    public ToyMatchStartup(ToyRules rules, float stickDeadzone)
+    /// <param name="bindings">One per player on this PC (player settings).</param>
+    public ToyMatchStartup(ToyRules rules, PlayerBindings[] bindings, IDeviceState devices, JoypadRoster joypads)
     {
         _rules = rules;
-        _stickDeadzone = stickDeadzone;
+        _bindings = bindings;
+        _devices = devices;
+        _joypads = joypads;
     }
 
     public ToyMatch CreateLocal()
     {
-        PlayerInputReader[] players =
-        [
-            new(new KeyboardDevice(KeyboardLayout.Player1Default), new GamepadDevice(0, _stickDeadzone)),
-            new(new KeyboardDevice(KeyboardLayout.Player2Default), new GamepadDevice(1, _stickDeadzone)),
-        ];
+        PlayerInputReader[] players = [LocalPlayer(0), LocalPlayer(1)];
         return new ToyMatch(new LocalMatchDriver<ToyState>(Simulation()), players, "local", Connection: null);
     }
 
     /// <param name="opponentName">Shown in the overlay; the address when there is no name.</param>
     public ToyMatch CreateOnline(PeerMatchSettings settings, PeerTransport transport, string opponentName)
     {
-        // One player on this PC, on either keyboard layout or the first gamepad.
+        // One player on this PC, on either player's keyboard bindings or the first joypad.
         PlayerInputReader[] player =
         [
             new(
-                new KeyboardDevice(KeyboardLayout.Player1Default),
-                new KeyboardDevice(KeyboardLayout.Player2Default),
-                new GamepadDevice(0, _stickDeadzone)),
+                new KeyboardDevice(_bindings[0].Keyboard, _devices),
+                new KeyboardDevice(_bindings[1].Keyboard, _devices),
+                new GamepadDevice(_bindings[0].Gamepad, _devices, _joypads, slot: 0)),
         ];
         RollbackMatchDriver<ToyState> driver = PeerSession.CreateDriver(Simulation(), settings, transport);
         var connection = new ConnectionMeter(driver, transport.Link, Stopwatch.Frequency);
         return new ToyMatch(driver, player, Describe(settings, opponentName), connection);
     }
+
+    // Player n uses their own keyboard bindings and the joypad in slot n.
+    private PlayerInputReader LocalPlayer(int player) => new(
+        new KeyboardDevice(_bindings[player].Keyboard, _devices),
+        new GamepadDevice(_bindings[player].Gamepad, _devices, _joypads, slot: player));
 
     private ToyMatchSimulation Simulation() => new(new ToySimulation(_rules));
 

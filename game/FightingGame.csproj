@@ -9,4 +9,8 @@
     <ProjectReference Include="..\src\Platform.Steam\Platform.Steam.csproj" />
     <ProjectReference Include="..\src\Sim.Data\Sim.Data.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Default bindings (player settings), embedded so the editor and exported builds read the same file. -->
+    <EmbeddedResource Include="Input/default_bindings.jsonc" LogicalName="FightingGame.Input.default_bindings.jsonc" />
+  </ItemGroup>
 </Project>
