@@ -56,7 +56,7 @@ Read: ADR-0005
 - Create lobby, invite a friend, both ready → match. Rematch button.
 
 ### P2-05 Version handshake
-Status: in progress (p2-05-version-handshake) · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Handshake/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Handshake/`
 Read: ADR-0005, ADR-0011
 - Exchange game version, data hash and match-rules hash before the match.
 - Mismatch → clear message ("versions differ — update the game"); match never starts.
