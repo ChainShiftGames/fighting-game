@@ -56,14 +56,15 @@ Read: ADR-0005
 - Create lobby, invite a friend, both ready → match. Rematch button.
 
 ### P2-05 Version handshake
-Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Handshake/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Handshake/`
 Read: ADR-0005, ADR-0011
 - Exchange game version, data hash and match-rules hash before the match.
 - Mismatch → clear message ("versions differ — update the game"); match never starts.
 
 Done when:
-- [ ] the P1-20 per-field `MatchRules` hash test passes and the handshake uses that same hash
-- [ ] a peer with one changed rule value (dev build) is refused
+- [x] the P1-20 per-field `MatchRules` hash test passes and the handshake uses that same hash
+  (`tests/Netcode.Tests/Handshake/VersionHandshakeTests.cs`)
+- [x] a peer with one changed rule value (dev build) is refused
 
 ### P2-06 Input delay
 Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Online/`

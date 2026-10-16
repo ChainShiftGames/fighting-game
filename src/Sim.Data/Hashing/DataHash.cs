@@ -25,6 +25,17 @@ public readonly record struct DataHash(ulong Part0, ulong Part1, ulong Part2, ul
             BinaryPrimitives.ReadUInt64BigEndian(bytes[24..]));
     }
 
+    /// <summary>The 32 hash bytes, as <see cref="FromBytes"/> reads them.</summary>
+    public byte[] ToBytes()
+    {
+        byte[] bytes = new byte[ByteLength];
+        BinaryPrimitives.WriteUInt64BigEndian(bytes, Part0);
+        BinaryPrimitives.WriteUInt64BigEndian(bytes.AsSpan(8), Part1);
+        BinaryPrimitives.WriteUInt64BigEndian(bytes.AsSpan(16), Part2);
+        BinaryPrimitives.WriteUInt64BigEndian(bytes.AsSpan(24), Part3);
+        return bytes;
+    }
+
     /// <summary>Lowercase hex, the same as common SHA-256 tools print.</summary>
     public override string ToString() => $"{Part0:x16}{Part1:x16}{Part2:x16}{Part3:x16}";
 }

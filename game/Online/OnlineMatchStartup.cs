@@ -8,6 +8,7 @@ using FightingGame.Loop;
 using FightingGame.Presentation;
 using Godot;
 using Netcode.Drivers;
+using Netcode.Handshake;
 using Netcode.Online;
 using Sim.Data;
 using Sim.Data.Online;
@@ -58,15 +59,17 @@ public sealed class OnlineMatchStartup
                 new KeyboardDevice(_bindings[1].Keyboard, _devices),
                 new GamepadDevice(_bindings[0].Gamepad, _devices, _joypads, slot: 0)),
         ];
-        RollbackMatchDriver<MatchState> driver =
-            PeerSession.CreateDriver(new ComposedMatchSimulation(lineup.Simulation), settings, opponent.Transport);
+        var handshake = new VersionHandshake(
+            new MatchIdentity(GameVersion.Current, data.Hash.ToBytes(), lineup.Simulation.Rules));
+        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(
+            new ComposedMatchSimulation(lineup.Simulation), settings, opponent.Transport, handshake);
         var connection = new ConnectionMeter(driver, opponent.Transport.Link, Stopwatch.Frequency);
         var view = new MatchView();
         view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay);
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);
-        return new StartedMatch(loop, driver, view, Describe(settings, opponent, lineup, data), connection);
+        return new StartedMatch(loop, driver, view, Describe(settings, opponent, lineup), connection, handshake);
     }
 
     // The command line's tuning options override the data's values for this match (exported builds can't edit data).
@@ -90,12 +93,9 @@ public sealed class OnlineMatchStartup
         }
     }
 
-    // The data hash goes in the description so the two players can compare it until the handshake does (P2-05).
-    private static string Describe(
-        PeerMatchSettings settings, OnlineOpponent opponent, MatchLineup lineup, GameData data) => string.Create(
+    private static string Describe(PeerMatchSettings settings, OnlineOpponent opponent, MatchLineup lineup) => string.Create(
         CultureInfo.InvariantCulture,
         $"online P{(settings.LocalIsPlayer1 ? 1 : 2)} vs {opponent.Name}, {lineup.Description}, " +
-        $"data {data.Hash.ToString()[..8]}, " +
         $"rollback {settings.RollbackFrames} f, delay {settings.InputDelayFrames} f, " +
         $"sim {settings.NetworkSimulation.PingMilliseconds} ms ±{settings.NetworkSimulation.JitterMilliseconds} ms " +
         $"{settings.NetworkSimulation.PacketLossPercent} % loss");

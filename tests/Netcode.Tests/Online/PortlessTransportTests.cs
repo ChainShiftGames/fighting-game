@@ -1,6 +1,7 @@
 using System.Net;
 using Netcode.Drivers;
 using Netcode.Online;
+using Netcode.Tests.Handshake;
 using Netcode.Tests.Matches;
 using Netcode.Tests.Transport;
 using Sim.State;
@@ -24,7 +25,7 @@ public sealed class PortlessTransportTests
         };
 
         using IMatchDriver<MatchState> driver = PeerSession.CreateDriver(
-            new ComposedMatchSimulation(TestmanMirror.Create()), settings, new PeerTransport(transports));
+            new ComposedMatchSimulation(TestmanMirror.Create()), settings, new PeerTransport(transports), SameBuild.Handshake());
 
         Assert.Equal(0, transports.LocalPort);
     }

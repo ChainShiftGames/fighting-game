@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using Netcode.Drivers;
+using Netcode.Handshake;
 using Netcode.Online;
+using Netcode.Tests.Handshake;
 using Netcode.Tests.Matches;
 using Sim.State;
 using Xunit;
@@ -26,14 +28,23 @@ internal sealed class InMemoryMatch : IDisposable
     private static readonly IPEndPoint _player1Address = new(IPAddress.Loopback, 1);
     private static readonly IPEndPoint _player2Address = new(IPAddress.Loopback, 2);
 
-    public InMemoryMatch(int fightingFrames, IMatchSimulation<MatchState>? player2Simulation = null)
+    /// <param name="player2Simulation">P2's game logic; the same as P1's when null.</param>
+    /// <param name="player2Identity">What P2 tells the handshake; the same build as P1 when null.</param>
+    public InMemoryMatch(
+        int fightingFrames,
+        IMatchSimulation<MatchState>? player2Simulation = null,
+        MatchIdentity? player2Identity = null)
     {
         (Player1Transport, Player2Transport) = InMemoryTransport.CreatePair();
         Player1Peer = new PeerTransport(new OpenedTransport(Player1Transport));
         Player2Peer = new PeerTransport(new OpenedTransport(Player2Transport));
-        Player1 = CreatePeer(Player1Peer, _player2Address, true, new ComposedMatchSimulation(TestmanMirror.Create()), fightingFrames);
+        Player1Handshake = SameBuild.Handshake();
+        Player2Handshake = player2Identity is null ? SameBuild.Handshake() : new VersionHandshake(player2Identity);
+        Player1 = CreatePeer(
+            Player1Peer, Player1Handshake, _player2Address, true, new ComposedMatchSimulation(TestmanMirror.Create()), fightingFrames);
         Player2 = CreatePeer(
             Player2Peer,
+            Player2Handshake,
             _player1Address,
             false,
             player2Simulation ?? new ComposedMatchSimulation(TestmanMirror.Create()),
@@ -48,29 +59,44 @@ internal sealed class InMemoryMatch : IDisposable
 
     public PeerTransport Player2Peer { get; }
 
+    public VersionHandshake Player1Handshake { get; }
+
+    public VersionHandshake Player2Handshake { get; }
+
     public TestMatchDriver<MatchState> Player1 { get; }
 
     public TestMatchDriver<MatchState> Player2 { get; }
 
     /// <summary>Runs both peers until <paramref name="done"/> holds, calling <paramref name="betweenFrames"/> each step.</summary>
-    public void RunUntil(Func<bool> done, Action? betweenFrames = null)
+    public void RunUntil(Func<bool> done, Action? betweenFrames = null) => Run(done, betweenFrames, int.MaxValue);
+
+    /// <summary>Runs both peers until each is at exactly <paramref name="frames"/>, so their states can be compared.</summary>
+    public void RunUntilFrame(int frames, Action? betweenFrames = null) =>
+        Run(() => Player1.CurrentFrame >= frames && Player2.CurrentFrame >= frames, betweenFrames, frames);
+
+    // A peer that reached lastFrame waits there while the other catches up.
+    private void Run(Func<bool> done, Action? betweenFrames, int lastFrame)
     {
         var clock = Stopwatch.StartNew();
         while (!done())
         {
             Assert.True(clock.Elapsed < _timeout, $"Stuck at frames {Player1.CurrentFrame} / {Player2.CurrentFrame}.");
-            Player1.TryAdvanceFrame([]);
-            Player2.TryAdvanceFrame([]);
+            if (Player1.CurrentFrame < lastFrame)
+            {
+                Player1.TryAdvanceFrame([]);
+            }
+
+            if (Player2.CurrentFrame < lastFrame)
+            {
+                Player2.TryAdvanceFrame([]);
+            }
+
             betweenFrames?.Invoke();
 
             // Roughly the game's pace, so the sessions see time pass between frames.
             Thread.Sleep(1);
         }
     }
-
-    /// <summary>Runs both peers until each has reached <paramref name="frames"/>.</summary>
-    public void RunUntilFrame(int frames, Action? betweenFrames = null) =>
-        RunUntil(() => Player1.CurrentFrame >= frames && Player2.CurrentFrame >= frames, betweenFrames);
 
     public void Dispose()
     {
@@ -80,6 +106,7 @@ internal sealed class InMemoryMatch : IDisposable
 
     private static TestMatchDriver<MatchState> CreatePeer(
         PeerTransport transport,
+        VersionHandshake handshake,
         EndPoint opponent,
         bool localIsPlayer1,
         IMatchSimulation<MatchState> simulation,
@@ -91,7 +118,7 @@ internal sealed class InMemoryMatch : IDisposable
             LocalIsPlayer1 = localIsPlayer1,
             RollbackFrames = RollbackFrames,
         };
-        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, transport);
+        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, transport, handshake);
         var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
         return new TestMatchDriver<MatchState>(driver, [new NeutralAfter(inputs, fightingFrames)]);
     }
