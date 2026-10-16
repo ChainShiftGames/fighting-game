@@ -1,0 +1,5 @@
+{
+  "$schema": "../schema/online.schema.json",
+  "schemaVersion": 1,
+  "rollbackFrames": 8
+}

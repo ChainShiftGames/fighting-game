@@ -21,6 +21,7 @@ public sealed class PortlessTransportTests
         {
             RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, TestSocketPort + 1),
             LocalIsPlayer1 = true,
+            RollbackFrames = 8,
         };
 
         using IMatchDriver<ToyState> driver = PeerSession.CreateDriver(

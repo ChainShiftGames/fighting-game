@@ -10,6 +10,7 @@ data/characters/<id>/character.json               stats, move list, basic states
 data/characters/<id>/moves/<move_id>.json         one move: frame data, boxes, cancels, hit
 data/input/buttons.json                           button set: button ids and input word bits (ADR-0010)
 data/input/motions.json                           motions, their priority, motion window and button buffer (ADR-0002)
+data/netcode/online.json                          online match settings: rollback window (not in the data hash)
 ```
 
 Exported builds embed these files in `Sim.Data.dll`; `data/schema/` is not shipped (ADR-0015).
@@ -32,7 +33,8 @@ character, P1-17); a minimal example is in `tests/Sim.Data.Tests/Fixtures/data/`
   listed.
 - `data/schema/*.schema.json` documents the format; the validator in `src/Sim.Data` is authoritative and also checks
   cross-file rules. Change both in the same PR.
-- All values here are **developer settings** (ARCHITECTURE.md §6); the data hash covers them (compared before online matches).
+- All values here are **developer settings** (ARCHITECTURE.md §6); the data hash covers them (compared before online
+  matches), except `netcode/online.json`: netcode settings don't change game results, so each PC may differ.
 
 ## Motions (`input/motions.json`)
 

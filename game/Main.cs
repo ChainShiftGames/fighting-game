@@ -13,13 +13,12 @@ using Godot;
 using Netcode.Desync;
 using Sim.Data.Validation;
 using Sim.Input;
-using Sim.Toy;
 
 namespace FightingGame;
 
 /// <summary>
-/// Startup: builds the pieces, starts the match (local on the real logic, online on the Spike A toy one), then
-/// feeds the loop time each displayed frame.
+/// Startup: builds the pieces, starts the match (local, or online against one other PC), then feeds the loop time
+/// each displayed frame.
 /// </summary>
 public partial class Main : Node2D
 {
@@ -55,6 +54,7 @@ public partial class Main : Node2D
     private PlayerSettings _settings = new();
     private GameDataLocation? _data;
     private LocalMatchStartup? _localStartup;
+    private OnlineMatchStartup? _onlineStartup;
     private MatchLauncher? _launcher;
     private StartedMatch? _match;
     private FrameStepping? _stepping;
@@ -63,7 +63,7 @@ public partial class Main : Node2D
     private MatchStatusLabel? _status;
     private MatchmakingMenu? _matchmakingMenu;
     private IPlatformServices? _platform;
-    private string _localMatchError = string.Empty;
+    private string _matchError = string.Empty;
     private bool _stopped;
     private bool _wasWaiting = true;
 
@@ -94,7 +94,9 @@ public partial class Main : Node2D
         _matchmakingMenu = new MatchmakingMenu { Visible = false };
         AddChild(_matchmakingMenu);
 
-        _launcher = new MatchLauncher(CreateLocalMatch, CreateStartups(), _platform, OS.GetCmdlineUserArgs());
+        string[] args = OS.GetCmdlineUserArgs();
+        CreateStartups(args);
+        _launcher = new MatchLauncher(CreateLocalMatch, CreateOnlineMatch, _platform, args);
         if (_launcher.Matchmaking is { } matchmaking)
         {
             _matchmakingMenu.Show(matchmaking);
@@ -113,7 +115,7 @@ public partial class Main : Node2D
 
         if (_match is null)
         {
-            _status!.Show(_localMatchError);
+            _status!.Show(_matchError);
             return;
         }
 
@@ -217,7 +219,7 @@ public partial class Main : Node2D
     private string PausedText() =>
         !_match!.IsOnline && _stepping!.IsPaused ? $"PAUSED ({_pause.Key}) — {StepFrameKey} steps one frame" : string.Empty;
 
-    private ToyMatchStartup CreateStartups()
+    private void CreateStartups(string[] args)
     {
         _joypadWatcher = new JoypadWatcher(_joypads);
         ButtonSet? buttons = ButtonSetFile.Load();
@@ -226,22 +228,27 @@ public partial class Main : Node2D
         var devices = new GodotDeviceState();
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
         _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay);
-        return new ToyMatchStartup(ToyRules.Default, bindings, devices, _joypads, loops);
+        _onlineStartup = new OnlineMatchStartup(bindings, devices, _joypads, loops, _hitboxOverlay, args);
     }
 
-    // Invalid or missing data stops the local match and says why on screen; it is never patched up.
-    private StartedMatch? CreateLocalMatch()
+    private StartedMatch? CreateLocalMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
+
+    private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent) => TryCreateMatch(
+        "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), opponent));
+
+    // Invalid or missing data stops the match and says why on screen; it is never patched up.
+    private StartedMatch? TryCreateMatch(string kind, Func<StartedMatch> create)
     {
         try
         {
-            StartedMatch match = _localStartup!.Create(_data!.Load());
-            _localMatchError = string.Empty;
+            StartedMatch match = create();
+            _matchError = string.Empty;
             return match;
         }
         catch (Exception exception) when (exception is DataValidationException or IOException or InvalidDataException)
         {
             GD.PushError(exception.Message);
-            _localMatchError = $"No local match:\n{exception.Message}";
+            _matchError = $"No {kind} match:\n{exception.Message}";
             return null;
         }
     }

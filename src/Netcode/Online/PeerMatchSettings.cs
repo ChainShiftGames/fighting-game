@@ -18,8 +18,11 @@ public sealed record PeerMatchSettings
     /// <summary>Whether this PC plays P1 or P2. The two PCs must pick different ones.</summary>
     public required bool LocalIsPlayer1 { get; init; }
 
-    /// <summary>Most frames predicted ahead of the last confirmed input, and so rolled back (ADR-0003).</summary>
-    public int RollbackFrames { get; init; } = 8;
+    /// <summary>
+    /// Rollback window (ADR-0003): most frames predicted ahead of the last confirmed input, and so rolled back.
+    /// Developer setting, from <c>data/netcode/online.json</c>.
+    /// </summary>
+    public required int RollbackFrames { get; init; }
 
     /// <summary>Fixed input delay until the automatic 1–2 frame delay of ADR-0005 exists.</summary>
     public int InputDelayFrames { get; init; } = 2;

@@ -1,6 +1,7 @@
 using System.IO;
 using Godot;
 using Sim.Data;
+using Sim.Data.Online;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 
@@ -38,13 +39,16 @@ public sealed class GameDataLocation
         return new GameDataLocation(null);
     }
 
+    /// <summary>The online match settings (developer settings), read again for every online match.</summary>
+    /// <exception cref="DataValidationException">The file is missing or invalid.</exception>
+    public OnlineSettings LoadOnlineSettings() => OnlineSettingsLoader.Load(Source());
+
     /// <summary>Loads and validates everything, reading the files again so data edits show up in the next match.</summary>
     /// <exception cref="DataValidationException">Any file is invalid.</exception>
     /// <exception cref="InvalidDataException">There is no character to play.</exception>
     public GameData Load()
     {
-        IDataSource source = Folder is null ? new EmbeddedDataSource() : new DirectoryDataSource(Folder);
-        GameData data = new GameDataLoader(source).Load();
+        GameData data = new GameDataLoader(Source()).Load();
         if (data.Characters.Count == 0)
         {
             throw new InvalidDataException(
@@ -53,4 +57,6 @@ public sealed class GameDataLocation
 
         return data;
     }
+
+    private IDataSource Source() => Folder is null ? new EmbeddedDataSource() : new DirectoryDataSource(Folder);
 }
