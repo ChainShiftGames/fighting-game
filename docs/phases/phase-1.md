@@ -166,13 +166,13 @@ Read: CURRENT_STATE §3 Movement
   `IsAirborne` + upward velocity for launchers.
 
 ### P1-10 Collision, walls and corners
-Status: todo · Needs: P1-09 · Parallel: no · Where: `src/Sim/Collision/`
+Status: done · Needs: P1-09 · Parallel: no · Where: `src/Sim/Collision/`
 Read: CURRENT_STATE §3 Match
 - Box types: hit, hurt, push, throw. Per-frame boxes from move data.
 - Pushbox resolution, stage walls, corners, crossups and side switching.
 
 Done when:
-- [ ] scenario tests: corner push, crossup side switch, jumping over a cornered opponent
+- [x] scenario tests: corner push, crossup side switch, jumping over a cornered opponent
 
 ### P1-11 Camera logic
 Status: todo · Needs: P1-10 · Parallel: yes · Where: `src/Sim/Camera/`

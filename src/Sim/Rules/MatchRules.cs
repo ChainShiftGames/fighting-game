@@ -26,6 +26,10 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json.</remarks>
     public int RoundStartDistance;
 
+    /// <summary>Each stage wall's distance from the stage centre, in subpixels; fighters' pushboxes stay inside.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json.</remarks>
+    public int WallDistance;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

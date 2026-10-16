@@ -1,5 +1,6 @@
 {
   "$schema": "../schema/match.schema.json",
   "schemaVersion": 1,
-  "roundStartDistance": 150000
+  "roundStartDistance": 150000,
+  "wallDistance": 600000
 }

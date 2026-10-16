@@ -1,0 +1,24 @@
+# A forward jump over a standing opponent switches sides: the opponent turns as soon as the jumper passes its x,
+# the jumper keeps facing forward in the air and turns on landing (P1-10).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -45000
+setup: p2 x = 45000
+
+# 4 prejump frames, takeoff on frame 5: 4500 forward per frame, 20000 up minus 1000 gravity per frame.
+frames 1-5: p1 9
+frame 5: expect p1 state = jump
+frame 5: expect p1 x = -40500
+
+# The jump clears p2's pushbox, so p2 is never pushed.
+frames 1-50: expect p2 x = 45000
+frame 24: expect p1 x = 45000
+frame 24: expect p2 facing = left
+frame 25: expect p1 x = 49500
+frames 25-50: expect p2 facing = right
+
+frames 1-45: expect p1 facing = right
+frame 45: expect p1 y = 0
+frame 45: expect p1 x = 139500
+frame 46: expect p1 state = landing
+frames 46-50: expect p1 facing = left
