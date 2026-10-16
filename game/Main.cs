@@ -13,19 +13,21 @@ using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
+using Netcode.Replays;
 using Sim.Data.Validation;
 using Sim.Input;
 
 namespace FightingGame;
 
 /// <summary>
-/// Startup: builds the pieces, starts the match (local, or online against one other PC), then feeds the loop time
-/// each displayed frame.
+/// Startup: builds the pieces, starts the match (local, online against one other PC, or a replay), then feeds the
+/// loop time each displayed frame and saves the match's replay when it is over or left.
 /// </summary>
 public partial class Main : Node2D
 {
     private const string PlayerSettingsPath = "user://player_settings.json";
     private const string DevBindingsPath = "user://dev_bindings.jsonc";
+    private const string ReplaysPath = "user://replays";
 
     // Developer settings.
     private const int LatencyWindowFrames = 120;
@@ -35,7 +37,7 @@ public partial class Main : Node2D
     private const int ConnectionLogIntervalSeconds = 30;
     private const string DeveloperKeys =
         "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
-        "F7 sparks | F8 shake | F9 sounds | F10 rumble";
+        "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one";
 
     // Player setting, until the options menu.
     private const Key ToggleVsyncKey = Key.F2;
@@ -52,6 +54,9 @@ public partial class Main : Node2D
     private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
     private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
     private readonly EffectToggles _effectToggles = new();
+
+    // Developer setting until there is a replay menu (ADR-0018 §5): every match's replay goes to ReplaysPath.
+    private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
     private readonly List<DeveloperToggle> _toggles = [];
 
     private JoypadWatcher? _joypadWatcher;
@@ -60,6 +65,8 @@ public partial class Main : Node2D
     private GameDataLocation? _data;
     private LocalMatchStartup? _localStartup;
     private OnlineMatchStartup? _onlineStartup;
+    private ReplayMatchStartup? _replayStartup;
+    private ReplayFolder? _replays;
     private MatchLauncher? _launcher;
     private StartedMatch? _match;
     private FrameStepping? _stepping;
@@ -79,7 +86,8 @@ public partial class Main : Node2D
         ApplyVsync();
         _data = GameDataLocation.Choose();
         _stepping = new FrameStepping(_pause);
-        _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All]);
+        _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All, _saveReplays]);
+        _replays = new ReplayFolder(ProjectSettings.GlobalizePath(ReplaysPath));
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
@@ -102,7 +110,7 @@ public partial class Main : Node2D
 
         string[] args = OS.GetCmdlineUserArgs();
         CreateStartups(args);
-        _launcher = new MatchLauncher(CreateLocalMatch, CreateOnlineMatch, _platform, args);
+        _launcher = new MatchLauncher(CreateLocalMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
         if (_launcher.Matchmaking is { } matchmaking)
         {
             _matchmakingMenu.Show(matchmaking);
@@ -129,6 +137,10 @@ public partial class Main : Node2D
         int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
         SampleConnection(now);
+        if (_match.Recording is { } recording && _saveReplays.Enabled)
+        {
+            SaveReplay(recording.TakeFinishedReplay(), recording.Kind);
+        }
 
         // Every displayed frame, so developer toggles show at once, also while paused.
         _match.View.QueueRedraw();
@@ -180,7 +192,7 @@ public partial class Main : Node2D
         {
             GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
             LogConnection();
-            _match.Dispose();
+            EndMatch();
         }
 
         _launcher?.Dispose();
@@ -243,6 +255,7 @@ public partial class Main : Node2D
         _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
         _onlineStartup = new OnlineMatchStartup(
             bindings, devices, _joypads, loops, _hitboxOverlay, _effectToggles, args);
+        _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
     }
 
     private StartedMatch? CreateLocalMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
@@ -250,7 +263,11 @@ public partial class Main : Node2D
     private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent) => TryCreateMatch(
         "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), opponent));
 
-    // Invalid or missing data stops the match and says why on screen; it is never patched up.
+    private StartedMatch? CreateReplayMatch(string path) =>
+        TryCreateMatch("replay", () => _replayStartup!.Create(_data!.Load(), path));
+
+    // Invalid or missing data, or a replay this build can't play, stops the match and says why on screen; it is never
+    // patched up.
     private StartedMatch? TryCreateMatch(string kind, Func<StartedMatch> create)
     {
         try
@@ -259,7 +276,8 @@ public partial class Main : Node2D
             _matchError = string.Empty;
             return match;
         }
-        catch (Exception exception) when (exception is DataValidationException or IOException or InvalidDataException)
+        catch (Exception exception) when (
+            exception is DataValidationException or IOException or InvalidDataException or ReplayRejectedException)
         {
             GD.PushError(exception.Message);
             _matchError = $"No {kind} match:\n{exception.Message}";
@@ -276,8 +294,7 @@ public partial class Main : Node2D
             return;
         }
 
-        _match?.Dispose();
-        _match = null;
+        EndMatch();
         if (CreateLocalMatch() is { } match)
         {
             StartMatch(match);
@@ -291,6 +308,41 @@ public partial class Main : Node2D
         AddChild(match.View);
         MoveChild(match.View, 0);
         _matchmakingMenu!.Visible = false;
+    }
+
+    // Leaving a match saves what it recorded so far, unless its finished replay was saved already.
+    private void EndMatch()
+    {
+        if (_match is null)
+        {
+            return;
+        }
+
+        if (_match.Recording is { } recording && _saveReplays.Enabled)
+        {
+            SaveReplay(recording.TakeOnEnd(), recording.Kind);
+        }
+
+        _match.Dispose();
+        _match = null;
+    }
+
+    private void SaveReplay(Replay? replay, string kind)
+    {
+        if (replay is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string file = _replays!.Save(replay, DateTime.Now, kind);
+            GD.Print($"Replay saved ({replay.Inputs.Count} frames): {file}");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            GD.PushError($"Replay not saved: {exception.Message}");
+        }
     }
 
     // Online, the log gets the connection readings every so often and at the end, for the P0-22 measurements.

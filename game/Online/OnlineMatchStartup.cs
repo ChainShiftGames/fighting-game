@@ -11,13 +11,14 @@ using Godot;
 using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Online;
+using Netcode.Replays;
 using Sim.Data;
 using Sim.Data.Online;
 using Sim.State;
 
 namespace FightingGame.Online;
 
-/// <summary>Builds an online match of the real game logic against one other PC, over a Backdash peer session.</summary>
+/// <summary>Builds an online match of the real game logic against one other PC, over a Backdash peer session, and records it.</summary>
 public sealed class OnlineMatchStartup
 {
     private readonly PlayerBindings[] _bindings;
@@ -66,16 +67,23 @@ public sealed class OnlineMatchStartup
         ];
         var handshake = new VersionHandshake(
             new MatchIdentity(GameVersion.Current, data.Hash.ToBytes(), lineup.Simulation.Rules));
+        var recorder = new ReplayRecorder(lineup.CreateReplayHeader(data));
         var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, RumbleSlots(settings)));
+
+        // The effects observe the recorded logic: both wrappers see every resimulated frame (ADR-0018 §4).
         RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(
-            effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), settings, opponent.Transport, handshake);
+            effects.Observe(lineup.RecordedSimulation(recorder)), settings, opponent.Transport, handshake);
         var connection = new ConnectionMeter(driver, opponent.Transport.Link, Stopwatch.Frequency);
         var view = new MatchView();
         view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay, effects);
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);
-        return new StartedMatch(loop, driver, view, Describe(settings, opponent, lineup), connection, handshake);
+        // Frames inside the rollback window may still change, so the replay keeps only the ones before it.
+        var recording = new MatchRecording(
+            recorder, driver, settings.RollbackFrames, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
+        return new StartedMatch(
+            loop, driver, view, Describe(settings, opponent, lineup), connection, recording, handshake);
     }
 
     // Only this PC's player rumbles, on the first joypad their input reads; the opponent's pad is on the other PC.

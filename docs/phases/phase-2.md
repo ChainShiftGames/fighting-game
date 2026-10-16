@@ -103,6 +103,9 @@ Status: done · Needs: P2-01 · Parallel: yes · Where: `src/Netcode/Replays/`
 Read: ADR-0005
 - Binary format: header (version, data hash, rules, characters, colours) + compressed inputs.
 - Recorder for every match; replay driver plays it back; replays from another version are rejected cleanly.
+- Game: local and online matches save to `user://replays/` when over or left (online: confirmed frames only);
+  **developer setting** "Save replays" (F11, on). `-- --replay <file>` plays one back. Retention and a replay menu:
+  undecided.
 
 ### P2-11 Network simulator panel
 Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Transport/`, `game/Debug/`

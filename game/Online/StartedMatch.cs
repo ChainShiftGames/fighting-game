@@ -7,8 +7,8 @@ using Netcode.Handshake;
 namespace FightingGame.Online;
 
 /// <summary>
-/// A match ready to play: its loop, the node that draws it, a one-line description for the overlay and, for online
-/// matches, the connection meter and version handshake.
+/// A match ready to play: its loop, the node that draws it, a one-line description for the overlay, its replay
+/// recording (none when playing a replay) and, for online matches, the connection meter and version handshake.
 /// </summary>
 public sealed class StartedMatch : IDisposable
 {
@@ -17,6 +17,7 @@ public sealed class StartedMatch : IDisposable
     private readonly IDisposable _driver;
     private readonly VersionHandshake? _handshake;
 
+    /// <param name="recording">Records the match for a replay; null when the match is a replay itself.</param>
     /// <param name="handshake">An online match's version handshake, whose refusal is shown while it waits.</param>
     public StartedMatch(
         IMatchLoop loop,
@@ -24,9 +25,11 @@ public sealed class StartedMatch : IDisposable
         Node2D view,
         string description,
         ConnectionMeter? connection,
+        MatchRecording? recording = null,
         VersionHandshake? handshake = null)
     {
         Loop = loop;
+        Recording = recording;
         _driver = driver;
         _handshake = handshake;
         View = view;
@@ -42,6 +45,8 @@ public sealed class StartedMatch : IDisposable
     public string Description { get; }
 
     public ConnectionMeter? Connection { get; }
+
+    public MatchRecording? Recording { get; }
 
     public bool IsOnline => Connection is not null;
 
