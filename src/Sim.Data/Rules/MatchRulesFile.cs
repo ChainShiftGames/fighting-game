@@ -3,15 +3,17 @@ using Sim.Rules;
 namespace Sim.Data.Rules;
 
 /// <summary>The loaded <c>rules/match.json</c>: match-wide gameplay values (developer settings, ARCHITECTURE.md §6).</summary>
-/// <remarks>Round start, timer and rounds to win (P1-13) live here; module order and config come later.</remarks>
+/// <remarks>Module order and config come later.</remarks>
 public sealed class MatchRulesFile
 {
-    public MatchRulesFile(int roundStartDistance, int wallDistance, int maxPlayerDistance, TradeRule tradeRule)
+    public MatchRulesFile(
+        int roundStartDistance, int wallDistance, int maxPlayerDistance, TradeRule tradeRule, RoundFormat rounds)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
         MaxPlayerDistance = maxPlayerDistance;
         TradeRule = tradeRule;
+        Rounds = rounds;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -26,6 +28,9 @@ public sealed class MatchRulesFile
     /// <summary>What happens when both fighters' attacks connect on the same frame.</summary>
     public TradeRule TradeRule { get; }
 
+    /// <summary>Timer, rounds to win, round limit and the pause between rounds.</summary>
+    public RoundFormat Rounds { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -33,5 +38,9 @@ public sealed class MatchRulesFile
         rules.WallDistance = WallDistance;
         rules.MaxPlayerDistance = MaxPlayerDistance;
         rules.TradeRule = TradeRule;
+        rules.RoundTimerFrames = Rounds.TimerFrames;
+        rules.RoundsToWin = Rounds.RoundsToWin;
+        rules.MaxRounds = Rounds.MaxRounds;
+        rules.RoundOverFrames = Rounds.RoundOverFrames;
     }
 }

@@ -4,5 +4,9 @@
   "roundStartDistance": 150000,
   "wallDistance": 600000,
   "maxPlayerDistance": 640000,
-  "tradeRule": "trade"
+  "tradeRule": "trade",
+  "roundTimerFrames": 5940,
+  "roundsToWin": 2,
+  "maxRounds": 5,
+  "roundOverFrames": 120
 }

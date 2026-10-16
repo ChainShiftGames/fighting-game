@@ -41,6 +41,28 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>tradeRule</c>).</remarks>
     public TradeRule TradeRule;
 
+    /// <summary>Round timer length in frames (99 s = 5940); the round times out when it runs down.</summary>
+    /// <remarks>
+    /// Developer setting, from data/rules/match.json (<c>roundTimerFrames</c>). Data requires a limit; 0 (rules built
+    /// in code) means no time limit.
+    /// </remarks>
+    public int RoundTimerFrames;
+
+    /// <summary>Round wins a player needs to win the match (2 = best of 3).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>roundsToWin</c>).</remarks>
+    public int RoundsToWin;
+
+    /// <summary>The last round a match can reach; still undecided after it, the match is a draw.</summary>
+    /// <remarks>
+    /// Developer setting, from data/rules/match.json (<c>maxRounds</c>); at least 2 × <see cref="RoundsToWin"/> − 1, so
+    /// only extra deciding rounds after draws can reach it (<c>Sim.Match.MatchScore</c>).
+    /// </remarks>
+    public int MaxRounds;
+
+    /// <summary>Frames between a KO or time-out and the next round (or match over), with neutral input.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>roundOverFrames</c>).</remarks>
+    public int RoundOverFrames;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

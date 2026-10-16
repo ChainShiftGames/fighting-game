@@ -21,7 +21,8 @@ public sealed class HudTextTests
     [InlineData(61, "2")]
     [InlineData(60, "1")]
     [InlineData(1, "1")]
-    [InlineData(0, "∞")]
+    [InlineData(0, "0")]
+    [InlineData(-1, "0")]
     public void ShowsWholeSecondsRoundedUp(int framesLeft, string text)
     {
         Assert.Equal(text, HudText.Timer(framesLeft, 60));

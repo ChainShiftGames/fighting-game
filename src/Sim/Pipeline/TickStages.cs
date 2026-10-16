@@ -24,6 +24,6 @@ public sealed class TickStages
     /// <summary>Hit resolution (P1-12); it runs the modules' hit, block and throw hooks.</summary>
     public ITickStage HitResolution { get; init; } = new IdleStage();
 
-    /// <summary>Round and timer (P1-13); the round timer stops while <see cref="FrameActivity.IsFrozen"/>.</summary>
+    /// <summary>Round and timer (P1-13: <c>Sim.Match.RoundStage</c>); the timer stops during a global freeze.</summary>
     public ITickStage RoundTimer { get; init; } = new IdleStage();
 }

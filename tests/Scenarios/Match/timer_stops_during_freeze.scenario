@@ -1,0 +1,11 @@
+# The round timer stops during a global freeze (super flash) and runs on afterwards; hitstop alone doesn't stop it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: freeze = 10
+setup: p1 hitstop = 20
+setup: p2 hitstop = 20
+
+frames 1-10: expect timer = 5940
+frame 11: expect timer = 5939
+frame 20: expect timer = 5930
+frame 20: expect p1 hitstop > 0

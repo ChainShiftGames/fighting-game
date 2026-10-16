@@ -16,3 +16,6 @@ frame 1: expect p1 health = 10000
 frame 1: expect p1 damage = 0
 frame 1: expect p2 damage = 1000
 frame 1: expect round = 1
+frame 1: expect timer = 5939
+frame 1: expect round_phase = fighting
+frame 1: expect p1 wins = 0

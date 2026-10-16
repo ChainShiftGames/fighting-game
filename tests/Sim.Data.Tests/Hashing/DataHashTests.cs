@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change: rules/match.json gained tradeRule (P1-12).
-    private const string FixtureHash = "e39d2e6e503c2934352ae1a05e28119dd6f8aec11080e2ec2a0da915bf479108";
+    // Last change: rules/match.json gained roundTimerFrames, roundsToWin, maxRounds and roundOverFrames (P1-13).
+    private const string FixtureHash = "ced7ca8c0d67e536717441f2f7d2041448b84db67bc9346878adde79338c741b";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

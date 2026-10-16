@@ -1,0 +1,25 @@
+# P1 already has one round win; a KO gives the second, so after the pause the match is over: no round 3, nobody
+# has control, and the logic keeps ticking with nothing changing.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p2 health = 300
+setup: p1 wins = 1
+
+frame 1: p1 5a
+frames 200-260: p1 6
+frames 200-260: p2 6
+
+frame 5: expect p1 wins = 2
+frame 5: expect round_phase = round_over
+frames 5-124: expect match_winner = none
+frame 125: expect round_phase = match_over
+frame 125: expect match_winner = p1
+frame 125: expect match_event match_end
+frames 126-400: expect match_event match_end = 0
+frames 125-400: expect round_phase = match_over
+frames 125-400: expect round = 1
+frames 200-260: expect p1 input = 5
+frames 200-260: expect p2 input = 5
+frames 200-400: expect p1 x = -30000

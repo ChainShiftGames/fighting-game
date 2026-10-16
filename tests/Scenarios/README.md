@@ -38,12 +38,14 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   real button set. `scenario_dummy` is there until Testman (P1-17): attacks `5a` (mid), `2a` (low), `6b`
   (overhead), `236b` (mid with chip damage); basic moves `idle`, `crouch`, `dash`, `jump`, `landing`, `hitstun`,
   `crouch_hitstun`, `blockstun`, `crouch_blockstun`. Frame and hit data are in its move files.
-- **Start state** (until round start, P1-13): fighters at x = ∓`roundStartDistance` from `data/rules/match.json`
-  (150000), y = 0, facing each other, full health, in idle, round 1. Settable values below override it.
+- **Start state**: round 1 as `Sim.Match.RoundStart` sets it up: fighters at x = ∓`roundStartDistance` from
+  `data/rules/match.json` (150000), y = 0, facing each other, full health, in idle, timer `roundTimerFrames` (5940).
+  Settable values below override it; a later round starts from data again (full health), not from setup.
 - **What runs**: the production match, `Sim.Composition.MatchSimulation`: every stage built so far (input step,
   move state machines with the motion parser and button buffer, movement, pushboxes and walls at
   ±`wallDistance` (600000), the camera holding the fighters within `maxPlayerDistance` (640000), hit detection and
-  hit resolution with stand/crouch block); the others (round and timer) still do nothing. Match rules come from
+  hit resolution with stand/crouch block, and the round and timer step: KO, time-out, the `roundOverFrames` (120)
+  pause with neutral input, the next round or match over). Match rules come from
   data (`GameData.CreateMatchRules`) plus the setup lines below.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
   lineup slots in the order listed. Config integers are the module's raw config slice.
@@ -68,11 +70,16 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `move` | fighter | id of the playing move, e.g. `5a` (= and != only) | no |
 | `move_frame` | fighter | frame of the playing move, 1 on its first frame | no |
 | `stun` | fighter | hitstun or blockstun frames left | no |
-| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`); alone means at least one, or compare a count: `p2 event hit = 0` | no |
+| `wins` | fighter | rounds won so far | yes |
+| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`); alone means at least one, or compare a count: `p2 event hit = 0` | no |
 | `camera` | match | logic camera x, the centre of the screen (0 = stage centre) | yes |
 | `freeze` | match | global freeze frames left | yes |
 | `timer` | match | round timer frames left | yes |
 | `round` | match | current round | yes |
+| `round_phase` | match | `fighting`, `round_over` (pause after a KO or time-out), `match_over` (= and != only) | no |
+| `round_winner` | match | latest round: `p1`, `p2`, `draw`; `none` while fought (= and != only) | no |
+| `match_winner` | match | `p1`, `p2`, `draw` once the match is over; `none` until then (= and != only) | no |
+| `match_event <kind>` | match | events of no fighter this frame (`time_out`, `round_start`, `match_end`), as `event` | no |
 | `module <name>[i]` | match | integer i of an enabled module's state slice | no |
 
 A failing scenario reports only the **first** failing expectation, as
