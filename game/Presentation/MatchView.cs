@@ -59,7 +59,7 @@ public partial class MatchView : Node2D
 
         ref readonly MatchState state = ref _driver.State;
         Vector2 size = GetViewportRect().Size;
-        StageCamera camera = StageCamera.Fit(size, _walls, Midpoint(in state));
+        StageCamera camera = StageCamera.Fit(size, _walls, state.Camera.X);
         DrawStage(camera, size);
 
         for (int player = 0; player < MatchState.PlayerCount; player++)
@@ -67,10 +67,6 @@ public partial class MatchView : Node2D
             DrawFighter(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
         }
     }
-
-    // Until the camera position comes from the logic (P1-11): halfway between the fighters.
-    private static int Midpoint(in MatchState state) =>
-        (int)(((long)state.Fighters[0].Position.X + state.Fighters[1].Position.X) / 2);
 
     // The floor between the walls; the walls reach up past the top of the screen, as in the logic.
     private void DrawStage(StageCamera camera, Vector2 size)

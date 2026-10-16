@@ -1,15 +1,18 @@
 using System;
-using FightingGame.Online;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Netcode.Drivers;
 using Sim.Characters;
 using Sim.Composition;
 using Sim.Data;
+using Sim.Data.Sources;
 using Sim.Input;
 using Sim.Rules;
 using Sim.State;
 using Xunit;
 
-namespace FightingGame.Tests.Online;
+namespace Netcode.Tests.Drivers;
 
 public sealed class ComposedMatchSimulationTests
 {
@@ -60,10 +63,19 @@ public sealed class ComposedMatchSimulationTests
 
     private static MatchSimulation CreateMatch()
     {
-        GameData data = TestGameData.WithFixtureCharacter;
-        CharacterData character = TestGameData.FixtureMan;
+        GameData data = new GameDataLoader(new DirectoryDataSource(FixtureDataRoot())).Load();
+        CharacterData character = data.Character("fixture_man");
         MatchRules rules = data.CreateMatchRules();
         return new MatchSimulation(
             character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
+    }
+
+    // The Sim.Data fixture folder: complete game data with one character, fixture_man.
+    private static string FixtureDataRoot()
+    {
+        string repositoryRoot = typeof(ComposedMatchSimulationTests).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .Single(attribute => attribute.Key == "RepositoryRoot").Value!;
+        return Path.Combine(repositoryRoot, "tests", "Sim.Data.Tests", "Fixtures", "data");
     }
 }

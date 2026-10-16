@@ -7,8 +7,8 @@ namespace FightingGame.Presentation;
 
 /// <summary>Turns world positions (subpixels, y up, origin on the floor at stage centre) into screen pixels.</summary>
 /// <remarks>
-/// Presentation only. The camera's horizontal position will come from the logic (ADR-0004 §5, P1-11); until then the
-/// view follows the point between the fighters and stops at the walls. Zoom, shake and flashes stay here.
+/// The horizontal focus is the logic camera (<c>MatchState.Camera</c>, ADR-0004 §5); this only fits it to the
+/// viewport and stops at the walls. Zoom, shake and flashes stay here.
 /// </remarks>
 /// <param name="FloorCentre">Where the world origin (stage centre, on the floor) is on screen.</param>
 public readonly record struct StageCamera(Vector2 FloorCentre, float PixelsPerSubpixel)
