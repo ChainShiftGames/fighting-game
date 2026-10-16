@@ -1,0 +1,22 @@
+# A projectile from behind is blocked like any attack: holding away from its owner, not from the projectile.
+# p1 fires the slow 214c fireball (2000 per frame) from far back, walks in and crosses p2 up with a forward jump. When
+# the fireball arrives from p2's left, p1 stands on p2's right, so p2 blocks by holding left, toward the fireball.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -345000
+setup: p2 x = 45000
+
+frame 1: p1 2, 1, 4c                     # 214c starts on frame 3, the fireball spawns on frame 15
+frames 47-121: p1 6                      # walk in to the crossup distance
+frames 122-126: p1 9                     # forward jump over p2
+frames 160-180: p2 1                     # down-back: away from p1 once it's behind, toward the fireball
+
+frame 15: expect p1 event projectile_spawn
+frame 121: expect p1 x = -45000
+frame 150: expect p2 facing = right      # p1 has crossed over
+frame 170: expect p1 x > 45000
+frame 170: expect p1 entity_x < 45000    # the fireball is still on p2's left
+frame 170: expect p2 damage = 0
+frame 171: expect p1 event projectile_block
+frame 171: expect p2 state = crouch_blockstun
+frame 171: expect p2 damage = 90         # chip

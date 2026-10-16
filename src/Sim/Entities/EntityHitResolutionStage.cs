@@ -17,10 +17,11 @@ namespace Sim.Entities;
 /// - A same-frame exchange (<see cref="HitContacts.IsSameFrameExchange"/>: both fighters touched by the other's
 ///   attacks or projectiles) under <see cref="TradeRule.Clash"/>: no projectile lands; each touching one disappears
 ///   with a clash event, as the fighters' moves are spent. Otherwise every touch lands (trades included).
-/// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the projectile,
-///   <see cref="HitReactions"/> for damage, chip, stun and knockdown), against the defender as fighter attacks left
-///   it this frame. Only the defender gets the projectile's hitstop (<see cref="Hitstop"/>); the owner isn't in
-///   contact, so it keeps acting, and its move doesn't record the outcome (no cancel on a projectile's hit).
+/// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the owner, as
+///   against any attack, even when the projectile comes from behind; <see cref="HitReactions"/> for damage, chip,
+///   stun and knockdown), against the defender as fighter attacks left it this frame. Only the defender gets the
+///   projectile's hitstop (<see cref="Hitstop"/>); the owner isn't in contact, so it keeps acting, and its move
+///   doesn't record the outcome (no cancel on a projectile's hit).
 /// - One hit per projectile: it disappears on hit or block. Several touching the same defender land in slot order.
 /// - Each landed touch emits its event and runs the modules' hit or block hooks with the owner as the attacker.
 /// A projectile only ever changes its owner's opponent, so P1's and P2's projectiles can't affect each other here.
@@ -122,8 +123,8 @@ public sealed class EntityHitResolutionStage : ITickStage
     {
         CharacterData character = _characters.Of(defender);
         ref FighterState defenderState = ref state.Fighters[defender];
-        BlockStance stance = Blocking.StanceAgainstProjectile(
-            in defenderState, entity.Position.X, state.Inputs[defender].FramesAgo(0));
+        BlockStance stance = Blocking.StanceOf(
+            in defenderState, in state.Fighters[entity.Owner], state.Inputs[defender].FramesAgo(0));
         bool isBlocked = Blocking.Stops(stance, hit.Guard);
         if (isBlocked)
         {

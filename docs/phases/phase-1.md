@@ -254,8 +254,8 @@ Read: ADR-0011
     that frame, can hit on it, and expire on the frame after their lifetime. They ignore the owner's hitstop and
     time scale, stop in a global freeze unless the owner runs, and pass walls.
   - One hit, then gone. Only the defender gets hitstop; the owner's move records nothing (no cancel on a
-    projectile's hit). Blocked by holding away from the projectile. Module hit/block hooks run with the owner as
-    attacker.
+    projectile's hit). Blocked by holding away from the owner like any attack, even from behind. Module
+    hit/block hooks run with the owner as attacker.
   - Clash: every frame two opposing projectiles overlap, both lose 1 durability; gone at 0, and a destroyed one hits
     nothing that frame. Clashes resolve before hits; counted per pair, so order-independent.
   - `TradeRule` covers projectiles: a same-frame exchange counts projectile touches; under `clash` touching
