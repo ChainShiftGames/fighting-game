@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using ArchUnitNET.xUnitV3;
 using Xunit;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
@@ -18,6 +20,7 @@ public sealed class MatchRulesTests
         @"Microsoft\.Extensions\.Configuration|Microsoft\.Extensions\.Options)(\..+)?$";
 
     private const string MatchRulesTypeName = "MatchRules";
+    private const string RulesNamespace = "Sim.Rules";
 
     [Fact]
     public void SimReadsNoOtherSettingSource()
@@ -31,20 +34,63 @@ public sealed class MatchRulesTests
             .Check(LoadedArchitecture.Model);
     }
 
-    // Passes while MatchRules doesn't exist yet (P1-20). From then on it holds MatchRules to ADR-0011 §5: one
-    // blittable struct, so it can be hashed for the online check and never shares state through references.
+    // ADR-0011 §5: one blittable struct, so it can be hashed for the online check and never shares state through
+    // references.
     [Fact]
     public void MatchRulesIsOneBlittableStruct()
     {
-        Type[] matchRules = Assembly.Load("Sim").GetTypes()
-            .Where(type => type.Name == MatchRulesTypeName)
-            .ToArray();
+        Type[] matchRules = SimTypes().Where(type => type.Name == MatchRulesTypeName).ToArray();
 
-        Assert.True(matchRules.Length <= 1, $"Sim defines {matchRules.Length} types named {MatchRulesTypeName}.");
-        foreach (Type type in matchRules)
+        Type type = Assert.Single(matchRules);
+        Assert.Equal(RulesNamespace, type.Namespace);
+        Assert.True(type.IsValueType, $"{type.FullName} must be a struct.");
+        Assert.False(ContainsReferences(type), $"{type.FullName} must not contain reference-type fields.");
+    }
+
+    // A second settings struct in Sim.Rules would be a setting source the rules hash doesn't cover: everything there
+    // must be MatchRules or a part of it.
+    [Fact]
+    public void RulesNamespaceHoldsOnlyMatchRulesAndItsParts()
+    {
+        Type matchRules = SimTypes().Single(type => type.Name == MatchRulesTypeName);
+        var parts = new HashSet<Type>();
+        CollectFieldTypes(matchRules, parts);
+
+        foreach (Type type in SimTypes().Where(type => type.Namespace == RulesNamespace))
         {
-            Assert.True(type.IsValueType, $"{type.FullName} must be a struct.");
-            Assert.False(ContainsReferences(type), $"{type.FullName} must not contain reference-type fields.");
+            Assert.True(parts.Contains(type), $"{type.FullName} is in {RulesNamespace} but not part of MatchRules.");
+        }
+    }
+
+    // Catches settings types added elsewhere in Sim by name. Module configs are views over their MatchRules slot
+    // (IModuleConfig). Sim.Toy is the Phase 0 spike, which predates MatchRules.
+    [Fact]
+    public void SettingsTypesAreMatchRulesPartsOrModuleConfigs()
+    {
+        Type moduleConfig = SimTypes().Single(type => type.FullName == "Sim.Modules.IModuleConfig");
+        var settingsName = new Regex("(Rules|Settings|Config|Configuration|Options|Tuning)$");
+
+        foreach (Type type in SimTypes().Where(type => settingsName.IsMatch(type.Name)))
+        {
+            bool allowed = type.Namespace == RulesNamespace || type.Namespace == "Sim.Toy" ||
+                moduleConfig.IsAssignableFrom(type);
+            Assert.True(allowed, $"{type.FullName} looks like a setting: put it in MatchRules or a module config.");
+        }
+    }
+
+    private static Type[] SimTypes() =>
+        Assembly.Load("Sim").GetTypes().Where(type => !type.IsNested && type.Namespace is not null).ToArray();
+
+    private static void CollectFieldTypes(Type type, HashSet<Type> parts)
+    {
+        if (!parts.Add(type))
+        {
+            return;
+        }
+
+        foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        {
+            CollectFieldTypes(field.FieldType, parts);
         }
     }
 

@@ -56,7 +56,7 @@ Done when:
 - [x] benchmark: save + restore + checksum well under the 1 ms tick budget
 
 ### P1-20 Module contract and match rules
-Status: todo · Needs: P1-02 · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim/Rules/`, `tests/`
+Status: done · Needs: P1-02 · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim/Rules/`, `tests/`
 Read: ADR-0011
 - `IMechanicModule` hooks, per-module fixed-size state slices, core request types, module order from data.
 - `MatchRules`: one blittable struct with every gameplay-affecting setting (**developer settings**); hash over the
@@ -64,9 +64,9 @@ Read: ADR-0011
 - One test-only module proving the contract.
 
 Done when:
-- [ ] deleting the test module's folder and registration line still compiles and passes core tests
-- [ ] a test changes every `MatchRules` field in turn and the hash changes each time
-- [ ] architecture test: `Sim` reads gameplay settings only from `MatchRules`
+- [x] deleting the test module's folder and registration line still compiles and passes core tests
+- [x] a test changes every `MatchRules` field in turn and the hash changes each time
+- [x] architecture test: `Sim` reads gameplay settings only from `MatchRules`
 
 ### P1-03 Tick pipeline
 Status: todo · Needs: P1-20 · Parallel: no · Where: `src/Sim/Pipeline/`

@@ -9,16 +9,17 @@ namespace Architecture.Tests;
 public sealed class ModuleIsolationTests
 {
     // A module is everything in Sim.Modules.<Name> and below. Sim.Modules itself holds the module contract
-    // (CONVENTIONS.md), which the core uses; it is exempt from the core rule so the one registration line can live
-    // there until its home is decided (P1-20).
+    // (CONVENTIONS.md), which the core uses. The registration list there is the one type outside a module allowed to
+    // name modules, so removing a module is deleting its folder and its line (P1-20).
     private const string ModuleNamespace = @"^Sim\.Modules\.[^.]+(\..+)?$";
-    private const string ModulesRootOrModuleNamespace = @"^Sim\.Modules(\..+)?$";
+    private const string RegistrationTypeName = "Sim.Modules.RegisteredModules";
 
     [Fact]
     public void CoreDoesNotReferenceModules()
     {
         Types().That().ResideInAssemblyMatching(TypeSelection.AssemblyPattern("Sim"))
-            .And().DoNotResideInNamespaceMatching(ModulesRootOrModuleNamespace)
+            .And().DoNotResideInNamespaceMatching(ModuleNamespace)
+            .And().DoNotHaveFullName(RegistrationTypeName)
             .Should().NotDependOnAny(Types().That().ResideInNamespaceMatching(ModuleNamespace))
             .WithoutRequiringPositiveResults()
             .Check(LoadedArchitecture.Model);
