@@ -12,6 +12,7 @@ using Sim.Modules;
 using Sim.Pipeline;
 using Sim.Rules;
 using Sim.State;
+using Sim.Throws;
 
 namespace Sim.Composition;
 
@@ -58,9 +59,11 @@ public sealed class MatchSimulation
         OwnerCharacters owners = new(player1, player2);
         ProjectileSpawner spawner = new(owners, in rules);
         CounterHits counterHits = new(in rules);
+        ThrowContacts throwContacts = new();
 
         // Entities (P1-21) run after the fighters in each step. Module spawn requests apply after the end-of-frame
-        // hooks, so they lead the round and timer step (SpawnRequestStage).
+        // hooks, so they lead the round and timer step (SpawnRequestStage). Throws (P1-23) resolve before strikes, so
+        // a throw can beat a strike on the same frame, and running holds come first of all.
         TickStages stages = new()
         {
             Input = new RoundInputLock(new ButtonSetInputStage(buttons)),
@@ -68,14 +71,23 @@ public sealed class MatchSimulation
             Movement = new StageSequence(
                 new MovementStage(player1, player2),
                 new EntityMovementStage(owners),
-                new MoveSpawnStage(owners, spawner)),
+                new MoveSpawnStage(owners, spawner),
+                new ThrowProtectionStage(player1, player2, in rules)),
             Collision = new StageSequence(
                 new CollisionStage(player1, player2, StageWalls.From(in rules)),
                 new CameraStage(player1, player2, CameraFraming.From(in rules))),
             HitDetection = new StageSequence(
                 new HitDetectionStage(player1, player2, contacts),
+                new ThrowDetectionStage(player1, player2, throwContacts),
                 new EntityHitDetectionStage(owners, entityContacts, contacts)),
             HitResolution = new StageSequence(
+                new ThrowHoldStage(
+                    player1,
+                    player2,
+                    new ThrowTechInput(player1, rules.ButtonBuffer),
+                    new ThrowTechInput(player2, rules.ButtonBuffer),
+                    modules),
+                new ThrowResolutionStage(player1, player2, throwContacts, contacts, in rules),
                 new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule, counterHits),
                 new EntityHitResolutionStage(owners, entityContacts, contacts, modules, rules.TradeRule, counterHits)),
             RoundTimer = new StageSequence(

@@ -41,7 +41,9 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   front) `236c` (mid fireball, 8000 per frame, durability 1, projectile 0), `236d` (low fireball at the floor, same
   speed, projectile 1), `214c` (slow mid fireball, 2000 per frame, lifetime 200, durability 2, projectile 2); basic
   moves `idle`, `crouch`, `dash`, `jump`, `landing`, `hitstun`,
-  `crouch_hitstun`, `blockstun`, `crouch_blockstun`, `knockdown` (40 frames, no hurtbox). Frame and hit data are in its move files.
+  `crouch_hitstun`, `blockstun`, `crouch_blockstun`, `knockdown` (40 frames, no hurtbox), `thrown`, `throw_tech`;
+  throws (P1-23) `forward_throw` (5 or 6 + `a+b`) and `back_throw` (4 + `a+b`), active on frames 5-7, reaching 70000
+  apart, landing 75000 in front or behind. Frame and hit data are in its move files.
 - **Start state**: round 1 as `Sim.Match.RoundStart` sets it up: fighters at x = ∓`roundStartDistance` from
   `data/rules/match.json` (150000), y = 0, facing each other, full health, in idle, timer `roundTimerFrames` (5940).
   Settable values below override it; a later round starts from data again (full health), not from setup.
@@ -54,6 +56,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   data (`GameData.CreateMatchRules`) plus the setup lines below.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
   lineup slots in the order listed. Config integers are the module's raw config slice.
+- **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
+  `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
   same-frame hits: `trade` (both land) or `clash` (neither lands).
 - **Entity pool** (match rules): `setup: entities_per_player <n>` overrides `entitiesPerPlayer` from
@@ -81,7 +85,7 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `move_frame` | fighter | frame of the playing move, 1 on its first frame | no |
 | `stun` | fighter | hitstun or blockstun frames left | no |
 | `wins` | fighter | rounds won so far | yes |
-| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`; projectile and counter hit events belong to the owner or attacker); alone means at least one, or compare a count: `p2 event hit = 0` | no |
+| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`, `throw_grab`, `throw_tech`, `throw_hit`; projectile and counter hit events belong to the owner or attacker, throw events to the thrower, a tech to each fighter); alone means at least one, or compare a count: `p2 event hit = 0` | no |
 | `entities` | fighter | projectiles the fighter has out in the entity pool | no |
 | `entity_x` | fighter | x of the fighter's oldest projectile still out; `none` without one | no |
 | `entity_durability` | fighter | clash durability left on that projectile; `none` without one | no |

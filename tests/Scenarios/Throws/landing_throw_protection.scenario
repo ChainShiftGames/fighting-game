@@ -1,0 +1,13 @@
+# Landing protection (landingThrowInvulnerableFrames 3): p2's straight jump touches down on frame 45 and can't be
+# thrown on frames 45-47. p1's throw, active on frames 45-47, can't grab it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p2 8
+frame 41: p1 5a+b
+
+frame 44: expect p2 y > 0
+frame 45: expect p2 y = 0
+frames 1-60: expect p1 event throw_grab = 0

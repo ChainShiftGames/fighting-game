@@ -1,0 +1,12 @@
+# Throws are ground throws: p2 jumps on frame 1 (prejump frames 1-4, airborne from frame 5) and p1's throw, active
+# on frames 8-10, passes under it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p2 8
+frame 4: p1 5a+b
+
+frames 8-10: expect p2 y > 0
+frames 1-30: expect p1 event throw_grab = 0

@@ -1,0 +1,21 @@
+# The thrown fighter techs by inputting a throw (any direction, a+b) in the tech window (frames 6-10 after a grab
+# on frame 5). Both fighters go to throw_tech and slide apart (its velocity data: 5000 per frame back on move
+# frames 1-10, of which 2-10 apply: the tech starts after frame 8's movement); nobody takes damage.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+frame 8: p2 a+b
+
+frame 7: expect p2 state = thrown
+frame 8: expect p1 event throw_tech
+frame 8: expect p2 event throw_tech
+frame 8: expect p1 state = throw_tech
+frame 8: expect p2 state = throw_tech
+frames 8-40: expect p2 damage = 0
+frames 8-40: expect p1 event throw_hit = 0
+frames 17-20: expect p1 x = -75000
+frames 17-20: expect p2 x = 75000
+frame 26: expect p1 state = idle

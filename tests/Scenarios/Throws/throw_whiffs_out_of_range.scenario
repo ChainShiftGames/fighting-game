@@ -1,0 +1,13 @@
+# Throw range is the throw box against the hurtbox: scenario_dummy's throw box reaches 45000 in front and hurtboxes
+# are 25000 wide each side, so at 80000 apart it whiffs and plays out its 30 frames.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -40000
+setup: p2 x = 40000
+
+frame 1: p1 5a+b
+
+frames 1-30: expect p1 event throw_grab = 0
+frames 1-30: expect p2 state = idle
+frame 30: expect p1 move = forward_throw
+frame 31: expect p1 state = idle

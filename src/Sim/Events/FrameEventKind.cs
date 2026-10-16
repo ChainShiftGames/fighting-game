@@ -100,4 +100,22 @@ public enum FrameEventKind
     /// <see cref="CounterHit"/>.
     /// </summary>
     PunishCounter = 16,
+
+    /// <summary>
+    /// A throw grabbed the opponent; the tech window opens (P1-23). Fighter: the thrower. Position: the centre of the
+    /// overlap of its first throw box and the defender's hurtbox. Detail: the throw move.
+    /// </summary>
+    ThrowGrab = 17,
+
+    /// <summary>
+    /// A throw was teched (in the tech window, or two throws met on the same frame) and both fighters separate; one
+    /// event per fighter. Fighter: a fighter. Position: its position. Detail: 0.
+    /// </summary>
+    ThrowTech = 18,
+
+    /// <summary>
+    /// A throw landed when its tech window closed: damage and the throw's reaction. Fighter: the thrower. Position:
+    /// where the thrown fighter was released. Detail: the throw move.
+    /// </summary>
+    ThrowHit = 19,
 }

@@ -1,0 +1,14 @@
+# A fighter in blockstun can't be thrown. A module-spawned fireball of p1's (contract probe: spawned at the end of
+# frame 1, 40000 in front of p1) is blocked by p2 on frame 2, and p1's throw, active on frames 5-7, can't grab it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module contract_probe 0 1 0 0
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+frames 1-10: p2 4
+
+frame 2: expect p1 event projectile_block
+frames 5-7: expect p2 state = blockstun
+frames 1-30: expect p1 event throw_grab = 0

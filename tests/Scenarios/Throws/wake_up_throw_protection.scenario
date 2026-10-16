@@ -1,0 +1,17 @@
+# Wake-up protection (wakeUpThrowInvulnerableFrames 3): a fighter can't be thrown during wake-up nor on the 3
+# frames after it. p2 wakes up on frames 58-117 and is free from frame 118; p1's meaty throw, active on frames
+# 118-120, can't grab it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b                         # forward throw: lands on frame 10, p2 knocked down at x = 45000
+frames 40-45: p1 6                       # walk back into throw range once the throw move ends (frame 39)
+frame 114: p1 5a+b
+
+frame 57: expect p2 state = knockdown
+frames 58-117: expect p2 state = wake_up  # no wake_up move: it plays idle's 60 frames
+frame 118: expect p2 state = idle
+frames 118-120: expect p1 move = forward_throw
+frames 11-150: expect p1 event throw_grab = 0

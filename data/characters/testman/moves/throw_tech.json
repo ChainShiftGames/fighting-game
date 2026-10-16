@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "throw_tech",
+  "category": "basic",
+  "duration": 18,
+  "velocity": [
+    { "firstFrame": 1, "lastFrame": 10, "x": -5000 }
+  ],
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 18, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 18, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
+  ]
+}

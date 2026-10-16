@@ -1,0 +1,24 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "back_throw",
+  "category": "throw",
+  "usableIn": "ground",
+  "input": { "motion": "4", "buttons": ["a", "b"] },
+  "frameData": { "startup": 5, "active": 3, "recovery": 23 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 30, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 30, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "throw", "firstFrame": 5, "lastFrame": 7, "x": 0, "y": 20000, "width": 45000, "height": 60000 }
+  ],
+  "throw": { "releaseX": -75000 },
+  "hit": {
+    "damage": 1200,
+    "guard": "unblockable",
+    "hitstun": 0,
+    "blockstun": 0,
+    "hitstop": 8,
+    "pushback": 0,
+    "reaction": "knockdown"
+  }
+}

@@ -38,6 +38,7 @@ public static class MatchRulesFileLoader
         // Flat keys (counterHitExtraHitstun…), so the debug panel can edit them like every other rule.
         CounterBonus counterHit = CounterBonusReader.Read(file, "counterHit");
         CounterBonus punishCounter = CounterBonusReader.Read(file, "punishCounter");
+        ThrowFormat throws = ReadThrows(file);
         file.Finish();
         return errors.Count > errorsBefore
             ? null
@@ -49,7 +50,18 @@ public static class MatchRulesFileLoader
                 rounds,
                 entitiesPerPlayer,
                 counterHit,
-                punishCounter);
+                punishCounter,
+                throws);
+    }
+
+    private static ThrowFormat ReadThrows(FieldReader file)
+    {
+        const int MaxFrames = MatchRulesSchema.MaxThrowFrames;
+        return new ThrowFormat(
+            file.RequiredInt("throwTechWindowFrames", 1, MaxFrames),
+            file.RequiredInt("wakeUpThrowInvulnerableFrames", 0, MaxFrames),
+            file.RequiredInt("landingThrowInvulnerableFrames", 0, MaxFrames),
+            file.RequiredChoice("throwVsStrike", MatchRulesSchema.ThrowPriorities));
     }
 
     private static RoundFormat ReadRounds(FieldReader file, DataErrors errors)

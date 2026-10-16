@@ -5,7 +5,7 @@
   "description": "data/rules/match.json: match-wide gameplay values, copied into MatchRules (developer settings, compared before online matches). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames", "entitiesPerPlayer", "counterHitExtraHitstun", "counterHitExtraHitstop", "counterHitExtraDamagePercent", "punishCounterExtraHitstun", "punishCounterExtraHitstop", "punishCounterExtraDamagePercent"],
+  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames", "entitiesPerPlayer", "counterHitExtraHitstun", "counterHitExtraHitstop", "counterHitExtraDamagePercent", "punishCounterExtraHitstun", "punishCounterExtraHitstop", "punishCounterExtraDamagePercent", "throwTechWindowFrames", "wakeUpThrowInvulnerableFrames", "landingThrowInvulnerableFrames", "throwVsStrike"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
@@ -23,6 +23,10 @@
     "counterHitExtraDamagePercent": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "Counter hit: damage added as a percentage of the hit's damage, rounded down (20 = 120 %)." },
     "punishCounterExtraHitstun": { "type": "integer", "minimum": 0, "maximum": 999, "description": "Punish counter (a hit during the defender's attack recovery, ADR-0017): frames added to the hit's hitstun. A move's hit may set its own punishCounter bonus instead." },
     "punishCounterExtraHitstop": { "type": "integer", "minimum": 0, "maximum": 999, "description": "Punish counter: frames added to the hit's hitstop." },
-    "punishCounterExtraDamagePercent": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "Punish counter: damage added as a percentage of the hit's damage, rounded down." }
+    "punishCounterExtraDamagePercent": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "Punish counter: damage added as a percentage of the hit's damage, rounded down." },
+    "throwTechWindowFrames": { "type": "integer", "minimum": 1, "maximum": 99, "description": "Frames after a grab in which the thrown fighter techs by inputting a throw (any direction); the throw lands when they run out (P1-23)." },
+    "wakeUpThrowInvulnerableFrames": { "type": "integer", "minimum": 0, "maximum": 99, "description": "Frames after wake-up ends in which a fighter can't be thrown." },
+    "landingThrowInvulnerableFrames": { "type": "integer", "minimum": 0, "maximum": 99, "description": "Frames from landing (the first frame on the ground included) in which a fighter can't be thrown." },
+    "throwVsStrike": { "enum": ["throw", "strike"], "description": "When a throw grabs on the same frame the defender's strike hits the thrower: throw = the throw grabs and the strike is dropped, strike = the strike hits and the throw doesn't grab." }
   }
 }

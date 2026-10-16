@@ -1,0 +1,19 @@
+# A back throw (4 + a+b), by p2: it grabs p1 on frame 5 and lands on frame 10, releasing p1 75000 behind p2 (the
+# move's releaseX is -75000). p2 turns around once its throw move ends.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p2 4a+b
+
+frame 1: expect p2 move = back_throw
+frame 5: expect p2 event throw_grab
+frame 5: expect p1 state = thrown
+frame 10: expect p2 event throw_hit
+frame 10: expect p1 damage = 1200
+frame 10: expect p1 state = knockdown
+frame 10: expect p1 x = 105000          # 30000 + 75000 behind p2, who faces left
+frame 37: expect p2 move = back_throw
+frame 37: expect p2 facing = left
+frame 39: expect p2 facing = right

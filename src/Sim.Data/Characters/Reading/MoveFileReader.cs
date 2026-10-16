@@ -55,6 +55,7 @@ public sealed class MoveFileReader
         IReadOnlyList<HitData> hits = MoveHitReader.Read(file, boxes);
         IReadOnlyList<VelocityData> velocities = MoveVelocityReader.Read(file, frames);
         move = MoveInvulnerabilityReader.Read(file, frames, move);
+        move = MoveThrowReader.Read(file, boxes, move);
         IReadOnlyList<ProjectileRecord> projectiles = MoveProjectileReader.Read(file, category, frames);
         file.Finish();
 
@@ -115,7 +116,7 @@ public sealed class MoveFileReader
         }
 
         int motion = ReadMotion(input);
-        int buttonMask = ReadButton(input);
+        int buttonMask = input.Has("buttons") ? ReadButtonCombination(input) : ReadButton(input);
         input.Finish();
         return new MoveData { Stance = stance, Motion = motion, ButtonMask = buttonMask };
     }
@@ -139,6 +140,39 @@ public sealed class MoveFileReader
         return value;
     }
 
+    // Buttons pressed together (a throw's two buttons): the press is the frame the last of them goes down.
+    private int ReadButtonCombination(FieldReader input)
+    {
+        input.Forbid("button", "use either \"button\" (one button) or \"buttons\" (pressed together), not both");
+        IReadOnlyList<string?> buttons = input.IdArray("buttons", required: true);
+        if (buttons.Count < 2)
+        {
+            input.Error("buttons", "list at least two buttons pressed together; a single button goes in \"button\"");
+        }
+
+        int combination = 0;
+        foreach (string? button in buttons)
+        {
+            if (button is null)
+            {
+                continue;
+            }
+
+            if (!_buttons.TryGetMask(button, out int mask))
+            {
+                input.Error("buttons", UnknownButton(button));
+            }
+            else if ((combination & mask) != 0)
+            {
+                input.Error("buttons", $"lists '{button}' twice");
+            }
+
+            combination |= mask;
+        }
+
+        return combination;
+    }
+
     private int ReadButton(FieldReader input)
     {
         string? button = input.RequiredId("button");
@@ -152,7 +186,10 @@ public sealed class MoveFileReader
             return mask;
         }
 
-        input.Error("button", $"unknown button '{button}' (the button set has: {string.Join(", ", _buttons.ButtonIds)})");
+        input.Error("button", UnknownButton(button));
         return 0;
     }
+
+    private string UnknownButton(string button) =>
+        $"unknown button '{button}' (the button set has: {string.Join(", ", _buttons.ButtonIds)})";
 }

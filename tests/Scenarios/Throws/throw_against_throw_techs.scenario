@@ -1,0 +1,15 @@
+# Two throws grabbing on the same frame tech each other: both go to throw_tech, nobody is thrown.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 6a+b
+frame 1: p2 6a+b
+
+frame 5: expect p1 event throw_tech
+frame 5: expect p2 event throw_tech
+frame 5: expect p1 event throw_grab = 0
+frame 5: expect p2 event throw_grab = 0
+frame 5: expect p1 state = throw_tech
+frame 5: expect p2 state = throw_tech

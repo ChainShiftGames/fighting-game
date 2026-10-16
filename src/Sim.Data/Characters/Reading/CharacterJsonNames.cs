@@ -70,5 +70,7 @@ public static class CharacterJsonNames
         ("wakeUp", BasicState.WakeUp),
         ("airDash", BasicState.AirDash),
         ("airBackdash", BasicState.AirBackdash),
+        ("thrown", BasicState.Thrown),
+        ("throwTech", BasicState.ThrowTech),
     ];
 }

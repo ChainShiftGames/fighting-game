@@ -1,0 +1,16 @@
+# throwVsStrike "strike": p1's throw and p2's 5a both connect on frame 5; the 5a hits (a counter hit: p1 is in its
+# throw's active frames) and the throw doesn't grab.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: throw_vs_strike strike
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a+b
+frame 1: p2 5a
+
+frame 5: expect p2 event hit
+frame 5: expect p2 event counter_hit
+frame 5: expect p1 event throw_grab = 0
+frame 5: expect p1 state = hitstun
+frames 1-30: expect p2 damage = 0

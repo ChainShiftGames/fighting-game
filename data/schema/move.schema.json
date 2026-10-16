@@ -31,10 +31,12 @@
       "description": "Not for basic moves.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["motion", "button"],
+      "required": ["motion"],
+      "oneOf": [{ "required": ["button"] }, { "required": ["buttons"] }],
       "properties": {
         "motion": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Numpad notation: \"5\" none, \"2\" down, \"236\" quarter circle forward." },
-        "button": { "$ref": "#/$defs/id", "description": "A button id from the button set (ADR-0010)." }
+        "button": { "$ref": "#/$defs/id", "description": "A button id from the button set (ADR-0010)." },
+        "buttons": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Buttons pressed together (e.g. a throw's two buttons); the press is the frame the last one goes down. Instead of button." }
       }
     },
     "boxes": {
@@ -95,7 +97,16 @@
         "lastFrame": { "$ref": "#/$defs/frames" }
       }
     },
-    "hit": { "$ref": "#/$defs/hit", "description": "Required exactly when the move has a hit or throw box." },
+    "hit": { "$ref": "#/$defs/hit", "description": "Required exactly when the move has a hit or throw box. A throw uses damage, hitstop and reaction when it lands." },
+    "throw": {
+      "description": "Required exactly when the move has throw boxes (a move hits or throws, not both; ground moves only). Category throw marks normal throws, whose buttons are also the throw tech input.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseX"],
+      "properties": {
+        "releaseX": { "$ref": "#/$defs/coordinate", "description": "Where the thrown fighter is released when the throw lands, forward of the thrower's origin; negative = behind it (a back throw)." }
+      }
+    },
     "projectiles": {
       "description": "Not for basic moves. Projectiles the move spawns, each on its own move frame. Facing right: x forward, y up from the fighter's origin, in subpixels (per frame for velocity); a projectile takes the fighter's facing when it spawns. One hit, then it disappears; only the defender gets its hitstop.",
       "type": "array",

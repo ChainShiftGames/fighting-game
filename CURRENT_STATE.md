@@ -41,7 +41,7 @@
   (e.g. less damage or a cooldown). One shared scheme for everyone — **no separate "modern" control mode**.
 - **Dedicated dash button.**
 - **Attack buttons: A, B, C, D** (plus Special and Dash). Defined in data so the layout can change later (ADR-0010).
-- Throw: forward/back + two buttons *(proposal)*, ~5f tech window.
+- Throw: forward/back + A+B (neutral throws forward), ~5f tech window; core, not a module (ADR-0017, P1-23).
 - Input buffer and leniency windows are tunable. Negative edge / button priority later.
 - **Full controller support:** remapping, SOCD cleaning as a fixed rule (left+right = neutral, up+down = up; ADR-0002), deadzones, input display.
 

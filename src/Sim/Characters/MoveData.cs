@@ -50,6 +50,12 @@ public readonly record struct MoveData
 
     public int InvulnerableLastFrame { get; init; }
 
+    /// <summary>
+    /// For a move with throw boxes: where the thrown fighter lands relative to the thrower when the throw completes,
+    /// in subpixels along the thrower's facing (negative: behind it, a back throw). 0 for other moves.
+    /// </summary>
+    public int ThrowReleaseX { get; init; }
+
     /// <summary>The fighter can't be hit or thrown on <paramref name="frame"/> of this move.</summary>
     public bool IsInvulnerableOn(int frame) =>
         InvulnerableFirstFrame != 0 && frame >= InvulnerableFirstFrame && frame <= InvulnerableLastFrame;

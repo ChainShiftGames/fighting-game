@@ -1,0 +1,14 @@
+# Testman's forward throw (5a+b or 6a+b; data/characters/testman/moves/forward_throw.json): it grabs on frame 5
+# and lands on frame 10 for 1200 damage and a knockdown, releasing p2 75000 in front of p1.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 6a+b
+
+frame 5: expect p1 event throw_grab
+frame 10: expect p1 event throw_hit
+frame 10: expect p2 damage = 1200
+frame 10: expect p2 state = knockdown
+frame 10: expect p2 x = 45000

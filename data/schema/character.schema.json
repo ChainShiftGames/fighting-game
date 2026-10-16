@@ -62,7 +62,9 @@
         "knockdown": { "$ref": "#/$defs/id" },
         "wakeUp": { "$ref": "#/$defs/id" },
         "airDash": { "$ref": "#/$defs/id" },
-        "airBackdash": { "$ref": "#/$defs/id" }
+        "airBackdash": { "$ref": "#/$defs/id" },
+        "thrown": { "$ref": "#/$defs/id", "description": "Held by a throw until the tech window closes." },
+        "throwTech": { "$ref": "#/$defs/id", "description": "A teched throw; its velocity data separates the fighters." }
       }
     }
   },
