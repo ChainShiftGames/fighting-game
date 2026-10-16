@@ -20,6 +20,8 @@
    exchange these files manually.
 6. **Handshake:** before a match, players exchange game version, game-data hash and match rules. A mismatch
    shows "versions differ — update the game".
+   - *P2-05:* the game version is the build's informational version (`1.0.0+<git commit>`), so any two different
+     builds refuse each other; the rules are compared by `MatchRules.ComputeHash` (ADR-0011 §7).
 7. **Replays:** a small binary file with a header (version, data hash, rules, characters, colours) and the
    compressed inputs.
 8. **Match rules** (toggleable mechanics and gameplay values; ADR-0011) are **locked for players**. Shipped builds

@@ -6,6 +6,7 @@ using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Online;
 using Netcode.Tests.Drivers;
+using Netcode.Tests.Handshake;
 using Netcode.Tests.Matches;
 using Netcode.Transport;
 using Sim.State;
@@ -83,7 +84,7 @@ public sealed class PeerSessionTests
             RollbackFrames = RollbackFrames,
             NetworkSimulation = NetworkSimulation.TestConditions,
         };
-        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, PeerTransport.DirectUdp());
+        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, PeerTransport.DirectUdp(), SameBuild.Handshake());
         readout = driver;
         var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
         return new TestMatchDriver<MatchState>(driver, [new NeutralAfter(inputs, FightingFrames)]);

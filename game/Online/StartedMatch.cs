@@ -2,21 +2,33 @@ using System;
 using FightingGame.Diagnostics;
 using FightingGame.Loop;
 using Godot;
+using Netcode.Handshake;
 
 namespace FightingGame.Online;
 
 /// <summary>
 /// A match ready to play: its loop, the node that draws it, a one-line description for the overlay and, for online
-/// matches, the connection meter.
+/// matches, the connection meter and version handshake.
 /// </summary>
 public sealed class StartedMatch : IDisposable
 {
-    private readonly IDisposable _driver;
+    private const string WaitingForOpponent = "Waiting for the other player…";
 
-    public StartedMatch(IMatchLoop loop, IDisposable driver, Node2D view, string description, ConnectionMeter? connection)
+    private readonly IDisposable _driver;
+    private readonly VersionHandshake? _handshake;
+
+    /// <param name="handshake">An online match's version handshake, whose refusal is shown while it waits.</param>
+    public StartedMatch(
+        IMatchLoop loop,
+        IDisposable driver,
+        Node2D view,
+        string description,
+        ConnectionMeter? connection,
+        VersionHandshake? handshake = null)
     {
         Loop = loop;
         _driver = driver;
+        _handshake = handshake;
         View = view;
         Description = description;
         Connection = connection;
@@ -32,6 +44,10 @@ public sealed class StartedMatch : IDisposable
     public ConnectionMeter? Connection { get; }
 
     public bool IsOnline => Connection is not null;
+
+    /// <summary>What an online match shows before its first frame: waiting, or why it will never start.</summary>
+    public string WaitingMessage =>
+        _handshake is { Outcome: HandshakeOutcome.Refused } refused ? refused.Refusal : WaitingForOpponent;
 
     public void Dispose()
     {

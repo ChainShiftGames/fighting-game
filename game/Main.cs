@@ -204,7 +204,7 @@ public partial class Main : Node2D
             }
 
             _wasWaiting = waiting;
-            _status!.Show(waiting ? "Waiting for the other player…" : PausedText());
+            _status!.Show(waiting ? _match.WaitingMessage : PausedText());
             return framesRun;
         }
         catch (DesyncDetectedException desync)

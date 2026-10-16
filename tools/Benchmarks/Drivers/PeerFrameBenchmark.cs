@@ -1,6 +1,7 @@
 using System.Net;
 using System.Threading;
 using Netcode.Drivers;
+using Netcode.Handshake;
 using Netcode.Online;
 using Sim.Composition;
 using Sim.Input;
@@ -24,6 +25,9 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
     private const int Player2Port = 47112;
 
     private const int PacingMilliseconds = 1;
+
+    // Both peers are this build; the handshake only has to agree.
+    private const string BuildName = "benchmark";
 
     private readonly RollbackMatchDriver<MatchState> _player1;
     private readonly RollbackMatchDriver<MatchState> _player2;
@@ -68,5 +72,5 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
             RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
             LocalIsPlayer1 = localIsPlayer1,
             RollbackFrames = rollbackFrames,
-        }, PeerTransport.DirectUdp()));
+        }, PeerTransport.DirectUdp(), new VersionHandshake(new MatchIdentity(BuildName, [], simulation.Rules))));
 }

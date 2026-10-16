@@ -1,10 +1,14 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using Netcode.Handshake;
 
 namespace Netcode.Tests.Transport;
 
-/// <summary>Every packet both peers of a real in-memory session sent, run long enough for each kind of message.</summary>
+/// <summary>
+/// Every netcode packet both peers of a real in-memory session sent (the handshake's hellos left out), run long
+/// enough for each kind of message.
+/// </summary>
 /// <remarks>Shared by the tests of one class (xUnit class fixture), as the session takes a couple of seconds.</remarks>
 public sealed class RealSessionTraffic
 {
@@ -26,7 +30,7 @@ public sealed class RealSessionTraffic
     {
         using var match = new InMemoryMatch(FightingFrames);
         match.RunUntil(() => match.Player1.CurrentFrame >= FightingFrames && SeesEveryType(match));
-        Packets = [.. match.Player1Transport.Sent, .. match.Player2Transport.Sent];
+        Packets = [.. match.Player1Transport.Sent.Concat(match.Player2Transport.Sent).Where(IsNetcode)];
     }
 
     public IReadOnlyList<byte[]> Packets { get; }
@@ -35,6 +39,8 @@ public sealed class RealSessionTraffic
 
     /// <summary>One sent packet of each message type seen.</summary>
     public IEnumerable<byte[]> OnePerType() => Packets.GroupBy(TypeOf).Select(group => group.First());
+
+    private static bool IsNetcode(byte[] packet) => !HelloMessage.IsHello(packet);
 
     private static bool SeesEveryType(InMemoryMatch match)
     {
