@@ -1,5 +1,6 @@
 using System;
 using Sim.Characters;
+using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
 using Sim.State;
@@ -253,6 +254,46 @@ public sealed class FighterStateMachineTests
         Assert.Equal(FighterAction.Knockdown, driver.Frame().Action);
     }
 
+    // The jump move loops; landing on the frame it loops back to 1 must still land.
+    [Fact]
+    public void AJumpLandsIntoLandingOnTheFrameItsMoveLoops()
+    {
+        var driver = new FighterDriver(_character);
+        MoveEntry.EnterBasic(ref driver.Fighter, FighterAction.Jump, _character);
+        driver.Fighter.IsAirborne = 1;
+        driver.Frames(_character.Moves[driver.Fighter.Move].TotalFrames - 1);
+
+        driver.Fighter.IsAirborne = 0;
+
+        Assert.Equal(FighterAction.Landing, driver.Frame().Action);
+    }
+
+    [Fact]
+    public void AnAirDashLandingEarlyGoesToLanding()
+    {
+        var driver = new FighterDriver(_character);
+        MoveEntry.EnterBasic(ref driver.Fighter, FighterAction.AirDash, _character);
+        driver.Fighter.IsAirborne = 1;
+        driver.Frame();
+        Assert.Equal(FighterAction.AirDash, driver.Action);
+
+        driver.Fighter.IsAirborne = 0;
+
+        Assert.Equal(FighterAction.Landing, driver.Frame().Action);
+    }
+
+    [Fact]
+    public void TheTakeoffRequestLastsOnlyTheFrameTheJumpStarts()
+    {
+        var driver = new FighterDriver(_character);
+
+        driver.Frames(PrejumpFrames + 1, InputWord.Up | Forward);
+        Assert.Equal((Takeoff.Jump, 1), (driver.Fighter.Takeoff, driver.Fighter.TakeoffDirection));
+        driver.Fighter.IsAirborne = 1;
+
+        Assert.Equal(Takeoff.None, driver.Frame().Fighter.Takeoff);
+    }
+
     [Fact]
     public void ARunContinuesWhileForwardIsHeldAndStopsWhenReleased()
     {
@@ -327,5 +368,11 @@ public sealed class FighterStateMachineTests
         public bool IsDashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Dash);
 
         public bool IsBackdashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Backdash);
+
+        public bool IsHighJumpTriggered(in InputHistory history, int facing) =>
+            _moves.IsHighJumpTriggered(in history, facing);
+
+        public bool IsAirJumpTriggered(in InputHistory history, int facing) =>
+            _moves.IsAirJumpTriggered(in history, facing);
     }
 }

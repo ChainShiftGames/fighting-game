@@ -1,5 +1,6 @@
 using System;
 using Sim.Characters;
+using Sim.Fighters.Movement;
 using Sim.Input;
 using Sim.State;
 
@@ -9,22 +10,27 @@ namespace Sim.Fighters.States;
 /// <remarks>
 /// Per frame, at most one transition: a pending cancel (core request, honoured from any state) first; otherwise the
 /// move frame advances and the current action decides. Free actions start moves in input priority, then dashes, then
-/// follow the held direction. Attacks cancel through their data windows and end into a free action. The machine
+/// follow the held direction; in the air, air actions (double jump, air dash) come after moves. Attacks cancel
+/// through their data windows and end into a free action. Jumps go through <see cref="JumpActions"/>. The machine
 /// reads only the fighter's own state, input and character data, so both fighters are treated alike.
 /// </remarks>
 public sealed class FighterStateMachine
 {
     private readonly MoveSelection _moves;
     private readonly IMoveInput _input;
+    private readonly JumpActions _jumps;
 
     public FighterStateMachine(IMoveInput input)
     {
         _input = input;
         _moves = new MoveSelection(input);
+        _jumps = new JumpActions(input);
     }
 
     public void Advance(ref FighterState fighter, in InputHistory history, CharacterData character)
     {
+        // A takeoff is only this frame's request to movement.
+        fighter.Takeoff = Takeoff.None;
         if (TryTakePendingCancel(ref fighter, character))
         {
             return;
@@ -38,7 +44,10 @@ public sealed class FighterStateMachine
                 AdvanceAttack(ref fighter, in history, character, in move);
                 break;
             case FighterAction.Prejump:
-                EndAfter(ref fighter, character.Stats.PrejumpFrames, FighterAction.Jump, character);
+                JumpActions.AdvancePrejump(ref fighter, in history, character);
+                break;
+            case FighterAction.AirDash or FighterAction.AirBackdash:
+                AdvanceAirDash(ref fighter, in history, character, in move);
                 break;
             case FighterAction.Landing or FighterAction.Backdash or FighterAction.WakeUp:
                 EndAfter(ref fighter, move.TotalFrames, NeutralFor(in fighter, in history), character);
@@ -60,6 +69,8 @@ public sealed class FighterStateMachine
                 AdvanceFree(ref fighter, in history, character);
                 break;
         }
+
+        _jumps.DecideHeight(ref fighter, in history);
     }
 
     // A cancel the core accepted (ADR-0011): taken from any action. A target the character doesn't have, or a basic
@@ -120,6 +131,11 @@ public sealed class FighterStateMachine
             return;
         }
 
+        if (fighter.IsAirborne != 0 && _jumps.TryStartAirAction(ref fighter, in history, character))
+        {
+            return;
+        }
+
         FighterAction next = fighter.IsAirborne != 0 ? FighterAction.Jump : GroundActionFor(in fighter, in history);
         if (next != fighter.Action)
         {
@@ -166,6 +182,18 @@ public sealed class FighterStateMachine
         }
     }
 
+    private static void AdvanceAirDash(
+        ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
+    {
+        if (HasLanded(in fighter))
+        {
+            MoveEntry.EnterBasic(ref fighter, FighterAction.Landing, character);
+            return;
+        }
+
+        EndAfter(ref fighter, move.TotalFrames, NeutralFor(in fighter, in history), character);
+    }
+
     private static void AdvanceStun(ref FighterState fighter, in InputHistory history, CharacterData character)
     {
         if (fighter.StunFramesLeft == 0)
@@ -207,8 +235,9 @@ public sealed class FighterStateMachine
             : NeutralFor(in fighter, in history);
     }
 
-    // Movement sets the airborne flag on the first jump frame, so a jump can't land on the frame it starts.
-    private static bool HasLanded(in FighterState fighter) => fighter.IsAirborne == 0 && fighter.MoveFrame > 1;
+    // Movement sets the airborne flag on the takeoff frame, after this step, so the state machine first sees a jump
+    // on its second frame; landing is then just the flag clearing (a looping jump move's frame number says nothing).
+    private static bool HasLanded(in FighterState fighter) => fighter.IsAirborne == 0;
 
     private static bool IsLooping(FighterAction action) => action is FighterAction.Idle or FighterAction.Crouch
         or FighterAction.WalkForward or FighterAction.WalkBack or FighterAction.Jump

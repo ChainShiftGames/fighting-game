@@ -1,7 +1,7 @@
 namespace Sim.Characters;
 
 /// <summary>
-/// One move in compact form. Boxes, cancels and hits are ranges into the character's flat arrays, so the data
+/// One move in compact form. Boxes, cancels, hits and velocities are ranges into the character's flat arrays, so the data
 /// holds no object references.
 /// </summary>
 public readonly record struct MoveData
@@ -35,4 +35,17 @@ public readonly record struct MoveData
     public int HitStart { get; init; }
 
     public int HitCount { get; init; }
+
+    public int VelocityStart { get; init; }
+
+    public int VelocityCount { get; init; }
+
+    /// <summary>First frame (1-based) the fighter can't be hit or thrown; 0 when the move has none.</summary>
+    public int InvulnerableFirstFrame { get; init; }
+
+    public int InvulnerableLastFrame { get; init; }
+
+    /// <summary>The fighter can't be hit or thrown on <paramref name="frame"/> of this move.</summary>
+    public bool IsInvulnerableOn(int frame) =>
+        InvulnerableFirstFrame != 0 && frame >= InvulnerableFirstFrame && frame <= InvulnerableLastFrame;
 }

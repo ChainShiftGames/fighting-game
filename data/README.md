@@ -22,6 +22,8 @@ Naming: [CONVENTIONS.md](../CONVENTIONS.md). Example character: `tests/Sim.Data.
 - Frames are 1-based and inclusive. `frameData.startup` counts the first active frame (startup 5 = active from frame
   5); total = startup − 1 + active + recovery. Basic moves use `duration` instead.
 - Boxes are given facing right: `x` forward, `y` up from the fighter's origin, as minimum corner + width/height.
+- A move's `velocity` ranges (same axes, subpixels per frame) replace the fighter's velocity on their frames and
+  suspend gravity; `invulnerable` is one frame range where it can't be hit or thrown.
 - `moves` order in `character.json` is input priority. Every listed move file must exist and every move file must be
   listed.
 - `data/schema/*.schema.json` documents the format; the validator in `src/Sim.Data` is authoritative and also checks
