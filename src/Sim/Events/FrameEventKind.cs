@@ -1,0 +1,31 @@
+namespace Sim.Events;
+
+/// <summary>What a frame event reports; presentation picks its effects (spark, sound, shake) by kind.</summary>
+/// <remarks>
+/// Gameplay tasks add kinds as they start emitting them. Append with the next number and never renumber or reuse
+/// one: events are part of the game state, so desync dumps and tools decode these values. Each kind documents what
+/// <see cref="FrameEvent.Fighter"/>, <see cref="FrameEvent.Position"/> and <see cref="FrameEvent.Detail"/> mean
+/// for it; the task that first emits a kind may refine that text.
+/// </remarks>
+public enum FrameEventKind
+{
+    /// <summary>No event; an empty slot. Never emitted.</summary>
+    None = 0,
+
+    /// <summary>An attack hit. Fighter: the attacker. Position: where the boxes met. Detail: the move.</summary>
+    Hit = 1,
+
+    /// <summary>
+    /// An attack was blocked. Fighter: the attacker. Position: where the boxes met. Detail: the move.
+    /// </summary>
+    Block = 2,
+
+    /// <summary>
+    /// An attack became active: plays the swing (whiff) sound. Fighter: the attacker. Position: the fighter's
+    /// position. Detail: the move.
+    /// </summary>
+    Swing = 3,
+
+    /// <summary>A fighter touched the floor after being airborne. Fighter: who. Position: where. Detail: 0.</summary>
+    Landing = 4,
+}
