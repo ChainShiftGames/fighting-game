@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (P1-23): rules/match.json gained the throw values and moves (MoveData) a throw release point.
-    private const string FixtureHash = "e53f5718d4f31e4c3d8fef21ca40b0edf4968455ab415819e09a2cce8f85c107";
+    // Last change (P1-24): the basic state list gained airBlockstun, so every character's state table grew.
+    private const string FixtureHash = "ed00ceeb5f49f7be7fcba6c784b5b1aaa8a72ab2837bbe5e30ade5c7e6f98f60";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

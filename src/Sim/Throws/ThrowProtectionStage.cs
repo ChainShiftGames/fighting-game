@@ -64,7 +64,7 @@ public sealed class ThrowProtectionStage : ITickStage
     // can't be thrown anyway.
     private static bool IsAirAction(in FighterState fighter, CharacterData character) => fighter.Action switch
     {
-        FighterAction.Jump or FighterAction.AirDash or FighterAction.AirBackdash => true,
+        FighterAction.Jump or FighterAction.AirDash or FighterAction.AirBackdash or FighterAction.AirBlockstun => true,
         FighterAction.Attack => character.Moves[fighter.Move].Stance == MoveStance.Air,
         _ => false,
     };

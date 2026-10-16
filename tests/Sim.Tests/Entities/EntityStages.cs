@@ -39,6 +39,7 @@ internal sealed class EntityStages
         var contacts = new HitContacts();
         var entityContacts = new EntityContacts();
         var counterHits = new CounterHits(in rules);
+        var guarding = new Guarding(lineup);
         Spawner = new ProjectileSpawner(owners, in rules);
         _movement = new EntityMovementStage(owners);
         _moveSpawns = new MoveSpawnStage(owners, Spawner);
@@ -46,8 +47,8 @@ internal sealed class EntityStages
             new HitDetectionStage(character, character, contacts),
             new EntityHitDetectionStage(owners, entityContacts, contacts));
         _resolution = new StageSequence(
-            new HitResolutionStage(character, character, contacts, lineup, tradeRule, counterHits),
-            new EntityHitResolutionStage(owners, entityContacts, contacts, lineup, tradeRule, counterHits));
+            new HitResolutionStage(character, character, contacts, lineup, tradeRule, counterHits, guarding),
+            new EntityHitResolutionStage(owners, entityContacts, contacts, lineup, tradeRule, counterHits, guarding));
         _spawnRequests = new SpawnRequestStage(owners, Spawner, Requests);
     }
 

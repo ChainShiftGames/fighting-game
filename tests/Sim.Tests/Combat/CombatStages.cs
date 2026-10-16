@@ -31,7 +31,8 @@ internal sealed class CombatStages
         rules.Modules[ModuleSlot].Module = new ModuleId(1);
         var lineup = new ModuleLineup(new ModuleCatalog([new CountingModule(1)]), in rules.Modules, new CoreRequests());
         _detection = new HitDetectionStage(character, character, Contacts);
-        _resolution = new HitResolutionStage(character, character, Contacts, lineup, tradeRule, new CounterHits(in rules));
+        _resolution = new HitResolutionStage(
+            character, character, Contacts, lineup, tradeRule, new CounterHits(in rules), new Guarding(lineup));
     }
 
     public HitContacts Contacts { get; }

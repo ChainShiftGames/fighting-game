@@ -64,7 +64,8 @@
         "airDash": { "$ref": "#/$defs/id" },
         "airBackdash": { "$ref": "#/$defs/id" },
         "thrown": { "$ref": "#/$defs/id", "description": "Held by a throw until the tech window closes." },
-        "throwTech": { "$ref": "#/$defs/id", "description": "A teched throw; its velocity data separates the fighters." }
+        "throwTech": { "$ref": "#/$defs/id", "description": "A teched throw; its velocity data separates the fighters." },
+        "airBlockstun": { "$ref": "#/$defs/id", "description": "Blocked in the air (air block module); landing ends it." }
       }
     }
   },

@@ -29,6 +29,7 @@ public enum FighterAction
     AirBackdash,
     Thrown,
     ThrowTech,
+    AirBlockstun,
 
     /// <summary>A normal, special, super or throw: the move's own frame data runs it.</summary>
     Attack,

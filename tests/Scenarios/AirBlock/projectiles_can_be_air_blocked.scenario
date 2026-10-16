@@ -1,0 +1,15 @@
+# Air block config 1 rules out only ground normals, so a projectile can still be air-blocked. A fireball of p1's
+# (spawned by the contract probe at the end of frame 4, 40000 in front of p1) meets p2 on its first airborne frame;
+# p2 holds back and blocks it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module air_block 1
+setup: module contract_probe 0 4 0 0
+
+frames 1-30: p2 7
+
+frame 5: expect p2 y > 0
+frame 5: expect p1 event projectile_block
+frame 5: expect p2 state = air_blockstun

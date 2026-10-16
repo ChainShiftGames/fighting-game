@@ -1,0 +1,18 @@
+# Air blockstun ends on landing: p2 jumps straight up (8 until takeoff on frame 5) and holds back; p1's 5a, active
+# on frames 43-45, is blocked on frame 43 just before p2 comes down. After the hitstop p2 touches down on frame 53
+# with blockstun left and lands on frame 54.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module air_block
+
+frames 1-5: p2 8
+frames 6-60: p2 4
+frame 39: p1 5a
+
+frame 43: expect p1 event block
+frame 43: expect p2 state = air_blockstun
+frame 53: expect p2 y = 0
+frame 53: expect p2 state = air_blockstun
+frame 54: expect p2 state = landing

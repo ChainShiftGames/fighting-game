@@ -2,7 +2,7 @@
 # round-over pauses and the end of the match. Checksums only change intentionally: re-record with
 # GOLDEN_REPLAYS_RECORD=1 and say why in the PR (tests/Netcode.Tests/GoldenReplays/GoldenReplayTests.cs).
 characters testman testman
-data_hash 6c1719c41cce974d9cdc3f201b23f296d52e39fd0dc95e51f9badcc3b64d5e4a
+data_hash c23b47c1642d22fa6745b92df0477d00ee62c7c23aee3124249e103779adda0c
 seed 2 frames 10800
 input 2 0048 0026
 input 4 0008 0006
@@ -3611,19 +3611,19 @@ input 2 0085 0041
 input 1 0085 0001
 input 2 0005 0001
 input 1 0005 0002
-checksum 600 26488c5da250c0d3
+checksum 600 a29555d68f7462ce
 checksum 1200 49a288b1e371a535
 checksum 1800 4b13c28cd9ba7f26
-checksum 2400 f95d1c52ed470465
-checksum 3000 67967b327409ab52
-checksum 3600 6ea737462f00f155
-checksum 4200 4b82871bb14bce4d
-checksum 4800 8b034c4cbd5482c6
+checksum 2400 45cc46ee7b0c4be0
+checksum 3000 4f1c8ded000f4ce7
+checksum 3600 3b40c71eba3688d4
+checksum 4200 e2c3c5bdaf6d8e38
+checksum 4800 3b64a4dae941479f
 checksum 5400 fee90f0cfef2cecd
-checksum 6000 109c589047435298
-checksum 6600 4dd0fcbe9d3f4663
+checksum 6000 b6ff0bdc2d7d54ad
+checksum 6600 cfdd6f061575e5d2
 checksum 7200 dd856f261de5f98d
-checksum 7800 32716d6da5a6fa1a
+checksum 7800 6c2993c4d09cb407
 checksum 8400 842dec21dda1403b
 checksum 9000 76e061b7a39c45fb
 checksum 9600 d4d4ed60ed4ac535

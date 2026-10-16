@@ -1,3 +1,4 @@
+using Sim.Modules.AirBlock;
 using Sim.Modules.ContractProbe;
 
 namespace Sim.Modules;
@@ -13,5 +14,6 @@ public static class RegisteredModules
     public static ModuleCatalog Create() => new(
     [
         new ContractProbeModule(),
+        new AirBlockModule(),
     ]);
 }

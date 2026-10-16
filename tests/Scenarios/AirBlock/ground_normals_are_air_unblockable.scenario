@@ -1,0 +1,12 @@
+# Air block config 1 (AirBlockAttacks.GroundNormals: the standard rule) rules out ground normals: p2's air block
+# doesn't stop p1's 5a.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module air_block 1
+frame 2: p1 5a
+frames 1-30: p2 7
+
+frame 6: expect p1 event hit
+frame 6: expect p2 state = air_hitstun

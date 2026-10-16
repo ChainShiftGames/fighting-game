@@ -1,0 +1,12 @@
+# Without the air block module (the default) airborne fighters can't block: the same jump holding back is hit.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 2: p1 5a
+frames 1-30: p2 7
+
+frame 6: expect p1 event hit
+frame 6: expect p1 event block = 0
+frame 6: expect p2 state = air_hitstun
+frame 6: expect p2 damage = 300

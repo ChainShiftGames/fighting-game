@@ -18,7 +18,8 @@ namespace Sim.Entities;
 ///   attacks or projectiles) under <see cref="TradeRule.Clash"/>: no projectile lands; each touching one disappears
 ///   with a clash event, as the fighters' moves are spent. Otherwise every touch lands (trades included).
 /// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the owner, as
-///   against any attack, even when the projectile comes from behind; <see cref="HitReactions"/> for damage, chip,
+///   against any attack, even when the projectile comes from behind, and in the air only through a module,
+///   <see cref="Guarding"/>; <see cref="HitReactions"/> for damage, chip,
 ///   stun and knockdown), against the defender as fighter attacks left it this frame. A hit that catches the
 ///   defender attacking is a counter hit or punish counter, as a fighter's is (<see cref="CounterHits"/>; the
 ///   counter hit event follows the hit event). Only the defender gets the
@@ -36,6 +37,7 @@ public sealed class EntityHitResolutionStage : ITickStage
     private readonly ModuleLineup _modules;
     private readonly TradeRule _tradeRule;
     private readonly CounterHits _counterHits;
+    private readonly Guarding _guarding;
 
     public EntityHitResolutionStage(
         OwnerCharacters characters,
@@ -43,7 +45,8 @@ public sealed class EntityHitResolutionStage : ITickStage
         HitContacts fighterContacts,
         ModuleLineup modules,
         TradeRule tradeRule,
-        CounterHits counterHits)
+        CounterHits counterHits,
+        Guarding guarding)
     {
         _characters = characters;
         _contacts = contacts;
@@ -51,6 +54,7 @@ public sealed class EntityHitResolutionStage : ITickStage
         _modules = modules;
         _tradeRule = tradeRule;
         _counterHits = counterHits;
+        _guarding = guarding;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -126,8 +130,9 @@ public sealed class EntityHitResolutionStage : ITickStage
     {
         CharacterData character = _characters.Of(defender);
         ref FighterState defenderState = ref state.Fighters[defender];
-        BlockStance stance = Blocking.StanceOf(
-            in defenderState, in state.Fighters[owner], state.Inputs[defender].FramesAgo(0));
+        AirGuardCheck check = new(owner, defender, MoveCategory.None, MoveStance.Ground, isProjectile: true);
+        BlockStance stance = _guarding.StanceOf(
+            ref state, in defenderState, in state.Fighters[owner], state.Inputs[defender].FramesAgo(0), in check);
         isBlocked = Blocking.Stops(stance, hit.Guard);
         if (isBlocked)
         {

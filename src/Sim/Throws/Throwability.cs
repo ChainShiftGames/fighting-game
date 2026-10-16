@@ -20,5 +20,6 @@ public static class Throwability
     /// <summary>Stunned, knocked down, held or teching: such a fighter can't be thrown and can't keep a hold.</summary>
     public static bool IsStunnedOrInThrow(FighterAction action) => action is FighterAction.Hitstun
         or FighterAction.CrouchHitstun or FighterAction.AirHitstun or FighterAction.Blockstun
-        or FighterAction.CrouchBlockstun or FighterAction.Knockdown or FighterAction.Thrown or FighterAction.ThrowTech;
+        or FighterAction.CrouchBlockstun or FighterAction.AirBlockstun or FighterAction.Knockdown or FighterAction.Thrown
+        or FighterAction.ThrowTech;
 }

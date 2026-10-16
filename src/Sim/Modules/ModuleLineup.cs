@@ -20,6 +20,7 @@ public sealed class ModuleLineup
     private readonly HookList<IOnBlockHook> _onBlock;
     private readonly HookList<IOnThrowHook> _onThrow;
     private readonly HookList<IEndOfFrameHook> _endOfFrame;
+    private readonly HookList<IAirGuardHook> _airGuard;
 
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
     public ModuleLineup(ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests)
@@ -34,6 +35,7 @@ public sealed class ModuleLineup
         _onBlock = new(modulesBySlot);
         _onThrow = new(modulesBySlot);
         _endOfFrame = new(modulesBySlot);
+        _airGuard = new(modulesBySlot);
     }
 
     public void RunAfterInput(ref MatchState state)
@@ -90,6 +92,20 @@ public sealed class ModuleLineup
         {
             _endOfFrame.HookAt(i).EndOfFrame(ContextFor(ref state, _endOfFrame.SlotAt(i)));
         }
+    }
+
+    /// <summary>True when any enabled module lets the airborne defender block (<see cref="IAirGuardHook"/>).</summary>
+    public bool AllowsAirGuard(ref MatchState state, in AirGuardCheck check)
+    {
+        for (int i = 0; i < _airGuard.Count; i++)
+        {
+            if (_airGuard.HookAt(i).CanAirGuard(ContextFor(ref state, _airGuard.SlotAt(i)), in check))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ModuleContext ContextFor(ref MatchState state, int slot) =>

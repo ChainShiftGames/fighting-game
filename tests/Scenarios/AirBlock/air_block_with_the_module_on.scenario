@@ -1,0 +1,19 @@
+# Air block module on, no config (everything blockable can be air-blocked): p2 jumps back holding back and blocks
+# p1's 5a in the air on frame 6. It goes to air blockstun (5a's 9 frames after 8 of hitstop, frames 7-23) and is
+# free again in the air on frame 24.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module air_block
+frame 2: p1 5a
+frames 1-30: p2 7
+
+frame 6: expect p1 event block
+frame 6: expect p1 event hit = 0
+frame 6: expect p2 state = air_blockstun
+frame 6: expect p2 stun = 9
+frames 6-40: expect p2 damage = 0
+frames 7-23: expect p2 state = air_blockstun
+frame 24: expect p2 state = jump
+frame 24: expect p2 y > 0

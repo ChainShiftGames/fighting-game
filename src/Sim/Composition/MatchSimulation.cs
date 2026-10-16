@@ -60,6 +60,7 @@ public sealed class MatchSimulation
         ProjectileSpawner spawner = new(owners, in rules);
         CounterHits counterHits = new(in rules);
         ThrowContacts throwContacts = new();
+        Guarding guarding = new(modules);
 
         // Entities (P1-21) run after the fighters in each step. Module spawn requests apply after the end-of-frame
         // hooks, so they lead the round and timer step (SpawnRequestStage). Throws (P1-23) resolve before strikes, so
@@ -88,8 +89,9 @@ public sealed class MatchSimulation
                     new ThrowTechInput(player2, rules.ButtonBuffer),
                     modules),
                 new ThrowResolutionStage(player1, player2, throwContacts, contacts, in rules),
-                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule, counterHits),
-                new EntityHitResolutionStage(owners, entityContacts, contacts, modules, rules.TradeRule, counterHits)),
+                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule, counterHits, guarding),
+                new EntityHitResolutionStage(
+                    owners, entityContacts, contacts, modules, rules.TradeRule, counterHits, guarding)),
             RoundTimer = new StageSequence(
                 new SpawnRequestStage(owners, spawner, requests),
                 new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),

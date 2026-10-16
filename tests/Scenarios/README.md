@@ -56,6 +56,10 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   data (`GameData.CreateMatchRules`) plus the setup lines below.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
   lineup slots in the order listed. Config integers are the module's raw config slice.
+- **Air block** (P1-24): `setup: module air_block [mask]`; the mask lists attack kinds that can't be air-blocked
+  (`Sim.Modules.AirBlock.AirBlockAttacks`: 1 ground normals, 2 air normals, 4 specials, 8 supers, 16
+  projectiles); none means everything blockable can be. Without the module airborne fighters never block.
+  Scenario dummy basic move `air_blockstun`.
 - **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
