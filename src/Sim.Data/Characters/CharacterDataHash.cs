@@ -1,4 +1,4 @@
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Hashing;
 
 namespace Sim.Data.Characters;

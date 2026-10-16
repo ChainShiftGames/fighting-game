@@ -69,7 +69,7 @@ Done when:
 - [x] architecture test: `Sim` reads gameplay settings only from `MatchRules`
 
 ### P1-03 Tick pipeline
-Status: todo · Needs: P1-20 · Parallel: no · Where: `src/Sim/Pipeline/`
+Status: done · Needs: P1-20 · Parallel: no · Where: `src/Sim/Pipeline/`
 Read: ADR-0003, ADR-0011
 - One small system class per step in ARCHITECTURE.md §4's fixed order; the pipeline only runs them in order.
 - Calls module hooks and applies core requests in a fixed order (ADR-0011).
@@ -78,7 +78,7 @@ Read: ADR-0003, ADR-0011
 - P1/P2 processed symmetrically: both read the previous frame's state, results are applied together.
 
 Done when:
-- [ ] architecture tests pass; a test proves swapping P1 and P2 inputs mirrors the result
+- [x] architecture tests pass; a test proves swapping P1 and P2 inputs mirrors the result
 
 ## B. Input
 
@@ -137,7 +137,7 @@ Done when:
 ## D. Gameplay core
 
 ### P1-08 Move state machine
-Status: todo · Needs: P1-03, P1-07 · Parallel: no · Where: `src/Sim/Fighters/States/`
+Status: done · Needs: P1-03, P1-07 · Parallel: no · Where: `src/Sim/Fighters/States/`
 Read: ADR-0007, CURRENT_STATE §3 Movement/Offense/Defense
 - States: idle, walk, crouch, jump (prejump/air/landing), dash, backdash, attack (startup/active/recovery),
   hitstun, blockstun, knockdown, wake-up.

@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>What a box does: hurt (can be hit), hit (hits hurtboxes), push (keeps fighters apart), throw.</summary>
 public enum BoxKind

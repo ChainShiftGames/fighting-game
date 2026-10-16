@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 
 namespace Sim.Data.Characters.Reading;
 

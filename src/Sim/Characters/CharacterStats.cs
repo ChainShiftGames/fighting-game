@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>A character's movement and health values. Distances in subpixels, speeds in subpixels per frame.</summary>
 /// <remarks>Only 4-byte fields, so the struct has no padding and hashes byte for byte.</remarks>

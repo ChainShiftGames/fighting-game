@@ -1,6 +1,6 @@
 using Sim.Math;
 
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>One box of a move, present from <see cref="FirstFrame"/> to <see cref="LastFrame"/> (1-based).</summary>
 public readonly record struct BoxData

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Hashing;
 using Sim.Input;
 

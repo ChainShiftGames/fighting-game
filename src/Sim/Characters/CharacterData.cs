@@ -1,6 +1,6 @@
 using System;
 
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>
 /// A character in compact, read-only form for the game logic: stats plus flat arrays of moves, boxes, cancels and
@@ -19,7 +19,7 @@ public sealed class CharacterData
     private readonly HitData[] _hits;
     private readonly int[] _basicStateMoves;
 
-    internal CharacterData(
+    public CharacterData(
         string id,
         string displayName,
         CharacterStats stats,
