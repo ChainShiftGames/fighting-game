@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Sim.Data.Validation;
 
@@ -12,7 +13,17 @@ public sealed class JsonNames<TEnum>
     public JsonNames(params (string Name, TEnum Value)[] entries)
     {
         _entries = entries;
+        string[] names = new string[entries.Length];
+        for (int i = 0; i < entries.Length; i++)
+        {
+            names[i] = entries[i].Name;
+        }
+
+        Names = names;
     }
+
+    /// <summary>All accepted names in declaration order, e.g. for an editor's choice list.</summary>
+    public IReadOnlyList<string> Names { get; }
 
     public bool TryGetValue(string name, out TEnum value)
     {
@@ -32,12 +43,12 @@ public sealed class JsonNames<TEnum>
     /// <summary>All accepted names, for error messages: <c>"mid", "low", "overhead"</c>.</summary>
     public string Describe()
     {
-        string[] names = new string[_entries.Length];
+        string[] quoted = new string[_entries.Length];
         for (int i = 0; i < _entries.Length; i++)
         {
-            names[i] = $"\"{_entries[i].Name}\"";
+            quoted[i] = $"\"{_entries[i].Name}\"";
         }
 
-        return string.Join(", ", names);
+        return string.Join(", ", quoted);
     }
 }
