@@ -36,7 +36,7 @@ public static class OnlineLaunchOptions
         {
             var remote = IPEndPoint.Parse(Option(args, "--remote"));
             return new OnlineOpponent(
-                remote, remote.ToString(), PlayerOption(args), PeerTransport.DirectUdp, IntOption(args, "--port", null));
+                remote, remote.ToString(), PlayerOption(args), PeerTransport.DirectUdp(), IntOption(args, "--port", null));
         }
         catch (FormatException exception)
         {

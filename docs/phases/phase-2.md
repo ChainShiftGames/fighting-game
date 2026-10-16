@@ -39,10 +39,16 @@ Read: ADR-0003, ADR-0005
 - Max rollback window 8 frames: **developer setting**.
 
 ### P2-03 Transports
-Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Transport/`, `src/Platform.Steam/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Transport/`, `src/Platform.Steam/`
 Read: ADR-0005
 - `ITransport`: direct UDP (development only) and Steam Networking Messages (from Spike C, hardened; ADR-0014).
 - Malformed or oversized packets are dropped and counted.
+
+Done when:
+- [x] only Netcode uses Backdash; Steam implements `ITransport` (`tests/Architecture.Tests/BackdashIsolationTests.cs`)
+- [x] a match keeps running while junk packets arrive, and they are counted
+  (`tests/Netcode.Tests/Transport/TransportSocketTests.cs`)
+- [x] the packet check accepts exactly a real session's traffic (`BackdashPacketFormatTests.cs`)
 
 ### P2-04 Minimal Steam lobby
 Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Platform.Steam/`, `game/UI/`

@@ -68,5 +68,5 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
             RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
             LocalIsPlayer1 = localIsPlayer1,
             RollbackFrames = rollbackFrames,
-        }, PeerTransport.DirectUdp));
+        }, PeerTransport.DirectUdp()));
 }

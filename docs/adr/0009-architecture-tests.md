@@ -19,6 +19,7 @@ between modules). Review alone won't reliably catch it.
    - the `Sim` core doesn't reference any module namespace;
    - modules don't reference each other;
    - in `game/`, only the match startups (composition roots) name a concrete match driver (ADR-0005 §2);
+   - only `Netcode` references Backdash; transports implement Netcode's `ITransport` (ADR-0005 §2);
    - interface names start with `I`.
 3. A failing architecture test is fixed by changing the code, not by loosening the test. Changing a rule needs an
    ADR.
