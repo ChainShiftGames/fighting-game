@@ -81,7 +81,7 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `move_frame` | fighter | frame of the playing move, 1 on its first frame | no |
 | `stun` | fighter | hitstun or blockstun frames left | no |
 | `wins` | fighter | rounds won so far | yes |
-| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`; projectile events belong to the owner); alone means at least one, or compare a count: `p2 event hit = 0` | no |
+| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`; projectile and counter hit events belong to the owner or attacker); alone means at least one, or compare a count: `p2 event hit = 0` | no |
 | `entities` | fighter | projectiles the fighter has out in the entity pool | no |
 | `entity_x` | fighter | x of the fighter's oldest projectile still out; `none` without one | no |
 | `entity_durability` | fighter | clash durability left on that projectile; `none` without one | no |

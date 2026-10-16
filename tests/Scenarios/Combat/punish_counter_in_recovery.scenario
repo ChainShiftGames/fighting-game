@@ -1,0 +1,21 @@
+# Punish counter (ADR-0017), p2 attacking: p1's 5a whiffs (it reaches 90000, they stand 92000 apart) and p2's longer
+# 6b, active on frames 8-9, hits p1 on move frame 8 of 5a, its first recovery frame. The punish counter bonus from
+# data/rules/match.json adds 4 hitstun, 4 hitstop and 20 % damage.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -46000
+setup: p2 x = 46000
+
+frame 1: p1 5a
+frame 1: p2 6b
+
+frames 5-7: expect p1 event hit = 0
+frame 7: expect p1 damage = 0
+frame 8: expect p2 event hit
+frame 8: expect p2 event punish_counter
+frame 8: expect p2 event counter_hit = 0
+frame 8: expect p1 damage = 600          # 500 + 20 %
+frame 8: expect p1 state = hitstun
+frame 8: expect p1 stun = 20             # 16 + 4
+frame 8: expect p1 hitstop = 13          # 9 + 4
+frame 8: expect p2 hitstop = 13

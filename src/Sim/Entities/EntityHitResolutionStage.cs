@@ -19,7 +19,9 @@ namespace Sim.Entities;
 ///   with a clash event, as the fighters' moves are spent. Otherwise every touch lands (trades included).
 /// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the owner, as
 ///   against any attack, even when the projectile comes from behind; <see cref="HitReactions"/> for damage, chip,
-///   stun and knockdown), against the defender as fighter attacks left it this frame. Only the defender gets the
+///   stun and knockdown), against the defender as fighter attacks left it this frame. A hit that catches the
+///   defender attacking is a counter hit or punish counter, as a fighter's is (<see cref="CounterHits"/>; the
+///   counter hit event follows the hit event). Only the defender gets the
 ///   projectile's hitstop (<see cref="Hitstop"/>); the owner isn't in contact, so it keeps acting, and its move
 ///   doesn't record the outcome (no cancel on a projectile's hit).
 /// - One hit per projectile: it disappears on hit or block. Several touching the same defender land in slot order.
@@ -33,19 +35,22 @@ public sealed class EntityHitResolutionStage : ITickStage
     private readonly HitContacts _fighterContacts;
     private readonly ModuleLineup _modules;
     private readonly TradeRule _tradeRule;
+    private readonly CounterHits _counterHits;
 
     public EntityHitResolutionStage(
         OwnerCharacters characters,
         EntityContacts contacts,
         HitContacts fighterContacts,
         ModuleLineup modules,
-        TradeRule tradeRule)
+        TradeRule tradeRule,
+        CounterHits counterHits)
     {
         _characters = characters;
         _contacts = contacts;
         _fighterContacts = fighterContacts;
         _modules = modules;
         _tradeRule = tradeRule;
+        _counterHits = counterHits;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -100,12 +105,10 @@ public sealed class EntityHitResolutionStage : ITickStage
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
         HitData hit = _characters.ProjectileOf(in entity).Hit;
-        bool isBlocked = Defend(ref state, defender, in entity, in hit);
-        Remove(
-            ref state,
-            slot,
-            isBlocked ? FrameEventKind.ProjectileBlock : FrameEventKind.ProjectileHit,
-            _contacts.TouchPointOf(slot));
+        CounterHitKind counter = Defend(ref state, defender, in hit, entity.Owner, out bool isBlocked);
+        IntVector2 point = _contacts.TouchPointOf(slot);
+        Remove(ref state, slot, isBlocked ? FrameEventKind.ProjectileBlock : FrameEventKind.ProjectileHit, point);
+        CounterHitEvent.Emit(ref state, counter, entity.Owner, point);
 
         FighterContact contact = new(entity.Owner, defender);
         if (isBlocked)
@@ -118,25 +121,26 @@ public sealed class EntityHitResolutionStage : ITickStage
         }
     }
 
-    // True when blocked. The defender takes the hit or block and the projectile's hitstop.
-    private bool Defend(ref MatchState state, int defender, in EntityState entity, in HitData hit)
+    // The defender takes the hit or block and the projectile's hitstop; returns whether a hit was a counter.
+    private CounterHitKind Defend(ref MatchState state, int defender, in HitData hit, int owner, out bool isBlocked)
     {
         CharacterData character = _characters.Of(defender);
         ref FighterState defenderState = ref state.Fighters[defender];
         BlockStance stance = Blocking.StanceOf(
-            in defenderState, in state.Fighters[entity.Owner], state.Inputs[defender].FramesAgo(0));
-        bool isBlocked = Blocking.Stops(stance, hit.Guard);
+            in defenderState, in state.Fighters[owner], state.Inputs[defender].FramesAgo(0));
+        isBlocked = Blocking.Stops(stance, hit.Guard);
         if (isBlocked)
         {
             HitReactions.Block(ref defenderState, in hit, stance, character);
-        }
-        else
-        {
-            HitReactions.TakeHit(ref defenderState, in hit, character);
+            Hitstop.Extend(ref defenderState.Timing, hit.Hitstop);
+            return CounterHitKind.None;
         }
 
-        Hitstop.Extend(ref defenderState.Timing, hit.Hitstop);
-        return isBlocked;
+        CounterHitKind counter = CounterHits.KindAgainst(in defenderState, character);
+        HitData landed = _counterHits.Apply(in hit, counter);
+        HitReactions.TakeHit(ref defenderState, in landed, character);
+        Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
+        return counter;
     }
 
     private static void Remove(ref MatchState state, int slot, FrameEventKind kind, IntVector2 point)

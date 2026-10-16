@@ -18,4 +18,10 @@ public readonly record struct HitData
     public int Pushback { get; init; }
 
     public HitReaction Reaction { get; init; }
+
+    /// <summary>This hit's own counter hit bonus; when not set, the match rules' default applies.</summary>
+    public CounterBonus CounterHit { get; init; }
+
+    /// <summary>This hit's own punish counter bonus; when not set, the match rules' default applies.</summary>
+    public CounterBonus PunishCounter { get; init; }
 }

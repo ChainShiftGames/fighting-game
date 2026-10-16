@@ -41,6 +41,28 @@ public sealed class EntityHitResolutionStageTests
             (hit.Kind, hit.Fighter, hit.Position, hit.Detail));
     }
 
+    // Decided rule (ADR-0017): projectiles counter hit like attacks; P2 is on its fireball's startup frame.
+    [Fact]
+    public void AProjectileHitDuringTheDefendersStartupIsACounterHit()
+    {
+        EntityStages stages = new(counterHit: new CounterBonus { ExtraHitstun = 2, ExtraHitstop = 3, ExtraDamagePercent = 20 });
+        MatchState state = Fighters();
+        state.Fighters[1] = At(100_000, -1, Fireball, 1);
+        state.Entities.Slots[0] = Entity(0, TouchingP2);
+
+        stages.Hit(ref state);
+
+        FighterState defender = state.Fighters[1];
+        Assert.Equal(Health - (FireballHit.Damage * 6 / 5), defender.Health);
+        Assert.Equal(
+            (FireballHit.Hitstun + 2, FireballHit.Hitstop + 3),
+            (defender.StunFramesLeft, defender.Timing.HitstopFramesLeft));
+        Assert.Equal(0, state.Fighters[0].Timing.HitstopFramesLeft);
+        Assert.Equal(
+            [(FrameEventKind.ProjectileHit, 0), (FrameEventKind.CounterHit, 0)],
+            state.Events.OfFrame(Frame).ToArray().Select(frameEvent => (frameEvent.Kind, frameEvent.Fighter)));
+    }
+
     // Decided rule: the owner isn't in contact, so only the defender gets hitstop and the owner's move records nothing.
     [Fact]
     public void OnlyTheDefenderGetsTheProjectilesHitstop()

@@ -18,15 +18,20 @@ internal sealed class CombatStages
     private readonly HitDetectionStage _detection;
     private readonly HitResolutionStage _resolution;
 
-    public CombatStages(TradeRule tradeRule = TradeRule.Trade)
+    /// <param name="counterHit">The match rules' default counter hit bonus; none by default.</param>
+    /// <param name="punishCounter">The match rules' default punish counter bonus; none by default.</param>
+    public CombatStages(
+        TradeRule tradeRule = TradeRule.Trade, CounterBonus counterHit = default, CounterBonus punishCounter = default)
     {
         CharacterData character = CombatCharacter.Create();
         Contacts = new HitContacts();
         MatchRules rules = default;
+        rules.CounterHit = counterHit;
+        rules.PunishCounter = punishCounter;
         rules.Modules[ModuleSlot].Module = new ModuleId(1);
         var lineup = new ModuleLineup(new ModuleCatalog([new CountingModule(1)]), in rules.Modules, new CoreRequests());
         _detection = new HitDetectionStage(character, character, Contacts);
-        _resolution = new HitResolutionStage(character, character, Contacts, lineup, tradeRule);
+        _resolution = new HitResolutionStage(character, character, Contacts, lineup, tradeRule, new CounterHits(in rules));
     }
 
     public HitContacts Contacts { get; }

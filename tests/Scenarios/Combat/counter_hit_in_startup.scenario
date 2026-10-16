@@ -1,0 +1,19 @@
+# Counter hit (ADR-0017): p1's 5a, active on frame 5, hits p2 on move frame 3 of 6b (startup 8). The counter hit
+# bonus from data/rules/match.json adds 2 hitstun, 2 hitstop (both fighters) and 20 % damage.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 3: p2 6b
+
+frame 4: expect p2 move = 6b
+frame 5: expect p1 event hit
+frame 5: expect p1 event counter_hit
+frame 5: expect p1 event punish_counter = 0
+frame 5: expect p2 damage = 360          # 300 + 20 %
+frame 5: expect p2 state = hitstun
+frame 5: expect p2 stun = 14             # 12 + 2
+frame 5: expect p2 hitstop = 10          # 8 + 2
+frame 5: expect p1 hitstop = 10

@@ -18,6 +18,9 @@ public static class CharacterSchema
     public const int MaxDamage = 1_000_000;
     public const int MaxAirActions = 9;
 
+    /// <summary>Upper bound for a counter hit's extra damage: 1000 % more, ten times beyond any real tuning.</summary>
+    public const int MaxExtraDamagePercent = 1000;
+
     /// <summary>Upper bound for a projectile's clash durability.</summary>
     public const int MaxDurability = 99;
 

@@ -161,7 +161,19 @@
         "blockstun": { "type": "integer", "minimum": 0, "maximum": 999 },
         "hitstop": { "type": "integer", "minimum": 0, "maximum": 999 },
         "pushback": { "type": "integer", "minimum": 0, "maximum": 1000000 },
-        "reaction": { "enum": ["hitstun", "knockdown"], "description": "Default hitstun." }
+        "reaction": { "enum": ["hitstun", "knockdown"], "description": "Default hitstun." },
+        "counterHit": { "$ref": "#/$defs/counterBonus", "description": "This hit's own counter hit bonus (defender in an attack's startup or active frames); default: the counterHit* values in rules/match.json." },
+        "punishCounter": { "$ref": "#/$defs/counterBonus", "description": "This hit's own punish counter bonus (defender in an attack's recovery); default: the punishCounter* values in rules/match.json." }
+      }
+    },
+    "counterBonus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["extraHitstun", "extraHitstop", "extraDamagePercent"],
+      "properties": {
+        "extraHitstun": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "extraHitstop": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "extraDamagePercent": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "Damage added as a percentage of the hit's damage, rounded down (20 = 120 %)." }
       }
     }
   }

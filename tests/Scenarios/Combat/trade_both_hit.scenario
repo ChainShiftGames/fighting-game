@@ -1,4 +1,6 @@
 # Same-frame trade, trade rule "trade" (the data default): both 5a hit on frame 5 and both fighters are hit alike.
+# Each hit catches the other 5a in its active frames, so both are counter hits (data/rules/match.json: +2 hitstun,
+# +2 hitstop, +20 % damage).
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
 setup: trade trade
@@ -10,11 +12,13 @@ frame 1: p2 5a
 
 frame 5: expect p1 event hit
 frame 5: expect p2 event hit
+frame 5: expect p1 event counter_hit
+frame 5: expect p2 event counter_hit
 frame 5: expect p1 state = hitstun
 frame 5: expect p2 state = hitstun
-frame 5: expect p1 damage = 300
-frame 5: expect p2 damage = 300
-frame 5: expect p1 stun = 12
-frame 5: expect p2 stun = 12
-frame 5: expect p1 hitstop = 8
-frame 5: expect p2 hitstop = 8
+frame 5: expect p1 damage = 360
+frame 5: expect p2 damage = 360
+frame 5: expect p1 stun = 14
+frame 5: expect p2 stun = 14
+frame 5: expect p1 hitstop = 10
+frame 5: expect p2 hitstop = 10

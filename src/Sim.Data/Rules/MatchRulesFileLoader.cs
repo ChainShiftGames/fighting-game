@@ -1,3 +1,5 @@
+using Sim.Characters;
+using Sim.Data.Characters.Reading;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 using Sim.Rules;
@@ -32,11 +34,22 @@ public static class MatchRulesFileLoader
 
         // The match state has a fixed number of slots per player; the setting picks how many are used.
         int entitiesPerPlayer = file.RequiredInt("entitiesPerPlayer", 1, EntityPool.MaxPerPlayer);
+
+        // Flat keys (counterHitExtraHitstun…), so the debug panel can edit them like every other rule.
+        CounterBonus counterHit = CounterBonusReader.Read(file, "counterHit");
+        CounterBonus punishCounter = CounterBonusReader.Read(file, "punishCounter");
         file.Finish();
         return errors.Count > errorsBefore
             ? null
             : new MatchRulesFile(
-                roundStartDistance, wallDistance, maxPlayerDistance, tradeRule, rounds, entitiesPerPlayer);
+                roundStartDistance,
+                wallDistance,
+                maxPlayerDistance,
+                tradeRule,
+                rounds,
+                entitiesPerPlayer,
+                counterHit,
+                punishCounter);
     }
 
     private static RoundFormat ReadRounds(FieldReader file, DataErrors errors)

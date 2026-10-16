@@ -1,3 +1,4 @@
+using Sim.Data.Characters.Reading;
 using Sim.Data.Rules;
 using Sim.State;
 
@@ -15,6 +16,8 @@ public static class DataSettingList
     private const string Motions = "input/motions.json";
     private const int Pixel = 1000;
     private const int Second = 60;
+    private const int MaxFrames = CharacterSchema.MaxMoveFrames;
+    private const int MaxPercent = CharacterSchema.MaxExtraDamagePercent;
 
     public static DataFileSetting[] Numbers() =>
     [
@@ -26,6 +29,12 @@ public static class DataSettingList
         new("Max rounds", MatchRules, "maxRounds", 1, MatchRulesSchema.MaxRounds, 1),
         new("Round over pause (frames)", MatchRules, "roundOverFrames", 1, MatchRulesSchema.MaxRoundOverFrames, 1),
         new("Entities per player", MatchRules, "entitiesPerPlayer", 1, EntityPool.MaxPerPlayer, 1),
+        new("Counter hit extra hitstun", MatchRules, "counterHitExtraHitstun", 0, MaxFrames, 1),
+        new("Counter hit extra hitstop", MatchRules, "counterHitExtraHitstop", 0, MaxFrames, 1),
+        new("Counter hit extra damage %", MatchRules, "counterHitExtraDamagePercent", 0, MaxPercent, 5),
+        new("Punish counter extra hitstun", MatchRules, "punishCounterExtraHitstun", 0, MaxFrames, 1),
+        new("Punish counter extra hitstop", MatchRules, "punishCounterExtraHitstop", 0, MaxFrames, 1),
+        new("Punish counter extra damage %", MatchRules, "punishCounterExtraDamagePercent", 0, MaxPercent, 5),
         new("Motion window", Motions, "motionWindow", 1, InputHistory.Capacity, 1),
         new("Button buffer", Motions, "buttonBuffer", 0, InputHistory.Capacity - 1, 1),
     ];

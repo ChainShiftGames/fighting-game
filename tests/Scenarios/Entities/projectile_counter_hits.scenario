@@ -1,0 +1,18 @@
+# Decided rule (ADR-0017): projectiles counter hit like attacks. p1's 236c fireball reaches p2 on frame 43 (as in
+# projectile_hits) while p2 is on move frame 4 of 6b (startup 8): a counter hit with the bonus from
+# data/rules/match.json (+2 hitstun, +2 hitstop, +20 % damage). Only the defender gets hitstop, as for any
+# projectile hit.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 3, 6c                     # 236c starts on frame 3
+frame 40: p2 6b
+
+frame 42: expect p2 move = 6b
+frame 42: expect p2 move_frame = 3        # move frame 4 when the fireball lands
+frame 43: expect p1 event projectile_hit
+frame 43: expect p1 event counter_hit
+frame 43: expect p2 damage = 720         # 600 + 20 %
+frame 43: expect p2 stun = 18            # 16 + 2
+frame 43: expect p2 hitstop = 12         # 10 + 2
+frame 43: expect p1 hitstop = 0
