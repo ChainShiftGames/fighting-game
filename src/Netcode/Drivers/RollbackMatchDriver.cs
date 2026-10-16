@@ -23,6 +23,7 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
     private int _currentFrame;
     private int _framesToWait;
     private string? _desync;
+    private bool _opponentDisconnected;
     private int _rollbacks;
     private long _rolledBackFrames;
     private int _longestRollbackFrames;
@@ -49,10 +50,21 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
         MatchPlayers.EnsureInputCount(localInputs, _localPlayers.Length);
         try
         {
-            _session.BeginFrame();
+            if (!_opponentDisconnected)
+            {
+                _session.BeginFrame();
+            }
+
             if (_desync is not null)
             {
                 throw new DesyncDetectedException(_desync);
+            }
+
+            // After a disconnect Backdash plays on alone, with default inputs for the other player, so the two PCs
+            // would drift apart unnoticed. The match holds instead; ending it with a message is P2-07.
+            if (_opponentDisconnected)
+            {
+                return false;
             }
 
             // Time sync: this PC is ahead of the other one, so it waits a frame for it to catch up (ADR-0004 §4).
@@ -148,6 +160,10 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
             ChecksumMismatchEventInfo mismatch = evt.ChecksumMismatch;
             _desync = $"Checksums differ at frame {mismatch.MismatchFrame.Number}: " +
                 $"this PC {mismatch.LocalChecksum}, other PC {mismatch.RemoteChecksum}.";
+        }
+        else if (evt.Type == PeerEvent.Disconnected)
+        {
+            _opponentDisconnected = true;
         }
     }
 
