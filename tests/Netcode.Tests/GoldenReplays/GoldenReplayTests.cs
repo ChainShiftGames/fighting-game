@@ -11,7 +11,7 @@ using Xunit;
 namespace Netcode.Tests.GoldenReplays;
 
 /// <summary>
-/// Golden replays (ADR-0006, P1-19): each <c>Replays/*.replay</c> is played through the local match driver and its
+/// Golden replays (ADR-0006, P1-19): each <c>Replays/*.replay</c> is played through the replay match driver and its
 /// state checksums must match the recorded ones. They only change intentionally (ARCHITECTURE.md §10).
 /// </summary>
 /// <remarks>
@@ -64,7 +64,7 @@ public sealed class GoldenReplayTests
             var player2 = new FightingInputs(~replay.Seed);
             for (int frame = 0; frame < replay.Frames; frame++)
             {
-                replay.Inputs.Add((player1.Next(), player2.Next()));
+                replay.Inputs.Add(new FrameInputs(player1.Next(), player2.Next()));
             }
         }
 
@@ -83,13 +83,11 @@ public sealed class GoldenReplayTests
     private static SortedDictionary<int, ulong> Play(GoldenReplay replay)
     {
         MatchSimulation match = TestmanMirror.Create(replay.Player1, replay.Player2);
-        using var driver = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(match));
+        using var driver = new ReplayMatchDriver<MatchState>(new ComposedMatchSimulation(match), replay.Inputs);
         var checksums = new SortedDictionary<int, ulong>();
-        Span<InputWord> inputs = stackalloc InputWord[driver.LocalPlayerCount];
         for (int frame = 1; frame <= replay.Inputs.Count; frame++)
         {
-            (inputs[0], inputs[1]) = replay.Inputs[frame - 1];
-            Assert.True(driver.TryAdvanceFrame(inputs), $"Frame {frame} did not run.");
+            Assert.True(driver.TryAdvanceFrame([]), $"Frame {frame} did not run.");
             if (frame % CheckpointFrames == 0 || frame == replay.Inputs.Count)
             {
                 checksums[frame] = StateChecksum.Compute(in driver.State);

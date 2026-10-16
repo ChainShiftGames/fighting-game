@@ -1,10 +1,11 @@
 using System;
+using Netcode.Drivers;
 using Sim.Input;
 
 namespace Netcode.Tests.Drivers;
 
 /// <summary>Random input words from a fixed seed, so every run feeds the match the same frames.</summary>
-internal sealed class SeededInputs
+internal sealed class SeededInputs : IInputSource
 {
     private static readonly ushort[] _directions =
     [

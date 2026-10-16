@@ -7,12 +7,16 @@ namespace Netcode.Drivers;
 /// <remarks>
 /// The host's 60 Hz loop calls <see cref="TryAdvanceFrame"/> once per due logic frame with the input words it just
 /// read, then draws <see cref="State"/> (ARCHITECTURE.md §3). Rollback, prediction and resimulation all happen
-/// inside the call, so the host never sees them.
+/// inside the call, so the host never sees them. Only the composition root (the code that starts a match) picks the
+/// implementation: local, SyncTest, replay, test, and later training and online.
 /// </remarks>
 public interface IMatchDriver<TState> : IDisposable
     where TState : unmanaged
 {
-    /// <summary>Input words <see cref="TryAdvanceFrame"/> expects: one per player on this PC, in port order.</summary>
+    /// <summary>
+    /// Input words <see cref="TryAdvanceFrame"/> expects: one per player on this PC, in port order. 0 when no one on
+    /// this PC plays (replay, bot match).
+    /// </summary>
     int LocalPlayerCount { get; }
 
     /// <summary>The logic frame <see cref="State"/> is at (0 before the first frame).</summary>

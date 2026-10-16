@@ -8,8 +8,8 @@ using Xunit;
 namespace Netcode.Tests.Matches;
 
 /// <summary>
-/// SyncTest on the real match (ADR-0006, P1-19): a Testman mirror with seeded fighting inputs, every frame rolled
-/// back and resimulated; any checksum mismatch throws a desync.
+/// SyncTest on the real match (ADR-0006, P1-19): a Testman mirror played by seeded fighting inputs through the test
+/// driver, every frame rolled back and resimulated; any checksum mismatch throws a desync.
 /// </summary>
 public sealed class MatchSyncTestTests
 {
@@ -24,18 +24,14 @@ public sealed class MatchSyncTestTests
     public void TestmanMirrorStaysInSyncForTenThousandFrames()
     {
         MatchSimulation match = TestmanMirror.Create();
-        using var driver = new RollbackMatchDriver<MatchState>(
+        var syncTest = new RollbackMatchDriver<MatchState>(
             new ComposedMatchSimulation(match), SyncTestSession.Build<MatchState>(RollbackFrames));
-        var player1 = new FightingInputs(Player1Seed);
-        var player2 = new FightingInputs(Player2Seed);
-        Span<InputWord> inputs = stackalloc InputWord[driver.LocalPlayerCount];
-        Assert.Equal(2, inputs.Length);
+        using var driver = new TestMatchDriver<MatchState>(
+            syncTest, [new FightingInputs(Player1Seed), new FightingInputs(Player2Seed)]);
 
         for (int frame = 0; frame < Frames; frame++)
         {
-            inputs[0] = player1.Next();
-            inputs[1] = player2.Next();
-            Assert.True(driver.TryAdvanceFrame(inputs), $"Frame {frame} did not run.");
+            Assert.True(driver.TryAdvanceFrame([]), $"Frame {frame} did not run.");
         }
 
         Assert.Equal(Frames, driver.State.Frame);
