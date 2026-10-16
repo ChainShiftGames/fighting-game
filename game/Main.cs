@@ -49,13 +49,6 @@ public partial class Main : Node2D
     // Developer settings, listed in the debug panel.
     private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
     private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
-    private readonly DataFileSetting[] _dataSettings =
-    [
-        new("Round start distance", "rules/match.json", "roundStartDistance", 0, 1_000_000, 1000),
-        new("Wall distance", "rules/match.json", "wallDistance", 1000, 1_000_000, 1000),
-        new("Motion window", "input/motions.json", "motionWindow", 1, 60, 1),
-        new("Button buffer", "input/motions.json", "buttonBuffer", 0, 30, 1),
-    ];
 
     private JoypadWatcher? _joypadWatcher;
     private InputReadout? _inputReadout;
@@ -86,7 +79,8 @@ public partial class Main : Node2D
         AddChild(_overlay);
 
         _debugPanel = new DebugPanel { Visible = false };
-        _debugPanel.Build([_hitboxOverlay, _pause], _dataSettings, _data.Folder, DeveloperKeys);
+        _debugPanel.Build(
+            [_hitboxOverlay, _pause], DataSettingList.Numbers(), DataSettingList.Choices(), _data.Folder, DeveloperKeys);
         _debugPanel.DataSaved += RestartLocalMatch;
         AddChild(_debugPanel);
 

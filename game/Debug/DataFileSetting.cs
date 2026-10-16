@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace FightingGame.Debug;
 
@@ -31,20 +30,19 @@ public sealed class DataFileSetting
 
     public int Max { get; }
 
-    /// <summary>The panel's increment, so subpixel distances move in whole pixels.</summary>
+    /// <summary>The panel's arrow increment, so subpixel distances move in whole pixels; any value can be typed.</summary>
     public int Step { get; }
 
     /// <exception cref="FormatException">The file doesn't hold the field as a whole number.</exception>
-    public int Read(string dataRoot) => JsonNumberField.Read(System.IO.File.ReadAllText(PathIn(dataRoot)), Key);
+    public int Read(string dataRoot) =>
+        JsonNumberField.Read(System.IO.File.ReadAllText(DataFilePath.In(dataRoot, File)), Key);
 
     /// <exception cref="ArgumentOutOfRangeException">The value is outside <see cref="Min"/>..<see cref="Max"/>.</exception>
     public void Write(string dataRoot, int value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, Min);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, Max);
-        string path = PathIn(dataRoot);
+        string path = DataFilePath.In(dataRoot, File);
         System.IO.File.WriteAllText(path, JsonNumberField.Write(System.IO.File.ReadAllText(path), Key, value));
     }
-
-    private string PathIn(string dataRoot) => Path.Combine(dataRoot, File.Replace('/', Path.DirectorySeparatorChar));
 }

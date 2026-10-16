@@ -229,7 +229,8 @@ Read: CURRENT_STATE §3 Match
     (only via extra rounds): a draw match.
   - Match over: phase stays `MatchOver`, input neutral, the logic keeps ticking.
 - Follow-ups: a round intro ("Fight!") lock; a round-start module hook (ADR-0011) for per-round module state;
-  untimed rounds for training (HUD then needs the rules); debug panel entries for the new settings.
+  untimed rounds for training (HUD then needs the rules). The rules are in the debug panel
+  (`game/Debug/DataSettingList`).
 
 Done when:
 - [x] scenario tests: KO ends the round and the next starts reset, time-out with a health lead, time-out draw,
@@ -266,7 +267,7 @@ Read: ADR-0011
     (`CoreRequests.Spawns`, cleared by the entity step rather than `CoreRequestApplier`).
 - Follow-ups: per-move "one projectile on screen" rule, projectiles hit by attacks (projectile hurtboxes),
   projectile hitstop/hit intervals and multi-hit, pushback (with P1-12's), owner time scale for entities, a
-  `FighterContact` flag so modules can tell projectile hits apart, debug panel entry, `data/README.md` format note.
+  `FighterContact` flag so modules can tell projectile hits apart, `data/README.md` format note.
 
 Done when:
 - [x] scenario tests: projectile hits, is blocked, expires, clashes and trades with another projectile

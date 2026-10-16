@@ -10,8 +10,8 @@ namespace FightingGame.Debug;
 /// <c>data/</c> are written back to their files on Save, and the host then restarts the local match with them.
 /// </summary>
 /// <remarks>
-/// A new developer setting is one more <see cref="DeveloperToggle"/> or <see cref="DataFileSetting"/> in the lists
-/// the host passes in; the panel needs no change. Its controls never take keyboard focus by themselves, so the
+/// A new developer setting is one more <see cref="DeveloperToggle"/>, <see cref="DataFileSetting"/> or
+/// <see cref="DataFileChoice"/> in the lists the host passes in; the panel needs no change. Its controls never take keyboard focus by themselves, so the
 /// players' keys keep reaching the match while it is open.
 /// </remarks>
 public partial class DebugPanel : CanvasLayer
@@ -24,6 +24,7 @@ public partial class DebugPanel : CanvasLayer
     private readonly Label _status = new() { AutowrapMode = TextServer.AutowrapMode.WordSmart };
     private readonly List<(DeveloperToggle Toggle, CheckBox Box)> _toggleRows = [];
     private readonly List<(DataFileSetting Setting, SpinBox Box)> _dataRows = [];
+    private readonly List<(DataFileChoice Setting, OptionButton Box)> _choiceRows = [];
     private string? _dataRoot;
 
     /// <summary>Raised after Save wrote the data files, so the host can restart the match with them.</summary>
@@ -32,7 +33,11 @@ public partial class DebugPanel : CanvasLayer
     /// <param name="dataRoot">The data folder the settings are stored in; null when the game has none.</param>
     /// <param name="keys">One line listing the developer keys.</param>
     public void Build(
-        IReadOnlyList<DeveloperToggle> toggles, IReadOnlyList<DataFileSetting> dataSettings, string? dataRoot, string keys)
+        IReadOnlyList<DeveloperToggle> toggles,
+        IReadOnlyList<DataFileSetting> dataSettings,
+        IReadOnlyList<DataFileChoice> dataChoices,
+        string? dataRoot,
+        string keys)
     {
         _dataRoot = dataRoot;
         _rows.AddThemeConstantOverride("separation", Spacing);
@@ -48,6 +53,11 @@ public partial class DebugPanel : CanvasLayer
         foreach (DataFileSetting setting in dataSettings)
         {
             AddDataRow(setting);
+        }
+
+        foreach (DataFileChoice setting in dataChoices)
+        {
+            AddChoiceRow(setting);
         }
 
         var save = new Button { Text = "Save to data/ and restart match", FocusMode = Control.FocusModeEnum.None };
@@ -99,23 +109,39 @@ public partial class DebugPanel : CanvasLayer
         _rows.AddChild(box);
     }
 
+    // Step 1 with a custom arrow step: Godot snaps a value to min + n * step, so a coarse step would move values
+    // the loader accepts (wallDistance's min is 1, its arrows move a pixel).
     private void AddDataRow(DataFileSetting setting)
     {
-        var row = new HBoxContainer();
-        row.AddChild(new Label
-        {
-            Text = $"{setting.Name} ({setting.File})",
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-        });
         var box = new SpinBox
         {
             MinValue = setting.Min,
             MaxValue = setting.Max,
-            Step = setting.Step,
+            Step = 1,
+            CustomArrowStep = setting.Step,
             Editable = _dataRoot is not null,
         };
         box.GetLineEdit().FocusMode = Control.FocusModeEnum.Click;
         _dataRows.Add((setting, box));
+        AddLabelledRow($"{setting.Name} ({setting.File})", box);
+    }
+
+    private void AddChoiceRow(DataFileChoice setting)
+    {
+        var box = new OptionButton { FocusMode = Control.FocusModeEnum.None, Disabled = _dataRoot is null };
+        foreach (string choice in setting.Choices)
+        {
+            box.AddItem(choice);
+        }
+
+        _choiceRows.Add((setting, box));
+        AddLabelledRow($"{setting.Name} ({setting.File})", box);
+    }
+
+    private void AddLabelledRow(string text, Control box)
+    {
+        var row = new HBoxContainer();
+        row.AddChild(new Label { Text = text, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
         row.AddChild(box);
         _rows.AddChild(row);
     }
@@ -132,6 +158,11 @@ public partial class DebugPanel : CanvasLayer
             foreach ((DataFileSetting setting, SpinBox box) in _dataRows)
             {
                 box.SetValueNoSignal(setting.Read(_dataRoot));
+            }
+
+            foreach ((DataFileChoice setting, OptionButton box) in _choiceRows)
+            {
+                box.Select(setting.IndexOf(setting.Read(_dataRoot)));
             }
 
             _status.Text = string.Empty;
@@ -159,6 +190,16 @@ public partial class DebugPanel : CanvasLayer
                 if (value != setting.Read(_dataRoot))
                 {
                     setting.Write(_dataRoot, value);
+                    written++;
+                }
+            }
+
+            foreach ((DataFileChoice setting, OptionButton box) in _choiceRows)
+            {
+                string choice = setting.Choices[box.Selected];
+                if (choice != setting.Read(_dataRoot))
+                {
+                    setting.Write(_dataRoot, choice);
                     written++;
                 }
             }
