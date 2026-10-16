@@ -1,0 +1,16 @@
+# Two projectiles clash: both 236c fireballs (durability 1) meet on frame 27; each loses its one durability point
+# and both disappear. Nobody is hit.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 3, 6c
+frame 1: p2 2, 3, 6c
+
+frame 26: expect p1 entities = 1
+frame 26: expect p2 entities = 1
+frame 27: expect p1 event projectile_clash
+frame 27: expect p2 event projectile_clash
+frame 27: expect p1 entities = 0
+frame 27: expect p2 entities = 0
+frames 1-60: expect p1 damage = 0
+frames 1-60: expect p2 damage = 0

@@ -1,8 +1,8 @@
 namespace Sim.Characters;
 
 /// <summary>
-/// One move in compact form. Boxes, cancels, hits and velocities are ranges into the character's flat arrays, so the data
-/// holds no object references.
+/// One move in compact form. Boxes, cancels, hits, velocities and projectiles are ranges into the character's flat
+/// arrays, so the data holds no object references.
 /// </summary>
 public readonly record struct MoveData
 {
@@ -39,6 +39,11 @@ public readonly record struct MoveData
     public int VelocityStart { get; init; }
 
     public int VelocityCount { get; init; }
+
+    /// <summary>The projectiles the move spawns, in data order: a range in <see cref="CharacterData.Projectiles"/>.</summary>
+    public int ProjectileStart { get; init; }
+
+    public int ProjectileCount { get; init; }
 
     /// <summary>First frame (1-based) the fighter can't be hit or thrown; 0 when the move has none.</summary>
     public int InvulnerableFirstFrame { get; init; }

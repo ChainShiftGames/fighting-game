@@ -1,0 +1,34 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "214c",
+  "category": "special",
+  "usableIn": "ground",
+  "input": { "motion": "214", "button": "c" },
+  "frameData": { "startup": 13, "active": 1, "recovery": 30 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 43, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 43, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
+  ],
+  "projectiles": [
+    {
+      "spawnFrame": 13,
+      "offset": { "x": 40000, "y": 45000 },
+      "velocity": { "x": 2000 },
+      "lifetime": 200,
+      "durability": 2,
+      "boxes": [
+        { "firstFrame": 1, "lastFrame": 200, "x": -15000, "y": 0, "width": 30000, "height": 30000 }
+      ],
+      "hit": {
+        "damage": 900,
+        "chipDamage": 90,
+        "guard": "mid",
+        "hitstun": 20,
+        "blockstun": 15,
+        "hitstop": 12,
+        "pushback": 10000
+      }
+    }
+  ]
+}

@@ -18,6 +18,9 @@ public static class CharacterSchema
     public const int MaxDamage = 1_000_000;
     public const int MaxAirActions = 9;
 
+    /// <summary>Upper bound for a projectile's clash durability.</summary>
+    public const int MaxDurability = 99;
+
     /// <summary>Longest numpad motion (8 digits still fits an <c>int</c>).</summary>
     public const int MaxMotionLength = 8;
 

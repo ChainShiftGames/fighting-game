@@ -17,5 +17,6 @@ public static class CharacterDataHash
         hash.Add(character.Hits);
         hash.Add(character.Velocities);
         hash.Add(character.BasicStateMoves);
+        hash.Add(character.Projectiles);
     }
 }

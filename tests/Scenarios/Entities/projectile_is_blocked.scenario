@@ -1,0 +1,15 @@
+# A projectile is blocked: p2 crouch-blocks the mid 236c fireball with the projectile rules for chip and blockstun.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 3, 6c
+frames 40-50: p2 1                       # down-back, away from the projectile
+
+frame 43: expect p1 event projectile_block
+frame 43: expect p1 event projectile_hit = 0
+frame 43: expect p1 entities = 0
+frame 43: expect p2 state = crouch_blockstun
+frame 43: expect p2 stun = 12
+frame 43: expect p2 damage = 60          # chip
+frame 43: expect p2 hitstop = 10
+frame 43: expect p1 hitstop = 0

@@ -1,0 +1,17 @@
+# A module spawns through the core request (ADR-0011): the contract probe asks for p2's 236c fireball (projectile 0)
+# on frame 3. It appears at the end of that frame in front of p2, facing p2's way, and follows the projectile rules:
+# it hits p1 on frame 31, which runs the module's hit hook (12 frames of hitstop for the defender).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module contract_probe 12 3 1 0    # hitstop override, spawn on frame 3, owner p2, projectile 0
+
+frame 2: expect p2 entities = 0
+frame 3: expect p2 event projectile_spawn
+frame 3: expect p2 entities = 1
+frame 3: expect p2 entity_x = 110000     # 150000 - 40000: in front of p2, who faces left
+frame 4: expect p2 entity_x = 102000
+frame 31: expect p2 event projectile_hit
+frame 31: expect p1 damage = 600
+frame 31: expect p1 hitstop = 12
+frame 31: expect module contract_probe[1] = 1
+frame 31: expect module contract_probe[2] = 0   # last defender: p1

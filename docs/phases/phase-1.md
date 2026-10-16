@@ -234,16 +234,43 @@ Done when:
   double KO (and at match point), two round wins end the match, timer stops in a freeze (`tests/Scenarios/Match/`)
 
 ### P1-21 Entity pool (projectiles)
-Status: todo · Needs: P1-12 · Parallel: no · Where: `src/Sim/Entities/`, `tests/`
+Status: done · Needs: P1-12 · Parallel: no · Where: `src/Sim/Entities/`, `tests/`
 Read: ADR-0011
 - Fixed-size entity pool in `MatchState`; pool size per player is a **developer setting** in `MatchRules`.
 - Each entity: owner, position/velocity, boxes and lifetime from move data.
 - Hits against fighters reuse P1-12's hit and block rules; projectile vs projectile clashes use a durability count.
 - Spawned by moves (data) and by modules (core request, ADR-0011).
+- Built: `MatchState.Entities` (`EntityPool`, `EntityPool.MaxPerPlayer` = 8 slots per player in the layout);
+  **developer setting** `entitiesPerPlayer` (4) in `data/rules/match.json` → `MatchRules.EntitiesPerPlayer`. Moves
+  get `projectiles` (spawn frame, offset, velocity, lifetime, durability, hit boxes, hit) → `ProjectileData`. Stages
+  in `Sim.Entities`, each after the fighters' stage of its step (`MatchSimulation`): `EntityMovementStage` and
+  `MoveSpawnStage` (movement), `EntityHitDetectionStage`, `EntityHitResolutionStage`, and `SpawnRequestStage` for
+  the modules' `SpawnRequest` (first in the round and timer step). Events `ProjectileSpawn`, `ProjectileHit`,
+  `ProjectileBlock`, `ProjectileClash`, `ProjectileExpire`. Rules (details in the class doc comments):
+  - Pool full: each player has its own slots; a spawn takes the owner's lowest free slot, else that spawn is refused
+    and nothing changes (the newest spawn loses). Order: moves in the movement step, module requests at the end of
+    the frame in module slot order. No event for a refused spawn.
+  - Projectiles take the owner's facing at spawn, appear on the move's spawn frame (owner advancing), don't move on
+    that frame, can hit on it, and expire on the frame after their lifetime. They ignore the owner's hitstop and
+    time scale, stop in a global freeze unless the owner runs, and pass walls.
+  - One hit, then gone. Only the defender gets hitstop; the owner's move records nothing (no cancel on a
+    projectile's hit). Blocked by holding away from the projectile. Module hit/block hooks run with the owner as
+    attacker.
+  - Clash: every frame two opposing projectiles overlap, both lose 1 durability; gone at 0, and a destroyed one hits
+    nothing that frame. Clashes resolve before hits; counted per pair, so order-independent.
+  - `TradeRule` covers projectiles: a same-frame exchange counts projectile touches; under `clash` touching
+    projectiles disappear (clash event) as fighters' moves are spent.
+  - Round start empties the pool. Module spawn requests apply at the end of the frame they were made in
+    (`CoreRequests.Spawns`, cleared by the entity step rather than `CoreRequestApplier`).
+- Follow-ups: per-move "one projectile on screen" rule, projectiles hit by attacks (projectile hurtboxes),
+  projectile hitstop/hit intervals and multi-hit, pushback (with P1-12's), owner time scale for entities, a
+  `FighterContact` flag so modules can tell projectile hits apart, debug panel entry, `data/README.md` format note.
 
 Done when:
-- [ ] scenario tests: projectile hits, is blocked, expires, clashes and trades with another projectile
-- [ ] pool full → spawn is refused deterministically (documented behaviour)
+- [x] scenario tests: projectile hits, is blocked, expires, clashes and trades with another projectile
+  (`tests/Scenarios/Entities/`, also durability, trade under the clash rule, round reset, module spawn)
+- [x] pool full → spawn is refused deterministically (documented behaviour; `pool_full_refuses_a_spawn.scenario`,
+  `ProjectileSpawnerTests`)
 
 ### P1-14 Frame-tagged events
 Status: done · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`

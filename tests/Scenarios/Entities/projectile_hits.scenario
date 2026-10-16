@@ -1,0 +1,22 @@
+# A projectile hits: 236c spawns its fireball on move frame 13 (frame 15) at 40000 in front of p1, flying 8000 per
+# frame. Its box reaches p2's hurtbox on frame 43. Only the defender gets the hitstop; the owner keeps acting.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 3, 6c                     # 236c starts on frame 3
+
+frame 14: expect p1 entities = 0
+frame 15: expect p1 event projectile_spawn
+frame 15: expect p1 entities = 1
+frame 15: expect p1 entity_x = -110000   # -150000 + 40000
+frame 16: expect p1 entity_x = -102000
+frame 42: expect p2 damage = 0
+frame 43: expect p1 event projectile_hit
+frame 43: expect p1 entities = 0
+frame 43: expect p2 damage = 600
+frame 43: expect p2 state = hitstun
+frame 43: expect p2 stun = 16
+frame 43: expect p2 hitstop = 10
+frame 43: expect p1 hitstop = 0
+frame 44: expect p1 move = 236c
+frame 44: expect p1 move_frame = 42      # the owner's move ran on through the hit

@@ -41,7 +41,26 @@ public sealed class MatchRulesFileTests
             (5940, 2, 5, 120), (rules.RoundTimerFrames, rules.RoundsToWin, rules.MaxRounds, rules.RoundOverFrames));
     }
 
+    [Fact]
+    public void CreateMatchRulesAppliesTheEntityPoolSize()
+    {
+        Assert.Equal(4, Fixture.Load(_data).CreateMatchRules().EntitiesPerPlayer);
+    }
+
     [Theory]
+    [InlineData("\"entitiesPerPlayer\": 4", "\"entitiesPerPlayer\": 0")]
+    [InlineData("\"entitiesPerPlayer\": 4", "\"entitiesPerPlayer\": 9")]
+    public void AnEntityPoolSizeOutsideTheStateSlotsIsReported(string from, string to)
+    {
+        _data.Replace(MatchRulesSchema.File, from, to);
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "entitiesPerPlayer"), (error.File, error.Field));
+        Assert.Contains("from 1 to 8", error.Reason, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("entitiesPerPlayer")]
     [InlineData("roundTimerFrames")]
     [InlineData("roundsToWin")]
     [InlineData("maxRounds")]
@@ -104,7 +123,8 @@ public sealed class MatchRulesFileTests
             MatchRulesSchema.File,
             """
             { "schemaVersion": 1, "roundStartDistance": 150000, "wallDistance": 600000, "maxPlayerDistance": 640000,
-              "roundTimerFrames": 5940, "roundsToWin": 2, "maxRounds": 5, "roundOverFrames": 120 }
+              "roundTimerFrames": 5940, "roundsToWin": 2, "maxRounds": 5, "roundOverFrames": 120,
+              "entitiesPerPlayer": 4 }
             """);
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
@@ -170,7 +190,7 @@ public sealed class MatchRulesFileTests
         Assert.Contains("motion 999", error.Reason, StringComparison.Ordinal);
     }
 
-    // Every round value follows tradeRule in the file, so each has a comma before it.
+    // Every round value and the entity pool size follow tradeRule in the file, so each has a comma before it.
     private static string WithoutField(string json, string field) =>
         Regex.Replace(json, $@",\s*""{field}"":\s*\d+", string.Empty);
 }

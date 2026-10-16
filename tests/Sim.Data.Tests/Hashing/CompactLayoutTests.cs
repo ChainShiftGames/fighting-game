@@ -13,7 +13,7 @@ public sealed class CompactLayoutTests
 {
     public static TheoryData<Type> HashedStructs =>
         [typeof(CharacterStats), typeof(MoveData), typeof(BoxData), typeof(CancelData), typeof(HitData),
-            typeof(VelocityData)];
+            typeof(VelocityData), typeof(ProjectileData)];
 
     [Theory]
     [MemberData(nameof(HashedStructs))]

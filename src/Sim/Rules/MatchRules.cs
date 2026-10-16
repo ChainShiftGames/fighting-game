@@ -63,6 +63,13 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>roundOverFrames</c>).</remarks>
     public int RoundOverFrames;
 
+    /// <summary>Entity pool slots per player: projectiles and module objects one player can have out at once.</summary>
+    /// <remarks>
+    /// Developer setting, from data/rules/match.json (<c>entitiesPerPlayer</c>); at most
+    /// <see cref="EntityPool.MaxPerPlayer"/>, the state's fixed layout. 0 (rules built in code) means no entities.
+    /// </remarks>
+    public int EntitiesPerPlayer;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

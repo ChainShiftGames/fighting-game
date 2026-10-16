@@ -56,4 +56,35 @@ public enum FrameEventKind
     /// player bits (<c>Winners.Players</c>; both bits = a draw).
     /// </summary>
     MatchEnd = 9,
+
+    /// <summary>
+    /// A projectile appeared (from a move or a module's spawn request; P1-21). Fighter: its owner. Position: where it
+    /// appeared. Detail: its index in the owner's character's projectile list.
+    /// </summary>
+    ProjectileSpawn = 10,
+
+    /// <summary>
+    /// A projectile hit the owner's opponent and disappeared. Fighter: its owner. Position: the centre of the overlap
+    /// of its first hitbox and the defender's hurtbox that touched. Detail: as for <see cref="ProjectileSpawn"/>.
+    /// </summary>
+    ProjectileHit = 11,
+
+    /// <summary>
+    /// A projectile was blocked and disappeared. Fighter, Position and Detail: as for <see cref="ProjectileHit"/>.
+    /// </summary>
+    ProjectileBlock = 12,
+
+    /// <summary>
+    /// A projectile lost durability against an opposing projectile (it disappears at 0), or was cancelled by the
+    /// <c>TradeRule.Clash</c> rule in a same-frame exchange; one event per projectile and frame. Fighter: its owner.
+    /// Position: the centre of its first overlap with the other projectile (or the defender). Detail: as for
+    /// <see cref="ProjectileSpawn"/>.
+    /// </summary>
+    ProjectileClash = 13,
+
+    /// <summary>
+    /// A projectile's lifetime ran out and it disappeared. Fighter: its owner. Position: its last position. Detail: as
+    /// for <see cref="ProjectileSpawn"/>.
+    /// </summary>
+    ProjectileExpire = 14,
 }

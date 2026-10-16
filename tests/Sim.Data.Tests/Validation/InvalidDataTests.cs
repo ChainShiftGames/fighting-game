@@ -13,6 +13,7 @@ public sealed class InvalidDataTests
     private static readonly string _move5A = Fixture.MoveFile("5a");
     private static readonly string _moveIdle = Fixture.MoveFile("idle");
     private static readonly string _moveBackdash = Fixture.MoveFile("backdash");
+    private static readonly string _move236C = Fixture.MoveFile("236c");
 
     private readonly InMemoryDataSource _data = Fixture.InMemory();
 
@@ -250,6 +251,66 @@ public sealed class InvalidDataTests
         _data.Replace(_moveBackdash, "\"invulnerable\": { \"firstFrame\": 1", "\"invulnerable\": { \"firstFrame\": 21");
 
         AssertSingleError(_moveBackdash, "invulnerable.firstFrame", "must be a whole number from 1 to 20, got 21");
+    }
+
+    [Fact]
+    public void ProjectileSpawnFrameOutsideTheMove()
+    {
+        _data.Replace(_move236C, "\"spawnFrame\": 14", "\"spawnFrame\": 42");
+
+        AssertSingleError(_move236C, "projectiles[0].spawnFrame", "must be a whole number from 1 to 41, got 42");
+    }
+
+    [Fact]
+    public void ProjectileBoxOutsideItsLifetime()
+    {
+        _data.Replace(_move236C, "\"lastFrame\": 90", "\"lastFrame\": 91");
+
+        AssertSingleError(
+            _move236C, "projectiles[0].boxes[0].lastFrame", "must be a whole number from 1 to 90, got 91");
+    }
+
+    [Fact]
+    public void ProjectileWithoutBoxes()
+    {
+        _data.Replace(_move236C, "\"boxes\": [\n        {", "\"boxes\": [], \"unusedBoxes\": [\n        {");
+
+        DataValidationException exception = LoadFails();
+        Assert.Contains(
+            exception.Errors,
+            error => error.Field == "projectiles[0].boxes" && error.Reason.Contains("at least one box"));
+    }
+
+    [Fact]
+    public void ProjectileWithoutHit()
+    {
+        _data.Replace(_move236C, "\"hit\": { \"damage\": 700", "\"unusedHit\": { \"damage\": 700");
+
+        DataValidationException exception = LoadFails();
+        Assert.Contains(exception.Errors, error => error.Field == "projectiles[0].hit");
+    }
+
+    [Fact]
+    public void ProjectileWithoutDurability()
+    {
+        _data.Replace(_move236C, "\"durability\": 2", "\"durability\": 0");
+
+        AssertSingleError(_move236C, "projectiles[0].durability", "must be a whole number from 1 to 99, got 0");
+    }
+
+    [Fact]
+    public void BasicMoveWithProjectiles()
+    {
+        string projectiles = Between(_data.GetText(_move236C), "\"projectiles\"", "\n}");
+        _data.Replace(_moveIdle, "\"boxes\": [", projectiles + ",\n  \"boxes\": [");
+
+        AssertSingleError(_moveIdle, "projectiles", "basic moves can't spawn projectiles");
+    }
+
+    private static string Between(string text, string start, string end)
+    {
+        int from = text.IndexOf(start, StringComparison.Ordinal);
+        return text[from..text.LastIndexOf(end, StringComparison.Ordinal)];
     }
 
     private DataError AssertSingleError(string file, string field, string reasonPart)

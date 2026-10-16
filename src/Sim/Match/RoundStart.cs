@@ -9,7 +9,8 @@ namespace Sim.Match;
 /// <summary>Sets up the state for a round: fighters at their start positions, full health, idle; a fresh timer.</summary>
 /// <remarks>
 /// Everything round-scoped is cleared: both fighters' whole state (moves, stun, hitstop, time scale, pending
-/// cancels), the global freeze, the camera (back to the stage centre) and the latest round's result. Round wins,
+/// cancels), every entity (projectiles disappear without events), the global freeze, the camera (back to the stage
+/// centre) and the latest round's result. Round wins,
 /// the frame counter, the PRNG, input histories and module state carry over: module state belongs to the module, and
 /// resetting it per round needs a round-start hook in the module contract (ADR-0011), which doesn't exist yet.
 /// </remarks>
@@ -43,6 +44,7 @@ public sealed class RoundStart
         rounds.RoundWinners = Winners.None;
         state.Freeze = default;
         state.Camera = default;
+        state.Entities = default;
         Place(ref state.Fighters[0], -_startDistance, FacingRight, _player1);
         Place(ref state.Fighters[1], _startDistance, FacingLeft, _player2);
     }

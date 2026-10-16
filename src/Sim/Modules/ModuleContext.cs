@@ -60,4 +60,8 @@ public readonly ref struct ModuleContext
         _requests.HitstopOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
     public void RequestFreeze(in FreezeRequest request) => _requests.Freezes.Set(_slot, request);
+
+    /// <summary>Spawns an entity for <paramref name="owner"/> at the end of the frame (<see cref="CoreRequests.Spawns"/>).</summary>
+    public void RequestSpawn(int owner, in SpawnRequest request) =>
+        _requests.Spawns.Set(CoreRequests.FighterKey(_slot, owner), request);
 }

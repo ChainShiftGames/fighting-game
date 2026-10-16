@@ -4,7 +4,7 @@ namespace Sim.Characters;
 
 /// <summary>
 /// A character in compact, read-only form for the game logic: stats plus flat arrays of moves, boxes, cancels,
-/// hits and velocities. Created once at load; never changed during a match and not part of the game state.
+/// hits, velocities and projectiles. Created once at load; never changed during a match and not part of the game state.
 /// </summary>
 public sealed class CharacterData
 {
@@ -19,6 +19,7 @@ public sealed class CharacterData
     private readonly HitData[] _hits;
     private readonly VelocityData[] _velocities;
     private readonly int[] _basicStateMoves;
+    private readonly ProjectileData[] _projectiles;
 
     public CharacterData(
         string id,
@@ -31,7 +32,8 @@ public sealed class CharacterData
         int[] cancelTargets,
         HitData[] hits,
         VelocityData[] velocities,
-        int[] basicStateMoves)
+        int[] basicStateMoves,
+        ProjectileData[]? projectiles = null)
     {
         Id = id;
         DisplayName = displayName;
@@ -44,6 +46,7 @@ public sealed class CharacterData
         _hits = hits;
         _velocities = velocities;
         _basicStateMoves = basicStateMoves;
+        _projectiles = projectiles ?? [];
     }
 
     public string Id { get; }
@@ -59,6 +62,7 @@ public sealed class CharacterData
     /// <summary>Move ids by move index, for tools and debug display; the logic uses indexes.</summary>
     public ReadOnlySpan<string> MoveIds => _moveIds;
 
+    /// <summary>Move boxes and projectile boxes; each move and projectile points at its own range.</summary>
     public ReadOnlySpan<BoxData> Boxes => _boxes;
 
     public ReadOnlySpan<CancelData> Cancels => _cancels;
@@ -70,12 +74,18 @@ public sealed class CharacterData
 
     public ReadOnlySpan<VelocityData> Velocities => _velocities;
 
+    /// <summary>Every move's projectiles, move by move; entities refer to them by index (P1-21).</summary>
+    public ReadOnlySpan<ProjectileData> Projectiles => _projectiles;
+
     /// <summary>Move index per <see cref="BasicState"/>, or <see cref="NoMove"/>.</summary>
     public ReadOnlySpan<int> BasicStateMoves => _basicStateMoves;
 
     public int BasicStateMove(BasicState state) => _basicStateMoves[(int)state];
 
     public ReadOnlySpan<BoxData> BoxesOf(in MoveData move) => _boxes.AsSpan(move.BoxStart, move.BoxCount);
+
+    public ReadOnlySpan<BoxData> BoxesOf(in ProjectileData projectile) =>
+        _boxes.AsSpan(projectile.BoxStart, projectile.BoxCount);
 
     public ReadOnlySpan<CancelData> CancelsOf(in MoveData move) => _cancels.AsSpan(move.CancelStart, move.CancelCount);
 
@@ -87,4 +97,8 @@ public sealed class CharacterData
     /// <summary>The move's velocity ranges, in frame order and never overlapping.</summary>
     public ReadOnlySpan<VelocityData> VelocitiesOf(in MoveData move) =>
         _velocities.AsSpan(move.VelocityStart, move.VelocityCount);
+
+    /// <summary>The projectiles the move spawns, as a range of <see cref="Projectiles"/>.</summary>
+    public ReadOnlySpan<ProjectileData> ProjectilesOf(in MoveData move) =>
+        _projectiles.AsSpan(move.ProjectileStart, move.ProjectileCount);
 }

@@ -16,6 +16,7 @@ public static class CharacterAssembler
         List<int> cancelTargets = [];
         List<HitData> hits = [];
         List<VelocityData> velocities = [];
+        List<ProjectileData> projectiles = [];
 
         foreach (MoveRecord record in moves)
         {
@@ -36,10 +37,13 @@ public static class CharacterAssembler
                 HitCount = record.Hits.Count,
                 VelocityStart = velocities.Count,
                 VelocityCount = record.Velocities.Count,
+                ProjectileStart = projectiles.Count,
+                ProjectileCount = record.Projectiles.Count,
             });
             boxes.AddRange(record.Boxes);
             hits.AddRange(record.Hits);
             velocities.AddRange(record.Velocities);
+            AddProjectiles(record.Projectiles, projectiles, boxes);
         }
 
         string[] moveIds = new string[definition.MoveIds.Count];
@@ -59,6 +63,18 @@ public static class CharacterAssembler
             cancelTargets.ToArray(),
             hits.ToArray(),
             velocities.ToArray(),
-            definition.BasicStateMoves);
+            definition.BasicStateMoves,
+            projectiles.ToArray());
+    }
+
+    // Projectile boxes go into the same box array as move boxes, each projectile pointing at its own range.
+    private static void AddProjectiles(
+        IReadOnlyList<ProjectileRecord> records, List<ProjectileData> projectiles, List<BoxData> boxes)
+    {
+        foreach (ProjectileRecord record in records)
+        {
+            projectiles.Add(record.Projectile with { BoxStart = boxes.Count, BoxCount = record.Boxes.Count });
+            boxes.AddRange(record.Boxes);
+        }
     }
 }

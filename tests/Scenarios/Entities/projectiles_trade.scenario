@@ -1,0 +1,19 @@
+# Projectiles trade: p1's mid 236c and p2's low 236d fly at different heights, pass each other without clashing and
+# hit both fighters on frame 43. Under the "trade" rule (the data default) both hits land.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: trade trade
+
+frame 1: p1 2, 3, 6c
+frame 1: p2 2, 3, 6d
+
+frames 15-42: expect p1 entities = 1
+frames 15-42: expect p2 entities = 1
+frame 43: expect p1 event projectile_hit
+frame 43: expect p2 event projectile_hit
+frame 43: expect p1 damage = 500
+frame 43: expect p2 damage = 600
+frame 43: expect p1 state = hitstun
+frame 43: expect p2 state = hitstun
+frame 43: expect p1 hitstop = 9
+frame 43: expect p2 hitstop = 10

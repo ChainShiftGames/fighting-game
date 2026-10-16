@@ -1,0 +1,18 @@
+# Durability: p1's slow 214c fireball (durability 2) meets p2's 236c fireball (durability 1) on frame 35. Both lose
+# one point: p2's disappears, p1's flies on with 1 left and hits p2 on frame 126.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 1, 4c
+frame 1: p2 2, 3, 6c
+
+frame 34: expect p1 entity_durability = 2
+frame 35: expect p1 event projectile_clash
+frame 35: expect p2 event projectile_clash
+frame 35: expect p2 entities = 0
+frame 35: expect p1 entities = 1
+frame 35: expect p1 entity_durability = 1
+frame 125: expect p2 damage = 0
+frame 126: expect p1 event projectile_hit
+frame 126: expect p2 damage = 900
+frames 1-130: expect p1 damage = 0

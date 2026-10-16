@@ -44,4 +44,20 @@ public sealed class RoundStartTests
         Assert.Equal(
             (2, RoundPhase.Fighting, Winners.None), (state.Round.Round, state.Round.Phase, state.Round.RoundWinners));
     }
+
+    [Fact]
+    public void ANewRoundEmptiesTheEntityPool()
+    {
+        MatchState state = _setup.FirstRound();
+        state.Entities.Slots[0].IsActive = 1;
+        state.Entities.Slots[EntityPool.FirstSlotOf(1) + 2].IsActive = 1;
+        state.Entities.Slots[3].Position = new Sim.Math.IntVector2(5, 5);
+
+        _setup.Start.Begin(ref state, 2);
+
+        for (int slot = 0; slot < EntityPool.Capacity; slot++)
+        {
+            Assert.Equal(default, state.Entities.Slots[slot]);
+        }
+    }
 }

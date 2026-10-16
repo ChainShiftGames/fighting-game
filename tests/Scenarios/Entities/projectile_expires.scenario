@@ -1,0 +1,17 @@
+# A projectile expires: the fighters stand too far apart for 236c's fireball (lifetime 60) to reach p2. It lives on
+# frames 15-74 and disappears on frame 75 at its last position.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -300000
+setup: p2 x = 290000
+
+frame 1: p1 2, 3, 6c
+
+frame 15: expect p1 entity_x = -260000
+frame 74: expect p1 entities = 1
+frame 74: expect p1 entity_x = 212000    # -260000 + 59 * 8000
+frame 74: expect p1 event projectile_expire = 0
+frame 75: expect p1 event projectile_expire
+frame 75: expect p1 entities = 0
+frame 75: expect p1 entity_x = none
+frames 1-80: expect p2 damage = 0

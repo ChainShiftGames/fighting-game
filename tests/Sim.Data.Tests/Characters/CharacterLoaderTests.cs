@@ -132,6 +132,30 @@ public sealed class CharacterLoaderTests
         Assert.False(Move("5a").IsInvulnerableOn(1));
     }
 
+    [Fact]
+    public void ProjectilesAreReadWithTheirBoxesAndHit()
+    {
+        ProjectileData projectile = Assert.Single(_fixture.ProjectilesOf(Move("236c")).ToArray());
+
+        Assert.Equal(14, projectile.SpawnFrame);
+        Assert.Equal(new IntVector2(50000, 60000), projectile.Offset);
+        Assert.Equal(new IntVector2(7000, -500), projectile.Velocity);
+        Assert.Equal((90, 2), (projectile.Lifetime, projectile.Durability));
+        Assert.Equal((700, 80, 11), (projectile.Hit.Damage, projectile.Hit.ChipDamage, projectile.Hit.Hitstop));
+        BoxData box = Assert.Single(_fixture.BoxesOf(projectile).ToArray());
+        Assert.Equal(BoxKind.Hit, box.Kind);
+        Assert.Equal((1, 90), (box.FirstFrame, box.LastFrame));
+        Assert.Equal(AxisAlignedBox.FromCorner(-20000, -15000, 40000, 30000), box.Area);
+    }
+
+    [Fact]
+    public void ProjectileBoxesStayOutOfTheMovesBoxes()
+    {
+        Assert.Equal(3, _fixture.BoxesOf(Move("236c")).Length);
+        Assert.Empty(_fixture.ProjectilesOf(Move("5a")).ToArray());
+        Assert.Single(_fixture.Projectiles.ToArray());
+    }
+
     private static MoveData Move(string moveId) => _fixture.Moves[IndexOf(moveId)];
 
     private static int IndexOf(string moveId) => Array.IndexOf(_fixture.MoveIds.ToArray(), moveId);

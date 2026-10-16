@@ -95,8 +95,61 @@
         "lastFrame": { "$ref": "#/$defs/frames" }
       }
     },
+    "hit": { "$ref": "#/$defs/hit", "description": "Required exactly when the move has a hit or throw box." },
+    "projectiles": {
+      "description": "Not for basic moves. Projectiles the move spawns, each on its own move frame. Facing right: x forward, y up from the fighter's origin, in subpixels (per frame for velocity); a projectile takes the fighter's facing when it spawns. One hit, then it disappears; only the defender gets its hitstop.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["spawnFrame", "offset", "velocity", "lifetime", "boxes", "hit"],
+        "properties": {
+          "spawnFrame": { "$ref": "#/$defs/frames", "description": "The move frame it appears on; inside the move's frames." },
+          "offset": {
+            "type": "object", "additionalProperties": false, "required": ["x", "y"],
+            "properties": { "x": { "$ref": "#/$defs/coordinate" }, "y": { "$ref": "#/$defs/coordinate" } }
+          },
+          "velocity": {
+            "type": "object", "additionalProperties": false, "required": ["x"],
+            "properties": { "x": { "$ref": "#/$defs/coordinate" }, "y": { "$ref": "#/$defs/coordinate", "description": "Default 0." } }
+          },
+          "lifetime": { "$ref": "#/$defs/frames", "description": "Frames it exists, counting the spawn frame." },
+          "durability": { "type": "integer", "minimum": 1, "maximum": 99, "description": "Default 1. Each frame it overlaps an opposing projectile, both lose 1; at 0 it disappears." },
+          "boxes": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Hit boxes relative to the projectile's position; frames count from its spawn (1) and stay within its lifetime.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["firstFrame", "lastFrame", "x", "y", "width", "height"],
+              "properties": {
+                "firstFrame": { "$ref": "#/$defs/frames" },
+                "lastFrame": { "$ref": "#/$defs/frames" },
+                "x": { "$ref": "#/$defs/coordinate" },
+                "y": { "$ref": "#/$defs/coordinate" },
+                "width": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+                "height": { "type": "integer", "minimum": 1, "maximum": 1000000 }
+              }
+            }
+          },
+          "hit": { "$ref": "#/$defs/hit" }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "category": { "const": "basic" } } },
+      "then": { "required": ["duration"], "not": { "anyOf": [{ "required": ["frameData"] }, { "required": ["input"] }, { "required": ["usableIn"] }, { "required": ["projectiles"] }] } },
+      "else": { "required": ["frameData", "input", "usableIn"], "not": { "required": ["duration"] } }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$", "maxLength": 32 },
+    "frames": { "type": "integer", "minimum": 1, "maximum": 999 },
+    "coordinate": { "type": "integer", "minimum": -1000000, "maximum": 1000000 },
     "hit": {
-      "description": "Required exactly when the move has a hit or throw box.",
       "type": "object",
       "additionalProperties": false,
       "required": ["damage", "guard", "hitstun", "blockstun", "hitstop", "pushback"],
@@ -111,17 +164,5 @@
         "reaction": { "enum": ["hitstun", "knockdown"], "description": "Default hitstun." }
       }
     }
-  },
-  "allOf": [
-    {
-      "if": { "properties": { "category": { "const": "basic" } } },
-      "then": { "required": ["duration"], "not": { "anyOf": [{ "required": ["frameData"] }, { "required": ["input"] }, { "required": ["usableIn"] }] } },
-      "else": { "required": ["frameData", "input", "usableIn"], "not": { "required": ["duration"] } }
-    }
-  ],
-  "$defs": {
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$", "maxLength": 32 },
-    "frames": { "type": "integer", "minimum": 1, "maximum": 999 },
-    "coordinate": { "type": "integer", "minimum": -1000000, "maximum": 1000000 }
   }
 }

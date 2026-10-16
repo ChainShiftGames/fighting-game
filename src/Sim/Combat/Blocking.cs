@@ -2,6 +2,7 @@ using Sim.Characters;
 using Sim.Collision;
 using Sim.Fighters.States;
 using Sim.Input;
+using Sim.Math;
 using Sim.State;
 
 namespace Sim.Combat;
@@ -11,18 +12,30 @@ namespace Sim.Combat;
 /// A defender guards on the ground while free to act (standing, walking, crouching) or already in blockstun, by
 /// holding back this frame: away from the attacker, or away from where it faces when both stand at the same x. The
 /// input decides the stance, not the current action, so a defender in blockstun can switch between high and low.
-/// Airborne fighters don't block yet (air block rules are tunable, CURRENT_STATE §3 Defense).
+/// Airborne fighters don't block yet (air block rules are tunable, CURRENT_STATE §3 Defense). A projectile is blocked
+/// the same way, holding away from the projectile itself (P1-21), or from where the defender faces at the same x.
 /// </remarks>
 public static class Blocking
 {
-    public static BlockStance StanceOf(in FighterState defender, in FighterState attacker, InputWord input)
+    public static BlockStance StanceOf(in FighterState defender, in FighterState attacker, InputWord input) =>
+        StanceToward(in defender, TowardAttacker(in defender, in attacker), input);
+
+    /// <summary>The defender's stance against a projectile at <paramref name="projectileX"/>.</summary>
+    public static BlockStance StanceAgainstProjectile(in FighterState defender, int projectileX, InputWord input)
+    {
+        int side = IntMath.Sign(projectileX - defender.Position.X);
+        return StanceToward(in defender, side == 0 ? defender.Facing : side, input);
+    }
+
+    // towardAttack: +1 when the attack comes from the right; the input word reads "back" as away from it.
+    private static BlockStance StanceToward(in FighterState defender, int towardAttack, InputWord input)
     {
         if (defender.IsAirborne != 0 || !CanGuardFrom(defender.Action))
         {
             return BlockStance.None;
         }
 
-        int direction = NumpadDirection.Of(input, TowardAttacker(in defender, in attacker));
+        int direction = NumpadDirection.Of(input, towardAttack);
         if (!NumpadDirection.IsBack(direction))
         {
             return BlockStance.None;
