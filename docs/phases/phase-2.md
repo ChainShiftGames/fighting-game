@@ -33,7 +33,7 @@ Done when:
   (`tests/Architecture.Tests/MatchDriverChoiceTests.cs`)
 
 ### P2-02 Online driver (Backdash)
-Status: todo · Needs: P2-01 · Parallel: no · Where: `src/Netcode/Online/`
+Status: done · Needs: P2-01 · Parallel: no · Where: `src/Netcode/Online/`
 Read: ADR-0003, ADR-0005
 - Backdash peer session behind `IMatchDriver`: prediction, rollback through snapshot ring buffer.
 - Max rollback window 8 frames: **developer setting**.

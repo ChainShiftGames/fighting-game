@@ -22,8 +22,9 @@ public static class OnlineLaunchOptions
 
     public static bool WantsSteam(string[] args) => Array.IndexOf(args, "--steam") >= 0;
 
-    /// <summary>Settings for a direct UDP match; null with no error when the arguments don't ask for one.</summary>
-    public static PeerMatchSettings? ParseDirect(string[] args, out string error)
+    /// <summary>The opponent of a direct UDP match; null with no error when the arguments don't ask for one.</summary>
+    /// <remarks>The tuning options are read when the match starts (<see cref="WithTuning"/>).</remarks>
+    public static OnlineOpponent? ParseDirect(string[] args, out string error)
     {
         error = string.Empty;
         if (Array.IndexOf(args, "--online") < 0)
@@ -33,13 +34,9 @@ public static class OnlineLaunchOptions
 
         try
         {
-            var settings = new PeerMatchSettings
-            {
-                LocalPort = IntOption(args, "--port", null),
-                RemoteEndPoint = IPEndPoint.Parse(Option(args, "--remote")),
-                LocalIsPlayer1 = PlayerOption(args),
-            };
-            return WithTuning(settings, args);
+            var remote = IPEndPoint.Parse(Option(args, "--remote"));
+            return new OnlineOpponent(
+                remote, remote.ToString(), PlayerOption(args), PeerTransport.DirectUdp, IntOption(args, "--port", null));
         }
         catch (FormatException exception)
         {
@@ -48,7 +45,10 @@ public static class OnlineLaunchOptions
         }
     }
 
-    /// <summary>Applies the rollback, delay and network-simulation options to any online match.</summary>
+    /// <summary>
+    /// Applies the rollback, delay and network-simulation options to any online match. Developer settings: they
+    /// override the data's values for one run, as exported test builds can't edit data.
+    /// </summary>
     /// <exception cref="FormatException">An option has an invalid value.</exception>
     public static PeerMatchSettings WithTuning(PeerMatchSettings settings, string[] args)
     {

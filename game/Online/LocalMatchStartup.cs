@@ -3,11 +3,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using Netcode.Drivers;
-using Sim.Characters;
-using Sim.Collision;
-using Sim.Composition;
 using Sim.Data;
-using Sim.Rules;
 using Sim.State;
 
 namespace FightingGame.Online;
@@ -41,23 +37,16 @@ public sealed class LocalMatchStartup
         _hitboxOverlay = hitboxOverlay;
     }
 
-    /// <summary>P1 plays the first character (by id) and P2 the second, or a mirror with only one; until character select.</summary>
     public StartedMatch Create(GameData data)
     {
-        CharacterData player1 = data.Characters[0];
-        CharacterData player2 = data.Characters[data.Characters.Count > 1 ? 1 : 0];
-
-        // No mechanics modules yet: none ships besides the contract test probe.
-        MatchRules rules = data.CreateMatchRules();
-        var match = new MatchSimulation(
-            player1, player2, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
-        var driver = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(match));
+        MatchLineup lineup = MatchLineup.From(data);
+        var driver = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(lineup.Simulation));
         PlayerInputReader[] players = [LocalPlayer(0), LocalPlayer(1)];
         var view = new MatchView();
-        view.Show(driver, [player1, player2], StageWalls.From(in rules), _hitboxOverlay);
+        view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay);
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players, _stepping);
-        return new StartedMatch(loop, driver, view, $"local {player1.Id} vs {player2.Id}", connection: null);
+        return new StartedMatch(loop, driver, view, $"local {lineup.Description}", connection: null);
     }
 
     // Player n uses their own keyboard bindings and the joypad in slot n.

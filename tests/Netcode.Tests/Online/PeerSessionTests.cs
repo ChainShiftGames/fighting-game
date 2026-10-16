@@ -69,6 +69,7 @@ public sealed class PeerSessionTests
         LocalPort = localPort,
         RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
         LocalIsPlayer1 = localIsPlayer1,
+        RollbackFrames = 8,
         NetworkSimulation = NetworkSimulation.TestConditions,
     };
 

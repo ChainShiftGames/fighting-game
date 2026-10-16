@@ -1,7 +1,6 @@
 using System;
 using FightingGame.Platform;
 using Godot;
-using Netcode.Online;
 
 namespace FightingGame.Online;
 
@@ -11,18 +10,19 @@ namespace FightingGame.Online;
 /// </summary>
 public sealed class MatchLauncher : IDisposable
 {
-    private readonly ToyMatchStartup _startup;
-    private readonly string[] _args;
+    private readonly Func<OnlineOpponent, StartedMatch?> _createOnline;
     private StartedMatch? _readyMatch;
     private bool _matchmakingMatchStarted;
 
     /// <param name="createLocal">Builds the local match; null when it can't (the host shows why).</param>
-    /// <param name="startup">Builds online matches.</param>
+    /// <param name="createOnline">Builds an online match against the opponent; null when it can't.</param>
     public MatchLauncher(
-        Func<StartedMatch?> createLocal, ToyMatchStartup startup, IPlatformServices platform, string[] args)
+        Func<StartedMatch?> createLocal,
+        Func<OnlineOpponent, StartedMatch?> createOnline,
+        IPlatformServices platform,
+        string[] args)
     {
-        _startup = startup;
-        _args = args;
+        _createOnline = createOnline;
         if (OnlineLaunchOptions.WantsSteam(args))
         {
             Matchmaking = platform.OpenMatchmaking();
@@ -35,15 +35,13 @@ public sealed class MatchLauncher : IDisposable
             return;
         }
 
-        PeerMatchSettings? direct = OnlineLaunchOptions.ParseDirect(args, out string error);
+        OnlineOpponent? direct = OnlineLaunchOptions.ParseDirect(args, out string error);
         if (error.Length > 0)
         {
             GD.PushError($"Ignoring online options, starting a local match: {error}");
         }
 
-        _readyMatch = direct is null
-            ? createLocal()
-            : startup.CreateOnline(direct, PeerTransport.DirectUdp, direct.RemoteEndPoint.ToString() ?? "?");
+        _readyMatch = direct is null ? createLocal() : createOnline(direct);
     }
 
     /// <summary>Set while looking for an opponent through the platform; null for local and direct matches.</summary>
@@ -64,17 +62,8 @@ public sealed class MatchLauncher : IDisposable
         }
 
         _matchmakingMatchStarted = true;
-        var settings = new PeerMatchSettings { RemoteEndPoint = found.Opponent, LocalIsPlayer1 = found.LocalIsPlayer1 };
-        try
-        {
-            settings = OnlineLaunchOptions.WithTuning(settings, _args);
-        }
-        catch (FormatException exception)
-        {
-            GD.PushError($"Ignoring invalid online options: {exception.Message}");
-        }
-
-        return _startup.CreateOnline(settings, found.Transport, found.OpponentName);
+        return _createOnline(
+            new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0));
     }
 
     public void Dispose() => Matchmaking?.Dispose();

@@ -1,4 +1,5 @@
 using Sim.Data.Characters.Reading;
+using Sim.Data.Online;
 using Sim.Data.Rules;
 using Sim.State;
 
@@ -41,6 +42,7 @@ public static class DataSettingList
         new("Landing throw invulnerability", MatchRules, "landingThrowInvulnerableFrames", 0, MaxThrowFrames, 1),
         new("Motion window", Motions, "motionWindow", 1, InputHistory.Capacity, 1),
         new("Button buffer", Motions, "buttonBuffer", 0, InputHistory.Capacity - 1, 1),
+        new("Rollback window (online)", OnlineSchema.File, "rollbackFrames", 1, OnlineSchema.MaxRollbackFrames, 1),
     ];
 
     public static DataFileChoice[] Choices() =>
