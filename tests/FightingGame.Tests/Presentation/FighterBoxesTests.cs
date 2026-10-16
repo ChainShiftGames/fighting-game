@@ -12,12 +12,12 @@ namespace FightingGame.Tests.Presentation;
 
 public sealed class FighterBoxesTests
 {
-    private static readonly CharacterData _character = TestGameData.FixtureMan;
+    private static readonly CharacterData _character = TestGameData.Testman;
 
     [Fact]
     public void ShowsOnlyTheBoxesOfTheCurrentMoveFrame()
     {
-        // fixture_man's 5a: hitbox on frames 5-7.
+        // Testman's 5a: hitbox on frames 5-7.
         Assert.DoesNotContain(Collect(Attack("5a", frame: 4, facing: 1)), box => box.Kind == BoxKind.Hit);
         Assert.Contains(Collect(Attack("5a", frame: 5, facing: 1)), box => box.Kind == BoxKind.Hit);
         Assert.DoesNotContain(Collect(Attack("5a", frame: 8, facing: 1)), box => box.Kind == BoxKind.Hit);

@@ -35,7 +35,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/input/motions.json`.
 - **Units**: positions in subpixels (1 px = 1000), velocities in subpixels per frame, times in frames.
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
-  real button set. `scenario_dummy` is there until Testman (P1-17): attacks `5a` (mid), `2a` (low), `6b`
+  real button set. `testman` (`data/characters/testman/`, P1-17) is the game's character; its scenarios are in
+  `Testman/` and follow its tuning. `scenario_dummy` is the stable fixture for rule scenarios: attacks `5a` (mid), `2a` (low), `6b`
   (overhead), `236b` (mid with chip damage); projectile specials (P1-21; each spawns on move frame 13, 40000 in
   front) `236c` (mid fireball, 8000 per frame, durability 1, projectile 0), `236d` (low fireball at the floor, same
   speed, projectile 1), `214c` (slow mid fireball, 2000 per frame, lifetime 200, durability 2, projectile 2); basic

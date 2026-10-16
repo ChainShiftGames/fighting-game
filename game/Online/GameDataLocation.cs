@@ -12,10 +12,6 @@ namespace FightingGame.Online;
 /// </summary>
 public sealed class GameDataLocation
 {
-    // Developer setting: where characters come from while data/ has none (relative to the repository root). The
-    // Sim.Data test fixture is a small valid character; remove this once Testman (P1-17) is in data/.
-    private const string PlaceholderCharacterFolder = "tests/Sim.Data.Tests/Fixtures/data";
-
     private GameDataLocation(string? folder)
     {
         Folder = folder;
@@ -44,10 +40,10 @@ public sealed class GameDataLocation
 
     /// <summary>Loads and validates everything, reading the files again so data edits show up in the next match.</summary>
     /// <exception cref="DataValidationException">Any file is invalid.</exception>
-    /// <exception cref="InvalidDataException">There is no character to play, not even a placeholder.</exception>
+    /// <exception cref="InvalidDataException">There is no character to play.</exception>
     public GameData Load()
     {
-        IDataSource source = Folder is null ? new EmbeddedDataSource() : FolderSource(Folder);
+        IDataSource source = Folder is null ? new EmbeddedDataSource() : new DirectoryDataSource(Folder);
         GameData data = new GameDataLoader(source).Load();
         if (data.Characters.Count == 0)
         {
@@ -56,23 +52,5 @@ public sealed class GameDataLocation
         }
 
         return data;
-    }
-
-    private static IDataSource FolderSource(string folder)
-    {
-        IDataSource source = new DirectoryDataSource(folder);
-        string placeholder = Path.GetFullPath(Path.Combine(folder, "..", PlaceholderCharacterFolder));
-        if (!Directory.Exists(placeholder))
-        {
-            return source;
-        }
-
-        var withPlaceholder = new PlaceholderCharacterSource(source, new DirectoryDataSource(placeholder));
-        if (withPlaceholder.UsesPlaceholder)
-        {
-            GD.PushWarning($"{folder} has no characters yet: using the placeholder characters in {placeholder}.");
-        }
-
-        return withPlaceholder;
     }
 }

@@ -1,0 +1,15 @@
+# Testman's 5d is an overhead (startup 20, 700 damage, hitstun 22): holding down-back doesn't block it.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5d
+frames 1-30: p2 1
+
+frame 19: expect p2 state = crouch
+frame 19: expect p2 damage = 0
+frame 20: expect p1 event hit
+frame 20: expect p2 state = crouch_hitstun
+frame 20: expect p2 stun = 22
+frame 20: expect p2 damage = 700

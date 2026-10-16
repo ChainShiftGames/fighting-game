@@ -307,10 +307,17 @@ Read: ADR-0004
 - Measure from device read to the frame being shown (ADR-0004). Developer overlay; recorded per milestone.
 
 ### P1-17 Testman
-Status: todo · Needs: P1-21 · Parallel: yes · Where: `data/characters/testman/`
+Status: done · Needs: P1-21 · Parallel: yes · Where: `data/characters/testman/`
 Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
 - ~10 moves in JSON on the A/B/C/D buttons: standing and crouching normals, a low, an overhead, a projectile, a
   reversal, a super placeholder.
+- Built: `data/characters/testman/` (frame data in its move files, all **developer settings**): `5a` `5b` `5c`,
+  `5d` overhead, `2a`, `2b` low, `2c` low knockdown sweep, `j_c`, `236c` fireball, `623c` reversal (invulnerable
+  frames 1-8), `236236d` super placeholder (invulnerable 1-11), data gatlings light → medium → heavy → special/
+  super; a basic move for every `BasicState` (backdash and wake-up invulnerable). The game loads it from `data/`
+  (the fixture-character placeholder source is gone); scenarios in `tests/Scenarios/Testman/`.
+- Not expressible in data yet: super meter cost and super freeze (P3-13), strike-only or throw-only invulnerability,
+  multi-hit moves (a move connects once).
 
 ### P1-18 Scenario test runner
 Status: done · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
