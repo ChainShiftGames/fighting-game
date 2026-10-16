@@ -8,4 +8,5 @@ public sealed record MoveRecord(
     MoveData Move,
     IReadOnlyList<BoxData> Boxes,
     IReadOnlyList<CancelRecord> Cancels,
-    IReadOnlyList<HitData> Hits);
+    IReadOnlyList<HitData> Hits,
+    IReadOnlyList<VelocityData> Velocities);

@@ -70,6 +70,31 @@
         }
       }
     },
+    "velocity": {
+      "description": "The move's own velocity, x forward and y up in subpixels per frame. On the frames a range covers it replaces the fighter's velocity and gravity doesn't apply (dashes, backdashes, air dashes, lunges). Ranges in frame order, not overlapping, inside the move's frames.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["firstFrame", "lastFrame", "x"],
+        "properties": {
+          "firstFrame": { "$ref": "#/$defs/frames" },
+          "lastFrame": { "$ref": "#/$defs/frames" },
+          "x": { "$ref": "#/$defs/coordinate" },
+          "y": { "$ref": "#/$defs/coordinate", "description": "Default 0." }
+        }
+      }
+    },
+    "invulnerable": {
+      "description": "Frames on which the fighter can't be hit or thrown (backdash, reversals). Inside the move's frames.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstFrame", "lastFrame"],
+      "properties": {
+        "firstFrame": { "$ref": "#/$defs/frames" },
+        "lastFrame": { "$ref": "#/$defs/frames" }
+      }
+    },
     "hit": {
       "description": "Required exactly when the move has a hit or throw box.",
       "type": "object",

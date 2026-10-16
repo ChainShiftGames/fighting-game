@@ -112,14 +112,20 @@ Done when:
 - [ ] rebinding a button in the dev file works on keyboard and controller
 
 ### P1-06 Motion parser and buffer
-Status: todo · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
+Status: done · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Data-driven motion definitions (236, 214, 623, 41236, 63214, 22, 236236, 632146).
 - Motion window 12 frames, button buffer 2 frames. **Developer settings** in `MatchRules`.
 - Priority order when several motions match on the same frame, defined in data.
+- Built: `data/input/motions.json` (rules in `data/README.md` → Motions), loader in `src/Sim.Data/Motions/`,
+  `MotionParser` + per-character `MoveInputMatcher` in `src/Sim/Input/Motions/`.
+- Follow-ups: wire `MoveInputMatcher` into `IMoveInput` (after P1-09); load motions in `GameDataLoader` (data hash,
+  `ApplyTo(ref MatchRules)`, check move motions exist); plain-text scenario versions once P1-18 lands; consume a
+  buffered press once it started a move.
 
 Done when:
-- [ ] scenario tests for each motion, buffer edges (frame 2 accepted, frame 3 rejected) and priority conflicts
+- [x] tests for each motion, buffer edges (frame 2 accepted, frame 3 rejected) and priority conflicts (unit tests
+  in `tests/Sim.Tests/Input/Motions/`; plain-text scenario versions follow P1-18)
 
 ## C. Character data
 
@@ -147,10 +153,20 @@ Read: ADR-0007, CURRENT_STATE §3 Movement/Offense/Defense
 - Transitions and cancel windows come from data; the state machine contains no character-specific code.
 
 ### P1-09 Movement
-Status: todo · Needs: P1-08 · Parallel: no · Where: `src/Sim/Fighters/Movement/`
+Status: done · Needs: P1-08 · Parallel: no · Where: `src/Sim/Fighters/Movement/`
 Read: CURRENT_STATE §3 Movement
 - Walk, dash (run or step per character), backdash with invulnerability, jump with prejump, high jump, gravity.
 - Air actions (double jump, air dash) sharing a per-character budget. Values from data.
+- Built: `MovementStage` (pipeline Movement step). Velocity order: takeoff → move `velocity` data → walk speeds
+  (ground) or momentum + gravity (air). Dash/backdash/air dash speeds and backdash `invulnerable` frames are move
+  data (developer settings); jump values are character stats. State machine sets `Takeoff`, spends air actions;
+  movement refills them on landing. New basic states `airDash`, `airBackdash`.
+- For P1-06: implement `IMoveInput` dash (66 / 44, ground and air), `IsHighJumpTriggered` (2→8 family, checked on
+  the frame a prejump starts) and `IsAirJumpTriggered` (fresh up in the air). `ButtonPressMoveInput` is the
+  stand-in (dash button mask passed in by the caller).
+- Follow-ups: scenario tests (walk, jump arcs, high jump, run/step dash, backdash invulnerability, double jump,
+  air dash, budget refill) once P1-18's runner lands; P1-12 reads `MoveData.IsInvulnerableOn` and sets
+  `IsAirborne` + upward velocity for launchers.
 
 ### P1-10 Collision, walls and corners
 Status: todo · Needs: P1-09 · Parallel: no · Where: `src/Sim/Collision/`
@@ -194,10 +210,20 @@ Done when:
 - [ ] pool full → spawn is refused deterministically (documented behaviour)
 
 ### P1-14 Frame-tagged events
-Status: todo · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`
+Status: done · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`
 Read: ADR-0005
 - Fixed-size event buffer per frame (hit, block, whiff sound, landing…), each with frame number and stable id.
   Used by presentation now and rollback reconciliation in Phase 2.
+- Built: `MatchState.Events` (`FrameEvents`), so events roll back with the state. Usage, overflow and the Phase 2
+  reconciliation rule are in the `FrameEvents` doc comment; kinds and their fields in `FrameEventKind`.
+- Stages emit with `state.Events.Emit(state.Frame, kind, fighter, position, detail)`; new kinds are appended to
+  `FrameEventKind` by the task that first emits them (P1-08/P1-09: swing, landing; P1-12: hit, block).
+- Open: modules see the state read-only, so they can't emit events yet; add a `ModuleContext` path when a module
+  first needs one.
+
+Done when:
+- [x] events read back per frame with stable ids; a restored snapshot re-simulates them; overflow drops
+  deterministically; no allocation (tests in `tests/Sim.Tests/Events/`)
 
 ## E. Presentation and tooling
 
@@ -221,13 +247,14 @@ Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
   reversal, a super placeholder.
 
 ### P1-18 Scenario test runner
-Status: todo · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
+Status: done · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
 Read: ADR-0006
 - Plain-text format: setup (characters, positions), per-frame inputs, expectations ("P2 in hitstun on frame 5").
 - Runner reports the first failing expectation with the actual state.
+- Format and how to add an expectation kind: [tests/Scenarios/README.md](../../tests/Scenarios/README.md).
 
 Done when:
-- [ ] an agent can add a scenario without touching C#
+- [x] an agent can add a scenario without touching C#
 
 ### P1-19 SyncTest and golden replays
 Status: todo · Needs: P1-17, P1-18 · Parallel: no · Where: `tests/`

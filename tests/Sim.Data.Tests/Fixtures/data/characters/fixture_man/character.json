@@ -16,9 +16,10 @@
     "gravity": 1000,
     "airActions": 2
   },
-  "moves": ["236c", "5a", "2b", "j_b", "idle", "crouch"],
+  "moves": ["236c", "5a", "2b", "j_b", "idle", "crouch", "backdash"],
   "states": {
     "idle": "idle",
-    "crouch": "crouch"
+    "crouch": "crouch",
+    "backdash": "backdash"
   }
 }

@@ -22,4 +22,6 @@ public enum BasicState
     CrouchBlockstun,
     Knockdown,
     WakeUp,
+    AirDash,
+    AirBackdash,
 }

@@ -1,4 +1,5 @@
 using Sim.Characters;
+using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Math;
 
@@ -31,8 +32,22 @@ public struct FighterState
     /// <summary>Hitstun or blockstun left; counts down at the start of each of the fighter's frames.</summary>
     public int StunFramesLeft;
 
-    /// <summary>1 while in the air; set by movement (P1-09).</summary>
+    /// <summary>1 while in the air; movement sets it on takeoff and clears it on landing.</summary>
+    /// <remarks>A system that launches a grounded fighter (e.g. a launcher) sets it with an upward velocity.</remarks>
     public int IsAirborne;
+
+    /// <summary>The jump the state machine started this frame, for movement to launch; None on other frames.</summary>
+    public Takeoff Takeoff;
+
+    /// <summary>That jump's direction relative to facing: +1 forward, -1 back, 0 straight up.</summary>
+    public int TakeoffDirection;
+
+    /// <summary>1 while the current prejump leads to a high jump (decided by the input that started it).</summary>
+    public int IsHighJump;
+
+    /// <summary>Double jumps and air dashes used since the fighter left the ground.</summary>
+    /// <remarks>The state machine spends them; movement refills them on landing.</remarks>
+    public int AirActionsUsed;
 
     /// <summary>Hitstop and time scale, managed by the tick pipeline's time control.</summary>
     public FighterTiming Timing;

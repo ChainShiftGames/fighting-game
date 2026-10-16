@@ -15,6 +15,7 @@ public static class CharacterAssembler
         List<CancelData> cancels = [];
         List<int> cancelTargets = [];
         List<HitData> hits = [];
+        List<VelocityData> velocities = [];
 
         foreach (MoveRecord record in moves)
         {
@@ -33,9 +34,12 @@ public static class CharacterAssembler
                 CancelCount = record.Cancels.Count,
                 HitStart = hits.Count,
                 HitCount = record.Hits.Count,
+                VelocityStart = velocities.Count,
+                VelocityCount = record.Velocities.Count,
             });
             boxes.AddRange(record.Boxes);
             hits.AddRange(record.Hits);
+            velocities.AddRange(record.Velocities);
         }
 
         string[] moveIds = new string[definition.MoveIds.Count];
@@ -54,6 +58,7 @@ public static class CharacterAssembler
             cancels.ToArray(),
             cancelTargets.ToArray(),
             hits.ToArray(),
+            velocities.ToArray(),
             definition.BasicStateMoves);
     }
 }

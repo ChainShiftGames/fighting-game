@@ -3,8 +3,8 @@ using System;
 namespace Sim.Characters;
 
 /// <summary>
-/// A character in compact, read-only form for the game logic: stats plus flat arrays of moves, boxes, cancels and
-/// hits. Created once at load; never changed during a match and not part of the game state.
+/// A character in compact, read-only form for the game logic: stats plus flat arrays of moves, boxes, cancels,
+/// hits and velocities. Created once at load; never changed during a match and not part of the game state.
 /// </summary>
 public sealed class CharacterData
 {
@@ -17,6 +17,7 @@ public sealed class CharacterData
     private readonly CancelData[] _cancels;
     private readonly int[] _cancelTargets;
     private readonly HitData[] _hits;
+    private readonly VelocityData[] _velocities;
     private readonly int[] _basicStateMoves;
 
     public CharacterData(
@@ -29,6 +30,7 @@ public sealed class CharacterData
         CancelData[] cancels,
         int[] cancelTargets,
         HitData[] hits,
+        VelocityData[] velocities,
         int[] basicStateMoves)
     {
         Id = id;
@@ -40,6 +42,7 @@ public sealed class CharacterData
         _cancels = cancels;
         _cancelTargets = cancelTargets;
         _hits = hits;
+        _velocities = velocities;
         _basicStateMoves = basicStateMoves;
     }
 
@@ -65,6 +68,8 @@ public sealed class CharacterData
 
     public ReadOnlySpan<HitData> Hits => _hits;
 
+    public ReadOnlySpan<VelocityData> Velocities => _velocities;
+
     /// <summary>Move index per <see cref="BasicState"/>, or <see cref="NoMove"/>.</summary>
     public ReadOnlySpan<int> BasicStateMoves => _basicStateMoves;
 
@@ -78,4 +83,8 @@ public sealed class CharacterData
         _cancelTargets.AsSpan(cancel.TargetStart, cancel.TargetCount);
 
     public ReadOnlySpan<HitData> HitsOf(in MoveData move) => _hits.AsSpan(move.HitStart, move.HitCount);
+
+    /// <summary>The move's velocity ranges, in frame order and never overlapping.</summary>
+    public ReadOnlySpan<VelocityData> VelocitiesOf(in MoveData move) =>
+        _velocities.AsSpan(move.VelocityStart, move.VelocityCount);
 }

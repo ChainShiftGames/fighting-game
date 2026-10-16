@@ -12,7 +12,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class CompactLayoutTests
 {
     public static TheoryData<Type> HashedStructs =>
-        [typeof(CharacterStats), typeof(MoveData), typeof(BoxData), typeof(CancelData), typeof(HitData)];
+        [typeof(CharacterStats), typeof(MoveData), typeof(BoxData), typeof(CancelData), typeof(HitData),
+            typeof(VelocityData)];
 
     [Theory]
     [MemberData(nameof(HashedStructs))]
