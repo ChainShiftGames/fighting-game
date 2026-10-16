@@ -17,7 +17,7 @@ namespace FightingGame.Debug;
 public partial class DebugPanel : CanvasLayer
 {
     private const float Margin = 12f;
-    private const float TopOffset = 80f;
+    private const float TopOffset = 96f;
     private const int Spacing = 6;
 
     private readonly VBoxContainer _rows = new() { CustomMinimumSize = new Vector2(320f, 0f) };
@@ -44,7 +44,7 @@ public partial class DebugPanel : CanvasLayer
         }
 
         _rows.AddChild(new HSeparator());
-        _rows.AddChild(new Label { Text = dataRoot is null ? "data/ (not found)" : "data/ (saved to the files)" });
+        _rows.AddChild(new Label { Text = dataRoot is null ? "data/ (embedded in this build: read-only)" : "data/ (saved to the files)" });
         foreach (DataFileSetting setting in dataSettings)
         {
             AddDataRow(setting);

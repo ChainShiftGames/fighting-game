@@ -4,6 +4,7 @@ using FightingGame.Loop;
 using FightingGame.Presentation;
 using Netcode.Drivers;
 using Sim.Characters;
+using Sim.Collision;
 using Sim.Composition;
 using Sim.Data;
 using Sim.Rules;
@@ -53,7 +54,7 @@ public sealed class LocalMatchStartup
         var driver = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(match));
         PlayerInputReader[] players = [LocalPlayer(0), LocalPlayer(1)];
         var view = new MatchView();
-        view.Show(driver, [player1, player2], _hitboxOverlay);
+        view.Show(driver, [player1, player2], StageWalls.From(in rules), _hitboxOverlay);
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players, _stepping);
         return new StartedMatch(loop, driver, view, $"local {player1.Id} vs {player2.Id}", connection: null);

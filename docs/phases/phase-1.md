@@ -228,7 +228,7 @@ Done when:
 ## E. Presentation and tooling
 
 ### P1-15 Presentation v0
-Status: todo · Needs: P1-14 · Parallel: yes · Where: `game/Presentation/`
+Status: done · Needs: P1-14 · Parallel: yes · Where: `game/Presentation/`
 Read: ADR-0004, ADR-0008
 - Placeholder fighters (boxes or capsules), stage floor and walls, simple HUD (health, timer).
 - Hitbox overlay and frame stepping: **developer settings** in a debug panel.

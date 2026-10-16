@@ -3,6 +3,8 @@ using FightingGame.Debug;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
+using Sim.Collision;
+using Sim.Math;
 using Sim.State;
 
 namespace FightingGame.Presentation;
@@ -14,10 +16,13 @@ namespace FightingGame.Presentation;
 public partial class MatchView : Node2D
 {
     private const float FloorWidth = 2f;
+    private const float WallWidth = 4f;
     private const float CentreMarkHeight = 6f;
 
     private static readonly Color _floorColor = new(0.35f, 0.35f, 0.4f);
+    private static readonly Color _wallColor = new(0.55f, 0.55f, 0.62f);
     private static readonly Color _backgroundColor = new(0.08f, 0.08f, 0.1f);
+    private static readonly Color _outsideColor = new(0.03f, 0.03f, 0.04f);
 
     // Blue and orange: told apart with the common kinds of colour blindness (ADR-0008 §5).
     private static readonly Color[] _fighterColors = [new(0.25f, 0.55f, 1f), new(1f, 0.6f, 0.15f)];
@@ -26,14 +31,18 @@ public partial class MatchView : Node2D
     private readonly MatchHud _hud = new();
     private IMatchDriver<MatchState>? _driver;
     private CharacterData[] _characters = [];
+    private StageWalls _walls;
     private DeveloperToggle? _hitboxOverlay;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
+    /// <param name="walls">The stage walls from the match rules.</param>
     /// <param name="hitboxOverlay">Draws every box when on (developer setting).</param>
-    public void Show(IMatchDriver<MatchState> driver, CharacterData[] characters, DeveloperToggle hitboxOverlay)
+    public void Show(
+        IMatchDriver<MatchState> driver, CharacterData[] characters, StageWalls walls, DeveloperToggle hitboxOverlay)
     {
         _driver = driver;
         _characters = characters;
+        _walls = walls;
         _hitboxOverlay = hitboxOverlay;
         _hud.Show(driver, characters);
         QueueRedraw();
@@ -48,23 +57,33 @@ public partial class MatchView : Node2D
             return;
         }
 
+        ref readonly MatchState state = ref _driver.State;
         Vector2 size = GetViewportRect().Size;
-        DrawRect(new Rect2(Vector2.Zero, size), _backgroundColor);
-        StageCamera camera = StageCamera.Fit(size);
+        StageCamera camera = StageCamera.Fit(size, _walls, Midpoint(in state));
         DrawStage(camera, size);
 
-        ref readonly MatchState state = ref _driver.State;
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             DrawFighter(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
         }
     }
 
-    // Walls come with P1-10 (collision, walls and corners), which puts the stage width in the match rules.
+    // Until the camera position comes from the logic (P1-11): halfway between the fighters.
+    private static int Midpoint(in MatchState state) =>
+        (int)(((long)state.Fighters[0].Position.X + state.Fighters[1].Position.X) / 2);
+
+    // The floor between the walls; the walls reach up past the top of the screen, as in the logic.
     private void DrawStage(StageCamera camera, Vector2 size)
     {
+        float left = camera.ToScreen(new IntVector2(_walls.Left, 0)).X;
+        float right = camera.ToScreen(new IntVector2(_walls.Right, 0)).X;
+        float floorY = camera.FloorCentre.Y;
+        DrawRect(new Rect2(Vector2.Zero, size), _outsideColor);
+        DrawRect(new Rect2(left, 0f, right - left, size.Y), _backgroundColor);
+        DrawLine(new Vector2(left, floorY), new Vector2(right, floorY), _floorColor, FloorWidth);
+        DrawLine(new Vector2(left, 0f), new Vector2(left, floorY), _wallColor, WallWidth);
+        DrawLine(new Vector2(right, 0f), new Vector2(right, floorY), _wallColor, WallWidth);
         Vector2 centre = camera.FloorCentre;
-        DrawLine(new Vector2(0f, centre.Y), new Vector2(size.X, centre.Y), _floorColor, FloorWidth);
         DrawLine(centre, centre + new Vector2(0f, CentreMarkHeight), _floorColor, FloorWidth);
     }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Sim.Characters;
+using Sim.Collision;
 using Sim.Math;
 using Sim.State;
 
@@ -19,9 +20,7 @@ public static class FighterBoxes
                 continue;
             }
 
-            // Data gives boxes facing right (README in data/).
-            AxisAlignedBox area = fighter.Facing < 0 ? box.Area.MirrorX() : box.Area;
-            boxes.Add(new WorldBox(box.Kind, area.Translate(fighter.Position)));
+            boxes.Add(new WorldBox(box.Kind, ActiveBoxes.Place(box.Area, fighter.Position, fighter.Facing)));
         }
     }
 

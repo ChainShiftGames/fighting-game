@@ -1,8 +1,9 @@
+using Netcode.Drivers;
 using Sim.Composition;
 using Sim.Input;
 using Sim.State;
 
-namespace Netcode.Drivers;
+namespace FightingGame.Online;
 
 /// <summary>Lets match drivers run the real game logic: a match composed from data by <see cref="MatchSimulation"/>.</summary>
 public sealed class ComposedMatchSimulation : IMatchSimulation<MatchState>

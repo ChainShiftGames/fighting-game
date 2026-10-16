@@ -1,22 +1,31 @@
 using System;
-using System.IO;
-using System.Reflection;
+using FightingGame.Online;
 using Netcode.Drivers;
 using Sim.Characters;
 using Sim.Composition;
 using Sim.Data;
-using Sim.Data.Sources;
 using Sim.Input;
 using Sim.Rules;
 using Sim.State;
 using Xunit;
 
-namespace Netcode.Tests.Drivers;
+namespace FightingGame.Tests.Online;
 
 public sealed class ComposedMatchSimulationTests
 {
     private const int Seed = 1234;
     private const int Frames = 600;
+
+    private static readonly ushort[] _directions =
+    [
+        0,
+        InputWord.Left,
+        InputWord.Right,
+        InputWord.Up,
+        InputWord.Up | InputWord.Left,
+        InputWord.Up | InputWord.Right,
+        InputWord.Left | InputWord.Right,
+    ];
 
     private readonly MatchSimulation _match = CreateMatch();
 
@@ -35,12 +44,12 @@ public sealed class ComposedMatchSimulationTests
     {
         using var driver = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(_match));
         MatchState expected = _match.StartState();
-        var inputs = new SeededInputs(Seed);
+        var random = new Random(Seed);
 
         for (int frame = 0; frame < Frames; frame++)
         {
-            InputWord player1 = inputs.Next();
-            InputWord player2 = inputs.Next();
+            var player1 = new InputWord(_directions[random.Next(_directions.Length)]);
+            var player2 = new InputWord(_directions[random.Next(_directions.Length)]);
             Assert.True(driver.TryAdvanceFrame([player1, player2]));
             _match.Tick(ref expected, player1, player2);
         }
@@ -49,27 +58,12 @@ public sealed class ComposedMatchSimulationTests
         Assert.Equal(StateChecksum.Compute(in expected), StateChecksum.Compute(in driver.State));
     }
 
-    // The Sim.Data fixture is a complete data folder with one character, so this test needs nothing from data/.
     private static MatchSimulation CreateMatch()
     {
-        GameData data = new GameDataLoader(new DirectoryDataSource(FixtureDataRoot())).Load();
-        CharacterData character = data.Characters[0];
+        GameData data = TestGameData.WithFixtureCharacter;
+        CharacterData character = TestGameData.FixtureMan;
         MatchRules rules = data.CreateMatchRules();
         return new MatchSimulation(
             character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
-    }
-
-    private static string FixtureDataRoot()
-    {
-        foreach (AssemblyMetadataAttribute attribute in
-            typeof(ComposedMatchSimulationTests).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
-        {
-            if (attribute.Key == "RepositoryRoot")
-            {
-                return Path.Combine(attribute.Value!, "tests", "Sim.Data.Tests", "Fixtures", "data");
-            }
-        }
-
-        throw new InvalidOperationException("RepositoryRoot metadata is missing from the test assembly.");
     }
 }
