@@ -6,7 +6,7 @@ using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
 using Sim.Input.Motions;
-using Sim.Math;
+using Sim.Match;
 using Sim.Modules;
 using Sim.Pipeline;
 using Sim.Rules;
@@ -21,11 +21,10 @@ namespace Sim.Composition;
 /// </remarks>
 public sealed class MatchSimulation
 {
-    private const int FacingRight = 1;
-    private const int FacingLeft = -1;
+    private const int FirstRound = 1;
 
     private readonly TickPipeline _pipeline;
-    private readonly StateMachineStage _stateMachines;
+    private readonly RoundStart _roundStart;
 
     /// <param name="player1">P1's character.</param>
     /// <param name="player2">P2's character.</param>
@@ -47,7 +46,8 @@ public sealed class MatchSimulation
         CoreRequests requests = new();
         ModuleLineup modules = new(RegisteredModules.Create(), in rules.Modules, requests);
         MotionParser parser = new(motions, in rules);
-        _stateMachines = new StateMachineStage(
+        _roundStart = new RoundStart(player1, player2, in rules);
+        StateMachineStage stateMachines = new(
             new MotionMoveInput(parser, movement, player1),
             new MotionMoveInput(parser, movement, player2),
             player1,
@@ -55,14 +55,16 @@ public sealed class MatchSimulation
         HitContacts contacts = new();
         TickStages stages = new()
         {
-            Input = new ButtonSetInputStage(buttons),
-            StateMachines = _stateMachines,
+            Input = new RoundInputLock(new ButtonSetInputStage(buttons)),
+            StateMachines = stateMachines,
             Movement = new MovementStage(player1, player2),
             Collision = new StageSequence(
                 new CollisionStage(player1, player2, StageWalls.From(in rules)),
                 new CameraStage(player1, player2, CameraFraming.From(in rules))),
             HitDetection = new HitDetectionStage(player1, player2, contacts),
             HitResolution = new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule),
+            RoundTimer = new RoundStage(
+                _roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules),
         };
         _pipeline = new TickPipeline(stages, modules, requests);
     }
@@ -73,25 +75,15 @@ public sealed class MatchSimulation
 
     public MatchRules Rules { get; }
 
-    /// <summary>Round 1: fighters placed symmetrically around the centre, facing each other, full health, idle.</summary>
+    /// <summary>Round 1 (<see cref="RoundStart"/>): fighters around the centre facing each other, full health, idle.</summary>
     public MatchState StartState()
     {
         MatchState state = default;
-        state.Round.Round = 1;
-        Place(ref state.Fighters[0], -Rules.RoundStartDistance, FacingRight, Player1.Stats.Health);
-        Place(ref state.Fighters[1], Rules.RoundStartDistance, FacingLeft, Player2.Stats.Health);
-        _stateMachines.EnterIdle(ref state);
+        _roundStart.Begin(ref state, FirstRound);
         return state;
     }
 
     /// <summary>Runs one frame with both players' raw input words.</summary>
     public void Tick(ref MatchState state, InputWord player1, InputWord player2) =>
         _pipeline.Tick(ref state, player1, player2);
-
-    private static void Place(ref FighterState fighter, int x, int facing, int health)
-    {
-        fighter.Position = new IntVector2(x, 0);
-        fighter.Facing = facing;
-        fighter.Health = health;
-    }
 }

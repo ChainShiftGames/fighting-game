@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Tests.Support;
@@ -31,6 +32,51 @@ public sealed class MatchRulesFileTests
                 rules.TradeRule));
     }
 
+    [Fact]
+    public void CreateMatchRulesAppliesTheRoundValues()
+    {
+        MatchRules rules = Fixture.Load(_data).CreateMatchRules();
+
+        Assert.Equal(
+            (5940, 2, 5, 120), (rules.RoundTimerFrames, rules.RoundsToWin, rules.MaxRounds, rules.RoundOverFrames));
+    }
+
+    [Theory]
+    [InlineData("roundTimerFrames")]
+    [InlineData("roundsToWin")]
+    [InlineData("maxRounds")]
+    [InlineData("roundOverFrames")]
+    public void AMissingRoundValueIsReported(string field)
+    {
+        _data.SetText(MatchRulesSchema.File, WithoutField(_data.GetText(MatchRulesSchema.File), field));
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, field), (error.File, error.Field));
+    }
+
+    [Theory]
+    [InlineData("\"roundTimerFrames\": 5940", "\"roundTimerFrames\": 0", "roundTimerFrames")]
+    [InlineData("\"roundsToWin\": 2", "\"roundsToWin\": 0", "roundsToWin")]
+    [InlineData("\"roundOverFrames\": 120", "\"roundOverFrames\": 0", "roundOverFrames")]
+    [InlineData("\"roundOverFrames\": 120", "\"roundOverFrames\": 601", "roundOverFrames")]
+    public void ARoundValueOutOfRangeNamesTheField(string from, string to, string field)
+    {
+        _data.Replace(MatchRulesSchema.File, from, to);
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, field), (error.File, error.Field));
+    }
+
+    [Fact]
+    public void ARoundLimitTooShortToDecideAMatchIsReported()
+    {
+        _data.Replace(MatchRulesSchema.File, "\"maxRounds\": 5", "\"maxRounds\": 2");
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "maxRounds"), (error.File, error.Field));
+        Assert.Contains("roundsToWin", error.Reason, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("trade", TradeRule.Trade)]
     [InlineData("clash", TradeRule.Clash)]
@@ -56,7 +102,10 @@ public sealed class MatchRulesFileTests
     {
         _data.SetText(
             MatchRulesSchema.File,
-            """{ "schemaVersion": 1, "roundStartDistance": 150000, "wallDistance": 600000, "maxPlayerDistance": 640000 }""");
+            """
+            { "schemaVersion": 1, "roundStartDistance": 150000, "wallDistance": 600000, "maxPlayerDistance": 640000,
+              "roundTimerFrames": 5940, "roundsToWin": 2, "maxRounds": 5, "roundOverFrames": 120 }
+            """);
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
         Assert.Equal((MatchRulesSchema.File, "tradeRule"), (error.File, error.Field));
@@ -120,4 +169,8 @@ public sealed class MatchRulesFileTests
         Assert.Equal((Fixture.MoveFile("5a"), "input.motion"), (error.File, error.Field));
         Assert.Contains("motion 999", error.Reason, StringComparison.Ordinal);
     }
+
+    // Every round value follows tradeRule in the file, so each has a comma before it.
+    private static string WithoutField(string json, string field) =>
+        Regex.Replace(json, $@",\s*""{field}"":\s*\d+", string.Empty);
 }

@@ -1,0 +1,40 @@
+# KO: P1's 5a (300 damage, hits on frame 5) takes P2's last 300 health. The round ends on that frame, wins are
+# counted at once, input is neutral for the 120-frame round-over pause (roundOverFrames), then round 2 starts reset.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p2 health = 300
+
+frame 1: p1 5a
+frames 30-40: p1 6                     # ignored: nobody has control during the pause
+frames 126-130: p1 6                   # round 2: control is back
+
+frames 1-4: expect round_phase = fighting
+frame 5: expect p2 health = 0
+frame 5: expect p2 event knock_out
+frame 5: expect p1 event knock_out = 0
+frame 5: expect round_phase = round_over
+frame 5: expect round_winner = p1
+frame 5: expect p1 wins = 1
+frame 5: expect p2 wins = 0
+frame 5: expect timer = 5936
+frames 6-124: expect round_phase = round_over
+frames 6-124: expect timer = 5936      # the timer only runs while fighting
+frames 30-40: expect p1 input = 5
+frames 30-40: expect p1 x = -30000
+
+frame 125: expect match_event round_start
+frame 125: expect round_phase = fighting
+frame 125: expect round = 2
+frame 125: expect round_winner = none
+frame 125: expect p1 wins = 1
+frame 125: expect timer = 5940
+frame 125: expect camera = 0
+frame 125: expect p1 x = -150000
+frame 125: expect p2 x = 150000
+frame 125: expect p2 health = 10000
+frame 125: expect p1 state = idle
+frame 125: expect p2 state = idle
+frame 126: expect timer = 5939
+frame 130: expect p1 x > -150000

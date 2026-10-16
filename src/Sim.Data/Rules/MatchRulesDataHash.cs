@@ -11,5 +11,9 @@ public static class MatchRulesDataHash
         hash.Add(file.WallDistance);
         hash.Add(file.MaxPlayerDistance);
         hash.Add((int)file.TradeRule);
+        hash.Add(file.Rounds.TimerFrames);
+        hash.Add(file.Rounds.RoundsToWin);
+        hash.Add(file.Rounds.MaxRounds);
+        hash.Add(file.Rounds.RoundOverFrames);
     }
 }

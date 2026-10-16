@@ -1,0 +1,19 @@
+# Double KO: both 5a trade on frame 5 and take each other's last 300 health. A draw: both get a round win.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: trade trade
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p1 health = 300
+setup: p2 health = 300
+
+frame 1: p1 5a
+frame 1: p2 5a
+
+frame 5: expect p1 event knock_out
+frame 5: expect p2 event knock_out
+frame 5: expect round_phase = round_over
+frame 5: expect round_winner = draw
+frame 5: expect p1 wins = 1
+frame 5: expect p2 wins = 1
+frame 125: expect round = 2

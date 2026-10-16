@@ -208,9 +208,30 @@ Done when:
   (`tests/Scenarios/Combat/`)
 
 ### P1-13 Rounds and timer
-Status: todo · Needs: P1-12 · Parallel: yes · Where: `src/Sim/Match/`
+Status: done · Needs: P1-12 · Parallel: yes · Where: `src/Sim/Match/`
 Read: CURRENT_STATE §3 Match
 - 99 s timer, best of 3, round reset, KO and time-out. Values are **developer settings**.
+- Built: `RoundStage` in the pipeline's round/timer step, with `RoundJudge` (who won), `MatchScore` (wins, match
+  result), `RoundStart` (reset, also the match's start state) and `RoundInputLock` (wraps the input step). State in
+  `MatchState.Round` (`RoundPhase`, `RoundEnding`, `Winners`). **Developer settings** in `data/rules/match.json`:
+  `roundTimerFrames` 5940, `roundsToWin` 2, `maxRounds` 5, `roundOverFrames` 120. Events: `KnockOut`, `TimeOut`,
+  `RoundStart`, `MatchEnd`. Rules (details in the class doc comments):
+  - KO is checked before the timer, so a KO on the timer's last frame is a KO. The timer stops only in a global
+    freeze, not in hitstop.
+  - Round over: the result and wins are fixed on that frame; the logic keeps running (a KO'd fighter falls and
+    lands) with neutral input for `roundOverFrames`, then the next round or match over. Damage in the pause doesn't
+    count.
+  - Time-out: larger share of max health wins; equal shares draw. A draw (also a double KO) gives both a win; if
+    that would give both their last win, nobody gets one and an extra round is played. Undecided after `maxRounds`
+    (only via extra rounds): a draw match.
+  - Match over: phase stays `MatchOver`, input neutral, the logic keeps ticking.
+- Follow-ups: a KO state that keeps the KO'd fighter down (state machine); a round intro ("Fight!") lock; a
+  round-start module hook (ADR-0011) for per-round module state; untimed rounds for training (HUD then needs the
+  rules); debug panel entries for the new settings.
+
+Done when:
+- [x] scenario tests: KO ends the round and the next starts reset, time-out with a health lead, time-out draw,
+  double KO (and at match point), two round wins end the match, timer stops in a freeze (`tests/Scenarios/Match/`)
 
 ### P1-21 Entity pool (projectiles)
 Status: todo · Needs: P1-12 · Parallel: no · Where: `src/Sim/Entities/`, `tests/`

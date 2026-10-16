@@ -1,0 +1,15 @@
+# Time-out with equal health: a draw gives both players a round win, and the next round follows the pause.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: timer = 2
+setup: p1 health = 5000
+setup: p2 health = 5000
+
+frame 2: expect match_event time_out
+frame 2: expect round_winner = draw
+frame 2: expect p1 wins = 1
+frame 2: expect p2 wins = 1
+frame 121: expect round_phase = round_over
+frame 122: expect round_phase = fighting
+frame 122: expect round = 2
+frame 122: expect match_winner = none

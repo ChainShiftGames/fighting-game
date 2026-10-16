@@ -1,0 +1,14 @@
+# Still undecided after the last round (maxRounds = 5, reachable only through extra rounds): the match is a draw.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: timer = 1
+setup: p1 wins = 1
+setup: p2 wins = 1
+setup: round = 5
+
+frame 1: expect round_winner = draw
+frame 120: expect round_phase = round_over
+frame 121: expect round_phase = match_over
+frame 121: expect match_winner = draw
+frame 121: expect match_event match_end
+frame 121: expect round = 5

@@ -1,0 +1,21 @@
+# A draw that would give both players their last win (1-1 in a best of 3) gives no wins: an extra round decides.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: trade trade
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p1 health = 300
+setup: p2 health = 300
+setup: p1 wins = 1
+setup: p2 wins = 1
+setup: round = 3
+
+frame 1: p1 5a
+frame 1: p2 5a
+
+frame 5: expect round_winner = draw
+frames 5-125: expect p1 wins = 1
+frames 5-125: expect p2 wins = 1
+frame 125: expect round_phase = fighting
+frame 125: expect round = 4
+frame 125: expect match_winner = none

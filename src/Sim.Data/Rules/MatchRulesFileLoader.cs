@@ -27,10 +27,31 @@ public static class MatchRulesFileLoader
             CheckFitsTheStage(file, roundStartDistance, wallDistance, maxPlayerDistance);
         }
 
+        RoundFormat rounds = ReadRounds(file, errors);
         file.Finish();
         return errors.Count > errorsBefore
             ? null
-            : new MatchRulesFile(roundStartDistance, wallDistance, maxPlayerDistance, tradeRule);
+            : new MatchRulesFile(roundStartDistance, wallDistance, maxPlayerDistance, tradeRule, rounds);
+    }
+
+    private static RoundFormat ReadRounds(FieldReader file, DataErrors errors)
+    {
+        int errorsBefore = errors.Count;
+        int timerFrames = file.RequiredInt("roundTimerFrames", 1, MatchRulesSchema.MaxRoundTimerFrames);
+        int roundsToWin = file.RequiredInt("roundsToWin", 1, MatchRulesSchema.MaxRoundsToWin);
+        int maxRounds = file.RequiredInt("maxRounds", 1, MatchRulesSchema.MaxRounds);
+        int roundOverFrames = file.RequiredInt("roundOverFrames", 1, MatchRulesSchema.MaxRoundOverFrames);
+        int fewestRoundsToDecide = (2 * roundsToWin) - 1;
+        // Only once every value read cleanly: a missing or out-of-range one is the real mistake to report.
+        if (errors.Count == errorsBefore && maxRounds < fewestRoundsToDecide)
+        {
+            file.Error(
+                "maxRounds",
+                $"must be at least 2 * roundsToWin - 1 ({fewestRoundsToDecide}), or a match without draws can run " +
+                "out of rounds before anyone wins");
+        }
+
+        return new RoundFormat(timerFrames, roundsToWin, maxRounds, roundOverFrames);
     }
 
     private static void CheckFitsTheStage(FieldReader file, int roundStartDistance, int wallDistance, int maxPlayerDistance)

@@ -1,0 +1,15 @@
+# Time-out: the timer counts down to 0 and the larger share of max health wins the round.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: timer = 3
+setup: p2 health = 9000
+
+frame 2: expect timer = 1
+frame 2: expect round_phase = fighting
+frame 3: expect timer = 0
+frame 3: expect match_event time_out
+frame 3: expect round_phase = round_over
+frame 3: expect round_winner = p1
+frame 3: expect p1 wins = 1
+frame 3: expect p2 wins = 0
+frames 4-50: expect timer = 0

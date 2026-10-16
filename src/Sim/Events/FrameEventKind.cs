@@ -35,4 +35,25 @@ public enum FrameEventKind
     /// Fighter: an attacker. Position: where its hitbox met the other's hurtbox. Detail: its move.
     /// </summary>
     Clash = 5,
+
+    /// <summary>
+    /// A fighter's health reached 0 and the round ended; one event per KO'd fighter (two in a double KO). Fighter: the
+    /// KO'd fighter. Position: its position. Detail: 0.
+    /// </summary>
+    KnockOut = 6,
+
+    /// <summary>The round timer ran out and ended the round. Fighter: none. Position: 0. Detail: 0.</summary>
+    TimeOut = 7,
+
+    /// <summary>
+    /// The fighters were reset and a new round began. Fighter: none. Position: 0. Detail: the round number. Not
+    /// emitted for round 1, which begins with the match's start state.
+    /// </summary>
+    RoundStart = 8,
+
+    /// <summary>
+    /// The match has a result (after the last round-over pause). Fighter: none. Position: 0. Detail: the winners'
+    /// player bits (<c>Winners.Players</c>; both bits = a draw).
+    /// </summary>
+    MatchEnd = 9,
 }
