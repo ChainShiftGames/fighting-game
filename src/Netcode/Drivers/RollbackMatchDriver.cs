@@ -13,7 +13,7 @@ namespace Netcode.Drivers;
 /// Works for every Backdash session type (SyncTest, peer-to-peer), so the session is built outside and passed in.
 /// Backdash calls back into this class to save, load and resimulate frames; the host never sees a rollback.
 /// </remarks>
-public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcodeSessionHandler
+public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnectionReadout, INetcodeSessionHandler
     where TState : unmanaged
 {
     private readonly IMatchSimulation<TState> _simulation;
@@ -79,10 +79,7 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
         }
     }
 
-    /// <summary>
-    /// Reads Backdash's network stats for the other player plus the rollbacks so far. False when there is no other
-    /// player (SyncTest) or no reading yet.
-    /// </summary>
+    /// <summary>Backdash's network stats for the other player plus the rollbacks so far.</summary>
     public bool TryReadConnection(out ConnectionStats stats)
     {
         if (!_session.TryGetRemotePlayer(out NetcodePlayer? remote) || !_session.UpdateNetworkStats(remote))
@@ -93,6 +90,7 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, INetcode
 
         PeerNetworkStats network = remote.NetworkStats;
         stats = new ConnectionStats(
+            _currentFrame,
             (int)network.Ping.TotalMilliseconds,
             network.LocalFramesBehind.Frames,
             network.RemoteFramesBehind.Frames,

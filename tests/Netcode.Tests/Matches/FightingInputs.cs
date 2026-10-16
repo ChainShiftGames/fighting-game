@@ -1,3 +1,4 @@
+using Netcode.Drivers;
 using Sim.Input;
 
 namespace Netcode.Tests.Matches;
@@ -12,7 +13,7 @@ namespace Netcode.Tests.Matches;
 /// to a random side and works about half the time. Button bits are the default set's (a, b, c, d, special, dash on
 /// bits 4–9); the input step drops any the button set doesn't define.
 /// </remarks>
-internal sealed class FightingInputs
+internal sealed class FightingInputs : IInputSource
 {
     private const ushort Up = InputWord.Up;
     private const ushort Down = InputWord.Down;

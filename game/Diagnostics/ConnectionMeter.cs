@@ -1,7 +1,5 @@
 using System.Globalization;
-using Netcode.Drivers;
 using Netcode.Online;
-using Sim.Toy;
 
 namespace FightingGame.Diagnostics;
 
@@ -13,7 +11,7 @@ public sealed class ConnectionMeter
 {
     private const int FramesPerMinute = 60 * 60;
 
-    private readonly RollbackMatchDriver<ToyState> _driver;
+    private readonly IConnectionReadout _readout;
     private readonly ITransportLink? _link;
     private readonly long _ticksPerSample;
     private readonly SampleRange _ping = new();
@@ -22,11 +20,12 @@ public sealed class ConnectionMeter
     private ConnectionStats? _connection;
     private TransportLinkStats? _linkStats;
 
+    /// <param name="readout">The online match driver's connection readings.</param>
     /// <param name="link">The transport's own readings; null when it has none (direct UDP).</param>
     /// <param name="ticksPerSecond">Resolution of the timestamps passed to <see cref="Sample"/>.</param>
-    public ConnectionMeter(RollbackMatchDriver<ToyState> driver, ITransportLink? link, long ticksPerSecond)
+    public ConnectionMeter(IConnectionReadout readout, ITransportLink? link, long ticksPerSecond)
     {
-        _driver = driver;
+        _readout = readout;
         _link = link;
         _ticksPerSample = ticksPerSecond;
     }
@@ -37,18 +36,20 @@ public sealed class ConnectionMeter
     /// <summary>Takes a sample once a second while the match runs. Returns true when it took one.</summary>
     public bool Sample(long timestamp)
     {
+        if (timestamp < _nextSampleAt)
+        {
+            return false;
+        }
+
         // Before the first frame the peers are still syncing, and their pings aren't the match's.
-        if (_driver.CurrentFrame == 0 || timestamp < _nextSampleAt)
+        if (!_readout.TryReadConnection(out ConnectionStats connection) || connection.Frame == 0)
         {
             return false;
         }
 
         _nextSampleAt = timestamp + _ticksPerSample;
-        if (_driver.TryReadConnection(out ConnectionStats connection))
-        {
-            _connection = connection;
-            _ping.Add(connection.PingMilliseconds);
-        }
+        _connection = connection;
+        _ping.Add(connection.PingMilliseconds);
 
         if (_link is not null && _link.TryRead(out TransportLinkStats link))
         {
@@ -96,7 +97,7 @@ public sealed class ConnectionMeter
             return "rollbacks: no reading yet";
         }
 
-        double perMinute = (double)connection.Rollbacks * FramesPerMinute / _driver.CurrentFrame;
+        double perMinute = (double)connection.Rollbacks * FramesPerMinute / connection.Frame;
         double averageFrames = connection.Rollbacks == 0 ? 0 : (double)connection.RolledBackFrames / connection.Rollbacks;
         return string.Create(
             CultureInfo.InvariantCulture,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Netcode.Drivers;
 using Sim.Input;
 
 namespace Netcode.Tests.GoldenReplays;
@@ -36,7 +37,7 @@ internal sealed class GoldenReplay
     /// <summary>The comment lines at the top of the file, kept when the replay is re-recorded.</summary>
     public List<string> Header { get; } = [];
 
-    public List<(InputWord Player1, InputWord Player2)> Inputs { get; } = [];
+    public List<FrameInputs> Inputs { get; } = [];
 
     public SortedDictionary<int, ulong> Checksums { get; } = [];
 
@@ -111,7 +112,7 @@ internal sealed class GoldenReplay
                 Frames = int.Parse(words[3], CultureInfo.InvariantCulture);
                 break;
             case "input":
-                AddRun(int.Parse(words[1], CultureInfo.InvariantCulture), (Word(words[2]), Word(words[3])));
+                AddRun(int.Parse(words[1], CultureInfo.InvariantCulture), new FrameInputs(Word(words[2]), Word(words[3])));
                 break;
             case "checksum":
                 Checksums[int.Parse(words[1], CultureInfo.InvariantCulture)] =
@@ -122,7 +123,7 @@ internal sealed class GoldenReplay
         }
     }
 
-    private void AddRun(int frames, (InputWord Player1, InputWord Player2) inputs)
+    private void AddRun(int frames, FrameInputs inputs)
     {
         for (int frame = 0; frame < frames; frame++)
         {

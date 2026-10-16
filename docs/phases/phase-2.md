@@ -23,13 +23,14 @@ graph LR
 ```
 
 ### P2-01 Match drivers
-Status: todo · Needs: — · Parallel: no · Where: `src/Netcode/Drivers/`
+Status: done · Needs: — · Parallel: no · Where: `src/Netcode/Drivers/`
 Read: ADR-0005
 - Final `IMatchDriver`; implementations: local, SyncTest, replay, test. (Training and online follow.)
 - The game in `game/` only talks to `IMatchDriver`.
 
 Done when:
-- [ ] switching driver needs no change outside the composition root
+- [x] switching driver needs no change outside the composition root
+  (`tests/Architecture.Tests/MatchDriverChoiceTests.cs`)
 
 ### P2-02 Online driver (Backdash)
 Status: todo · Needs: P2-01 · Parallel: no · Where: `src/Netcode/Online/`
