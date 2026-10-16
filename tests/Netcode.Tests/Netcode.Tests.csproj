@@ -9,5 +9,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
     <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
+    <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Lets the tests load the Sim.Data fixture data, for the real match simulation. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepositoryRoot</_Parameter1>
+      <_Parameter2>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

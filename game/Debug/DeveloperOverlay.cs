@@ -11,7 +11,10 @@ public partial class DeveloperOverlay : CanvasLayer
 {
     private const int Margin = 12;
 
-    private readonly Label _label = new() { Position = new Vector2(Margin, Margin) };
+    // Below the match HUD's health bars and names.
+    private const int TopOffset = 96;
+
+    private readonly Label _label = new() { Position = new Vector2(Margin, TopOffset) };
     private string _timing = string.Empty;
     private string _inputs = string.Empty;
 
