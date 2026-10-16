@@ -12,12 +12,13 @@ public enum FrameEventKind
     /// <summary>No event; an empty slot. Never emitted.</summary>
     None = 0,
 
-    /// <summary>An attack hit. Fighter: the attacker. Position: where the boxes met. Detail: the move.</summary>
+    /// <summary>
+    /// An attack hit. Fighter: the attacker. Position: the centre of the overlap of the first hitbox and hurtbox
+    /// that touched. Detail: the move.
+    /// </summary>
     Hit = 1,
 
-    /// <summary>
-    /// An attack was blocked. Fighter: the attacker. Position: where the boxes met. Detail: the move.
-    /// </summary>
+    /// <summary>An attack was blocked. Fighter: the attacker. Position and Detail: as for <see cref="Hit"/>.</summary>
     Block = 2,
 
     /// <summary>
@@ -28,4 +29,10 @@ public enum FrameEventKind
 
     /// <summary>A fighter touched the floor after being airborne. Fighter: who. Position: where. Detail: 0.</summary>
     Landing = 4,
+
+    /// <summary>
+    /// Both attacks connected on the same frame and cancelled out (<c>TradeRule.Clash</c>); one event per fighter.
+    /// Fighter: an attacker. Position: where its hitbox met the other's hurtbox. Detail: its move.
+    /// </summary>
+    Clash = 5,
 }

@@ -1,0 +1,15 @@
+# An overhead can't be blocked crouching: 6b (startup 8, 500 damage, hitstun 16) hits through down-back.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 6b
+frames 1-20: p2 1
+
+frame 7: expect p2 state = crouch
+frame 8: expect p1 event hit
+frame 8: expect p1 event block = 0
+frame 8: expect p2 state = crouch_hitstun
+frame 8: expect p2 stun = 16
+frame 8: expect p2 damage = 500

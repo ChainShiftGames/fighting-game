@@ -190,14 +190,22 @@ Done when:
   (`tests/Scenarios/Camera/`)
 
 ### P1-12 Hit and block
-Status: todo · Needs: P1-10 · Parallel: no · Where: `src/Sim/Combat/`
+Status: done · Needs: P1-10 · Parallel: no · Where: `src/Sim/Combat/`
 Read: CURRENT_STATE §3 Defense
 - Hit detection, stand/crouch block, high/low/overhead, chip damage, hitstun, blockstun, hitstop (in logic),
   damage and health.
 - Same-frame trade rules: configurable **developer setting** (GAP-12 stays open).
+- Built: `HitDetectionStage` and `HitResolutionStage` in the pipeline's hit detection/resolution steps, sharing
+  per-frame `HitContacts`; block rules in `Blocking`, reactions in `HitReactions`. One hit per move (schema v1).
+  `MatchRules.TradeRule` (developer setting, `tradeRule` in `data/rules/match.json`): `trade` = both hits land,
+  `clash` = neither lands and both moves are spent (`CancelOn.Clash`, `FrameEventKind.Clash`). Behaviour is in the
+  stage and `Blocking` doc comments.
+- Follow-ups: pushback (`HitData.Pushback` is read but not applied), air block, throws (throw boxes,
+  `IOnThrowHook`), launch velocity for launchers (P1-09 note), counter hits, the move in `FighterContact`.
 
 Done when:
-- [ ] scenario tests for each block type, trades in both modes, hitstop freezing both fighters
+- [x] scenario tests for each block type, trades in both modes, hitstop freezing both fighters
+  (`tests/Scenarios/Combat/`)
 
 ### P1-13 Rounds and timer
 Status: todo · Needs: P1-12 · Parallel: yes · Where: `src/Sim/Match/`

@@ -37,6 +37,10 @@ public struct MatchRules
     /// </remarks>
     public int MaxPlayerDistance;
 
+    /// <summary>What happens when both fighters' attacks connect on the same frame.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>tradeRule</c>).</remarks>
+    public TradeRule TradeRule;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

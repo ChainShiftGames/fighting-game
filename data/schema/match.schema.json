@@ -5,12 +5,13 @@
   "description": "data/rules/match.json: match-wide gameplay values, copied into MatchRules (developer settings, compared before online matches). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance"],
+  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
     "roundStartDistance": { "type": "integer", "minimum": 0, "maximum": 1000000, "description": "Each fighter's distance from the stage centre when a round starts, in subpixels; less than wallDistance." },
     "wallDistance": { "type": "integer", "minimum": 1, "maximum": 1000000, "description": "Each stage wall's distance from the stage centre, in subpixels. Fighters' pushboxes stay between the walls." },
-    "maxPlayerDistance": { "type": "integer", "minimum": 1, "maximum": 2000000, "description": "The farthest the fighters may stand apart, outer pushbox edge to outer pushbox edge, in subpixels: the width the logic camera sees. At most twice wallDistance, more than twice roundStartDistance." }
+    "maxPlayerDistance": { "type": "integer", "minimum": 1, "maximum": 2000000, "description": "The farthest the fighters may stand apart, outer pushbox edge to outer pushbox edge, in subpixels: the width the logic camera sees. At most twice wallDistance, more than twice roundStartDistance." },
+    "tradeRule": { "enum": ["trade", "clash"], "description": "When both fighters' attacks connect on the same frame: trade = both hits land, clash = neither lands (both attacks are spent)." }
   }
 }

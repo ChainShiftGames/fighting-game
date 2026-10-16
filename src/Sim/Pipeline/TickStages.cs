@@ -18,6 +18,7 @@ public sealed class TickStages
     /// <summary>Pushboxes, walls and camera (P1-10, P1-11).</summary>
     public ITickStage Collision { get; init; } = new IdleStage();
 
+    /// <summary>Hit detection (P1-12): hitboxes against hurtboxes, for hit resolution to act on.</summary>
     public ITickStage HitDetection { get; init; } = new IdleStage();
 
     /// <summary>Hit resolution (P1-12); it runs the modules' hit, block and throw hooks.</summary>

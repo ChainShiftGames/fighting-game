@@ -1,0 +1,15 @@
+# Chip damage: a blocked 236b (startup 12, 100 chip of 800 damage, blockstun 14) still costs health.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2, 3, 6b                   # 236b starts on frame 3, so its first active frame is frame 14
+frames 1-30: p2 1
+
+frames 1-13: expect p2 damage = 0
+frame 14: expect p1 event block
+frame 14: expect p2 state = crouch_blockstun
+frame 14: expect p2 stun = 14
+frames 14-30: expect p2 damage = 100
+frames 14-30: expect p2 health = 9900

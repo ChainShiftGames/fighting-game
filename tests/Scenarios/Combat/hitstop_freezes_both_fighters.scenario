@@ -1,0 +1,23 @@
+# Hitstop: 5a hits on frame 5 (hitstop 8), and both fighters skip frames 6-13: the attacker's move and the
+# defender's hitstun only run on again from frame 14.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+
+frame 5: expect p1 event hit
+frame 5: expect p1 hitstop = 8
+frame 5: expect p2 hitstop = 8
+frame 12: expect p1 hitstop = 1
+frame 12: expect p2 hitstop = 1
+frame 13: expect p1 hitstop = 0
+frame 13: expect p2 hitstop = 0
+
+frames 5-13: expect p1 move_frame = 5   # the attacker is frozen on the frame it hit
+frame 14: expect p1 move_frame = 6
+frames 5-13: expect p2 state = hitstun
+frames 5-13: expect p2 stun = 12        # hitstun doesn't run during hitstop
+frame 14: expect p2 stun = 11
+frames 6-13: expect p1 event hit = 0    # one hit per move

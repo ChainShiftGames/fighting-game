@@ -1,0 +1,21 @@
+# Same-frame trade, trade rule "clash": both 5a meet on frame 5, neither lands and both moves are spent.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: trade clash
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 1: p2 5a
+
+frame 5: expect p1 event clash
+frame 5: expect p2 event clash
+frames 1-20: expect p1 damage = 0
+frames 1-20: expect p2 damage = 0
+frames 6-7: expect p1 event hit = 0     # still active, but a clashed move can't connect again
+frames 6-7: expect p2 event hit = 0
+frames 5-15: expect p1 state = attack   # no hitstop: the moves play out as on whiff
+frames 5-15: expect p2 state = attack
+frame 5: expect p1 hitstop = 0
+frame 16: expect p1 state = idle
+frame 16: expect p2 state = idle

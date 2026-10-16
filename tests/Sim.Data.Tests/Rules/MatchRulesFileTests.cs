@@ -26,8 +26,40 @@ public sealed class MatchRulesFileTests
         MatchRules rules = Fixture.Load(_data).CreateMatchRules();
 
         Assert.Equal(
-            (12, 2, 150_000, 600_000, 640_000),
-            (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance, rules.WallDistance, rules.MaxPlayerDistance));
+            (12, 2, 150_000, 600_000, 640_000, TradeRule.Trade),
+            (rules.MotionWindow, rules.ButtonBuffer, rules.RoundStartDistance, rules.WallDistance, rules.MaxPlayerDistance,
+                rules.TradeRule));
+    }
+
+    [Theory]
+    [InlineData("trade", TradeRule.Trade)]
+    [InlineData("clash", TradeRule.Clash)]
+    public void TheTradeRuleIsReadIntoTheMatchRules(string name, TradeRule expected)
+    {
+        _data.Replace(MatchRulesSchema.File, "\"tradeRule\": \"trade\"", $"\"tradeRule\": \"{name}\"");
+
+        Assert.Equal(expected, Fixture.Load(_data).CreateMatchRules().TradeRule);
+    }
+
+    [Fact]
+    public void AnUnknownTradeRuleNamesTheFieldAndTheValidNames()
+    {
+        _data.Replace(MatchRulesSchema.File, "\"tradeRule\": \"trade\"", "\"tradeRule\": \"p1_wins\"");
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "tradeRule"), (error.File, error.Field));
+        Assert.Contains("clash", error.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AMissingTradeRuleIsReported()
+    {
+        _data.SetText(
+            MatchRulesSchema.File,
+            """{ "schemaVersion": 1, "roundStartDistance": 150000, "wallDistance": 600000, "maxPlayerDistance": 640000 }""");
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, "tradeRule"), (error.File, error.Field));
     }
 
     [Theory]
