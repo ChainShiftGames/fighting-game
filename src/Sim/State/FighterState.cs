@@ -13,4 +13,9 @@ public struct FighterState
     public int Facing;
 
     public int Health;
+
+    /// <summary>Hitstop and time scale, managed by the tick pipeline's time control.</summary>
+    public FighterTiming Timing;
+
+    public PendingCancel Cancel;
 }
