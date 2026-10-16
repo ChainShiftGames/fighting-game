@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using Backdash;
 using Backdash.Core;
@@ -42,7 +43,15 @@ public static class PeerSession
             .WithConsistencyCheck(true)
             .WithSocketFactory(sockets)
             .WithLogLevel(LogLevel.Warning, appendLevel: true)
-            .Configure(options => options.PredictionFrames = settings.RollbackFrames)
+            .Configure(options =>
+            {
+                options.PredictionFrames = settings.RollbackFrames;
+
+                // A consistency check is one request and one reply, never resent, so losing them isn't a broken
+                // connection; Backdash's default would disconnect after 10 s of failed checks. The checks still run,
+                // and real silence still disconnects (DisconnectTimeout).
+                options.Protocol.ConsistencyCheckTimeout = TimeSpan.Zero;
+            })
             .ForRemote()
             .Build();
     }

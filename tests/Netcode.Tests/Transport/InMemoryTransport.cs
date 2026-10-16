@@ -12,6 +12,7 @@ internal sealed class InMemoryTransport : ITransport
 {
     private readonly Channel<byte[]> _inbox = Channel.CreateUnbounded<byte[]>();
     private InMemoryTransport? _other;
+    private volatile bool _cut;
 
     /// <summary>Every packet sent from this end, in order.</summary>
     public ConcurrentQueue<byte[]> Sent { get; } = new();
@@ -27,11 +28,17 @@ internal sealed class InMemoryTransport : ITransport
     /// <summary>Hands this end a packet as if the other PC had sent it.</summary>
     public void Deliver(byte[] packet) => _inbox.Writer.TryWrite(packet);
 
+    /// <summary>Cuts the link from this end: what it sends from now on never arrives, as when a cable is pulled.</summary>
+    public void Cut() => _cut = true;
+
     public void Send(ReadOnlySpan<byte> packet)
     {
         byte[] copy = packet.ToArray();
         Sent.Enqueue(copy);
-        _other?.Deliver(copy);
+        if (!_cut)
+        {
+            _other?.Deliver(copy);
+        }
     }
 
     public async ValueTask<int> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken)
