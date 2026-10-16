@@ -5,7 +5,7 @@
   "description": "data/rules/match.json: match-wide gameplay values, copied into MatchRules (developer settings, compared before online matches). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames"],
+  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames", "entitiesPerPlayer"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
@@ -16,6 +16,7 @@
     "roundTimerFrames": { "type": "integer", "minimum": 1, "maximum": 216000, "description": "Round timer length in logic frames (99 s = 5940). It stops during a global freeze; when it runs out, the larger share of max health left wins the round (equal = draw)." },
     "roundsToWin": { "type": "integer", "minimum": 1, "maximum": 10, "description": "Round wins that win the match (2 = best of 3). A draw gives both players a round win, unless that would give both their last win: then an extra deciding round is played." },
     "maxRounds": { "type": "integer", "minimum": 1, "maximum": 99, "description": "The last round a match can reach (only through extra rounds after draws); still undecided after it, the match is a draw. At least 2 x roundsToWin - 1." },
-    "roundOverFrames": { "type": "integer", "minimum": 1, "maximum": 600, "description": "Frames between a KO or time-out and the next round (or match over). The logic keeps running with neutral input so the KO'd fighter can fall and land." }
+    "roundOverFrames": { "type": "integer", "minimum": 1, "maximum": 600, "description": "Frames between a KO or time-out and the next round (or match over). The logic keeps running with neutral input so the KO'd fighter can fall and land." },
+    "entitiesPerPlayer": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Entity pool slots per player: projectiles (and module objects) one player can have out at once. A spawn when the owner's slots are full is refused; the other player's slots are separate. At most 8, the slots the match state reserves per player (EntityPool.MaxPerPlayer)." }
   }
 }

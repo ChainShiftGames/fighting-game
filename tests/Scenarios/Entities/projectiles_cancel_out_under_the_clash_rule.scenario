@@ -1,0 +1,16 @@
+# The same exchange as projectiles_trade under the "clash" trade rule: both fighters are touched on the same frame,
+# so neither projectile lands; both disappear with a clash event.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: trade clash
+
+frame 1: p1 2, 3, 6c
+frame 1: p2 2, 3, 6d
+
+frame 43: expect p1 event projectile_clash
+frame 43: expect p2 event projectile_clash
+frame 43: expect p1 event projectile_hit = 0
+frame 43: expect p1 entities = 0
+frame 43: expect p2 entities = 0
+frames 1-50: expect p1 damage = 0
+frames 1-50: expect p2 damage = 0

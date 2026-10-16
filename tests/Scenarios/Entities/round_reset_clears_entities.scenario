@@ -1,0 +1,18 @@
+# Round reset clears every entity: p1's slow 214c fireball is still flying when the round times out (frame 30) and
+# still out at the end of the round-over pause; the next round starts on frame 150 with an empty pool.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -300000
+setup: p2 x = 290000
+setup: timer = 30
+
+frame 1: p1 2, 1, 4c
+
+frame 15: expect p1 entities = 1
+frame 30: expect round_phase = round_over
+frame 149: expect p1 entities = 1
+frame 149: expect p1 entity_x = 8000     # -260000 + 134 * 2000: nowhere near p2
+frame 150: expect match_event round_start
+frame 150: expect round = 2
+frame 150: expect p1 entities = 0
+frames 1-150: expect p2 damage = 0

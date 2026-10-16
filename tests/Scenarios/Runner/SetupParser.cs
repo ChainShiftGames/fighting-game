@@ -5,13 +5,15 @@ using Scenarios.Tests.Expectations;
 using Sim.Characters;
 using Sim.Modules;
 using Sim.Rules;
+using Sim.State;
 
 namespace Scenarios.Tests.Runner;
 
 /// <summary>Reads the body of a <c>setup:</c> line: a character, a module, a match rule or a start-state value.</summary>
 /// <remarks>
-/// Forms: <c>p1 character &lt;id&gt;</c>, <c>module &lt;name&gt; [config integers…]</c>, <c>trade &lt;rule&gt;</c>
-/// and <c>[p1|p2] &lt;keyword&gt; = &lt;value&gt;</c> for any expectation kind that is also an
+/// Forms: <c>p1 character &lt;id&gt;</c>, <c>module &lt;name&gt; [config integers…]</c>, <c>trade &lt;rule&gt;</c>,
+/// <c>entities_per_player &lt;n&gt;</c> and <c>[p1|p2] &lt;keyword&gt; = &lt;value&gt;</c> for any expectation kind
+/// that is also an
 /// <see cref="ISettableKind"/>.
 /// </remarks>
 public sealed class SetupParser
@@ -46,6 +48,10 @@ public sealed class SetupParser
             case "trade":
                 RequireNoPlayer(hasPlayer, "the trade rule is a match rule", location);
                 SetTradeRule(rest, setup, location);
+                break;
+            case "entities_per_player":
+                RequireNoPlayer(hasPlayer, "the entity pool size is a match rule", location);
+                SetEntitiesPerPlayer(rest, setup, location);
                 break;
             default:
                 AddValue(rest, player, setup, location);
@@ -112,6 +118,21 @@ public sealed class SetupParser
         }
     }
 
+    private static void SetEntitiesPerPlayer(string[] words, ScenarioSetup setup, ScenarioLocation location)
+    {
+        int slots = -1;
+        bool isValid = words.Length == 2 &&
+            int.TryParse(words[1], NumberStyles.None, CultureInfo.InvariantCulture, out slots) &&
+            slots <= EntityPool.MaxPerPlayer;
+        if (!isValid)
+        {
+            throw new ScenarioSyntaxException(
+                location, $"write 'setup: entities_per_player <n>' with n from 0 to {EntityPool.MaxPerPlayer}");
+        }
+
+        setup.SetEntitiesPerPlayer(slots);
+    }
+
     private static void AddValue(string[] words, int player, ScenarioSetup setup, ScenarioLocation location)
     {
         bool isSettable = ExpectationKinds.TryFind(words[0], out IExpectationKind? kind) && kind is ISettableKind;
@@ -120,7 +141,9 @@ public sealed class SetupParser
             string settableKinds = string.Join(
                 ", ", ExpectationKinds.Values.Where(k => k is ISettableKind).Select(k => k.Keyword));
             throw new ScenarioSyntaxException(
-                location, $"can't set '{words[0]}' in setup; settable: character, module, trade, {settableKinds}");
+                location,
+                $"can't set '{words[0]}' in setup; settable: character, module, trade, entities_per_player, " +
+                settableKinds);
         }
 
         ExpectationParser.RequireSubject(valueKind, player, location);

@@ -115,6 +115,21 @@ public sealed class ScenarioParserTests
     }
 
     [Fact]
+    public void EntityPoolSetupOverridesTheSizeFromData()
+    {
+        Scenario scenario = InlineScenario.Parse("setup: entities_per_player 1", "frame 1: expect p1 x < 0");
+
+        Assert.Equal(1, scenario.Setup.BuildRules().EntitiesPerPlayer);
+    }
+
+    [Fact]
+    public void EntityPoolSetupNeedsASizeTheStateHasSlotsFor()
+    {
+        Assert.Contains("from 0 to 8", SyntaxError("setup: entities_per_player 9"));
+        Assert.Contains("no player here", SyntaxError("setup: p1 entities_per_player 1"));
+    }
+
+    [Fact]
     public void CaseAndCommentsAreIgnored()
     {
         Scenario scenario = InlineScenario.Parse(

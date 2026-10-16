@@ -30,6 +30,12 @@ public static class MoveHitReader
             move.Error("hit", "the move has no hit or throw box for this hit to come from");
         }
 
+        return [ReadHit(hit)];
+    }
+
+    /// <summary>Reads one <c>hit</c> object's fields; projectiles use the same format (P1-21).</summary>
+    public static HitData ReadHit(FieldReader hit)
+    {
         const int MaxFrames = CharacterSchema.MaxMoveFrames;
         int damage = hit.RequiredInt("damage", 0, CharacterSchema.MaxDamage);
         HitData data = new()
@@ -44,7 +50,7 @@ public static class MoveHitReader
             Reaction = hit.OptionalChoice("reaction", CharacterJsonNames.Reactions, HitReaction.Hitstun),
         };
         hit.Finish();
-        return [data];
+        return data;
     }
 
     private static bool HasAttackBox(IReadOnlyList<BoxData> boxes)

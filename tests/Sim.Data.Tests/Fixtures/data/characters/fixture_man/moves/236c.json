@@ -23,5 +23,18 @@
     "hitstop": 14,
     "pushback": 25000,
     "reaction": "knockdown"
-  }
+  },
+  "projectiles": [
+    {
+      "spawnFrame": 14,
+      "offset": { "x": 50000, "y": 60000 },
+      "velocity": { "x": 7000, "y": -500 },
+      "lifetime": 90,
+      "durability": 2,
+      "boxes": [
+        { "firstFrame": 1, "lastFrame": 90, "x": -20000, "y": -15000, "width": 40000, "height": 30000 }
+      ],
+      "hit": { "damage": 700, "chipDamage": 80, "guard": "mid", "hitstun": 18, "blockstun": 14, "hitstop": 11, "pushback": 9000 }
+    }
+  ]
 }

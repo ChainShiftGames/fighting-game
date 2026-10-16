@@ -17,8 +17,9 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change: rules/match.json gained roundTimerFrames, roundsToWin, maxRounds and roundOverFrames (P1-13).
-    private const string FixtureHash = "ced7ca8c0d67e536717441f2f7d2041448b84db67bc9346878adde79338c741b";
+    // Last change (P1-21): rules/match.json gained entitiesPerPlayer, moves gained a projectile range (MoveData) and
+    // characters a projectile list, and fixture_man's 236c now spawns a projectile.
+    private const string FixtureHash = "2e50135e39c16385cd839b93e5d63a9a481e51a83e0b39a5a665150fe9098969";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 
@@ -87,6 +88,8 @@ public sealed class DataHashTests
     [InlineData("characters/fixture_man/moves/2b.json", "\"x\": 30000", "\"x\": 30001")]
     [InlineData("characters/fixture_man/character.json", "\"gravity\": 1000", "\"gravity\": 999")]
     [InlineData("characters/fixture_man/character.json", "[\"236c\", \"5a\"", "[\"5a\", \"236c\"")]
+    [InlineData("characters/fixture_man/moves/236c.json", "\"durability\": 2", "\"durability\": 3")]
+    [InlineData("rules/match.json", "\"entitiesPerPlayer\": 4", "\"entitiesPerPlayer\": 3")]
     public void GameplayValuesChangeTheHash(string path, string oldText, string newText)
     {
         InMemoryDataSource data = Fixture.InMemory();

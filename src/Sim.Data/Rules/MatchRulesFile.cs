@@ -7,13 +7,19 @@ namespace Sim.Data.Rules;
 public sealed class MatchRulesFile
 {
     public MatchRulesFile(
-        int roundStartDistance, int wallDistance, int maxPlayerDistance, TradeRule tradeRule, RoundFormat rounds)
+        int roundStartDistance,
+        int wallDistance,
+        int maxPlayerDistance,
+        TradeRule tradeRule,
+        RoundFormat rounds,
+        int entitiesPerPlayer)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
         MaxPlayerDistance = maxPlayerDistance;
         TradeRule = tradeRule;
         Rounds = rounds;
+        EntitiesPerPlayer = entitiesPerPlayer;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -31,6 +37,9 @@ public sealed class MatchRulesFile
     /// <summary>Timer, rounds to win, round limit and the pause between rounds.</summary>
     public RoundFormat Rounds { get; }
 
+    /// <summary>Entity pool slots per player: projectiles and module objects one player can have out at once.</summary>
+    public int EntitiesPerPlayer { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -42,5 +51,6 @@ public sealed class MatchRulesFile
         rules.RoundsToWin = Rounds.RoundsToWin;
         rules.MaxRounds = Rounds.MaxRounds;
         rules.RoundOverFrames = Rounds.RoundOverFrames;
+        rules.EntitiesPerPlayer = EntitiesPerPlayer;
     }
 }

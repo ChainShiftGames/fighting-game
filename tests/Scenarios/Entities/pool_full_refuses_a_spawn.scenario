@@ -1,0 +1,22 @@
+# Pool full: with one entity slot per player, the contract probe spawns p1's slow 214c fireball (projectile 2) at the
+# end of frame 2. p1's own 236c fireball on frame 15 is refused: the projectile already out keeps flying, no spawn
+# event. p2's slots are separate, so p2's 236d still spawns on the same frame.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: entities_per_player 1
+setup: module contract_probe 0 2 0 2     # hitstop override, spawn on frame 2, owner p1, projectile 2
+
+frame 1: p1 2, 3, 6c
+frame 1: p2 2, 3, 6d
+
+frame 1: expect p1 entities = 0
+frame 2: expect p1 event projectile_spawn
+frame 2: expect p1 entities = 1
+frame 2: expect p1 entity_x = -110000
+frame 15: expect p1 move = 236c
+frame 15: expect p1 event projectile_spawn = 0
+frame 15: expect p1 entities = 1
+frame 15: expect p1 entity_x = -84000    # still the probe's: 13 frames at 2000
+frame 15: expect p1 entity_durability = 2
+frame 15: expect p2 event projectile_spawn
+frame 15: expect p2 entities = 1

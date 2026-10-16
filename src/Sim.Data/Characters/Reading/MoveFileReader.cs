@@ -55,9 +55,10 @@ public sealed class MoveFileReader
         IReadOnlyList<HitData> hits = MoveHitReader.Read(file, boxes);
         IReadOnlyList<VelocityData> velocities = MoveVelocityReader.Read(file, frames);
         move = MoveInvulnerabilityReader.Read(file, frames, move);
+        IReadOnlyList<ProjectileRecord> projectiles = MoveProjectileReader.Read(file, category, frames);
         file.Finish();
 
-        return new MoveRecord(move, boxes, cancels, hits, velocities);
+        return new MoveRecord(move, boxes, cancels, hits, velocities, projectiles);
     }
 
     // Basic moves loop over a plain duration; attacks use fighting-game frame data, where startup counts the

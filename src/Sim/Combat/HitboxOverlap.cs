@@ -33,9 +33,12 @@ public static class HitboxOverlap
         return false;
     }
 
-    // Halving rounds toward zero, which is mirror-symmetric: the same exchange on the other side of the stage gives
-    // the mirrored point.
-    private static IntVector2 CentreOfOverlap(AxisAlignedBox first, AxisAlignedBox second)
+    /// <summary>The centre of where two overlapping boxes overlap, e.g. where a hit spark appears.</summary>
+    /// <remarks>
+    /// Halving rounds toward zero, which is mirror-symmetric: the same exchange on the other side of the stage gives
+    /// the mirrored point.
+    /// </remarks>
+    public static IntVector2 CentreOfOverlap(AxisAlignedBox first, AxisAlignedBox second)
     {
         int minX = first.MinX > second.MinX ? first.MinX : second.MinX;
         int maxX = first.MaxX < second.MaxX ? first.MaxX : second.MaxX;

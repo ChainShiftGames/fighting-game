@@ -2,6 +2,7 @@ using Sim.Camera;
 using Sim.Characters;
 using Sim.Collision;
 using Sim.Combat;
+using Sim.Entities;
 using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
@@ -53,18 +54,32 @@ public sealed class MatchSimulation
             player1,
             player2);
         HitContacts contacts = new();
+        EntityContacts entityContacts = new();
+        OwnerCharacters owners = new(player1, player2);
+        ProjectileSpawner spawner = new(owners, in rules);
+
+        // Entities (P1-21) run after the fighters in each step. Module spawn requests apply after the end-of-frame
+        // hooks, so they lead the round and timer step (SpawnRequestStage).
         TickStages stages = new()
         {
             Input = new RoundInputLock(new ButtonSetInputStage(buttons)),
             StateMachines = stateMachines,
-            Movement = new MovementStage(player1, player2),
+            Movement = new StageSequence(
+                new MovementStage(player1, player2),
+                new EntityMovementStage(owners),
+                new MoveSpawnStage(owners, spawner)),
             Collision = new StageSequence(
                 new CollisionStage(player1, player2, StageWalls.From(in rules)),
                 new CameraStage(player1, player2, CameraFraming.From(in rules))),
-            HitDetection = new HitDetectionStage(player1, player2, contacts),
-            HitResolution = new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule),
-            RoundTimer = new RoundStage(
-                _roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules),
+            HitDetection = new StageSequence(
+                new HitDetectionStage(player1, player2, contacts),
+                new EntityHitDetectionStage(owners, entityContacts, contacts)),
+            HitResolution = new StageSequence(
+                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule),
+                new EntityHitResolutionStage(owners, entityContacts, contacts, modules, rules.TradeRule)),
+            RoundTimer = new StageSequence(
+                new SpawnRequestStage(owners, spawner, requests),
+                new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),
         };
         _pipeline = new TickPipeline(stages, modules, requests);
     }

@@ -24,14 +24,10 @@ public static class MoveBoxReader
 
     private static BoxData ReadBox(FieldReader box, MoveCategory category, MoveFrames frames)
     {
-        const int MaxDistance = CharacterSchema.MaxDistance;
         BoxKind kind = box.RequiredChoice("kind", CharacterJsonNames.BoxKinds);
         int firstFrame = box.RequiredInt("firstFrame", 1, frames.Total);
         int lastFrame = box.RequiredInt("lastFrame", firstFrame, frames.Total);
-        int x = box.RequiredInt("x", -MaxDistance, MaxDistance);
-        int y = box.RequiredInt("y", -MaxDistance, MaxDistance);
-        int width = box.RequiredInt("width", 1, MaxDistance);
-        int height = box.RequiredInt("height", 1, MaxDistance);
+        AxisAlignedBox area = ReadArea(box);
         box.Finish();
 
         if (kind is BoxKind.Hit or BoxKind.Throw)
@@ -44,8 +40,19 @@ public static class MoveBoxReader
             Kind = kind,
             FirstFrame = firstFrame,
             LastFrame = lastFrame,
-            Area = AxisAlignedBox.FromCorner(x, y, width, height),
+            Area = area,
         };
+    }
+
+    /// <summary>Reads a box's <c>x</c>, <c>y</c>, <c>width</c> and <c>height</c> (move and projectile boxes).</summary>
+    public static AxisAlignedBox ReadArea(FieldReader box)
+    {
+        const int MaxDistance = CharacterSchema.MaxDistance;
+        int x = box.RequiredInt("x", -MaxDistance, MaxDistance);
+        int y = box.RequiredInt("y", -MaxDistance, MaxDistance);
+        int width = box.RequiredInt("width", 1, MaxDistance);
+        int height = box.RequiredInt("height", 1, MaxDistance);
+        return AxisAlignedBox.FromCorner(x, y, width, height);
     }
 
     // A hit or throw box outside the active frames would contradict the frame data shown to players.

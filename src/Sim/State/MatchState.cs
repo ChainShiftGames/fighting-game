@@ -24,6 +24,9 @@ public struct MatchState
     public InputHistories Inputs;
     public ModuleStates Modules;
 
+    /// <summary>Projectiles and module objects (P1-21).</summary>
+    public EntityPool Entities;
+
     /// <summary>Events of the latest frame for presentation; in the state so they roll back with it (P1-14).</summary>
     public FrameEvents Events;
 }

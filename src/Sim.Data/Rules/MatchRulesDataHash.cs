@@ -15,5 +15,6 @@ public static class MatchRulesDataHash
         hash.Add(file.Rounds.RoundsToWin);
         hash.Add(file.Rounds.MaxRounds);
         hash.Add(file.Rounds.RoundOverFrames);
+        hash.Add(file.EntitiesPerPlayer);
     }
 }

@@ -15,6 +15,7 @@ public sealed class ScenarioSetup
     private readonly List<SetupValue> _values = [];
     private readonly MatchRules _dataRules;
     private TradeRule? _tradeRule;
+    private int? _entitiesPerPlayer;
 
     public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules)
     {
@@ -41,11 +42,15 @@ public sealed class ScenarioSetup
     /// <summary>The lineup slot of an enabled module, or -1.</summary>
     public int ModuleSlot(string name) => _modules.FindIndex(module => module.Name == name);
 
-    /// <summary>The match rules: the values from data, the trade rule if set, then the modules in lineup order.</summary>
+    /// <summary>
+    /// The match rules: the values from data, the trade rule and entity pool size if set, then the modules in lineup
+    /// order.
+    /// </summary>
     public MatchRules BuildRules()
     {
         MatchRules rules = _dataRules;
         rules.TradeRule = _tradeRule ?? rules.TradeRule;
+        rules.EntitiesPerPlayer = _entitiesPerPlayer ?? rules.EntitiesPerPlayer;
         for (int slot = 0; slot < _modules.Count; slot++)
         {
             rules.Modules[slot].Module = _modules[slot].Id;
@@ -87,6 +92,9 @@ public sealed class ScenarioSetup
 
     /// <summary>Overrides the trade rule from data; a later line wins.</summary>
     internal void SetTradeRule(TradeRule rule) => _tradeRule = rule;
+
+    /// <summary>Overrides <c>entitiesPerPlayer</c> from data; a later line wins.</summary>
+    internal void SetEntitiesPerPlayer(int slots) => _entitiesPerPlayer = slots;
 
     internal void RequireCharacters(string file)
     {

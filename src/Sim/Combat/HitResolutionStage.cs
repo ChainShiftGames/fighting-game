@@ -13,7 +13,9 @@ namespace Sim.Combat;
 /// (<see cref="Blocking"/>), else a hit. The attacker's move records the outcome (for its cancel windows, and so it
 /// can't connect again); the defender takes the hit or block (<see cref="HitReactions"/>); both fighters get the
 /// hit's hitstop, the longer one if two hits trade. Hitstop counts from the next frame (<see cref="TimeControl"/>).
-/// Same-frame exchanges follow <see cref="MatchRules.TradeRule"/>. Both contacts are decided from the state as the
+/// Same-frame exchanges (<see cref="HitContacts.IsSameFrameExchange"/>, which counts projectile touches too) follow
+/// <see cref="MatchRules.TradeRule"/>; projectiles resolve after this stage (<c>Sim.Entities</c>).
+/// Both contacts are decided from the state as the
 /// step started and written together, so neither port wins a trade (symmetry rule of <see cref="ITickStage"/>).
 /// Afterwards each contact emits its event and runs the module hooks, P1's attack first; modules see the frame fully
 /// resolved, and their requests apply at the end of the frame.
@@ -38,8 +40,7 @@ public sealed class HitResolutionStage : ITickStage
 
     public void Run(ref MatchState state, in FrameActivity activity)
     {
-        bool isSameFrameExchange = _contacts.Touches(0) && _contacts.Touches(1);
-        if (isSameFrameExchange && _tradeRule == TradeRule.Clash)
+        if (_contacts.IsSameFrameExchange && _tradeRule == TradeRule.Clash)
         {
             Clash(ref state);
             return;
@@ -59,8 +60,8 @@ public sealed class HitResolutionStage : ITickStage
         React(ref player2, in byPlayer1, _player2);
         React(ref player1, in byPlayer2, _player1);
         int hitstop = Longer(HitstopOf(in byPlayer1), HitstopOf(in byPlayer2));
-        ApplyHitstop(ref player1.Timing, hitstop);
-        ApplyHitstop(ref player2.Timing, hitstop);
+        Hitstop.Extend(ref player1.Timing, hitstop);
+        Hitstop.Extend(ref player2.Timing, hitstop);
         state.Fighters[0] = player1;
         state.Fighters[1] = player2;
 
@@ -95,11 +96,17 @@ public sealed class HitResolutionStage : ITickStage
         };
     }
 
-    // Both moves are spent and nobody is hurt; each attacker reports the clash where its attack met the other.
+    // Every touching move is spent and nobody is hurt; each attacker reports the clash where its attack met the other.
+    // In an exchange with a projectile only one fighter's attack may have touched.
     private void Clash(ref MatchState state)
     {
         for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
         {
+            if (!_contacts.Touches(fighter))
+            {
+                continue;
+            }
+
             ref FighterState attacker = ref state.Fighters[fighter];
             attacker.MoveOutcome |= CancelOn.Clash;
             state.Events.Emit(state.Frame, FrameEventKind.Clash, fighter, _contacts.PointOf(fighter), attacker.Move);
@@ -129,15 +136,6 @@ public sealed class HitResolutionStage : ITickStage
     private static int HitstopOf(in Connection connection) => connection.IsMade ? connection.Hit.Hitstop : 0;
 
     private static int Longer(int frames, int otherFrames) => frames > otherFrames ? frames : otherFrames;
-
-    // A fighter already in a longer hitstop keeps it.
-    private static void ApplyHitstop(ref FighterTiming timing, int frames)
-    {
-        if (frames > timing.HitstopFramesLeft)
-        {
-            timing.HitstopFramesLeft = frames;
-        }
-    }
 
     private void Emit(ref MatchState state, int attacker, in Connection connection)
     {
