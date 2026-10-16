@@ -1,0 +1,15 @@
+# SOCD (ADR-0002): left+right is neutral, up+down is up; resolved before the input is recorded.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frames 1-2: p1 4+6
+frames 1-2: expect p1 input = 5
+
+frame 3: p1 2+8a
+frame 3: expect p1 input = 8a
+
+frame 4: p1 1+6      # down-back + forward: back and forward cancel, down stays
+frame 4: expect p1 input = 2
+
+frame 5: p2 4+6+8
+frame 5: expect p2 input = 8

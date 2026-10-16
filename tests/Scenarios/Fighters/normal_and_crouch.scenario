@@ -1,0 +1,21 @@
+# 5A frame data (scenario_dummy: startup 5, active 3, recovery 8 = 15 frames), then back to idle.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 5a
+frame 1: expect p1 state = attack
+frame 1: expect p1 move = 5a
+frames 1-15: expect p1 move = 5a
+frame 5: expect p1 move_frame = 5      # first active frame
+frame 15: expect p1 move_frame = 15    # last recovery frame
+frame 16: expect p1 state = idle
+frames 1-16: expect p2 state = idle    # nobody touched p2
+
+# Holding a button does not press it again.
+frames 20-30: p1 a
+frame 20: expect p1 move = 5a
+frame 35: expect p1 move = idle
+
+frames 40-42: p1 2
+frames 40-42: expect p1 state = crouch
+frame 43: expect p1 state = idle

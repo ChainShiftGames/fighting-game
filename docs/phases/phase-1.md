@@ -228,13 +228,14 @@ Read: ADR-0007, ADR-0010, CURRENT_STATE §3 Controls/Offense
   reversal, a super placeholder.
 
 ### P1-18 Scenario test runner
-Status: todo · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
+Status: done · Needs: P1-03 · Parallel: yes · Where: `tests/Scenarios/`
 Read: ADR-0006
 - Plain-text format: setup (characters, positions), per-frame inputs, expectations ("P2 in hitstun on frame 5").
 - Runner reports the first failing expectation with the actual state.
+- Format and how to add an expectation kind: [tests/Scenarios/README.md](../../tests/Scenarios/README.md).
 
 Done when:
-- [ ] an agent can add a scenario without touching C#
+- [x] an agent can add a scenario without touching C#
 
 ### P1-19 SyncTest and golden replays
 Status: todo · Needs: P1-17, P1-18 · Parallel: no · Where: `tests/`

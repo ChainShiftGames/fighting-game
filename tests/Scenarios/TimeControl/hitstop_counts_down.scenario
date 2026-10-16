@@ -1,0 +1,9 @@
+# Hitstop: a fighter in hitstop skips its own frames, and the counter runs down one per frame (TimeControl).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p2 hitstop = 3
+
+frame 1: expect p2 hitstop = 2
+frame 2: expect p2 hitstop = 1
+frames 3-10: expect p2 hitstop = 0
+frames 1-10: expect p1 hitstop = 0     # only the fighter that was hit is stopped
