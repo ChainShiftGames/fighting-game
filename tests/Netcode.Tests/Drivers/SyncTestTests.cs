@@ -2,20 +2,23 @@ using System;
 using Netcode.Desync;
 using Netcode.Drivers;
 using Sim.Input;
-using Sim.Toy;
+using Sim.State;
 using Xunit;
 
 namespace Netcode.Tests.Drivers;
 
-/// <summary>SyncTest (ADR-0006): every frame is rolled back and resimulated; the runs must match bit for bit.</summary>
+/// <summary>
+/// SyncTest (ADR-0006): every frame is rolled back and resimulated; the runs must match bit for bit. The long run on
+/// the real match is <see cref="Matches.MatchSyncTestTests"/>.
+/// </summary>
 public sealed class SyncTestTests
 {
     private const int Seed = 20261015;
-    private const int Frames = 10_000;
+    private const int Frames = 1_000;
     private const int RollbackFrames = 8;
 
     [Fact]
-    public void ToySimulationStaysInSyncForTenThousandFrames()
+    public void EveryFrameIsResimulated()
     {
         var simulation = new CountingSimulation();
         using var driver = CreateDriver(simulation);
@@ -37,10 +40,10 @@ public sealed class SyncTestTests
         Assert.Throws<DesyncDetectedException>(() => RunFrames(driver, Frames));
     }
 
-    private static RollbackMatchDriver<ToyState> CreateDriver(IMatchSimulation<ToyState> simulation) =>
-        new(simulation, SyncTestSession.Build<ToyState>(RollbackFrames));
+    private static RollbackMatchDriver<MatchState> CreateDriver(IMatchSimulation<MatchState> simulation) =>
+        new(simulation, SyncTestSession.Build<MatchState>(RollbackFrames));
 
-    private static void RunFrames(RollbackMatchDriver<ToyState> driver, int frames)
+    private static void RunFrames(RollbackMatchDriver<MatchState> driver, int frames)
     {
         var inputs = new SeededInputs(Seed);
         Span<InputWord> localInputs = stackalloc InputWord[driver.LocalPlayerCount];

@@ -1,6 +1,7 @@
 using Netcode.Drivers;
+using Sim.Composition;
 using Sim.Input;
-using Sim.Toy;
+using Sim.State;
 
 namespace Benchmarks.Drivers;
 
@@ -11,14 +12,14 @@ namespace Benchmarks.Drivers;
 /// </summary>
 internal sealed class SyncTestFrameBenchmark : IDriverBenchmark
 {
-    private readonly RollbackMatchDriver<ToyState> _driver;
+    private readonly RollbackMatchDriver<MatchState> _driver;
     private readonly InputSequence _inputs;
     private readonly InputWord[] _localInputs;
 
-    public SyncTestFrameBenchmark(ToySimulation simulation, InputSequence inputs, int rollbackFrames)
+    public SyncTestFrameBenchmark(MatchSimulation simulation, InputSequence inputs, int rollbackFrames)
     {
-        _driver = new RollbackMatchDriver<ToyState>(
-            new ToyMatchSimulation(simulation), SyncTestSession.Build<ToyState>(rollbackFrames));
+        _driver = new RollbackMatchDriver<MatchState>(
+            new ComposedMatchSimulation(simulation), SyncTestSession.Build<MatchState>(rollbackFrames));
         _inputs = inputs;
         _localInputs = new InputWord[_driver.LocalPlayerCount];
         Name = $"SyncTest frame ({rollbackFrames}-frame check)";

@@ -1,23 +1,26 @@
 using Netcode.Drivers;
+using Netcode.Tests.Matches;
 using Sim.Input;
-using Sim.Toy;
+using Sim.Math;
+using Sim.State;
 
 namespace Netcode.Tests.Drivers;
 
 /// <summary>
-/// The toy simulation with a deliberate determinism bug: it keeps a counter outside the game state, so running the
+/// The Testman mirror with a deliberate determinism bug: it keeps a counter outside the game state, so running the
 /// same frame twice (as a rollback does) gives a different result.
 /// </summary>
-internal sealed class NonDeterministicSimulation : IMatchSimulation<ToyState>
+internal sealed class NonDeterministicSimulation : IMatchSimulation<MatchState>
 {
-    private readonly ToyMatchSimulation _simulation = new(new ToySimulation(ToyRules.Default));
+    private readonly ComposedMatchSimulation _simulation = new(TestmanMirror.Create());
     private int _tickCalls;
 
-    public ToyState CreateInitialState() => _simulation.CreateInitialState();
+    public MatchState CreateInitialState() => _simulation.CreateInitialState();
 
-    public void Tick(ref ToyState state, InputWord player1, InputWord player2)
+    public void Tick(ref MatchState state, InputWord player1, InputWord player2)
     {
         _simulation.Tick(ref state, player1, player2);
-        state.Fighters[0].PositionX += _tickCalls++;
+        IntVector2 position = state.Fighters[0].Position;
+        state.Fighters[0].Position = position with { X = position.X + _tickCalls++ };
     }
 }

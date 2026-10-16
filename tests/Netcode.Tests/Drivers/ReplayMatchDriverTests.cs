@@ -1,8 +1,9 @@
 using System;
 using Netcode.Drivers;
+using Netcode.Tests.Matches;
+using Sim.Composition;
 using Sim.Input;
 using Sim.State;
-using Sim.Toy;
 using Xunit;
 
 namespace Netcode.Tests.Drivers;
@@ -12,19 +13,19 @@ public sealed class ReplayMatchDriverTests
     private const int Seed = 8642;
     private const int Frames = 600;
 
-    private readonly ToySimulation _simulation = new(ToyRules.Default);
+    private readonly MatchSimulation _match = TestmanMirror.Create();
 
     [Fact]
     public void PlaysTheRecordingLikeTheMatchItRecorded()
     {
         FrameInputs[] recording = Record(Frames);
-        using var driver = new ReplayMatchDriver<ToyState>(new ToyMatchSimulation(_simulation), recording);
-        ToyState expected = _simulation.CreateInitialState();
+        using var driver = new ReplayMatchDriver<MatchState>(new ComposedMatchSimulation(_match), recording);
+        MatchState expected = _match.StartState();
 
         foreach (FrameInputs inputs in recording)
         {
             Assert.True(driver.TryAdvanceFrame([]));
-            _simulation.Tick(ref expected, inputs.Player1, inputs.Player2);
+            _match.Tick(ref expected, inputs.Player1, inputs.Player2);
         }
 
         Assert.Equal(Frames, driver.CurrentFrame);
@@ -34,7 +35,7 @@ public sealed class ReplayMatchDriverTests
     [Fact]
     public void StopsWhenTheRecordingRunsOut()
     {
-        using var driver = new ReplayMatchDriver<ToyState>(new ToyMatchSimulation(_simulation), Record(2));
+        using var driver = new ReplayMatchDriver<MatchState>(new ComposedMatchSimulation(_match), Record(2));
 
         Assert.True(driver.TryAdvanceFrame([]));
         Assert.True(driver.TryAdvanceFrame([]));
@@ -46,7 +47,7 @@ public sealed class ReplayMatchDriverTests
     [Fact]
     public void TakesNoInputFromThisPc()
     {
-        using var driver = new ReplayMatchDriver<ToyState>(new ToyMatchSimulation(_simulation), Record(1));
+        using var driver = new ReplayMatchDriver<MatchState>(new ComposedMatchSimulation(_match), Record(1));
 
         Assert.Equal(0, driver.LocalPlayerCount);
         Assert.Throws<ArgumentException>(() => driver.TryAdvanceFrame([InputWord.Neutral]));

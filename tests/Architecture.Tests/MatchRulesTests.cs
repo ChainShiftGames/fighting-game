@@ -63,7 +63,7 @@ public sealed class MatchRulesTests
     }
 
     // Catches settings types added elsewhere in Sim by name. Module configs are views over their MatchRules slot
-    // (IModuleConfig). Sim.Toy is the Phase 0 spike, which predates MatchRules.
+    // (IModuleConfig).
     [Fact]
     public void SettingsTypesAreMatchRulesPartsOrModuleConfigs()
     {
@@ -72,8 +72,7 @@ public sealed class MatchRulesTests
 
         foreach (Type type in SimTypes().Where(type => settingsName.IsMatch(type.Name)))
         {
-            bool allowed = type.Namespace == RulesNamespace || type.Namespace == "Sim.Toy" ||
-                moduleConfig.IsAssignableFrom(type);
+            bool allowed = type.Namespace == RulesNamespace || moduleConfig.IsAssignableFrom(type);
             Assert.True(allowed, $"{type.FullName} looks like a setting: put it in MatchRules or a module config.");
         }
     }

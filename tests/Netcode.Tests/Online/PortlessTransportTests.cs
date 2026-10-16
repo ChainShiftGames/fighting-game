@@ -3,7 +3,9 @@ using Backdash.Network.Client;
 using Backdash.Options;
 using Netcode.Drivers;
 using Netcode.Online;
-using Sim.Toy;
+using Netcode.Tests.Matches;
+using Sim.Composition;
+using Sim.State;
 using Xunit;
 
 namespace Netcode.Tests.Online;
@@ -24,8 +26,8 @@ public sealed class PortlessTransportTests
             RollbackFrames = 8,
         };
 
-        using IMatchDriver<ToyState> driver = PeerSession.CreateDriver(
-            new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), settings, new PeerTransport(sockets));
+        using IMatchDriver<MatchState> driver = PeerSession.CreateDriver(
+            new ComposedMatchSimulation(TestmanMirror.Create()), settings, new PeerTransport(sockets));
 
         Assert.True(sockets.Created);
     }

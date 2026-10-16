@@ -2,8 +2,9 @@ using System.Net;
 using System.Threading;
 using Netcode.Drivers;
 using Netcode.Online;
+using Sim.Composition;
 using Sim.Input;
-using Sim.Toy;
+using Sim.State;
 
 namespace Benchmarks.Drivers;
 
@@ -24,13 +25,13 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
 
     private const int PacingMilliseconds = 1;
 
-    private readonly RollbackMatchDriver<ToyState> _player1;
-    private readonly RollbackMatchDriver<ToyState> _player2;
+    private readonly RollbackMatchDriver<MatchState> _player1;
+    private readonly RollbackMatchDriver<MatchState> _player2;
     private readonly InputSequence _inputs;
     private readonly InputWord[] _player1Input = new InputWord[1];
     private readonly InputWord[] _player2Input = new InputWord[1];
 
-    public PeerFrameBenchmark(ToySimulation simulation, InputSequence inputs, int rollbackFrames)
+    public PeerFrameBenchmark(MatchSimulation simulation, InputSequence inputs, int rollbackFrames)
     {
         _player1 = CreateDriver(simulation, Player1Port, Player2Port, localIsPlayer1: true, rollbackFrames);
         _player2 = CreateDriver(simulation, Player2Port, Player1Port, localIsPlayer1: false, rollbackFrames);
@@ -59,9 +60,9 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
         _player2.Dispose();
     }
 
-    private static RollbackMatchDriver<ToyState> CreateDriver(
-        ToySimulation simulation, int localPort, int remotePort, bool localIsPlayer1, int rollbackFrames) =>
-        new(new ToyMatchSimulation(simulation), PeerSession.Build<ToyState>(new PeerMatchSettings
+    private static RollbackMatchDriver<MatchState> CreateDriver(
+        MatchSimulation simulation, int localPort, int remotePort, bool localIsPlayer1, int rollbackFrames) =>
+        new(new ComposedMatchSimulation(simulation), PeerSession.Build<MatchState>(new PeerMatchSettings
         {
             LocalPort = localPort,
             RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),

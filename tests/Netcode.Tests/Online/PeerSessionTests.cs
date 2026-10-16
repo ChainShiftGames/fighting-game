@@ -6,97 +6,132 @@ using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Online;
 using Netcode.Tests.Drivers;
+using Netcode.Tests.Matches;
 using Netcode.Transport;
 using Sim.Input;
 using Sim.State;
-using Sim.Toy;
 using Xunit;
 
 namespace Netcode.Tests.Online;
 
-/// <summary>Two peers in one process over loopback UDP, with the ADR-0005 bad-network test conditions.</summary>
+/// <summary>
+/// The real match online (P2-02): two Testman mirror peers in one process over loopback UDP with the ADR-0005
+/// bad-network test conditions, each played by seeded fighting inputs through the test driver.
+/// </summary>
 public sealed class PeerSessionTests
 {
-    private const int Frames = 900;
+    private const int FightingFrames = 900;
     private const int SettleFrames = 60;
-    private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(60);
+
+    // The rollback window (developer setting, data/netcode/online.json).
+    private const int RollbackFrames = 8;
+    private const uint Player1Seed = 20261017;
+    private const uint Player2Seed = 71016202;
+    private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(90);
 
     [Fact]
     public void BothPeersEndInTheSameStateOverABadNetwork()
     {
-        using var player1 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47011, 47012, true);
-        using var player2 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47012, 47011, false);
+        using var player1 = CreatePeer(47011, 47012, true, new ComposedMatchSimulation(TestmanMirror.Create()), out _);
+        using var player2 = CreatePeer(47012, 47011, false, new ComposedMatchSimulation(TestmanMirror.Create()), out _);
 
-        RunUntil(player1, player2, Frames + SettleFrames);
+        RunUntil(player1, player2, FightingFrames + SettleFrames);
 
-        // Inputs go neutral after Frames, so by the end every frame both states depend on is confirmed.
+        // Inputs go neutral after FightingFrames, so by the end every frame both states depend on is confirmed.
         Assert.Equal(StateChecksum.Compute(in player1.State), StateChecksum.Compute(in player2.State));
     }
 
     [Fact]
     public void ConnectionStatsShowThePingAndTheRollbacksOfABadNetwork()
     {
-        using var player1 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47031, 47032, true);
-        using var player2 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47032, 47031, false);
+        using var player1 = CreatePeer(
+            47031, 47032, true, new ComposedMatchSimulation(TestmanMirror.Create()), out IConnectionReadout readout);
+        using var player2 = CreatePeer(47032, 47031, false, new ComposedMatchSimulation(TestmanMirror.Create()), out _);
 
-        RunUntil(player1, player2, Frames);
+        RunUntil(player1, player2, FightingFrames);
 
-        Assert.True(player1.TryReadConnection(out ConnectionStats stats));
+        Assert.True(readout.TryReadConnection(out ConnectionStats stats));
 
         // Backdash's ping is a sample, not the true round trip: it can read far lower (8 ms seen in CI here), so the
         // test only checks that one is reported (ADR-0014, problem 4).
         Assert.True(stats.PingMilliseconds > 0);
-        Assert.True(stats.Rollbacks > 0, "Random inputs at 100 ms should mispredict.");
-        Assert.InRange(stats.LongestRollbackFrames, 1, Settings(47031, 47032, true).RollbackFrames);
+        Assert.True(stats.Rollbacks > 0, "Fighting inputs at 100 ms should mispredict.");
+        Assert.InRange(stats.LongestRollbackFrames, 1, RollbackFrames);
         Assert.True(stats.RolledBackFrames >= stats.Rollbacks);
     }
 
     [Fact]
     public void ADesyncBetweenPeersIsCaught()
     {
-        using var player1 = CreateDriver(new ToyMatchSimulation(new ToySimulation(ToyRules.Default)), 47021, 47022, true);
-        using var player2 = CreateDriver(new NonDeterministicSimulation(), 47022, 47021, false);
+        using var player1 = CreatePeer(47021, 47022, true, new ComposedMatchSimulation(TestmanMirror.Create()), out _);
+        using var player2 = CreatePeer(47022, 47021, false, new NonDeterministicSimulation(), out _);
 
         Assert.Throws<DesyncDetectedException>(() => RunUntil(player1, player2, int.MaxValue));
     }
 
-    private static RollbackMatchDriver<ToyState> CreateDriver(
-        IMatchSimulation<ToyState> simulation, int localPort, int remotePort, bool localIsPlayer1) =>
-        new(simulation, PeerSession.Build<ToyState>(Settings(localPort, remotePort, localIsPlayer1), PeerTransport.DirectUdp));
-
-    private static PeerMatchSettings Settings(int localPort, int remotePort, bool localIsPlayer1) => new()
+    private static TestMatchDriver<MatchState> CreatePeer(
+        int localPort,
+        int remotePort,
+        bool localIsPlayer1,
+        IMatchSimulation<MatchState> simulation,
+        out IConnectionReadout readout)
     {
-        LocalPort = localPort,
-        RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
-        LocalIsPlayer1 = localIsPlayer1,
-        RollbackFrames = 8,
-        NetworkSimulation = NetworkSimulation.TestConditions,
-    };
+        var settings = new PeerMatchSettings
+        {
+            LocalPort = localPort,
+            RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
+            LocalIsPlayer1 = localIsPlayer1,
+            RollbackFrames = RollbackFrames,
+            NetworkSimulation = NetworkSimulation.TestConditions,
+        };
+        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, PeerTransport.DirectUdp);
+        readout = driver;
+        var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
+        return new TestMatchDriver<MatchState>(driver, [new NeutralAfter(inputs, FightingFrames)]);
+    }
 
-    private static void RunUntil(RollbackMatchDriver<ToyState> player1, RollbackMatchDriver<ToyState> player2, int frames)
+    private static void RunUntil(TestMatchDriver<MatchState> player1, TestMatchDriver<MatchState> player2, int frames)
     {
-        var inputs1 = new SeededInputs(1);
-        var inputs2 = new SeededInputs(2);
         var clock = Stopwatch.StartNew();
         while (player1.CurrentFrame < frames || player2.CurrentFrame < frames)
         {
             Assert.True(clock.Elapsed < _timeout, $"Stuck at frames {player1.CurrentFrame} / {player2.CurrentFrame}.");
-            Advance(player1, inputs1, frames);
-            Advance(player2, inputs2, frames);
+            if (player1.CurrentFrame < frames)
+            {
+                player1.TryAdvanceFrame([]);
+            }
+
+            if (player2.CurrentFrame < frames)
+            {
+                player2.TryAdvanceFrame([]);
+            }
 
             // Roughly the game's pace, so the session sees time pass between frames.
             Thread.Sleep(1);
         }
     }
 
-    private static void Advance(RollbackMatchDriver<ToyState> driver, SeededInputs inputs, int frames)
+    // Plays the source for a number of frames, then lets go of everything.
+    private sealed class NeutralAfter : IInputSource
     {
-        if (driver.CurrentFrame >= frames)
+        private readonly IInputSource _source;
+        private int _framesLeft;
+
+        public NeutralAfter(IInputSource source, int frames)
         {
-            return;
+            _source = source;
+            _framesLeft = frames;
         }
 
-        InputWord input = driver.CurrentFrame < Frames ? inputs.Next() : InputWord.Neutral;
-        driver.TryAdvanceFrame([input]);
+        public InputWord Next()
+        {
+            if (_framesLeft == 0)
+            {
+                return InputWord.Neutral;
+            }
+
+            _framesLeft--;
+            return _source.Next();
+        }
     }
 }

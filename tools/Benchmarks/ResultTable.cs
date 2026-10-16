@@ -6,7 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Benchmarks.Drivers;
-using Sim.Toy;
+using Sim.Composition;
 
 namespace Benchmarks;
 
@@ -17,7 +17,7 @@ internal static class ResultTable
     {
         output.WriteLine($"Runtime: {RuntimeInformation.FrameworkDescription}, {RuntimeInformation.OSDescription}, " +
             $"{RuntimeInformation.ProcessArchitecture}, {Environment.ProcessorCount} logical cores");
-        if (IsOptimizerDisabled(typeof(ToySimulation).Assembly))
+        if (IsOptimizerDisabled(typeof(MatchSimulation).Assembly))
         {
             output.WriteLine("WARNING: Sim was built without optimisations; run with -c Release for real numbers.");
         }
