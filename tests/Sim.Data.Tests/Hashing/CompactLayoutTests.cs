@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Xunit;
 
 namespace Sim.Data.Tests.Hashing;

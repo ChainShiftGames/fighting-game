@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>
 /// A cancel window: during these frames, after the given outcomes, the move can be cancelled into the listed

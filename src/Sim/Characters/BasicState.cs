@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>
 /// States the move state machine enters on its own (P1-08). Each maps to a basic move that supplies its frames

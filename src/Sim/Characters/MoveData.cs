@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>
 /// One move in compact form. Boxes, cancels and hits are ranges into the character's flat arrays, so the data

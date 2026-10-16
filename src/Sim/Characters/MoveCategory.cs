@@ -1,6 +1,6 @@
 using System;
 
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>
 /// The kind of move. A move has exactly one; cancels combine several as a mask (normal → special → super).
