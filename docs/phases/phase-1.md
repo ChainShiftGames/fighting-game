@@ -98,7 +98,7 @@ Done when:
 - [x] input word layout documented in code
 
 ### P1-04 Device layer
-Status: in progress (p1-04-device-layer) · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
+Status: done · Needs: P1-05 · Parallel: yes · Where: `game/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Godot keyboard + joypad reading → per-player bindings → raw input word (no SOCD cleaning here; the logic does it).
 - Bindings and deadzones: **player settings** (saved properly in Phase 5; a dev file is fine for now).
@@ -108,8 +108,8 @@ Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Tests: `tests/FightingGame.Tests` (ADR-0016).
 
 Done when:
-- [ ] a leverless controller holding left+right sends both bits; the logic resolves it to neutral
-- [ ] rebinding a button in the dev file works on keyboard and controller
+- [x] a leverless controller holding left+right sends both bits; the logic resolves it to neutral
+- [x] rebinding a button in the dev file works on keyboard and controller
 
 ### P1-06 Motion parser and buffer
 Status: done · Needs: P1-05 · Parallel: yes · Where: `src/Sim/Input/Motions/`
