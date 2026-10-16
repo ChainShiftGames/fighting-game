@@ -3,8 +3,9 @@ using System;
 namespace FightingGame.Diagnostics;
 
 /// <summary>
-/// Prototype input-latency counter (ADR-0004 §6): time from reading the input to the frame that shows it being
-/// drawn. Ends at "drawn", not "on screen": the wait for vsync and the monitor's own delay come on top.
+/// Input-latency counter (ADR-0004 §6): time from reading the devices to the frame that shows that input being
+/// drawn, as average and maximum over a recent window. Ends at "drawn", not "on screen": Godot reports no present
+/// time, so the wait for vsync and the monitor's own delay come on top.
 /// </summary>
 public sealed class InputLatencyCounter
 {
@@ -20,6 +21,8 @@ public sealed class InputLatencyCounter
     /// <param name="ticksPerSecond">Resolution of the timestamps passed in.</param>
     public InputLatencyCounter(int windowSize, long ticksPerSecond)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(windowSize, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(ticksPerSecond, 1);
         _samples = new long[windowSize];
         _ticksPerSecond = ticksPerSecond;
     }
