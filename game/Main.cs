@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
+using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
@@ -9,6 +10,7 @@ using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
+using Sim.Input;
 using Sim.Toy;
 
 namespace FightingGame;
@@ -17,9 +19,7 @@ namespace FightingGame;
 public partial class Main : Node2D
 {
     private const string PlayerSettingsPath = "user://player_settings.json";
-
-    // Player settings until the options menu exists.
-    private const float StickDeadzone = 0.5f;
+    private const string DevBindingsPath = "user://dev_bindings.jsonc";
 
     // Developer settings.
     private const int LatencyWindowFrames = 120;
@@ -34,6 +34,9 @@ public partial class Main : Node2D
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
     private readonly ToyRules _rules = ToyRules.Default;
+    private readonly JoypadRoster _joypads = new();
+    private JoypadWatcher? _joypadWatcher;
+    private InputReadout? _inputReadout;
     private PlayerSettings _settings = new();
     private MatchLauncher? _launcher;
     private ToyMatch? _match;
@@ -68,7 +71,7 @@ public partial class Main : Node2D
         _matchmakingMenu = new MatchmakingMenu { Visible = false };
         AddChild(_matchmakingMenu);
 
-        _launcher = new MatchLauncher(new ToyMatchStartup(_rules, StickDeadzone), _platform, OS.GetCmdlineUserArgs());
+        _launcher = new MatchLauncher(CreateMatchStartup(), _platform, OS.GetCmdlineUserArgs());
         if (_launcher.Matchmaking is { } matchmaking)
         {
             _matchmakingMenu.Show(matchmaking);
@@ -102,6 +105,7 @@ public partial class Main : Node2D
         if (_overlay!.Visible)
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
+            _overlay.ShowInputs(_inputReadout!.Describe(_loop!.LastInputs));
             _overlay.ShowMatch(_match.Description, _match.Driver.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
         }
     }
@@ -136,6 +140,7 @@ public partial class Main : Node2D
         }
 
         _launcher?.Dispose();
+        _joypadWatcher?.Dispose();
         _platform?.Dispose();
     }
 
@@ -167,6 +172,15 @@ public partial class Main : Node2D
             _status!.Show($"DESYNC — match stopped\n{desync.Message}");
             return 0;
         }
+    }
+
+    private ToyMatchStartup CreateMatchStartup()
+    {
+        _joypadWatcher = new JoypadWatcher(_joypads);
+        ButtonSet? buttons = ButtonSetFile.Load();
+        _inputReadout = new InputReadout(buttons, _joypads);
+        PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
+        return new ToyMatchStartup(_rules, bindings, new GodotDeviceState(), _joypads);
     }
 
     private void StartMatch(ToyMatch match)

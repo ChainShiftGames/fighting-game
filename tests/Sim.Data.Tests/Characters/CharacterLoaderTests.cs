@@ -1,5 +1,5 @@
 using System;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Sources;
 using Sim.Data.Tests.Support;
 using Sim.Math;
@@ -15,7 +15,7 @@ public sealed class CharacterLoaderTests
     [Fact]
     public void MovesKeepTheOrderOfTheMoveList()
     {
-        Assert.Equal(["236c", "5a", "2b", "j_b", "idle", "crouch"], _fixture.MoveIds.ToArray());
+        Assert.Equal(["236c", "5a", "2b", "j_b", "idle", "crouch", "backdash"], _fixture.MoveIds.ToArray());
     }
 
     [Fact]
@@ -105,6 +105,31 @@ public sealed class CharacterLoaderTests
         Assert.Equal(IndexOf("idle"), _fixture.BasicStateMove(BasicState.Idle));
         Assert.Equal(IndexOf("crouch"), _fixture.BasicStateMove(BasicState.Crouch));
         Assert.Equal(CharacterData.NoMove, _fixture.BasicStateMove(BasicState.Knockdown));
+    }
+
+    [Fact]
+    public void VelocityRangesAreReadInFrameOrderWithYDefaultingToZero()
+    {
+        VelocityData[] velocities = _fixture.VelocitiesOf(Move("backdash")).ToArray();
+
+        Assert.Equal(
+            [
+                new VelocityData { FirstFrame = 1, LastFrame = 6, X = -12000, Y = 0 },
+                new VelocityData { FirstFrame = 7, LastFrame = 14, X = -6000, Y = 0 },
+            ],
+            velocities);
+        Assert.Empty(_fixture.VelocitiesOf(Move("5a")).ToArray());
+    }
+
+    [Fact]
+    public void InvulnerableFramesAreRead()
+    {
+        MoveData backdash = Move("backdash");
+
+        Assert.Equal((1, 7), (backdash.InvulnerableFirstFrame, backdash.InvulnerableLastFrame));
+        Assert.True(backdash.IsInvulnerableOn(7));
+        Assert.False(backdash.IsInvulnerableOn(8));
+        Assert.False(Move("5a").IsInvulnerableOn(1));
     }
 
     private static MoveData Move(string moveId) => _fixture.Moves[IndexOf(moveId)];

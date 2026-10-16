@@ -1,4 +1,4 @@
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Hashing;
 
 namespace Sim.Data.Characters;
@@ -15,6 +15,7 @@ public static class CharacterDataHash
         hash.Add(character.Cancels);
         hash.Add(character.CancelTargets);
         hash.Add(character.Hits);
+        hash.Add(character.Velocities);
         hash.Add(character.BasicStateMoves);
     }
 }

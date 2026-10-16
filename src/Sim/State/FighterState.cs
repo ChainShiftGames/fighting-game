@@ -1,3 +1,6 @@
+using Sim.Characters;
+using Sim.Fighters.Movement;
+using Sim.Fighters.States;
 using Sim.Math;
 
 namespace Sim.State;
@@ -13,4 +16,41 @@ public struct FighterState
     public int Facing;
 
     public int Health;
+
+    /// <summary>What the fighter is doing; the move state machine (P1-08) owns it.</summary>
+    public FighterAction Action;
+
+    /// <summary>Index of the playing move in the character's move list.</summary>
+    public int Move;
+
+    /// <summary>Frame of <see cref="Move"/>, 1 on the frame it was entered; basic moves loop back to 1.</summary>
+    public int MoveFrame;
+
+    /// <summary>What the current move has done so far (hit, block, whiff), for its cancel windows.</summary>
+    public CancelOn MoveOutcome;
+
+    /// <summary>Hitstun or blockstun left; counts down at the start of each of the fighter's frames.</summary>
+    public int StunFramesLeft;
+
+    /// <summary>1 while in the air; movement sets it on takeoff and clears it on landing.</summary>
+    /// <remarks>A system that launches a grounded fighter (e.g. a launcher) sets it with an upward velocity.</remarks>
+    public int IsAirborne;
+
+    /// <summary>The jump the state machine started this frame, for movement to launch; None on other frames.</summary>
+    public Takeoff Takeoff;
+
+    /// <summary>That jump's direction relative to facing: +1 forward, -1 back, 0 straight up.</summary>
+    public int TakeoffDirection;
+
+    /// <summary>1 while the current prejump leads to a high jump (decided by the input that started it).</summary>
+    public int IsHighJump;
+
+    /// <summary>Double jumps and air dashes used since the fighter left the ground.</summary>
+    /// <remarks>The state machine spends them; movement refills them on landing.</remarks>
+    public int AirActionsUsed;
+
+    /// <summary>Hitstop and time scale, managed by the tick pipeline's time control.</summary>
+    public FighterTiming Timing;
+
+    public PendingCancel Cancel;
 }

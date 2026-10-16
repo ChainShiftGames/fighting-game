@@ -1,0 +1,18 @@
+# Walking uses the character's walk speeds; 66 starts a run that lasts while forward is held (P1-09, P1-06).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+# p2 faces left, so its forward (6) walks towards the centre: 10 frames at 4000 per frame.
+frames 1-10: p2 6
+frame 1: expect p2 state = walk_forward
+frame 10: expect p2 x = 110000
+frame 11: expect p2 state = idle
+
+# 6, neutral, 6: the dash starts on the frame the second 6 is entered.
+frame 1: p1 6, 5, 6
+frame 2: expect p1 state = idle
+frame 3: expect p1 state = dash
+frames 4-20: p1 6
+frames 3-20: expect p1 state = dash
+frame 20: expect p1 vx = 9000
+frame 21: expect p1 state = idle

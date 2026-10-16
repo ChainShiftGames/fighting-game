@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "buttons.schema.json",
+  "title": "Button set",
+  "description": "data/input/buttons.json: the buttons of the input word and their bits (ADR-0010). Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Input). Bits 0-3 are the directions; ids and bits must be unique.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "buttons"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "buttons": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "description": "Order is the order the UI lists buttons in.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "bit"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$", "maxLength": 32, "description": "Referenced by moves as input.button." },
+          "bit": { "type": "integer", "minimum": 4, "maximum": 15, "description": "Bit in the 16-bit input word." }
+        }
+      }
+    }
+  }
+}

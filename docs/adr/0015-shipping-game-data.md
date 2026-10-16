@@ -1,6 +1,6 @@
 # ADR-0015: Shipping game data in exported builds
 
-- **Status:** Proposed (Oct 2026). Amends ADR-0007 (Godot compatibility) and ARCHITECTURE.md §7 (export presets).
+- **Status:** Accepted (Oct 2026). Amends ADR-0007 (Godot compatibility) and ARCHITECTURE.md §7 (export presets).
 
 ## Context
 

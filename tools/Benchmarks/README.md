@@ -84,9 +84,12 @@ real tick exists (P1-03); snapshot and checksum rows are measured for both the t
 | Windows dev PC (same), 2026-10-16 | Snapshot save (MatchState, 2,400 bytes) | 0.0357 | 0.0342 | 0.0609 | 0 |
 | | Snapshot load (MatchState) | 0.0203 | 0.0189 | 0.0309 | 0 |
 | | Checksum (MatchState) | 2.1359 | 2.1167 | 2.5194 | 0 |
+| | Tick (pipeline, P1-03: no gameplay systems yet) | 0.2933 | 0.2728 | 0.6088 | 0 |
 | Steam Deck (deferred: no Deck available) | all rows | | | | |
 
 - The toy tick is ~3 ns, so the 1 ms budget isn't under pressure yet.
+- The pipeline tick (P1-03) runs every step, hook point and request application with idle stages: ~0.3 µs, the
+  fixed cost every gameplay system adds to.
 - `MatchState` save + load + checksum is ~2.2 µs, 0.2 % of the budget. The checksum dominates: FNV-1a goes byte
   by byte. If it ever matters, hashing 8 bytes per step is a drop-in speed-up (it changes every checksum value, so
   golden replays would need re-recording).

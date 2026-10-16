@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Input;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
@@ -53,9 +53,11 @@ public sealed class MoveFileReader
         IReadOnlyList<BoxData> boxes = MoveBoxReader.Read(file, category, frames);
         IReadOnlyList<CancelRecord> cancels = new MoveCancelReader(_moveIds).Read(file, frames);
         IReadOnlyList<HitData> hits = MoveHitReader.Read(file, boxes);
+        IReadOnlyList<VelocityData> velocities = MoveVelocityReader.Read(file, frames);
+        move = MoveInvulnerabilityReader.Read(file, frames, move);
         file.Finish();
 
-        return new MoveRecord(move, boxes, cancels, hits);
+        return new MoveRecord(move, boxes, cancels, hits, velocities);
     }
 
     // Basic moves loop over a plain duration; attacks use fighting-game frame data, where startup counts the

@@ -12,6 +12,7 @@ public sealed class InvalidDataTests
     private const string Character = Fixture.CharacterFile;
     private static readonly string _move5A = Fixture.MoveFile("5a");
     private static readonly string _moveIdle = Fixture.MoveFile("idle");
+    private static readonly string _moveBackdash = Fixture.MoveFile("backdash");
 
     private readonly InMemoryDataSource _data = Fixture.InMemory();
 
@@ -124,9 +125,9 @@ public sealed class InvalidDataTests
     [Fact]
     public void MoveListedTwice()
     {
-        _data.Replace(Character, "\"idle\", \"crouch\"]", "\"idle\", \"crouch\", \"5a\"]");
+        _data.Replace(Character, "\"crouch\", \"backdash\"]", "\"crouch\", \"backdash\", \"5a\"]");
 
-        AssertSingleError(Character, "moves[6]", "move '5a' is listed twice");
+        AssertSingleError(Character, "moves[7]", "move '5a' is listed twice");
     }
 
     [Fact]
@@ -225,6 +226,30 @@ public sealed class InvalidDataTests
         Assert.Contains($"{_move5A}: hit.guard: must be one of", exception.Message, StringComparison.Ordinal);
         Assert.Contains($"{Fixture.MoveFile("2b")}: hit.damage: must be", exception.Message, StringComparison.Ordinal);
         Assert.Contains($"{Character}: stats.health: must be", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OverlappingVelocityRanges()
+    {
+        _data.Replace(_moveBackdash, "\"firstFrame\": 7, \"lastFrame\": 14", "\"firstFrame\": 6, \"lastFrame\": 14");
+
+        AssertSingleError(_moveBackdash, "velocity[1]", "must be in frame order and must not overlap");
+    }
+
+    [Fact]
+    public void VelocityOutsideTheMove()
+    {
+        _data.Replace(_moveBackdash, "\"lastFrame\": 14", "\"lastFrame\": 21");
+
+        AssertSingleError(_moveBackdash, "velocity[1].lastFrame", "must be a whole number from 7 to 20, got 21");
+    }
+
+    [Fact]
+    public void InvulnerabilityOutsideTheMove()
+    {
+        _data.Replace(_moveBackdash, "\"invulnerable\": { \"firstFrame\": 1", "\"invulnerable\": { \"firstFrame\": 21");
+
+        AssertSingleError(_moveBackdash, "invulnerable.firstFrame", "must be a whole number from 1 to 20, got 21");
     }
 
     private DataError AssertSingleError(string file, string field, string reasonPart)

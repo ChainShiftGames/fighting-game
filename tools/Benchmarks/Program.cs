@@ -37,11 +37,12 @@ internal static class Program
         var snapshotLoad = new SnapshotLoadOperation<ToyState>(ToyStateName, toyState, options.RollbackFrames);
         var checksum = new ChecksumOperation<ToyState>(ToyStateName, toyState);
 
-        // The real match state has no tick yet (P1-03), but its size already sets the snapshot and checksum cost.
+        // The real match state; its tick runs the P1-03 pipeline, which later tasks fill with gameplay systems.
         MatchState matchState = default;
         var matchSave = new SnapshotSaveOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
         var matchLoad = new SnapshotLoadOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
         var matchChecksum = new ChecksumOperation<MatchState>(MatchStateName, matchState);
+        var pipelineTick = new PipelineTickOperation(inputs);
 
         OperationResult tickResult = timer.Measure(ref tick);
         List<OperationResult> results =
@@ -54,6 +55,7 @@ internal static class Program
             timer.Measure(ref matchSave),
             timer.Measure(ref matchLoad),
             timer.Measure(ref matchChecksum),
+            timer.Measure(ref pipelineTick),
         ];
 
         ResultTable.Write(Console.Out, results);

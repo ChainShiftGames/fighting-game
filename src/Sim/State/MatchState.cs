@@ -1,3 +1,5 @@
+using Sim.Events;
+
 namespace Sim.State;
 
 /// <summary>The whole match state: everything that changes during a match, and nothing else.</summary>
@@ -16,7 +18,11 @@ public struct MatchState
     public int Frame;
     public RoundState Round;
     public RandomState Random;
+    public FreezeState Freeze;
     public FighterStates Fighters;
     public InputHistories Inputs;
     public ModuleStates Modules;
+
+    /// <summary>Events of the latest frame for presentation; in the state so they roll back with it (P1-14).</summary>
+    public FrameEvents Events;
 }

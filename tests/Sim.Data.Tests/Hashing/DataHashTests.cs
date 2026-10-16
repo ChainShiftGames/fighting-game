@@ -17,7 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    private const string FixtureHash = "6019a1a303c7f3221d8839896d0e31484dd04e8254f474f23139ad001e933431";
+    // Last change: the motion file (with movement inputs) and rules/match.json joined the data hash.
+    private const string FixtureHash = "f764d4885a65efac8ff4aa31ec9113f4aac628371bc5827364e3a5a7f17605b8";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 
@@ -80,6 +81,7 @@ public sealed class DataHashTests
     }
 
     [Theory]
+    [InlineData("input/buttons.json", "\"bit\": 9", "\"bit\": 10")]
     [InlineData("characters/fixture_man/moves/5a.json", "\"damage\": 300", "\"damage\": 301")]
     [InlineData("characters/fixture_man/moves/5a.json", "\"button\": \"a\"", "\"button\": \"b\"")]
     [InlineData("characters/fixture_man/moves/2b.json", "\"x\": 30000", "\"x\": 30001")]

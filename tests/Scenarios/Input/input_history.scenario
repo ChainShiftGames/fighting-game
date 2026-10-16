@@ -1,0 +1,16 @@
+# Input history: one input per frame, recorded facing-relative; P2 faces left, so its 6 is still forward.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 3, 6c       # a quarter-circle forward motion, one direction per frame
+frame 1: expect p1 input = 2
+frame 2: expect p1 input = 3
+frame 3: expect p1 input = 6c
+frame 4: expect p1 input = 5  # nothing given: neutral
+
+frames 5-8: p1 4a+b
+frames 5-8: expect p1 input = 4a+b
+
+frame 9: p2 6dash
+frame 9: expect p2 input = 6dash
+frame 9: expect p2 input != 4dash

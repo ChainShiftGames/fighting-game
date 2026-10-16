@@ -14,6 +14,18 @@ public struct MatchRules
     /// <summary>The enabled mechanics modules in hook order, with each one's config.</summary>
     public ModuleSlots Modules;
 
+    /// <summary>Frames a motion (236, 623…) may take, first direction to button press (ADR-0002; 12 by default).</summary>
+    /// <remarks>Developer setting. A motion in data may set its own window instead.</remarks>
+    public int MotionWindow;
+
+    /// <summary>Frames a button press stays valid after it happened (ADR-0002; 2 by default).</summary>
+    /// <remarks>Developer setting. A press 2 frames ago still counts with a buffer of 2; 3 frames ago doesn't.</remarks>
+    public int ButtonBuffer;
+
+    /// <summary>Each fighter's distance from the stage centre when a round starts, in subpixels.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json.</remarks>
+    public int RoundStartDistance;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

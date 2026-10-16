@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 
 namespace Sim.Data.Characters.Reading;
 
@@ -8,4 +8,5 @@ public sealed record MoveRecord(
     MoveData Move,
     IReadOnlyList<BoxData> Boxes,
     IReadOnlyList<CancelRecord> Cancels,
-    IReadOnlyList<HitData> Hits);
+    IReadOnlyList<HitData> Hits,
+    IReadOnlyList<VelocityData> Velocities);

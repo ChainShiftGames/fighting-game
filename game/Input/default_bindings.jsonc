@@ -1,0 +1,46 @@
+// Default bindings (player settings, ARCHITECTURE.md §6). Embedded in the game and copied on first run to
+// user://dev_bindings.jsonc, the dev file to edit; delete that copy to get these defaults back. The options menu and
+// proper saving replace it in Phase 5.
+// Inputs: up, down, left, right and the button ids of data/input/buttons.json. Each lists the controls bound to it.
+// Keys: Godot Key names, by physical position (W, Up, Space, Kp4). Joypad: Godot JoyButton names (A, X, DpadLeft,
+// RightShoulder, ...) or TriggerLeft / TriggerRight. Opposite directions held together are both sent: the logic
+// applies the SOCD rule.
+{
+  "schemaVersion": 1,
+  "players": [
+    {
+      "keyboard": {
+        "bindings": {
+          "up": ["W"], "down": ["S"], "left": ["A"], "right": ["D"],
+          "a": ["U"], "b": ["I"], "c": ["J"], "d": ["K"], "special": ["O"], "dash": ["L"]
+        }
+      },
+      "gamepad": {
+        "leftStick": true,
+        "stickDeadzone": 0.5,
+        "triggerThreshold": 0.5,
+        "bindings": {
+          "up": ["DpadUp"], "down": ["DpadDown"], "left": ["DpadLeft"], "right": ["DpadRight"],
+          "a": ["X"], "b": ["Y"], "c": ["B"], "d": ["A"], "special": ["RightShoulder"], "dash": ["TriggerRight"]
+        }
+      }
+    },
+    {
+      "keyboard": {
+        "bindings": {
+          "up": ["Up"], "down": ["Down"], "left": ["Left"], "right": ["Right"],
+          "a": ["Kp4"], "b": ["Kp5"], "c": ["Kp1"], "d": ["Kp2"], "special": ["Kp6"], "dash": ["Kp3"]
+        }
+      },
+      "gamepad": {
+        "leftStick": true,
+        "stickDeadzone": 0.5,
+        "triggerThreshold": 0.5,
+        "bindings": {
+          "up": ["DpadUp"], "down": ["DpadDown"], "left": ["DpadLeft"], "right": ["DpadRight"],
+          "a": ["X"], "b": ["Y"], "c": ["B"], "d": ["A"], "special": ["RightShoulder"], "dash": ["TriggerRight"]
+        }
+      }
+    }
+  ]
+}

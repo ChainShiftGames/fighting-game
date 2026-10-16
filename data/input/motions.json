@@ -1,0 +1,29 @@
+{
+  "$schema": "../schema/motions.schema.json",
+  "schemaVersion": 1,
+  "motionWindow": 12,
+  "buttonBuffer": 2,
+  "movementInputs": { "dash": "66", "backdash": "44", "highJump": "28", "dashButton": "dash" },
+  "motions": [
+    { "motion": "632146", "steps": "6 3 2 1 4 6" },
+    { "motion": "236236", "steps": "2 3 6 2 3 6" },
+    { "motion": "63214", "steps": "6 3 2 1 4" },
+    { "motion": "41236", "steps": "4 1 2 3 6" },
+    { "motion": "623", "steps": "6 2 3" },
+    { "motion": "214", "steps": "2 1 4" },
+    { "motion": "236", "steps": "2 3 6" },
+    { "motion": "22", "steps": "2 5 2" },
+    { "motion": "28", "steps": "123 789", "window": 6 },
+    { "motion": "66", "steps": "6 5 6" },
+    { "motion": "44", "steps": "4 5 4" },
+    { "motion": "1", "steps": "1", "window": 1 },
+    { "motion": "3", "steps": "3", "window": 1 },
+    { "motion": "4", "steps": "4", "window": 1 },
+    { "motion": "6", "steps": "6", "window": 1 },
+    { "motion": "7", "steps": "7", "window": 1 },
+    { "motion": "8", "steps": "8", "window": 1 },
+    { "motion": "9", "steps": "9", "window": 1 },
+    { "motion": "2", "steps": "123", "window": 1 },
+    { "motion": "5", "steps": "123456789", "window": 1 }
+  ]
+}
