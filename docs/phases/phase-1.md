@@ -364,7 +364,7 @@ handshake and desync tools build on. Every task lists each rule decision (standa
 re-records the golden replays with the reason.
 
 ### P1-22 Counter hits (core)
-Status: todo · Needs: P1-19 · Parallel: no · Where: `src/Sim/Combat/`, `src/Sim/Characters/`, `src/Sim/Events/`,
+Status: done · Needs: P1-19 · Parallel: no · Where: `src/Sim/Combat/`, `src/Sim/Characters/`, `src/Sim/Events/`,
 `src/Sim/Rules/`, `src/Sim.Data/`, `data/`, `tests/`
 Read: ADR-0017, CURRENT_STATE §3 Offense
 - A hit that lands while the defender is in an attack's startup or active frames is a **counter hit**; during the
@@ -373,10 +373,15 @@ Read: ADR-0017, CURRENT_STATE §3 Offense
   `data/rules/match.json` (`MatchRules`), validated by the `Sim.Data` loader.
 - Frame events (counter hit, punish counter) so presentation can show it; scenario keyword if needed.
 - Projectiles: decide whether they can counter hit (standard: yes, when the defender is in startup or active).
+- Built: `Sim.Combat.CounterHits` (rules in its doc comment), used by `HitResolutionStage` and
+  `EntityHitResolutionStage`. Projectiles counter hit and punish counter like attacks. Bonus (`CounterBonus`: extra
+  hitstun, extra hitstop, extra damage %): a hit's own `counterHit` / `punishCounter` object in move data, else the
+  **developer settings** `counterHitExtra*` / `punishCounterExtra*` in `data/rules/match.json` (2/2/20 % and
+  4/4/20 %), also in the debug panel. Events `CounterHit`, `PunishCounter` follow the hit event.
 
 Done when:
-- [ ] scenario tests: counter hit in startup and in active, punish counter in recovery, plain hit on a free
-  defender, the projectile rule, both ports (`tests/Scenarios/Combat/`)
+- [x] scenario tests: counter hit in startup and in active, punish counter in recovery, plain hit on a free
+  defender, the projectile rule, both ports (`tests/Scenarios/Combat/`, `Entities/projectile_counter_hits`)
 
 ### P1-23 Throws and tech (core)
 Status: todo · Needs: P1-22 · Parallel: no · Where: `src/Sim/`, `src/Sim.Data/`, `data/`, `tests/`

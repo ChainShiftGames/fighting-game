@@ -87,4 +87,17 @@ public enum FrameEventKind
     /// for <see cref="ProjectileSpawn"/>.
     /// </summary>
     ProjectileExpire = 14,
+
+    /// <summary>
+    /// A hit (an attack's or a projectile's) caught the defender in an attack's startup or active frames (ADR-0017);
+    /// emitted right after that hit's <see cref="Hit"/> or <see cref="ProjectileHit"/> event. Fighter: the attacker
+    /// (the projectile's owner). Position: as for that hit event. Detail: 0.
+    /// </summary>
+    CounterHit = 15,
+
+    /// <summary>
+    /// A hit caught the defender in an attack's recovery (ADR-0017). Fighter, Position and Detail: as for
+    /// <see cref="CounterHit"/>.
+    /// </summary>
+    PunishCounter = 16,
 }

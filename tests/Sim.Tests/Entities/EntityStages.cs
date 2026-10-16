@@ -25,16 +25,20 @@ internal sealed class EntityStages
     private readonly ITickStage _resolution;
     private readonly SpawnRequestStage _spawnRequests;
 
-    public EntityStages(int entitiesPerPlayer = 4, TradeRule tradeRule = TradeRule.Trade)
+    /// <param name="counterHit">The match rules' default counter hit bonus; none by default.</param>
+    public EntityStages(
+        int entitiesPerPlayer = 4, TradeRule tradeRule = TradeRule.Trade, CounterBonus counterHit = default)
     {
         CharacterData character = ProjectileCharacter.Create();
         MatchRules rules = default;
         rules.EntitiesPerPlayer = entitiesPerPlayer;
+        rules.CounterHit = counterHit;
         rules.Modules[ModuleSlot].Module = new ModuleId(1);
         var lineup = new ModuleLineup(new ModuleCatalog([new CountingModule(1)]), in rules.Modules, Requests);
         var owners = new OwnerCharacters(character, character);
         var contacts = new HitContacts();
         var entityContacts = new EntityContacts();
+        var counterHits = new CounterHits(in rules);
         Spawner = new ProjectileSpawner(owners, in rules);
         _movement = new EntityMovementStage(owners);
         _moveSpawns = new MoveSpawnStage(owners, Spawner);
@@ -42,8 +46,8 @@ internal sealed class EntityStages
             new HitDetectionStage(character, character, contacts),
             new EntityHitDetectionStage(owners, entityContacts, contacts));
         _resolution = new StageSequence(
-            new HitResolutionStage(character, character, contacts, lineup, tradeRule),
-            new EntityHitResolutionStage(owners, entityContacts, contacts, lineup, tradeRule));
+            new HitResolutionStage(character, character, contacts, lineup, tradeRule, counterHits),
+            new EntityHitResolutionStage(owners, entityContacts, contacts, lineup, tradeRule, counterHits));
         _spawnRequests = new SpawnRequestStage(owners, Spawner, Requests);
     }
 

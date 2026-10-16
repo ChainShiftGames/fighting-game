@@ -106,10 +106,13 @@ internal static class ProjectileCharacter
         };
     }
 
+    // Active on its spawn frame, as data moves with a projectile are, so a hit during it can be a counter hit.
     private static MoveData Special(int projectile) => new()
     {
         Category = MoveCategory.Special,
         TotalFrames = 30,
+        FirstActiveFrame = SpawnFrame,
+        LastActiveFrame = SpawnFrame,
         BoxStart = 0,
         BoxCount = 1,
         ProjectileStart = projectile,

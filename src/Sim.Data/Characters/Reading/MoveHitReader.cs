@@ -4,7 +4,7 @@ using Sim.Data.Validation;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads a move's <c>hit</c> object: damage, guard, stun, hitstop and pushback.</summary>
+/// <summary>Reads a move's <c>hit</c> object: damage, guard, stun, hitstop, pushback and counter hit bonuses.</summary>
 /// <remarks>
 /// One hit per move in schema v1. Moves already point at a range of hits, so multi-hit moves can turn this into a
 /// list without changing the compact layout.
@@ -48,6 +48,8 @@ public static class MoveHitReader
             Hitstop = hit.RequiredInt("hitstop", 0, MaxFrames),
             Pushback = hit.RequiredInt("pushback", 0, CharacterSchema.MaxDistance),
             Reaction = hit.OptionalChoice("reaction", CharacterJsonNames.Reactions, HitReaction.Hitstun),
+            CounterHit = CounterBonusReader.ReadOwn(hit, "counterHit"),
+            PunishCounter = CounterBonusReader.ReadOwn(hit, "punishCounter"),
         };
         hit.Finish();
         return data;

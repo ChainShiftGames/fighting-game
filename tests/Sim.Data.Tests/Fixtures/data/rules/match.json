@@ -9,5 +9,11 @@
   "roundsToWin": 2,
   "maxRounds": 5,
   "roundOverFrames": 120,
-  "entitiesPerPlayer": 4
+  "entitiesPerPlayer": 4,
+  "counterHitExtraHitstun": 2,
+  "counterHitExtraHitstop": 2,
+  "counterHitExtraDamagePercent": 20,
+  "punishCounterExtraHitstun": 4,
+  "punishCounterExtraHitstop": 4,
+  "punishCounterExtraDamagePercent": 20
 }

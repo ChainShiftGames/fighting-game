@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using Sim.Characters;
 using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Tests.Support;
@@ -57,6 +58,40 @@ public sealed class MatchRulesFileTests
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
         Assert.Equal((MatchRulesSchema.File, "entitiesPerPlayer"), (error.File, error.Field));
         Assert.Contains("from 1 to 8", error.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CreateMatchRulesAppliesTheCounterHitBonuses()
+    {
+        MatchRules rules = Fixture.Load(_data).CreateMatchRules();
+
+        Assert.Equal(new CounterBonus { ExtraHitstun = 2, ExtraHitstop = 2, ExtraDamagePercent = 20 }, rules.CounterHit);
+        Assert.Equal(
+            new CounterBonus { ExtraHitstun = 4, ExtraHitstop = 4, ExtraDamagePercent = 20 }, rules.PunishCounter);
+    }
+
+    [Theory]
+    [InlineData("counterHitExtraHitstun")]
+    [InlineData("punishCounterExtraDamagePercent")]
+    public void AMissingCounterHitValueIsReported(string field)
+    {
+        _data.SetText(MatchRulesSchema.File, WithoutField(_data.GetText(MatchRulesSchema.File), field));
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, field), (error.File, error.Field));
+    }
+
+    [Theory]
+    [InlineData("\"counterHitExtraHitstop\": 2", "\"counterHitExtraHitstop\": -1", "counterHitExtraHitstop")]
+    [InlineData(
+        "\"punishCounterExtraDamagePercent\": 20", "\"punishCounterExtraDamagePercent\": 1001",
+        "punishCounterExtraDamagePercent")]
+    public void ACounterHitValueOutOfRangeNamesTheField(string from, string to, string field)
+    {
+        _data.Replace(MatchRulesSchema.File, from, to);
+
+        DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
+        Assert.Equal((MatchRulesSchema.File, field), (error.File, error.Field));
     }
 
     [Theory]
@@ -124,7 +159,9 @@ public sealed class MatchRulesFileTests
             """
             { "schemaVersion": 1, "roundStartDistance": 150000, "wallDistance": 600000, "maxPlayerDistance": 640000,
               "roundTimerFrames": 5940, "roundsToWin": 2, "maxRounds": 5, "roundOverFrames": 120,
-              "entitiesPerPlayer": 4 }
+              "entitiesPerPlayer": 4, "counterHitExtraHitstun": 2, "counterHitExtraHitstop": 2,
+              "counterHitExtraDamagePercent": 20, "punishCounterExtraHitstun": 4, "punishCounterExtraHitstop": 4,
+              "punishCounterExtraDamagePercent": 20 }
             """);
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
@@ -190,7 +227,7 @@ public sealed class MatchRulesFileTests
         Assert.Contains("motion 999", error.Reason, StringComparison.Ordinal);
     }
 
-    // Every round value and the entity pool size follow tradeRule in the file, so each has a comma before it.
+    // Every round, entity pool and counter hit value follows tradeRule in the file, so each has a comma before it.
     private static string WithoutField(string json, string field) =>
         Regex.Replace(json, $@",\s*""{field}"":\s*\d+", string.Empty);
 }

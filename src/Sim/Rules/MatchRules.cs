@@ -1,3 +1,4 @@
+using Sim.Characters;
 using Sim.State;
 
 namespace Sim.Rules;
@@ -69,6 +70,14 @@ public struct MatchRules
     /// <see cref="EntityPool.MaxPerPlayer"/>, the state's fixed layout. 0 (rules built in code) means no entities.
     /// </remarks>
     public int EntitiesPerPlayer;
+
+    /// <summary>What a counter hit adds to a hit that has no counter hit bonus of its own (ADR-0017).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>counterHit*</c>); its <c>IsSet</c> is unused.</remarks>
+    public CounterBonus CounterHit;
+
+    /// <summary>What a punish counter adds to a hit that has no punish counter bonus of its own (ADR-0017).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>punishCounter*</c>); its <c>IsSet</c> is unused.</remarks>
+    public CounterBonus PunishCounter;
 
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);

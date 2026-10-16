@@ -10,15 +10,16 @@ namespace Sim.Combat;
 /// <summary>The hit resolution step of the tick: what this frame's contacts do, then the hit and block hooks.</summary>
 /// <remarks>
 /// For each attack <see cref="HitDetectionStage"/> found touching: blocked if the defender's stance stops its guard
-/// (<see cref="Blocking"/>), else a hit. The attacker's move records the outcome (for its cancel windows, and so it
+/// (<see cref="Blocking"/>), else a hit, with its counter hit bonus when it caught the defender attacking
+/// (<see cref="CounterHits"/>). The attacker's move records the outcome (for its cancel windows, and so it
 /// can't connect again); the defender takes the hit or block (<see cref="HitReactions"/>); both fighters get the
 /// hit's hitstop, the longer one if two hits trade. Hitstop counts from the next frame (<see cref="TimeControl"/>).
 /// Same-frame exchanges (<see cref="HitContacts.IsSameFrameExchange"/>, which counts projectile touches too) follow
 /// <see cref="MatchRules.TradeRule"/>; projectiles resolve after this stage (<c>Sim.Entities</c>).
 /// Both contacts are decided from the state as the
 /// step started and written together, so neither port wins a trade (symmetry rule of <see cref="ITickStage"/>).
-/// Afterwards each contact emits its event and runs the module hooks, P1's attack first; modules see the frame fully
-/// resolved, and their requests apply at the end of the frame.
+/// Afterwards each contact emits its event (followed by a counter hit event on a counter) and runs the module hooks,
+/// P1's attack first; modules see the frame fully resolved, and their requests apply at the end of the frame.
 /// </remarks>
 public sealed class HitResolutionStage : ITickStage
 {
@@ -27,15 +28,22 @@ public sealed class HitResolutionStage : ITickStage
     private readonly HitContacts _contacts;
     private readonly ModuleLineup _modules;
     private readonly TradeRule _tradeRule;
+    private readonly CounterHits _counterHits;
 
     public HitResolutionStage(
-        CharacterData player1, CharacterData player2, HitContacts contacts, ModuleLineup modules, TradeRule tradeRule)
+        CharacterData player1,
+        CharacterData player2,
+        HitContacts contacts,
+        ModuleLineup modules,
+        TradeRule tradeRule,
+        CounterHits counterHits)
     {
         _player1 = player1;
         _player2 = player2;
         _contacts = contacts;
         _modules = modules;
         _tradeRule = tradeRule;
+        _counterHits = counterHits;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -48,8 +56,8 @@ public sealed class HitResolutionStage : ITickStage
 
         FighterState player1 = state.Fighters[0];
         FighterState player2 = state.Fighters[1];
-        Connection byPlayer1 = Decide(0, _player1, in player1, in player2, in state.Inputs[1]);
-        Connection byPlayer2 = Decide(1, _player2, in player2, in player1, in state.Inputs[0]);
+        Connection byPlayer1 = Decide(0, _player1, in player1, in player2, _player2, in state.Inputs[1]);
+        Connection byPlayer2 = Decide(1, _player2, in player2, in player1, _player1, in state.Inputs[0]);
         if (!byPlayer1.IsMade && !byPlayer2.IsMade)
         {
             return;
@@ -76,6 +84,7 @@ public sealed class HitResolutionStage : ITickStage
         CharacterData attackerCharacter,
         in FighterState attackerState,
         in FighterState defender,
+        CharacterData defenderCharacter,
         in InputHistory defenderInputs)
     {
         if (!_contacts.Touches(attacker))
@@ -87,11 +96,14 @@ public sealed class HitResolutionStage : ITickStage
         HitData hit = attackerCharacter.HitsOf(in attackerCharacter.Moves[attackerState.Move])[0];
         BlockStance stance = Blocking.StanceOf(in defender, in attackerState, defenderInputs.FramesAgo(0));
         bool isBlocked = Blocking.Stops(stance, hit.Guard);
+        CounterHitKind counter =
+            isBlocked ? CounterHitKind.None : CounterHits.KindAgainst(in defender, defenderCharacter);
         return new Connection
         {
             Outcome = isBlocked ? HitOutcome.Block : HitOutcome.Hit,
             Stance = isBlocked ? stance : BlockStance.None,
-            Hit = hit,
+            Hit = _counterHits.Apply(in hit, counter),
+            Counter = counter,
             Move = attackerState.Move,
         };
     }
@@ -143,6 +155,7 @@ public sealed class HitResolutionStage : ITickStage
         {
             FrameEventKind kind = connection.Outcome == HitOutcome.Hit ? FrameEventKind.Hit : FrameEventKind.Block;
             state.Events.Emit(state.Frame, kind, attacker, _contacts.PointOf(attacker), connection.Move);
+            CounterHitEvent.Emit(ref state, connection.Counter, attacker, _contacts.PointOf(attacker));
         }
     }
 

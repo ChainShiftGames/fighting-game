@@ -57,6 +57,7 @@ public sealed class MatchSimulation
         EntityContacts entityContacts = new();
         OwnerCharacters owners = new(player1, player2);
         ProjectileSpawner spawner = new(owners, in rules);
+        CounterHits counterHits = new(in rules);
 
         // Entities (P1-21) run after the fighters in each step. Module spawn requests apply after the end-of-frame
         // hooks, so they lead the round and timer step (SpawnRequestStage).
@@ -75,8 +76,8 @@ public sealed class MatchSimulation
                 new HitDetectionStage(player1, player2, contacts),
                 new EntityHitDetectionStage(owners, entityContacts, contacts)),
             HitResolution = new StageSequence(
-                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule),
-                new EntityHitResolutionStage(owners, entityContacts, contacts, modules, rules.TradeRule)),
+                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule, counterHits),
+                new EntityHitResolutionStage(owners, entityContacts, contacts, modules, rules.TradeRule, counterHits)),
             RoundTimer = new StageSequence(
                 new SpawnRequestStage(owners, spawner, requests),
                 new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),

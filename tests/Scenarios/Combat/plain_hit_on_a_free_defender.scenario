@@ -1,0 +1,16 @@
+# A hit on a defender that isn't attacking (standing, walking, crouching…) is a plain hit: no counter hit bonus or
+# event.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frames 1-5: p2 6                         # p2 walks forward into it
+
+frame 5: expect p1 event hit
+frame 5: expect p1 event counter_hit = 0
+frame 5: expect p1 event punish_counter = 0
+frame 5: expect p2 damage = 300
+frame 5: expect p2 stun = 12
+frame 5: expect p2 hitstop = 8

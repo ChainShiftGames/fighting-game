@@ -1,3 +1,4 @@
+using Sim.Characters;
 using Sim.Rules;
 
 namespace Sim.Data.Rules;
@@ -12,7 +13,9 @@ public sealed class MatchRulesFile
         int maxPlayerDistance,
         TradeRule tradeRule,
         RoundFormat rounds,
-        int entitiesPerPlayer)
+        int entitiesPerPlayer,
+        CounterBonus counterHit,
+        CounterBonus punishCounter)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
@@ -20,6 +23,8 @@ public sealed class MatchRulesFile
         TradeRule = tradeRule;
         Rounds = rounds;
         EntitiesPerPlayer = entitiesPerPlayer;
+        CounterHit = counterHit;
+        PunishCounter = punishCounter;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -40,6 +45,12 @@ public sealed class MatchRulesFile
     /// <summary>Entity pool slots per player: projectiles and module objects one player can have out at once.</summary>
     public int EntitiesPerPlayer { get; }
 
+    /// <summary>What a counter hit adds to hits without their own bonus (ADR-0017).</summary>
+    public CounterBonus CounterHit { get; }
+
+    /// <summary>What a punish counter adds to hits without their own bonus (ADR-0017).</summary>
+    public CounterBonus PunishCounter { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -52,5 +63,7 @@ public sealed class MatchRulesFile
         rules.MaxRounds = Rounds.MaxRounds;
         rules.RoundOverFrames = Rounds.RoundOverFrames;
         rules.EntitiesPerPlayer = EntitiesPerPlayer;
+        rules.CounterHit = CounterHit;
+        rules.PunishCounter = PunishCounter;
     }
 }

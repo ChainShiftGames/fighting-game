@@ -227,6 +227,51 @@ public sealed class HitResolutionStageTests
     }
 
     [Fact]
+    public void AHitDuringTheDefendersStartupIsACounterHitWithTheBonusForBoth()
+    {
+        CombatStages stages = new(counterHit: new CounterBonus { ExtraHitstun = 2, ExtraHitstop = 3, ExtraDamagePercent = 20 });
+        MatchState state = P1Attacks(Mid, At(30_000, -1, Low, moveFrame: 1));
+
+        stages.Run(ref state);
+
+        FighterState defender = state.Fighters[1];
+        Assert.Equal((Health - 360, MidHit.Hitstun + 2), (defender.Health, defender.StunFramesLeft));
+        Assert.Equal(MidHit.Hitstop + 3, state.Fighters[0].Timing.HitstopFramesLeft);
+        Assert.Equal(MidHit.Hitstop + 3, defender.Timing.HitstopFramesLeft);
+        FrameEvent[] events = state.Events.OfFrame(Frame).ToArray();
+        Assert.Equal(
+            [(FrameEventKind.Hit, 0, Mid), (FrameEventKind.CounterHit, 0, 0)],
+            Array.ConvertAll(events, frameEvent => (frameEvent.Kind, frameEvent.Fighter, frameEvent.Detail)));
+        Assert.Equal(events[0].Position, events[1].Position);
+    }
+
+    [Fact]
+    public void AHitDuringTheDefendersRecoveryIsAPunishCounter()
+    {
+        CombatStages stages = new(punishCounter: new CounterBonus { ExtraHitstun = 4 });
+        MatchState state = P1Attacks(Mid, At(30_000, -1, Low, moveFrame: 6));
+
+        stages.Run(ref state);
+
+        Assert.Equal(MidHit.Hitstun + 4, state.Fighters[1].StunFramesLeft);
+        Assert.Equal(
+            [FrameEventKind.Hit, FrameEventKind.PunishCounter],
+            Array.ConvertAll(state.Events.OfFrame(Frame).ToArray(), frameEvent => frameEvent.Kind));
+    }
+
+    [Fact]
+    public void ABlockIsNeverACounterHit()
+    {
+        CombatStages stages = new(counterHit: new CounterBonus { ExtraHitstun = 2 });
+        MatchState state = P1Attacks(Mid, At(30_000, -1), _back);
+
+        stages.Run(ref state);
+
+        FrameEvent block = Assert.Single(state.Events.OfFrame(Frame).ToArray());
+        Assert.Equal(FrameEventKind.Block, block.Kind);
+    }
+
+    [Fact]
     public void UnderTheTradeRuleBothSameFrameHitsLandAndTheLongerHitstopFreezesBoth()
     {
         MatchState state = BothAttack(Mid, HeavyMid);
@@ -239,7 +284,8 @@ public sealed class HitResolutionStageTests
         Assert.Equal(FighterAction.Hitstun, state.Fighters[1].Action);
         Assert.Equal(HeavyMidHit.Hitstop, state.Fighters[0].Timing.HitstopFramesLeft);
         Assert.Equal(HeavyMidHit.Hitstop, state.Fighters[1].Timing.HitstopFramesLeft);
-        Assert.Equal(2, state.Events.OfFrame(Frame).Length);
+        // Each hit caught the other in its active frames: a hit and a counter hit event each.
+        Assert.Equal(4, state.Events.OfFrame(Frame).Length);
         Assert.Equal(2, CombatStages.Hooks(ref state).OnHit);
     }
 

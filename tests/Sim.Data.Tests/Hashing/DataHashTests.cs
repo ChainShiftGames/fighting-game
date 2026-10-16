@@ -17,9 +17,9 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (P1-21): rules/match.json gained entitiesPerPlayer, moves gained a projectile range (MoveData) and
-    // characters a projectile list, and fixture_man's 236c now spawns a projectile.
-    private const string FixtureHash = "2e50135e39c16385cd839b93e5d63a9a481e51a83e0b39a5a665150fe9098969";
+    // Last change (P1-22): rules/match.json gained the counter hit and punish counter defaults, and hits (HitData)
+    // gained their own counter hit and punish counter bonuses.
+    private const string FixtureHash = "4b3e9ae467aaaaa8332a7469781812d325aac8a3e8bfa583a9b62ae72da9b495";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 
@@ -90,6 +90,12 @@ public sealed class DataHashTests
     [InlineData("characters/fixture_man/character.json", "[\"236c\", \"5a\"", "[\"5a\", \"236c\"")]
     [InlineData("characters/fixture_man/moves/236c.json", "\"durability\": 2", "\"durability\": 3")]
     [InlineData("rules/match.json", "\"entitiesPerPlayer\": 4", "\"entitiesPerPlayer\": 3")]
+    [InlineData("rules/match.json", "\"counterHitExtraHitstun\": 2", "\"counterHitExtraHitstun\": 3")]
+    [InlineData("rules/match.json", "\"punishCounterExtraDamagePercent\": 20", "\"punishCounterExtraDamagePercent\": 25")]
+    [InlineData(
+        "characters/fixture_man/moves/5a.json",
+        "\"pushback\": 12000",
+        "\"pushback\": 12000, \"counterHit\": { \"extraHitstun\": 2, \"extraHitstop\": 2, \"extraDamagePercent\": 20 }")]
     public void GameplayValuesChangeTheHash(string path, string oldText, string newText)
     {
         InMemoryDataSource data = Fixture.InMemory();
