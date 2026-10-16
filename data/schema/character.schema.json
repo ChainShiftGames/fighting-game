@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "character.schema.json",
+  "title": "Character file",
+  "description": "data/characters/<id>/character.json. Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Characters/Reading). Distances in subpixels (1 px = 1000), speeds in subpixels per frame, times in frames.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "displayName", "stats", "moves", "states"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "id": { "$ref": "#/$defs/id", "description": "Must equal the folder name." },
+    "displayName": { "type": "string", "minLength": 1 },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "health", "walkForwardSpeed", "walkBackSpeed", "dashStyle", "prejumpFrames", "jumpVelocity",
+        "highJumpVelocity", "jumpForwardSpeed", "jumpBackSpeed", "gravity", "airActions"
+      ],
+      "properties": {
+        "health": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "walkForwardSpeed": { "$ref": "#/$defs/distance" },
+        "walkBackSpeed": { "$ref": "#/$defs/distance" },
+        "dashStyle": { "enum": ["run", "step"] },
+        "prejumpFrames": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "jumpVelocity": { "$ref": "#/$defs/distance", "description": "Upward speed on the first airborne frame." },
+        "highJumpVelocity": { "$ref": "#/$defs/distance" },
+        "jumpForwardSpeed": { "$ref": "#/$defs/distance" },
+        "jumpBackSpeed": { "$ref": "#/$defs/distance" },
+        "gravity": { "$ref": "#/$defs/distance", "description": "Subtracted from the upward speed every airborne frame." },
+        "airActions": { "type": "integer", "minimum": 0, "maximum": 9, "description": "Shared budget for double jumps and air dashes." }
+      }
+    },
+    "moves": {
+      "description": "Every move file in moves/, by id. Order is input priority when several moves match on the same frame. Every listed file must exist and every file must be listed.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "states": {
+      "description": "Basic move (category \"basic\") used for each state the state machine enters on its own.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idle"],
+      "properties": {
+        "idle": { "$ref": "#/$defs/id" },
+        "crouch": { "$ref": "#/$defs/id" },
+        "walkForward": { "$ref": "#/$defs/id" },
+        "walkBack": { "$ref": "#/$defs/id" },
+        "prejump": { "$ref": "#/$defs/id" },
+        "jump": { "$ref": "#/$defs/id" },
+        "landing": { "$ref": "#/$defs/id" },
+        "dash": { "$ref": "#/$defs/id" },
+        "backdash": { "$ref": "#/$defs/id" },
+        "hitstun": { "$ref": "#/$defs/id" },
+        "crouchHitstun": { "$ref": "#/$defs/id" },
+        "airHitstun": { "$ref": "#/$defs/id" },
+        "blockstun": { "$ref": "#/$defs/id" },
+        "crouchBlockstun": { "$ref": "#/$defs/id" },
+        "knockdown": { "$ref": "#/$defs/id" },
+        "wakeUp": { "$ref": "#/$defs/id" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$", "maxLength": 32 },
+    "distance": { "type": "integer", "minimum": 0, "maximum": 1000000 }
+  }
+}
