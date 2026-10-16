@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using FightingGame.Debug;
@@ -7,6 +8,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
+using FightingGame.Presentation.Events;
 using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
@@ -32,7 +34,8 @@ public partial class Main : Node2D
     private const Key StepFrameKey = Key.F6;
     private const int ConnectionLogIntervalSeconds = 30;
     private const string DeveloperKeys =
-        "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame";
+        "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
+        "F7 sparks | F8 shake | F9 sounds | F10 rumble";
 
     // Player setting, until the options menu.
     private const Key ToggleVsyncKey = Key.F2;
@@ -48,6 +51,8 @@ public partial class Main : Node2D
     // Developer settings, listed in the debug panel.
     private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
     private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
+    private readonly EffectToggles _effectToggles = new();
+    private readonly List<DeveloperToggle> _toggles = [];
 
     private JoypadWatcher? _joypadWatcher;
     private InputReadout? _inputReadout;
@@ -74,13 +79,14 @@ public partial class Main : Node2D
         ApplyVsync();
         _data = GameDataLocation.Choose();
         _stepping = new FrameStepping(_pause);
+        _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All]);
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
 
         _debugPanel = new DebugPanel { Visible = false };
         _debugPanel.Build(
-            [_hitboxOverlay, _pause], DataSettingList.Numbers(), DataSettingList.Choices(), _data.Folder, DeveloperKeys);
+            _toggles, DataSettingList.Numbers(), DataSettingList.Choices(), _data.Folder, DeveloperKeys);
         _debugPanel.DataSaved += RestartLocalMatch;
         AddChild(_debugPanel);
 
@@ -161,13 +167,9 @@ public partial class Main : Node2D
         {
             _stepping!.StepOnce();
         }
-        else if (pressed == _hitboxOverlay.Key)
+        else
         {
-            _hitboxOverlay.Flip();
-        }
-        else if (pressed == _pause.Key)
-        {
-            _pause.Flip();
+            FlipTogglesOf(pressed);
         }
     }
 
@@ -184,6 +186,17 @@ public partial class Main : Node2D
         _launcher?.Dispose();
         _joypadWatcher?.Dispose();
         _platform?.Dispose();
+    }
+
+    private void FlipTogglesOf(Key pressed)
+    {
+        foreach (DeveloperToggle toggle in _toggles)
+        {
+            if (toggle.Key == pressed)
+            {
+                toggle.Flip();
+            }
+        }
     }
 
     // A desync stops the match and stays on screen: it is never hidden or corrected (ARCHITECTURE.md §8).
@@ -227,8 +240,9 @@ public partial class Main : Node2D
         PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
         var devices = new GodotDeviceState();
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
-        _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay);
-        _onlineStartup = new OnlineMatchStartup(bindings, devices, _joypads, loops, _hitboxOverlay, args);
+        _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
+        _onlineStartup = new OnlineMatchStartup(
+            bindings, devices, _joypads, loops, _hitboxOverlay, _effectToggles, args);
     }
 
     private StartedMatch? CreateLocalMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));

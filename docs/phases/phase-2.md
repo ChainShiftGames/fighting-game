@@ -78,10 +78,11 @@ Read: ADR-0005
 - Warning after 3 s without data; match ends without a result after 10 s. Timeouts are **developer settings**.
 
 ### P2-08 Effects during rollback
-Status: in progress (p2-08-rollback-effects) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
+Status: in progress (p2-08-p2-10-game-wiring) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
 Read: ADR-0005
 - Play each frame-tagged event once (by id); cancel effects whose event disappears after a rollback.
-- Applies to sounds, sparks, shake and rumble.
+- Applies to sounds, sparks, shake and rumble. Wired into local, online and replay matches; F7–F10 toggle each kind
+  (developer settings).
 
 Done when:
 - [ ] at 150 ms with 5 % loss, no doubled hit sounds or ghost sparks in a 10-minute session
