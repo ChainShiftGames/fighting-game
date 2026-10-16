@@ -126,8 +126,8 @@ Read: ADR-0007
 - JSON schema: character file (stats, move list, state machine) and move file (frame data, per-frame boxes,
   cancel windows, hit properties, motion + button).
 - `Sim.Data`: load → validate (loud, specific errors) → convert to compact integer data → data hash.
-- Godot export preset includes `data/**/*.json`. Moved to proposed ADR-0015: `data/` is outside `res://`, so a
-  preset filter alone can't reach it.
+- Godot export preset includes `data/**/*.json`. Replaced by
+  [ADR-0015](../adr/0015-shipping-game-data.md): `data/` is outside `res://`, so exports embed it in `Sim.Data`.
 - Format and loading pattern: [data/README.md](../../data/README.md).
 
 Done when:

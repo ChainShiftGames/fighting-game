@@ -10,6 +10,8 @@ data/characters/<id>/character.json               stats, move list, basic states
 data/characters/<id>/moves/<move_id>.json         one move: frame data, boxes, cancels, hit
 ```
 
+Exported builds embed these files in `Sim.Data.dll`; `data/schema/` is not shipped (ADR-0015).
+
 Naming: [CONVENTIONS.md](../CONVENTIONS.md). Example character: `tests/Sim.Data.Tests/Fixtures/data/`.
 
 ## Format rules (schema v1)
