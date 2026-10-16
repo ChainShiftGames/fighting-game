@@ -13,10 +13,13 @@ public sealed class MatchLauncher : IDisposable
 {
     private readonly ToyMatchStartup _startup;
     private readonly string[] _args;
-    private ToyMatch? _readyMatch;
+    private StartedMatch? _readyMatch;
     private bool _matchmakingMatchStarted;
 
-    public MatchLauncher(ToyMatchStartup startup, IPlatformServices platform, string[] args)
+    /// <param name="createLocal">Builds the local match; null when it can't (the host shows why).</param>
+    /// <param name="startup">Builds online matches.</param>
+    public MatchLauncher(
+        Func<StartedMatch?> createLocal, ToyMatchStartup startup, IPlatformServices platform, string[] args)
     {
         _startup = startup;
         _args = args;
@@ -26,7 +29,7 @@ public sealed class MatchLauncher : IDisposable
             if (Matchmaking is null)
             {
                 GD.PushError($"--steam needs Steam, which isn't available ({platform.PlatformName}); starting a local match.");
-                _readyMatch = startup.CreateLocal();
+                _readyMatch = createLocal();
             }
 
             return;
@@ -39,7 +42,7 @@ public sealed class MatchLauncher : IDisposable
         }
 
         _readyMatch = direct is null
-            ? startup.CreateLocal()
+            ? createLocal()
             : startup.CreateOnline(direct, PeerTransport.DirectUdp, direct.RemoteEndPoint.ToString() ?? "?");
     }
 
@@ -47,7 +50,7 @@ public sealed class MatchLauncher : IDisposable
     public IMatchmaking? Matchmaking { get; }
 
     /// <summary>The match to play once it can start, handed over once; null until then.</summary>
-    public ToyMatch? TakeReadyMatch()
+    public StartedMatch? TakeReadyMatch()
     {
         if (_readyMatch is { } ready)
         {

@@ -11,7 +11,7 @@ namespace FightingGame.Loop;
 /// Our own fixed 60 Hz loop (ADR-0004): fed wall-clock time from Godot's frame callback, it runs each due logic
 /// frame with input read immediately before it.
 /// </summary>
-public sealed class MatchLoop<TState>
+public sealed class MatchLoop<TState> : IMatchLoop
     where TState : unmanaged
 {
     private readonly FixedStepClock _clock;
@@ -19,12 +19,15 @@ public sealed class MatchLoop<TState>
     private readonly PlayerInputReader[] _players;
     private readonly InputLatencyCounter _latency;
     private readonly InputWord[] _inputs;
+    private readonly FrameStepping? _stepping;
 
+    /// <param name="stepping">Pauses and steps the match; null for matches that can't pause (online).</param>
     public MatchLoop(
         FixedStepClock clock,
         IMatchDriver<TState> driver,
         PlayerInputReader[] players,
-        InputLatencyCounter latency)
+        InputLatencyCounter latency,
+        FrameStepping? stepping)
     {
         if (players.Length != driver.LocalPlayerCount)
         {
@@ -38,15 +41,21 @@ public sealed class MatchLoop<TState>
         _players = players;
         _latency = latency;
         _inputs = new InputWord[players.Length];
+        _stepping = stepping;
     }
 
-    /// <summary>The raw words read for the last logic frame, one per local player (for the developer overlay).</summary>
+    public int CurrentFrame => _driver.CurrentFrame;
+
     public ReadOnlySpan<InputWord> LastInputs => _inputs;
 
-    /// <summary>Runs every logic frame due at <paramref name="timestamp"/>; returns how many ran.</summary>
     public int Advance(long timestamp)
     {
         int dueFrames = _clock.Advance(timestamp);
+        if (_stepping is not null)
+        {
+            dueFrames = _stepping.Allow(dueFrames);
+        }
+
         for (int frame = 0; frame < dueFrames; frame++)
         {
             if (!RunFrame())

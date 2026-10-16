@@ -1,21 +1,26 @@
+using System;
 using System.Diagnostics;
+using System.IO;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
 using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
-using FightingGame.Presentation;
 using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
+using Sim.Data.Validation;
 using Sim.Input;
 using Sim.Toy;
 
 namespace FightingGame;
 
-/// <summary>Startup for the Spike A toy match: builds the pieces, then feeds the loop time each displayed frame.</summary>
+/// <summary>
+/// Startup: builds the pieces, starts the match (local on the real logic, online on the Spike A toy one), then
+/// feeds the loop time each displayed frame.
+/// </summary>
 public partial class Main : Node2D
 {
     private const string PlayerSettingsPath = "user://player_settings.json";
@@ -23,9 +28,15 @@ public partial class Main : Node2D
 
     // Developer settings.
     private const int LatencyWindowFrames = 120;
-    private const Key ToggleVsyncKey = Key.F2;
+    private const Key ToggleDebugPanelKey = Key.F1;
     private const Key ToggleOverlayKey = Key.F3;
+    private const Key StepFrameKey = Key.F6;
     private const int ConnectionLogIntervalSeconds = 30;
+    private const string DeveloperKeys =
+        "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame";
+
+    // Player setting, until the options menu.
+    private const Key ToggleVsyncKey = Key.F2;
 
     // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
     private const uint SteamAppId = 480;
@@ -33,19 +44,33 @@ public partial class Main : Node2D
     private readonly PlayerSettingsStore _settingsStore = new(PlayerSettingsPath);
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
-    private readonly ToyRules _rules = ToyRules.Default;
     private readonly JoypadRoster _joypads = new();
+
+    // Developer settings, listed in the debug panel.
+    private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
+    private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
+    private readonly DataFileSetting[] _dataSettings =
+    [
+        new("Round start distance", "rules/match.json", "roundStartDistance", 0, 1_000_000, 1000),
+        new("Wall distance", "rules/match.json", "wallDistance", 1000, 1_000_000, 1000),
+        new("Motion window", "input/motions.json", "motionWindow", 1, 60, 1),
+        new("Button buffer", "input/motions.json", "buttonBuffer", 0, 30, 1),
+    ];
+
     private JoypadWatcher? _joypadWatcher;
     private InputReadout? _inputReadout;
     private PlayerSettings _settings = new();
+    private GameDataLocation? _data;
+    private LocalMatchStartup? _localStartup;
     private MatchLauncher? _launcher;
-    private ToyMatch? _match;
-    private MatchLoop<ToyState>? _loop;
-    private ToyMatchView? _view;
+    private StartedMatch? _match;
+    private FrameStepping? _stepping;
     private DeveloperOverlay? _overlay;
+    private DebugPanel? _debugPanel;
     private MatchStatusLabel? _status;
     private MatchmakingMenu? _matchmakingMenu;
     private IPlatformServices? _platform;
+    private string _localMatchError = string.Empty;
     private bool _stopped;
     private bool _wasWaiting = true;
 
@@ -54,12 +79,16 @@ public partial class Main : Node2D
         _platform = PlatformStartup.Start(SteamAppId);
         _settings = _settingsStore.Load();
         ApplyVsync();
-
-        _view = new ToyMatchView();
-        AddChild(_view);
+        _data = GameDataLocation.Choose();
+        _stepping = new FrameStepping(_pause);
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
         AddChild(_overlay);
+
+        _debugPanel = new DebugPanel { Visible = false };
+        _debugPanel.Build([_hitboxOverlay, _pause], _dataSettings, _data.Folder, DeveloperKeys);
+        _debugPanel.DataSaved += RestartLocalMatch;
+        AddChild(_debugPanel);
 
         var playerName = new PlayerNameLabel();
         AddChild(playerName);
@@ -71,7 +100,7 @@ public partial class Main : Node2D
         _matchmakingMenu = new MatchmakingMenu { Visible = false };
         AddChild(_matchmakingMenu);
 
-        _launcher = new MatchLauncher(CreateMatchStartup(), _platform, OS.GetCmdlineUserArgs());
+        _launcher = new MatchLauncher(CreateLocalMatch, CreateStartups(), _platform, OS.GetCmdlineUserArgs());
         if (_launcher.Matchmaking is { } matchmaking)
         {
             _matchmakingMenu.Show(matchmaking);
@@ -90,6 +119,7 @@ public partial class Main : Node2D
 
         if (_match is null)
         {
+            _status!.Show(_localMatchError);
             return;
         }
 
@@ -97,16 +127,15 @@ public partial class Main : Node2D
         int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
         SampleConnection(now);
-        if (framesRun > 0)
-        {
-            _view!.QueueRedraw();
-        }
+
+        // Every displayed frame, so developer toggles show at once, also while paused.
+        _match.View.QueueRedraw();
 
         if (_overlay!.Visible)
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
-            _overlay.ShowInputs(_inputReadout!.Describe(_loop!.LastInputs));
-            _overlay.ShowMatch(_match.Description, _match.Driver.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
+            _overlay.ShowInputs(_inputReadout!.Describe(_match.Loop.LastInputs));
+            _overlay.ShowMatch(_match.Description, _match.Loop.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
         }
     }
 
@@ -117,15 +146,32 @@ public partial class Main : Node2D
             return;
         }
 
-        if (key.PhysicalKeycode == ToggleVsyncKey)
+        Key pressed = key.PhysicalKeycode;
+        if (pressed == ToggleVsyncKey)
         {
             _settings = _settings with { Vsync = !_settings.Vsync };
             _settingsStore.Save(_settings);
             ApplyVsync();
         }
-        else if (key.PhysicalKeycode == ToggleOverlayKey)
+        else if (pressed == ToggleOverlayKey)
         {
             _overlay!.Visible = !_overlay.Visible;
+        }
+        else if (pressed == ToggleDebugPanelKey)
+        {
+            _debugPanel!.Toggle();
+        }
+        else if (pressed == StepFrameKey)
+        {
+            _stepping!.StepOnce();
+        }
+        else if (pressed == _hitboxOverlay.Key)
+        {
+            _hitboxOverlay.Flip();
+        }
+        else if (pressed == _pause.Key)
+        {
+            _pause.Flip();
         }
     }
 
@@ -134,9 +180,9 @@ public partial class Main : Node2D
         RenderingServer.FramePostDraw -= OnFramePostDraw;
         if (_match is not null)
         {
-            GD.Print($"Match ended at frame {_match.Driver.CurrentFrame}.");
+            GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
             LogConnection();
-            _match.Driver.Dispose();
+            _match.Dispose();
         }
 
         _launcher?.Dispose();
@@ -154,15 +200,15 @@ public partial class Main : Node2D
 
         try
         {
-            int framesRun = _loop!.Advance(now);
-            bool waiting = _match!.IsOnline && _match.Driver.CurrentFrame == 0;
+            int framesRun = _match!.Loop.Advance(now);
+            bool waiting = _match.IsOnline && _match.Loop.CurrentFrame == 0;
             if (_wasWaiting && !waiting)
             {
                 GD.Print("Match running.");
             }
 
             _wasWaiting = waiting;
-            _status!.Show(waiting ? "Waiting for the other player…" : string.Empty);
+            _status!.Show(waiting ? "Waiting for the other player…" : PausedText());
             return framesRun;
         }
         catch (DesyncDetectedException desync)
@@ -174,22 +220,61 @@ public partial class Main : Node2D
         }
     }
 
-    private ToyMatchStartup CreateMatchStartup()
+    private string PausedText() =>
+        !_match!.IsOnline && _stepping!.IsPaused ? $"PAUSED ({_pause.Key}) — {StepFrameKey} steps one frame" : string.Empty;
+
+    private ToyMatchStartup CreateStartups()
     {
         _joypadWatcher = new JoypadWatcher(_joypads);
         ButtonSet? buttons = ButtonSetFile.Load();
         _inputReadout = new InputReadout(buttons, _joypads);
         PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
-        return new ToyMatchStartup(_rules, bindings, new GodotDeviceState(), _joypads);
+        var devices = new GodotDeviceState();
+        var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
+        _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay);
+        return new ToyMatchStartup(ToyRules.Default, bindings, devices, _joypads, loops);
     }
 
-    private void StartMatch(ToyMatch match)
+    // Invalid or missing data stops the local match and says why on screen; it is never patched up.
+    private StartedMatch? CreateLocalMatch()
+    {
+        try
+        {
+            StartedMatch match = _localStartup!.Create(_data!.Load());
+            _localMatchError = string.Empty;
+            return match;
+        }
+        catch (Exception exception) when (exception is DataValidationException or IOException or InvalidDataException)
+        {
+            GD.PushError(exception.Message);
+            _localMatchError = $"No local match:\n{exception.Message}";
+            return null;
+        }
+    }
+
+    // After the debug panel saved data: a local match starts over with the new data, an online one keeps running.
+    private void RestartLocalMatch()
+    {
+        if (_match is { IsOnline: true } || _launcher!.Matchmaking is not null)
+        {
+            GD.Print("Saved data applies to the next local match.");
+            return;
+        }
+
+        _match?.Dispose();
+        _match = null;
+        if (CreateLocalMatch() is { } match)
+        {
+            StartMatch(match);
+        }
+    }
+
+    private void StartMatch(StartedMatch match)
     {
         _match = match;
         GD.Print($"Match: {match.Description}");
-        _loop = new MatchLoop<ToyState>(
-            new FixedStepClock(LoopSettings.Default, Stopwatch.Frequency), match.Driver, match.LocalPlayers, _latency);
-        _view!.Show(match.Driver, _rules);
+        AddChild(match.View);
+        MoveChild(match.View, 0);
         _matchmakingMenu!.Visible = false;
     }
 
@@ -207,7 +292,7 @@ public partial class Main : Node2D
     {
         if (_match?.Connection is { } connection)
         {
-            GD.Print($"Connection at frame {_match.Driver.CurrentFrame}: {connection.Describe(" | ")}");
+            GD.Print($"Connection at frame {_match.Loop.CurrentFrame}: {connection.Describe(" | ")}");
         }
     }
 
