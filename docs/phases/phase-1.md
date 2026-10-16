@@ -191,10 +191,20 @@ Done when:
 - [ ] pool full → spawn is refused deterministically (documented behaviour)
 
 ### P1-14 Frame-tagged events
-Status: todo · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`
+Status: done · Needs: P1-03 · Parallel: yes · Where: `src/Sim/Events/`
 Read: ADR-0005
 - Fixed-size event buffer per frame (hit, block, whiff sound, landing…), each with frame number and stable id.
   Used by presentation now and rollback reconciliation in Phase 2.
+- Built: `MatchState.Events` (`FrameEvents`), so events roll back with the state. Usage, overflow and the Phase 2
+  reconciliation rule are in the `FrameEvents` doc comment; kinds and their fields in `FrameEventKind`.
+- Stages emit with `state.Events.Emit(state.Frame, kind, fighter, position, detail)`; new kinds are appended to
+  `FrameEventKind` by the task that first emits them (P1-08/P1-09: swing, landing; P1-12: hit, block).
+- Open: modules see the state read-only, so they can't emit events yet; add a `ModuleContext` path when a module
+  first needs one.
+
+Done when:
+- [x] events read back per frame with stable ids; a restored snapshot re-simulates them; overflow drops
+  deterministically; no allocation (tests in `tests/Sim.Tests/Events/`)
 
 ## E. Presentation and tooling
 
