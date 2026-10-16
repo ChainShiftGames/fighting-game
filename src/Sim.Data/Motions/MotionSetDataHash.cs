@@ -10,6 +10,10 @@ public static class MotionSetDataHash
     {
         hash.Add(file.MotionWindow);
         hash.Add(file.ButtonBuffer);
+        hash.Add(file.Movement.DashMotion);
+        hash.Add(file.Movement.BackdashMotion);
+        hash.Add(file.Movement.HighJumpMotion);
+        hash.Add(file.Movement.DashButtonMask);
         MotionSet motions = file.Motions;
         hash.Add(motions.Count);
         for (int motion = 0; motion < motions.Count; motion++)

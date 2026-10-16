@@ -5,12 +5,24 @@
   "description": "data/input/motions.json: motion inputs, their priority and the input timing (ADR-0002; matching rules in data/README.md). Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Motions). Motions must be unique; consecutive steps must not share a direction; every window plus buttonBuffer must fit the 64-frame input history.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "motionWindow", "buttonBuffer", "motions"],
+  "required": ["schemaVersion", "motionWindow", "buttonBuffer", "movementInputs", "motions"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
     "motionWindow": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Default frames from a motion's first step to its button press. Copied into MatchRules.MotionWindow." },
     "buttonBuffer": { "type": "integer", "minimum": 0, "maximum": 63, "description": "Frames a press stays valid: 2 accepts a press 2 frames ago, not 3. Copied into MatchRules.ButtonBuffer." },
+    "movementInputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dash", "backdash", "highJump"],
+      "description": "Which motions (from the motions list) dash, backdash and high jump; the optional dash button dashes, or backdashes when pressed with back.",
+      "properties": {
+        "dash": { "type": "string", "pattern": "^[1-9]{1,8}$" },
+        "backdash": { "type": "string", "pattern": "^[1-9]{1,8}$" },
+        "highJump": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Checked on the frame a prejump starts." },
+        "dashButton": { "type": "string", "description": "A button id from input/buttons.json." }
+      }
+    },
     "motions": {
       "type": "array",
       "minItems": 1,

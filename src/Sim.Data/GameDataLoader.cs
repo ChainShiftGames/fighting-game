@@ -4,6 +4,8 @@ using Sim.Data.Characters;
 using Sim.Data.Characters.Reading;
 using Sim.Data.Hashing;
 using Sim.Data.Input;
+using Sim.Data.Motions;
+using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 using Sim.Input;
@@ -12,8 +14,8 @@ namespace Sim.Data;
 
 /// <summary>Loads and validates every data file under the data root and computes the data hash.</summary>
 /// <remarks>
-/// New kinds of data (motions, match rules) add their loader here and append to the same hash, in a
-/// fixed order.
+/// New kinds of data (match rules…) add their loader here and append to the same hash, in a fixed order:
+/// buttons, motions, match rules, characters.
 /// </remarks>
 public sealed class GameDataLoader
 {
@@ -31,18 +33,44 @@ public sealed class GameDataLoader
         // Moves name their buttons, so without a valid button set every move would report a button error too.
         ButtonSet? buttons = ButtonSetLoader.Load(_source, errors);
         errors.ThrowIfAny();
-        List<CharacterData> characters = LoadCharacters(new ButtonSetLookup(buttons!), errors);
+        ButtonSetLookup buttonLookup = new(buttons!);
+        MotionFile? motions = MotionSetLoader.Load(_source, buttonLookup, errors);
+        MatchRulesFile? rules = MatchRulesFileLoader.Load(_source, errors);
+        List<CharacterData> characters = LoadCharacters(buttonLookup, errors);
+        errors.ThrowIfAny();
+        CheckMoveMotions(characters, motions!, errors);
         errors.ThrowIfAny();
 
         using DataHashBuilder hash = new();
         ButtonSetDataHash.Append(hash, buttons!);
+        MotionSetDataHash.Append(hash, motions!);
+        MatchRulesDataHash.Append(hash, rules!);
         hash.Add(characters.Count);
         foreach (CharacterData character in characters)
         {
             CharacterDataHash.Append(hash, character);
         }
 
-        return new GameData(buttons!, characters, hash.Finish());
+        return new GameData(buttons!, motions!, rules!, characters, hash.Finish());
+    }
+
+    // A move whose motion the motion set doesn't define could never be input.
+    private static void CheckMoveMotions(List<CharacterData> characters, MotionFile motions, DataErrors errors)
+    {
+        foreach (CharacterData character in characters)
+        {
+            for (int move = 0; move < character.Moves.Length; move++)
+            {
+                int motion = character.Moves[move].Motion;
+                if (character.Moves[move].Category != MoveCategory.Basic && !motions.Motions.TryFind(motion, out _))
+                {
+                    errors.Add(
+                        CharacterSchema.MoveFile(character.Id, character.MoveIds[move]),
+                        "input.motion",
+                        $"motion {motion} isn't in {MotionSetSchema.File}");
+                }
+            }
+        }
     }
 
     // The data source lists folders in ordinal order, so characters (and the hash) never depend on the file system.

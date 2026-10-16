@@ -50,7 +50,7 @@ public sealed class FighterStateMachine
                 AdvanceAirDash(ref fighter, in history, character, in move);
                 break;
             case FighterAction.Landing or FighterAction.Backdash or FighterAction.WakeUp:
-                EndAfter(ref fighter, move.TotalFrames, NeutralFor(in fighter, in history), character);
+                EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
                 break;
             case FighterAction.Dash:
                 AdvanceDash(ref fighter, in history, character, in move);
@@ -157,24 +157,24 @@ public sealed class FighterStateMachine
         }
         else if (fighter.MoveFrame > move.TotalFrames)
         {
-            MoveEntry.EnterBasic(ref fighter, NeutralFor(in fighter, in history), character);
+            EnterFree(ref fighter, in history, character);
         }
     }
 
     // A run (dash style from data) loops while forward is held and stops when it's released; a step dash plays its
     // move once.
-    private static void AdvanceDash(
+    private void AdvanceDash(
         ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
     {
         if (character.Stats.DashStyle != DashStyle.Run)
         {
-            EndAfter(ref fighter, move.TotalFrames, NeutralFor(in fighter, in history), character);
+            EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
             return;
         }
 
         if (!NumpadDirection.IsForward(NumpadDirection.Of(history.FramesAgo(0), fighter.Facing)))
         {
-            MoveEntry.EnterBasic(ref fighter, NeutralFor(in fighter, in history), character);
+            EnterFree(ref fighter, in history, character);
         }
         else if (fighter.MoveFrame > move.TotalFrames)
         {
@@ -182,7 +182,7 @@ public sealed class FighterStateMachine
         }
     }
 
-    private static void AdvanceAirDash(
+    private void AdvanceAirDash(
         ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
     {
         if (HasLanded(in fighter))
@@ -191,14 +191,35 @@ public sealed class FighterStateMachine
             return;
         }
 
-        EndAfter(ref fighter, move.TotalFrames, NeutralFor(in fighter, in history), character);
+        EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
     }
 
-    private static void AdvanceStun(ref FighterState fighter, in InputHistory history, CharacterData character)
+    private void AdvanceStun(ref FighterState fighter, in InputHistory history, CharacterData character)
     {
         if (fighter.StunFramesLeft == 0)
         {
-            MoveEntry.EnterBasic(ref fighter, NeutralFor(in fighter, in history), character);
+            EnterFree(ref fighter, in history, character);
+        }
+    }
+
+    private void EndIntoFreeAfter(
+        ref FighterState fighter, int frames, in InputHistory history, CharacterData character)
+    {
+        if (fighter.MoveFrame > frames)
+        {
+            EnterFree(ref fighter, in history, character);
+        }
+    }
+
+    // The first free frame after something ends can already start a move (a buffered press out of recovery);
+    // otherwise the fighter follows the held direction.
+    private void EnterFree(ref FighterState fighter, in InputHistory history, CharacterData character)
+    {
+        MoveEntry.EnterBasic(ref fighter, NeutralFor(in fighter, in history), character);
+        int move = _moves.FindFreeMove(in fighter, in history, character);
+        if (move != CharacterData.NoMove)
+        {
+            MoveEntry.EnterAttack(ref fighter, move);
         }
     }
 

@@ -22,6 +22,10 @@ public struct MatchRules
     /// <remarks>Developer setting. A press 2 frames ago still counts with a buffer of 2; 3 frames ago doesn't.</remarks>
     public int ButtonBuffer;
 
+    /// <summary>Each fighter's distance from the stage centre when a round starts, in subpixels.</summary>
+    /// <remarks>Developer setting, from data/rules/match.json.</remarks>
+    public int RoundStartDistance;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

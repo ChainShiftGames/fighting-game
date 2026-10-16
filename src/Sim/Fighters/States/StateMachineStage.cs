@@ -11,13 +11,23 @@ namespace Sim.Fighters.States;
 /// </remarks>
 public sealed class StateMachineStage : ITickStage
 {
-    private readonly FighterStateMachine _machine;
+    private readonly FighterStateMachine _player1Machine;
+    private readonly FighterStateMachine _player2Machine;
     private readonly CharacterData _player1;
     private readonly CharacterData _player2;
 
+    /// <summary>Both fighters share one move input, e.g. a stand-in that doesn't depend on the character.</summary>
     public StateMachineStage(IMoveInput input, CharacterData player1, CharacterData player2)
+        : this(input, input, player1, player2)
     {
-        _machine = new FighterStateMachine(input);
+    }
+
+    /// <summary>Each fighter has its own move input, e.g. a <see cref="MotionMoveInput"/> for its character.</summary>
+    public StateMachineStage(
+        IMoveInput player1Input, IMoveInput player2Input, CharacterData player1, CharacterData player2)
+    {
+        _player1Machine = new FighterStateMachine(player1Input);
+        _player2Machine = new FighterStateMachine(player2Input);
         _player1 = player1;
         _player2 = player2;
     }
@@ -28,12 +38,12 @@ public sealed class StateMachineStage : ITickStage
         FighterState player2 = state.Fighters[1];
         if (activity.Advances(0))
         {
-            _machine.Advance(ref player1, in state.Inputs[0], _player1);
+            _player1Machine.Advance(ref player1, in state.Inputs[0], _player1);
         }
 
         if (activity.Advances(1))
         {
-            _machine.Advance(ref player2, in state.Inputs[1], _player2);
+            _player2Machine.Advance(ref player2, in state.Inputs[1], _player2);
         }
 
         state.Fighters[0] = player1;

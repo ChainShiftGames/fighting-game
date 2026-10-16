@@ -1,5 +1,6 @@
 using System.IO;
 using Scenarios.Tests.Expectations;
+using Sim.Composition;
 using Sim.Input;
 using Sim.Rules;
 using Sim.State;
@@ -26,8 +27,13 @@ public static class ScenarioRunner
     {
         ScenarioSetup setup = scenario.Setup;
         MatchRules rules = setup.BuildRules();
-        ScenarioMatch match = new(
-            setup.Character(0), setup.Character(1), setup.Buttons, in rules, ScenarioStartSettings.Default);
+        MatchSimulation match = new(
+            setup.Character(0),
+            setup.Character(1),
+            setup.Buttons,
+            setup.Motions.Motions,
+            setup.Motions.Movement,
+            in rules);
         MatchState state = match.StartState();
         foreach (SetupValue value in setup.Values)
         {

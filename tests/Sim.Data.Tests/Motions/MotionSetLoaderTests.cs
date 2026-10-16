@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using Sim.Data.Hashing;
+using Sim.Data.Input;
 using Sim.Data.Motions;
 using Sim.Data.Sources;
 using Sim.Data.Tests.Support;
 using Sim.Data.Validation;
+using Sim.Input;
 using Sim.Input.Motions;
 using Sim.Rules;
 using Xunit;
@@ -14,6 +16,10 @@ namespace Sim.Data.Tests.Motions;
 public sealed class MotionSetLoaderTests
 {
     private const string File = MotionSetSchema.File;
+    private const int DashBit = 9;
+
+    private static readonly ButtonSetLookup _buttons =
+        new(new ButtonSet([new ButtonDefinition("a", 4), new ButtonDefinition("dash", DashBit)]));
 
     private readonly InMemoryDataSource _data = new();
 
@@ -169,11 +175,46 @@ public sealed class MotionSetLoaderTests
     }
 
     [Fact]
+    public void ReadsTheMovementInputs()
+    {
+        MovementInputs movement = Load(_data).Movement;
+
+        Assert.Equal(new MovementInputs(66, 44, 28, 1 << DashBit), movement);
+    }
+
+    [Fact]
+    public void AMovementMotionMustBeInTheList()
+    {
+        _data.Replace(File, "\"highJump\": \"28\"", "\"highJump\": \"88\"");
+
+        AssertSingleError("movementInputs.highJump", "motion 88 isn't in the motions list");
+    }
+
+    [Fact]
+    public void TheDashButtonMustBeInTheButtonSet()
+    {
+        _data.Replace(File, "\"dashButton\": \"dash\"", "\"dashButton\": \"run\"");
+
+        AssertSingleError("movementInputs.dashButton", "unknown button \"run\"");
+    }
+
+    [Fact]
+    public void TheDashButtonIsOptional()
+    {
+        _data.Replace(File, ", \"dashButton\": \"dash\"", string.Empty);
+
+        Assert.Equal(0, Load(_data).Movement.DashButtonMask);
+    }
+
+    [Fact]
     public void EmptyMotionList()
     {
-        _data.SetText(File, "{ \"schemaVersion\": 1, \"motionWindow\": 12, \"buttonBuffer\": 2, \"motions\": [] }");
+        _data.SetText(File, "{ \"schemaVersion\": 1, \"motionWindow\": 12, \"buttonBuffer\": 2, \"motions\": [], " +
+            "\"movementInputs\": { \"dash\": \"66\", \"backdash\": \"44\", \"highJump\": \"28\" } }");
 
-        AssertSingleError("motions", "needs 1 to 64 motions");
+        DataValidationException exception = Assert.Throws<DataValidationException>(() => Load(_data));
+        Assert.Contains(exception.Errors, error => error.Field == "motions" && error.Reason.Contains(
+            "needs 1 to 64 motions", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -195,7 +236,7 @@ public sealed class MotionSetLoaderTests
     private static MotionFile Load(IDataSource source)
     {
         DataErrors errors = new();
-        MotionFile? file = MotionSetLoader.Load(source, errors);
+        MotionFile? file = MotionSetLoader.Load(source, _buttons, errors);
         errors.ThrowIfAny();
         return file!;
     }
