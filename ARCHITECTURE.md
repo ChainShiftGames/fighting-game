@@ -196,7 +196,7 @@ These rules apply to all code, and agents must follow them even when one big cla
 - All game data together produces a **data hash** used in the online version check and in replays.
 - Everything about a character must be editable as data (moves, frame data, boxes, cancels, mechanics). Don't
   hard-code character-specific behaviour in the core; use a module (§5).
-- Godot export presets must include `data/**/*.json`.
+- Exported builds read `data/**/*.json` embedded in `Sim.Data` (ADR-0015); the editor and tests read `data/`.
 
 ## 8. Online and match drivers
 
