@@ -1,0 +1,15 @@
+# Frame advantage follows standard frame data: stun N keeps the defender stunned for N frames after the hit, so
+# advantage = stun - the attacker's frames left after the hit. 5a is startup 5, active 3, recovery 8; it hits on
+# its first active frame, leaving 2 + 8 frames: +2 on hit (hitstun 12), -1 on block (blockstun 9).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+# Hit on frame 5, hitstop 8 freezes both on frames 6-13, then both run again from frame 14.
+frame 1: p1 5a
+frame 5: expect p1 event hit
+frame 23: expect p1 state = attack
+frame 24: expect p1 state = idle        # the attacker can act on frame 24
+frame 25: expect p2 state = hitstun
+frame 26: expect p2 state = idle        # the defender on frame 26: +2

@@ -110,11 +110,6 @@ public sealed class FighterStateMachine
         {
             fighter.MoveOutcome |= CancelOn.Whiff;
         }
-
-        if (fighter.StunFramesLeft > 0)
-        {
-            fighter.StunFramesLeft--;
-        }
     }
 
     private void AdvanceFree(ref FighterState fighter, in InputHistory history, CharacterData character)
@@ -195,12 +190,17 @@ public sealed class FighterStateMachine
         EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
     }
 
+    // Stun N keeps the fighter stunned for its next N frames and frees it on the one after, like hitstop: checked
+    // before counting down, so frame advantage is hitstun minus the attacker's remaining frames, as in frame data.
     private void AdvanceStun(ref FighterState fighter, in InputHistory history, CharacterData character)
     {
         if (fighter.StunFramesLeft == 0)
         {
             EnterFree(ref fighter, in history, character);
+            return;
         }
+
+        fighter.StunFramesLeft--;
     }
 
     private void EndIntoFreeAfter(

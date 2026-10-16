@@ -209,13 +209,13 @@ public sealed class FighterStateMachineTests
     }
 
     [Fact]
-    public void StunEndsOnTheFrameItRunsOutIntoTheHeldDirection()
+    public void StunLastsItsFramesThenEndsIntoTheHeldDirection()
     {
         var driver = new FighterDriver(_character);
         MoveEntry.EnterStun(ref driver.Fighter, FighterAction.Hitstun, 4, _character);
 
-        driver.Frames(3, InputWord.Down);
-        Assert.Equal((FighterAction.Hitstun, 1), (driver.Action, driver.Fighter.StunFramesLeft));
+        driver.Frames(4, InputWord.Down);
+        Assert.Equal((FighterAction.Hitstun, 0), (driver.Action, driver.Fighter.StunFramesLeft));
         Assert.Equal(FighterAction.Crouch, driver.Frame(InputWord.Down).Action);
     }
 

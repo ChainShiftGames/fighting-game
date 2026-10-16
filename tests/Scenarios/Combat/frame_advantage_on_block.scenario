@@ -1,0 +1,13 @@
+# 5a on block is -1 (blockstun 9 against 2 active + 8 recovery frames left): see frame_advantage_matches_frame_data.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frames 1-30: p2 4
+frame 5: expect p1 event block
+frame 22: expect p2 state = blockstun
+frame 23: expect p2 state = walk_back   # the defender can act on frame 23
+frame 23: expect p1 state = attack
+frame 24: expect p1 state = idle        # the attacker on frame 24: -1
