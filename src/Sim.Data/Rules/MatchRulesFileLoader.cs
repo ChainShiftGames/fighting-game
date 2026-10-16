@@ -1,5 +1,6 @@
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Rules;
 
 namespace Sim.Data.Rules;
 
@@ -20,6 +21,7 @@ public static class MatchRulesFileLoader
         int roundStartDistance = file.RequiredInt("roundStartDistance", 0, MatchRulesSchema.MaxDistance);
         int wallDistance = file.RequiredInt("wallDistance", 1, MatchRulesSchema.MaxDistance);
         int maxPlayerDistance = file.RequiredInt("maxPlayerDistance", 1, 2 * MatchRulesSchema.MaxDistance);
+        TradeRule tradeRule = file.RequiredChoice("tradeRule", MatchRulesSchema.TradeRules);
         if (errors.Count == errorsBefore)
         {
             CheckFitsTheStage(file, roundStartDistance, wallDistance, maxPlayerDistance);
@@ -28,7 +30,7 @@ public static class MatchRulesFileLoader
         file.Finish();
         return errors.Count > errorsBefore
             ? null
-            : new MatchRulesFile(roundStartDistance, wallDistance, maxPlayerDistance);
+            : new MatchRulesFile(roundStartDistance, wallDistance, maxPlayerDistance, tradeRule);
     }
 
     private static void CheckFitsTheStage(FieldReader file, int roundStartDistance, int wallDistance, int maxPlayerDistance)

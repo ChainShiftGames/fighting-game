@@ -100,6 +100,21 @@ public sealed class ScenarioParserTests
     }
 
     [Fact]
+    public void TradeRuleSetupOverridesTheRuleFromData()
+    {
+        Scenario scenario = InlineScenario.Parse("setup: trade clash", "frame 1: expect p1 x < 0");
+
+        Assert.Equal(Sim.Rules.TradeRule.Clash, scenario.Setup.BuildRules().TradeRule);
+    }
+
+    [Fact]
+    public void UnknownTradeRuleListsTheRules()
+    {
+        Assert.Contains("trade, clash", SyntaxError("setup: trade p1_wins"));
+        Assert.Contains("no player here", SyntaxError("setup: p1 trade clash"));
+    }
+
+    [Fact]
     public void CaseAndCommentsAreIgnored()
     {
         Scenario scenario = InlineScenario.Parse(

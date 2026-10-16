@@ -1,0 +1,14 @@
+# A low can't be blocked standing: 2a (startup 5, 200 damage, hitstun 11) hits through back.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2a
+frames 1-20: p2 4
+
+frame 4: expect p2 state = walk_back
+frame 5: expect p1 event hit
+frame 5: expect p2 state = hitstun
+frame 5: expect p2 stun = 11
+frame 5: expect p2 damage = 200

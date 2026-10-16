@@ -1,0 +1,17 @@
+# Stand block: holding back blocks the overhead 6b (scenario_dummy: startup 8, blockstun 10, hitstop 9, no chip).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 6b
+frames 1-20: p2 4                      # back, away from p1
+
+frame 7: expect p2 state = walk_back
+frame 8: expect p1 event block
+frame 8: expect p1 event hit = 0
+frame 8: expect p2 state = blockstun
+frame 8: expect p2 stun = 10
+frames 8-20: expect p2 damage = 0
+frame 8: expect p1 hitstop = 9          # blockstop freezes both fighters
+frame 8: expect p2 hitstop = 9

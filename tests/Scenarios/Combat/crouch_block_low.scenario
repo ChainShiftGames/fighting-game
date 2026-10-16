@@ -1,0 +1,14 @@
+# Crouch block: holding down-back blocks the low 2a (scenario_dummy: startup 5, blockstun 8, no chip).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2a
+frames 1-20: p2 1
+
+frame 4: expect p2 state = crouch
+frame 5: expect p1 event block
+frame 5: expect p2 state = crouch_blockstun
+frame 5: expect p2 stun = 8
+frames 5-20: expect p2 damage = 0

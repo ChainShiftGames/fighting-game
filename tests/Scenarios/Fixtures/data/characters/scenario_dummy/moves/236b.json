@@ -8,6 +8,16 @@
   "frameData": { "startup": 12, "active": 2, "recovery": 20 },
   "boxes": [
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 33, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
-    { "kind": "push", "firstFrame": 1, "lastFrame": 33, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
-  ]
+    { "kind": "push", "firstFrame": 1, "lastFrame": 33, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 12, "lastFrame": 13, "x": 20000, "y": 30000, "width": 60000, "height": 60000 }
+  ],
+  "hit": {
+    "damage": 800,
+    "chipDamage": 100,
+    "guard": "mid",
+    "hitstun": 18,
+    "blockstun": 14,
+    "hitstop": 10,
+    "pushback": 15000
+  }
 }

@@ -1,6 +1,7 @@
 using Sim.Camera;
 using Sim.Characters;
 using Sim.Collision;
+using Sim.Combat;
 using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
@@ -51,6 +52,7 @@ public sealed class MatchSimulation
             new MotionMoveInput(parser, movement, player2),
             player1,
             player2);
+        HitContacts contacts = new();
         TickStages stages = new()
         {
             Input = new ButtonSetInputStage(buttons),
@@ -59,6 +61,8 @@ public sealed class MatchSimulation
             Collision = new StageSequence(
                 new CollisionStage(player1, player2, StageWalls.From(in rules)),
                 new CameraStage(player1, player2, CameraFraming.From(in rules))),
+            HitDetection = new HitDetectionStage(player1, player2, contacts),
+            HitResolution = new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule),
         };
         _pipeline = new TickPipeline(stages, modules, requests);
     }

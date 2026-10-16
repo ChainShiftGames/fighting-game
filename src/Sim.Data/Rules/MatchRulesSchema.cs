@@ -1,3 +1,6 @@
+using Sim.Data.Validation;
+using Sim.Rules;
+
 namespace Sim.Data.Rules;
 
 /// <summary>Version and path of the match rules file (data/schema/match.schema.json).</summary>
@@ -9,4 +12,9 @@ public static class MatchRulesSchema
 
     /// <summary>Upper bound for distances, the same as in character data.</summary>
     public const int MaxDistance = 1_000_000;
+
+    /// <summary>JSON spellings of <see cref="TradeRule"/>; match.schema.json lists the same names.</summary>
+    public static readonly JsonNames<TradeRule> TradeRules = new(
+        ("trade", TradeRule.Trade),
+        ("clash", TradeRule.Clash));
 }

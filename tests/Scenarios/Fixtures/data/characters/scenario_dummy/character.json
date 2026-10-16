@@ -16,12 +16,19 @@
     "gravity": 1000,
     "airActions": 2
   },
-  "moves": ["236b", "5a", "idle", "crouch", "dash", "jump", "landing"],
+  "moves": [
+    "236b", "6b", "2a", "5a", "idle", "crouch", "dash", "jump", "landing", "hitstun", "crouch_hitstun", "blockstun",
+    "crouch_blockstun"
+  ],
   "states": {
     "idle": "idle",
     "crouch": "crouch",
     "dash": "dash",
     "jump": "jump",
-    "landing": "landing"
+    "landing": "landing",
+    "hitstun": "hitstun",
+    "crouchHitstun": "crouch_hitstun",
+    "blockstun": "blockstun",
+    "crouchBlockstun": "crouch_blockstun"
   }
 }

@@ -5,4 +5,4 @@ setup: module contract_probe 12
 
 frame 1: expect module contract_probe[0] = 1
 frame 10: expect module contract_probe[0] = 10
-frames 1-10: expect module contract_probe[1] = 0   # no hits yet: hit resolution is not built
+frames 1-10: expect module contract_probe[1] = 0   # nobody attacks, so no hits

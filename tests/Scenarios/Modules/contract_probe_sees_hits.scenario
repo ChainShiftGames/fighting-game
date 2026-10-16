@@ -1,0 +1,16 @@
+# Module hit hook: hit resolution runs the contract probe's OnHit, which counts the hit and overrides the defender's
+# hitstop through a core request (applied at the end of the same frame).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module contract_probe 12
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+
+frames 1-4: expect module contract_probe[1] = 0
+frame 5: expect module contract_probe[1] = 1    # hits seen
+frame 5: expect module contract_probe[2] = 1    # last defender: p2
+frame 5: expect p2 hitstop = 12                 # overridden
+frame 5: expect p1 hitstop = 8                  # from the move's data
+frame 20: expect module contract_probe[1] = 1
