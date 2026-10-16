@@ -59,4 +59,5 @@ over 150–180 s on both PCs. Steam chose a **direct** route (see Problems 1).
   Steam.
 - Before playtests outside the two devs: own Steam AppID, and handle `+connect_lobby` so an invite can start the game.
 - Automatic input delay (ADR-0005 §4) reads Backdash's ping; break down problem 4 when it's built.
-- Upgrading Backdash reruns `PortlessTransportTests` and a two-PC Steam match (problem 3).
+- Upgrading Backdash reruns `PortlessTransportTests`, `BackdashPacketFormatTests` (the packet check mirrors
+  Backdash's wire format, P2-03) and a two-PC Steam match (problem 3).

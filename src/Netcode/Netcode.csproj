@@ -5,4 +5,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Sim\Sim.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The packet check mirrors Backdash internals; its tests read it directly. -->
+    <InternalsVisibleTo Include="Netcode.Tests" />
+  </ItemGroup>
 </Project>

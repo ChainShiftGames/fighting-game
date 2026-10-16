@@ -8,7 +8,6 @@ using Netcode.Online;
 using Netcode.Tests.Drivers;
 using Netcode.Tests.Matches;
 using Netcode.Transport;
-using Sim.Input;
 using Sim.State;
 using Xunit;
 
@@ -84,7 +83,7 @@ public sealed class PeerSessionTests
             RollbackFrames = RollbackFrames,
             NetworkSimulation = NetworkSimulation.TestConditions,
         };
-        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, PeerTransport.DirectUdp);
+        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, PeerTransport.DirectUdp());
         readout = driver;
         var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
         return new TestMatchDriver<MatchState>(driver, [new NeutralAfter(inputs, FightingFrames)]);
@@ -108,30 +107,6 @@ public sealed class PeerSessionTests
 
             // Roughly the game's pace, so the session sees time pass between frames.
             Thread.Sleep(1);
-        }
-    }
-
-    // Plays the source for a number of frames, then lets go of everything.
-    private sealed class NeutralAfter : IInputSource
-    {
-        private readonly IInputSource _source;
-        private int _framesLeft;
-
-        public NeutralAfter(IInputSource source, int frames)
-        {
-            _source = source;
-            _framesLeft = frames;
-        }
-
-        public InputWord Next()
-        {
-            if (_framesLeft == 0)
-            {
-                return InputWord.Neutral;
-            }
-
-            _framesLeft--;
-            return _source.Next();
         }
     }
 }
