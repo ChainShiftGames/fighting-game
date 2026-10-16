@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "236b",
+  "category": "special",
+  "usableIn": "ground",
+  "input": { "motion": "236", "button": "b" },
+  "frameData": { "startup": 12, "active": 2, "recovery": 20 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 33, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 33, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
+  ]
+}

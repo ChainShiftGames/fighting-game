@@ -31,14 +31,16 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
 - **Inputs** are numpad notation, **relative to the fighter's facing** at the start of the frame (6 = forward):
   a direction digit and button ids from `data/input/buttons.json` (`a b c d special dash`), joined with `+`: `5`,
   `6a`, `2c+d`, `6dash`, `4+6` (raw left+right, before SOCD). No input means neutral. A motion is one direction
-  per frame (`2, 3, 6c`); until the motion parser (P1-06) moves only trigger on a button press plus one direction.
+  per frame (`2, 3, 6c`), read by the motion parser with the motion window and button buffer from
+  `data/input/motions.json`.
 - **Units**: positions in subpixels (1 px = 1000), velocities in subpixels per frame, times in frames.
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
-  real button set. `scenario_dummy` (moves `5a`, `idle`, `crouch`) is there until Testman (P1-17).
-- **Start state** (until round start, P1-13): fighters at x = ∓150000 (`ScenarioStartSettings`), y = 0, facing
-  each other, full health, in idle, round 1. Settable values below override it.
-- **What runs**: every stage built so far (input step, move state machines); the others still do nothing, so e.g.
-  nothing moves or gets hit yet. `Runner/ScenarioMatch.cs` lists them.
+  real button set. `scenario_dummy` (moves `236b`, `5a`, `idle`, `crouch`, `dash`) is there until Testman (P1-17).
+- **Start state** (until round start, P1-13): fighters at x = ∓`roundStartDistance` from `data/rules/match.json`
+  (150000), y = 0, facing each other, full health, in idle, round 1. Settable values below override it.
+- **What runs**: the production match, `Sim.Composition.MatchSimulation`: every stage built so far (input step,
+  move state machines with the motion parser and button buffer, movement); the others still do nothing, so e.g.
+  nothing collides or gets hit yet. Match rules come from data (`GameData.CreateMatchRules`) plus the modules.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
   lineup slots in the order listed. Config integers are the module's raw config slice.
 
@@ -82,7 +84,5 @@ the failure report pick it up.
   `EventKind`.
 - Add a scenario using it, and a line to the table above.
 
-The runner itself is in `Runner/`. `ScenarioMatch` is the one place that composes the match (characters, button
-set, match rules → pipeline stages and start state), so new gameplay stages plug in there; it uses only Sim types
-so it can move to src/ later. The start distance is the one gameplay value the runner fixes itself
-(`ScenarioStartSettings`), until round start (P1-13) puts it in data or match rules.
+The runner itself is in `Runner/`. The match is composed by `src/Sim/Composition/MatchSimulation.cs`, the one
+place new gameplay stages plug in, for scenarios, the game and SyncTest alike.

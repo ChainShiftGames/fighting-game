@@ -82,6 +82,17 @@ public sealed class FighterStateMachineTests
     }
 
     [Fact]
+    public void TheFirstFreeFrameAfterAMoveCanStartTheNextMove()
+    {
+        var driver = new FighterDriver(_character);
+
+        driver.Frame(ButtonA).Frames(14).Frame(InputWord.Down | ButtonB);
+
+        Assert.Equal(
+            (FighterAction.Attack, Normal2B, 1), (driver.Action, driver.Fighter.Move, driver.Fighter.MoveFrame));
+    }
+
+    [Fact]
     public void HoldingAButtonDoesNotStartTheMoveAgain()
     {
         var driver = new FighterDriver(_character);
