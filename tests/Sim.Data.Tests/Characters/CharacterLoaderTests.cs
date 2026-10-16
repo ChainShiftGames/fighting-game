@@ -1,5 +1,5 @@
 using System;
-using Sim.Data.Characters.Compiled;
+using Sim.Characters;
 using Sim.Data.Sources;
 using Sim.Data.Tests.Support;
 using Sim.Math;

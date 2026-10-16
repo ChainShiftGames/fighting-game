@@ -1,4 +1,4 @@
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>What happens when a move's hit or throw box connects. Frame counts in frames, distance in subpixels.</summary>
 public readonly record struct HitData

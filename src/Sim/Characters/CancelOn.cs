@@ -1,6 +1,6 @@
 using System;
 
-namespace Sim.Data.Characters.Compiled;
+namespace Sim.Characters;
 
 /// <summary>Which outcomes of the move open a cancel window.</summary>
 [Flags]

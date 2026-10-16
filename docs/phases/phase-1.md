@@ -137,7 +137,7 @@ Done when:
 ## D. Gameplay core
 
 ### P1-08 Move state machine
-Status: todo · Needs: P1-03, P1-07 · Parallel: no · Where: `src/Sim/Fighters/States/`
+Status: done · Needs: P1-03, P1-07 · Parallel: no · Where: `src/Sim/Fighters/States/`
 Read: ADR-0007, CURRENT_STATE §3 Movement/Offense/Defense
 - States: idle, walk, crouch, jump (prejump/air/landing), dash, backdash, attack (startup/active/recovery),
   hitstun, blockstun, knockdown, wake-up.
