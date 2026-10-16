@@ -10,4 +10,7 @@ public enum BlockStance
 
     /// <summary>Holding down-back: blocks mids and lows.</summary>
     Crouching,
+
+    /// <summary>Holding back in the air, where a module allows it (air block): blocks anything blockable.</summary>
+    Air,
 }

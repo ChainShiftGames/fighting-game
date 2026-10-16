@@ -58,7 +58,7 @@
 - **Strive-style wall break: NO.**
 
 ### Defense
-- Stand/crouch block, high/low/overhead, chip damage, tunable air-block rules.
+- Stand/crouch block, high/low/overhead, chip damage. Air block is a module with tunable rules (ADR-0017, P1-24).
 - Meter-costing **pushback guard** (Faultless Defense / Shield style).
 - **Instant block** (just-in-time block reward).
 - **Burst** (combo breaker on its own gauge).

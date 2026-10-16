@@ -10,7 +10,7 @@ namespace Sim.Combat;
 /// <summary>The hit resolution step of the tick: what this frame's contacts do, then the hit and block hooks.</summary>
 /// <remarks>
 /// For each attack <see cref="HitDetectionStage"/> found touching: blocked if the defender's stance stops its guard
-/// (<see cref="Blocking"/>), else a hit, with its counter hit bonus when it caught the defender attacking
+/// (<see cref="Guarding"/>: stand or crouch block, air block through a module), else a hit, with its counter hit bonus when it caught the defender attacking
 /// (<see cref="CounterHits"/>). The attacker's move records the outcome (for its cancel windows, and so it
 /// can't connect again); the defender takes the hit or block (<see cref="HitReactions"/>); both fighters get the
 /// hit's hitstop, the longer one if two hits trade. Hitstop counts from the next frame (<see cref="TimeControl"/>).
@@ -29,6 +29,7 @@ public sealed class HitResolutionStage : ITickStage
     private readonly ModuleLineup _modules;
     private readonly TradeRule _tradeRule;
     private readonly CounterHits _counterHits;
+    private readonly Guarding _guarding;
 
     public HitResolutionStage(
         CharacterData player1,
@@ -36,7 +37,8 @@ public sealed class HitResolutionStage : ITickStage
         HitContacts contacts,
         ModuleLineup modules,
         TradeRule tradeRule,
-        CounterHits counterHits)
+        CounterHits counterHits,
+        Guarding guarding)
     {
         _player1 = player1;
         _player2 = player2;
@@ -44,6 +46,7 @@ public sealed class HitResolutionStage : ITickStage
         _modules = modules;
         _tradeRule = tradeRule;
         _counterHits = counterHits;
+        _guarding = guarding;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -56,8 +59,8 @@ public sealed class HitResolutionStage : ITickStage
 
         FighterState player1 = state.Fighters[0];
         FighterState player2 = state.Fighters[1];
-        Connection byPlayer1 = Decide(0, _player1, in player1, in player2, _player2, in state.Inputs[1]);
-        Connection byPlayer2 = Decide(1, _player2, in player2, in player1, _player1, in state.Inputs[0]);
+        Connection byPlayer1 = Decide(ref state, 0, _player1, in player1, in player2, _player2);
+        Connection byPlayer2 = Decide(ref state, 1, _player2, in player2, in player1, _player1);
         if (!byPlayer1.IsMade && !byPlayer2.IsMade)
         {
             return;
@@ -80,12 +83,12 @@ public sealed class HitResolutionStage : ITickStage
     }
 
     private Connection Decide(
+        ref MatchState state,
         int attacker,
         CharacterData attackerCharacter,
         in FighterState attackerState,
         in FighterState defender,
-        CharacterData defenderCharacter,
-        in InputHistory defenderInputs)
+        CharacterData defenderCharacter)
     {
         if (!_contacts.Touches(attacker))
         {
@@ -93,8 +96,12 @@ public sealed class HitResolutionStage : ITickStage
         }
 
         // Validated data gives every move with a hitbox exactly one hit (schema v1).
-        HitData hit = attackerCharacter.HitsOf(in attackerCharacter.Moves[attackerState.Move])[0];
-        BlockStance stance = Blocking.StanceOf(in defender, in attackerState, defenderInputs.FramesAgo(0));
+        MoveData move = attackerCharacter.Moves[attackerState.Move];
+        HitData hit = attackerCharacter.HitsOf(in move)[0];
+        int defenderIndex = MatchState.PlayerCount - 1 - attacker;
+        AirGuardCheck check = new(attacker, defenderIndex, move.Category, move.Stance, isProjectile: false);
+        BlockStance stance = _guarding.StanceOf(
+            ref state, in defender, in attackerState, state.Inputs[defenderIndex].FramesAgo(0), in check);
         bool isBlocked = Blocking.Stops(stance, hit.Guard);
         CounterHitKind counter =
             isBlocked ? CounterHitKind.None : CounterHits.KindAgainst(in defender, defenderCharacter);

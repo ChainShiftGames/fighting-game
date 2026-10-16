@@ -45,8 +45,12 @@ public static class HitReactions
             return;
         }
 
-        FighterAction blockstun =
-            stance == BlockStance.Crouching ? FighterAction.CrouchBlockstun : FighterAction.Blockstun;
+        FighterAction blockstun = stance switch
+        {
+            BlockStance.Crouching => FighterAction.CrouchBlockstun,
+            BlockStance.Air => FighterAction.AirBlockstun,
+            _ => FighterAction.Blockstun,
+        };
         MoveEntry.EnterStun(ref defender, blockstun, hit.Blockstun, character);
     }
 

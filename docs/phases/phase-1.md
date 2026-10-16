@@ -408,7 +408,7 @@ Done when:
   no throw on a stunned, airborne or just-woken fighter, both ports (`tests/Scenarios/Throws/`)
 
 ### P1-24 Air block (module)
-Status: todo · Needs: P1-23 · Parallel: no · Where: `src/Sim/Modules/AirBlock/`, `tests/Scenarios/AirBlock/`,
+Status: done · Needs: P1-23 · Parallel: no · Where: `src/Sim/Modules/AirBlock/`, `tests/Scenarios/AirBlock/`,
 `data/`; a core extension only if needed (below)
 Read: ADR-0017, ADR-0011, ADR-0009, CURRENT_STATE §3 Defense
 - A module in `src/Sim/Modules/AirBlock/` plus one registration line; passes the removal test. Off: airborne
@@ -418,11 +418,17 @@ Read: ADR-0017, ADR-0011, ADR-0009, CURRENT_STATE §3 Defense
 - If the module contract can't reach blocking decisions, add the smallest core extension (an interface or hook the
   core defines; ADR-0011 updated), never a special case for the module in the core.
 - Enabled in `data/rules/match.json` by default only if the module setup works that way; else the PR says how.
+- Built: `Sim.Modules.AirBlock` (`air_block`, id 2) answers the new core question `IAirGuardHook` (ADR-0011): an
+  airborne fighter that is jumping or in air blockstun and holds back asks to block; `Combat.Guarding` asks the
+  modules and blocks with `BlockStance.Air` (stops anything blockable) into basic state `airBlockstun`, which a
+  landing ends. Config `UnblockableAttacks` (**developer setting**, its module slot): `AirBlockAttacks` bits; 0 =
+  full air block, 1 = the standard rule (no ground normals). No per-move flag yet. Not enabled by default:
+  `match.json` has no module lineup until P3-01; scenarios enable it with `setup: module air_block [mask]`.
 
 Done when:
-- [ ] scenario tests: air block with the module on, no air block with it off, an attack kind that can't be
+- [x] scenario tests: air block with the module on, no air block with it off, an attack kind that can't be
   air-blocked (`tests/Scenarios/AirBlock/`)
-- [ ] removal test passes
+- [x] removal test passes
 
 ## Phase exit checklist
 - [ ] Local versus with Testman on controllers; both devs agree it feels responsive

@@ -11,8 +11,9 @@ namespace Sim.Combat;
 /// A defender guards on the ground while free to act (standing, walking, crouching) or already in blockstun, by
 /// holding back this frame: away from the attacker, or away from where it faces when both stand at the same x. The
 /// input decides the stance, not the current action, so a defender in blockstun can switch between high and low.
-/// Airborne fighters don't block yet (air block rules are tunable, CURRENT_STATE §3 Defense). A projectile is blocked
-/// the same way, against its owner: "back" is always away from the opponent, wherever the projectile comes from.
+/// A projectile is blocked the same way, against its owner: "back" is always away from the opponent, wherever the
+/// projectile comes from. Airborne fighters guard only through a module (<see cref="Guarding"/>): in the air a fighter
+/// holding back while jumping or already in air blockstun asks to block, and an air block stops anything blockable.
 /// </remarks>
 public static class Blocking
 {
@@ -32,12 +33,20 @@ public static class Blocking
         return NumpadDirection.IsDown(direction) ? BlockStance.Crouching : BlockStance.Standing;
     }
 
+    /// <summary>
+    /// An airborne defender free to guard in the air (jumping or in air blockstun) holds back: it asks to air block.
+    /// </summary>
+    public static bool IsAirGuardInput(in FighterState defender, in FighterState attacker, InputWord input) =>
+        defender.IsAirborne != 0 &&
+        defender.Action is FighterAction.Jump or FighterAction.AirBlockstun &&
+        NumpadDirection.IsBack(NumpadDirection.Of(input, TowardAttacker(in defender, in attacker)));
+
     /// <summary>True when <paramref name="stance"/> blocks an attack with <paramref name="guard"/>.</summary>
     public static bool Stops(BlockStance stance, Guard guard) => guard switch
     {
         Guard.Mid => stance != BlockStance.None,
-        Guard.Low => stance == BlockStance.Crouching,
-        Guard.Overhead => stance == BlockStance.Standing,
+        Guard.Low => stance is BlockStance.Crouching or BlockStance.Air,
+        Guard.Overhead => stance is BlockStance.Standing or BlockStance.Air,
         _ => false,
     };
 

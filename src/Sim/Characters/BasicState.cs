@@ -30,4 +30,7 @@ public enum BasicState
 
     /// <summary>A throw was teched: both fighters separate (P1-23).</summary>
     ThrowTech,
+
+    /// <summary>Blocked in the air (air block module, P1-24); ends in a landing on touching down.</summary>
+    AirBlockstun,
 }

@@ -13,6 +13,9 @@ in before it's built, and it must already support what Roman Cancel and the open
 **Module contract**
 1. A module implements `IMechanicModule`, with optional hooks at fixed pipeline points: after input, before/after
    state machines, on hit, on block, on throw, end of frame. Hook order between modules is a list in data.
+   - **Air guard question** (P1-24, ADR-0017): `IAirGuardHook` lets a module answer whether an airborne defender
+     holding back may block an attack. The core asks only then, blocks when any module says yes, and does the rest
+     (air blockstun, chip). A question, not a hook point: no state changes or requests in it.
 2. Each module owns a **fixed-size state slice** in `MatchState` (declared at compile time, part of snapshots and
    the checksum). Modules never touch another module's slice.
 3. Modules change core state only through **core requests** (e.g. request cancel, spend meter, spawn entity,

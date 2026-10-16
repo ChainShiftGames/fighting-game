@@ -68,6 +68,7 @@ Matching rules (`src/Sim/Input/Motions/MotionParser.cs`); every leniency is in t
   its throw lands.
 - Basic states `thrown` (held; no hurtbox, so nothing else hits it) and `throwTech` (its velocity separates the
   fighters).
+- Basic state `airBlockstun` (P1-24): used only while the air block module is enabled; a landing ends it.
 
 ## Loading pattern (for every new data kind)
 

@@ -65,6 +65,9 @@ public sealed class FighterStateMachine
             case FighterAction.AirHitstun:
                 EndOnLanding(ref fighter, FighterAction.Knockdown, character);
                 break;
+            case FighterAction.AirBlockstun:
+                AdvanceAirBlockstun(ref fighter, in history, character);
+                break;
             case FighterAction.Hitstun or FighterAction.CrouchHitstun or FighterAction.Blockstun
                 or FighterAction.CrouchBlockstun:
                 AdvanceStun(ref fighter, in history, character);
@@ -207,6 +210,18 @@ public sealed class FighterStateMachine
         fighter.StunFramesLeft--;
     }
 
+    // Air blockstun lands into a landing whatever is left of it; otherwise it ends like ground stun, into the air.
+    private void AdvanceAirBlockstun(ref FighterState fighter, in InputHistory history, CharacterData character)
+    {
+        if (HasLanded(in fighter))
+        {
+            MoveEntry.EnterBasic(ref fighter, FighterAction.Landing, character);
+            return;
+        }
+
+        AdvanceStun(ref fighter, in history, character);
+    }
+
     // A KO'd fighter stays down on the knockdown's last frame until the next round resets it; others wake up.
     private static void AdvanceKnockdown(ref FighterState fighter, CharacterData character, in MoveData move)
     {
@@ -281,5 +296,6 @@ public sealed class FighterStateMachine
     private static bool IsLooping(FighterAction action) => action is FighterAction.Idle or FighterAction.Crouch
         or FighterAction.WalkForward or FighterAction.WalkBack or FighterAction.Jump
         or FighterAction.Hitstun or FighterAction.CrouchHitstun or FighterAction.AirHitstun
-        or FighterAction.Blockstun or FighterAction.CrouchBlockstun or FighterAction.Thrown;
+        or FighterAction.Blockstun or FighterAction.CrouchBlockstun or FighterAction.Thrown
+        or FighterAction.AirBlockstun;
 }

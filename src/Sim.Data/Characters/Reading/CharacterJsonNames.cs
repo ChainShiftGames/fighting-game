@@ -72,5 +72,6 @@ public static class CharacterJsonNames
         ("airBackdash", BasicState.AirBackdash),
         ("thrown", BasicState.Thrown),
         ("throwTech", BasicState.ThrowTech),
+        ("airBlockstun", BasicState.AirBlockstun),
     ];
 }
