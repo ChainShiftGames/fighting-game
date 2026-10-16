@@ -30,6 +30,9 @@ graph LR
   T21 --> T17[P1-17 Testman]
   T03 --> T18[P1-18 Scenario tests]
   T17 --> T19[P1-19 SyncTest + golden replays]
+  T19 --> T22[P1-22 Counter hits]
+  T22 --> T23[P1-23 Throws + tech]
+  T23 --> T24[P1-24 Air block module]
 ```
 
 ## A. Logic foundation
@@ -200,8 +203,8 @@ Read: CURRENT_STATE §3 Defense
   `MatchRules.TradeRule` (developer setting, `tradeRule` in `data/rules/match.json`): `trade` = both hits land,
   `clash` = neither lands and both moves are spent (`CancelOn.Clash`, `FrameEventKind.Clash`). Behaviour is in the
   stage and `Blocking` doc comments.
-- Follow-ups: pushback (`HitData.Pushback` is read but not applied), air block, throws (throw boxes,
-  `IOnThrowHook`), launch velocity for launchers (P1-09 note), counter hits, the move in `FighterContact`.
+- Follow-ups: pushback (`HitData.Pushback` is read but not applied), launch velocity for launchers (P1-09 note),
+  the move in `FighterContact`. Counter hits, throws and air block: P1-22–P1-24.
 
 Done when:
 - [x] scenario tests for each block type, trades in both modes, hitstop freezing both fighters
@@ -353,6 +356,59 @@ Read: ADR-0006
 
 Done when:
 - [x] SyncTest on the Testman mirror runs in `dotnet test` (CI); two golden replays (1 and 3 minutes) pass
+
+## F. Core fundamentals and air block (ADR-0017)
+
+Built before Phase 2: they change `MatchState`, `MatchRules`, character data and golden replays, which Phase 2's
+handshake and desync tools build on. Every task lists each rule decision (standard modern practice) in its PR and
+re-records the golden replays with the reason.
+
+### P1-22 Counter hits (core)
+Status: todo · Needs: P1-19 · Parallel: no · Where: `src/Sim/Combat/`, `src/Sim/Characters/`, `src/Sim/Events/`,
+`src/Sim/Rules/`, `src/Sim.Data/`, `data/`, `tests/`
+Read: ADR-0017, CURRENT_STATE §3 Offense
+- A hit that lands while the defender is in an attack's startup or active frames is a **counter hit**; during the
+  attack's recovery a **punish counter**.
+- Extra hitstun, hitstop and damage per hit from move hit data; defaults are **developer settings** in
+  `data/rules/match.json` (`MatchRules`), validated by the `Sim.Data` loader.
+- Frame events (counter hit, punish counter) so presentation can show it; scenario keyword if needed.
+- Projectiles: decide whether they can counter hit (standard: yes, when the defender is in startup or active).
+
+Done when:
+- [ ] scenario tests: counter hit in startup and in active, punish counter in recovery, plain hit on a free
+  defender, the projectile rule, both ports (`tests/Scenarios/Combat/`)
+
+### P1-23 Throws and tech (core)
+Status: todo · Needs: P1-22 · Parallel: no · Where: `src/Sim/`, `src/Sim.Data/`, `data/`, `tests/`
+Read: ADR-0017, ADR-0010, ADR-0011, CURRENT_STATE §3 Controls/Defense
+- Throws are moves (category `throw`): forward or back + two buttons (CURRENT_STATE §3 Controls proposal; the PR
+  picks the pair, through the button set, and says why). Range: throw boxes (P1-10) against hurtboxes.
+- Tech: the defender inputs a throw within the tech window (~5 f, **developer setting**); a tech separates both.
+- Throw invulnerability: no throwing a fighter in hitstun or blockstun; throw-invulnerable frames after wake-up
+  and after landing (**developer settings**); airborne fighters can't be ground-thrown.
+- Throw vs throw on the same frame: tech (standard). Modules see connected throws through `IOnThrowHook`.
+- Testman: forward throw and back throw (`data/characters/testman/`).
+
+Done when:
+- [ ] scenario tests: forward and back throw, whiff out of range, tech inside and after the window, throw vs throw,
+  no throw on a stunned, airborne or just-woken fighter, both ports (`tests/Scenarios/Throws/`)
+
+### P1-24 Air block (module)
+Status: todo · Needs: P1-23 · Parallel: no · Where: `src/Sim/Modules/AirBlock/`, `tests/Scenarios/AirBlock/`,
+`data/`; a core extension only if needed (below)
+Read: ADR-0017, ADR-0011, ADR-0009, CURRENT_STATE §3 Defense
+- A module in `src/Sim/Modules/AirBlock/` plus one registration line; passes the removal test. Off: airborne
+  fighters can't block (current behaviour).
+- Config (**developer setting**, its `MatchRules` module slot): which attacks can be air-blocked (e.g. not ground
+  normals); a per-move `airUnblockable` flag in move data if needed.
+- If the module contract can't reach blocking decisions, add the smallest core extension (an interface or hook the
+  core defines; ADR-0011 updated), never a special case for the module in the core.
+- Enabled in `data/rules/match.json` by default only if the module setup works that way; else the PR says how.
+
+Done when:
+- [ ] scenario tests: air block with the module on, no air block with it off, an attack kind that can't be
+  air-blocked (`tests/Scenarios/AirBlock/`)
+- [ ] removal test passes
 
 ## Phase exit checklist
 - [ ] Local versus with Testman on controllers; both devs agree it feels responsive

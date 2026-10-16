@@ -40,16 +40,15 @@ Done when:
 
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
 **Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
-(Offense: P3-10–12 · Meter: P3-13, P3-18 · Defense: P3-14–17 · Controls: P3-19–20 · Movement: P3-21).
+(Offense: P3-10, P3-12 · Meter: P3-13, P3-18 · Defense: P3-15–17 · Controls: P3-19–20 · Movement: P3-21).
 Each is toggleable (**developer setting**), has scenario tests, and passes the removal test.
+Counter hits and throws with tech are core, not modules (ADR-0017): P1-22 and P1-23; air block is module P1-24.
 
 | ID | Module | Key behaviour |
 |---|---|---|
 | P3-10 | Gatlings & cancels | Per-character chain routes, jump cancels, normal → special → super cancels (from data) |
-| P3-11 | Counter hits | Counter hit and punish counter (hit during recovery), extra hitstun/effects from data |
 | P3-12 | Combo limits | Damage proration, hitstun decay, gravity scaling, OTG rules |
 | P3-13 | Meter & supers | Tension-style 0–100 meter, gain from attacking/moving forward, supers cost 50 % |
-| P3-14 | Throws & tech | Forward/back + two buttons, ~5 f tech window, throw invulnerability rules |
 | P3-15 | Pushback guard | Meter-costing block with extra pushback |
 | P3-16 | Instant block | Just-in-time block reward |
 | P3-17 | Burst | Combo breaker on its own gauge |

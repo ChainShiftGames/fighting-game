@@ -63,6 +63,7 @@ Tasks: [docs/phases/phase-1.md](docs/phases/phase-1.md)
 
 - Integer math, entities, input layer (devices, remapping, SOCD) + motion parser, move state machine, base character,
   box collision, hit/block, hitstun/blockstun/hitstop, health, rounds, walls/corners, camera.
+- Counter hits and throws + tech in the core, air block as a module ([ADR-0017](docs/adr/0017-core-throws-counter-hits.md)).
 - Placeholder character "Testman" (~10 moves), hitbox overlay, scenario tests, 10k-frame SyncTest in CI.
 - Built-in input latency counter.
 - **Exit:** both devs play local versus on controllers and it already feels responsive; CI green.
@@ -125,7 +126,7 @@ Tasks: [docs/phases/phase-2.md](docs/phases/phase-2.md)
 
 Tasks: [docs/phases/phase-3.md](docs/phases/phase-3.md)
 
-- Full module system: gatlings, counter/punish counter, proration, meter + supers, throws/tech, pushback guard,
+- Full module system: gatlings, proration, meter + supers, pushback guard,
   instant block, burst, Roman Cancel v1 + switchable variants, special button + dash button behaviour.
 - Training mode (frame meter, record/playback, savestates), control panel, character editor v1, simple CPU bot.
 - **Exit:** Testman has the full system kit; a new move can be created in the editor without code; variants switch between rounds in dev builds.

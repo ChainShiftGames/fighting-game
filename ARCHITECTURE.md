@@ -119,6 +119,8 @@ These rules apply to all code, and agents must follow them even when one big cla
 **Features are pluggable modules**
 - Every mechanic (gatlings, burst, Roman Cancel, pushback guard, …) is a self-contained module in its own folder.
   It implements a module interface and is registered in one place.
+- Exception: throws (with tech) and counter hits are core fundamentals, always present
+  ([ADR-0017](docs/adr/0017-core-throws-counter-hits.md)).
 - The core never references a specific module. Modules never reference each other; if they must interact, they go
   through an interface or event defined by the core.
 - Each module owns its own slice of game state and its own config (a developer setting).
