@@ -1,11 +1,12 @@
 {
+  "$schema": "../schema/buttons.schema.json",
   "schemaVersion": 1,
   "buttons": [
-    { "name": "A", "bit": 4 },
-    { "name": "B", "bit": 5 },
-    { "name": "C", "bit": 6 },
-    { "name": "D", "bit": 7 },
-    { "name": "Special", "bit": 8 },
-    { "name": "Dash", "bit": 9 }
+    { "id": "a", "bit": 4 },
+    { "id": "b", "bit": 5 },
+    { "id": "c", "bit": 6 },
+    { "id": "d", "bit": 7 },
+    { "id": "special", "bit": 8 },
+    { "id": "dash", "bit": 9 }
   ]
 }

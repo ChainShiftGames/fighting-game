@@ -47,5 +47,5 @@ public static class Fixture
         return source;
     }
 
-    public static GameData Load(IDataSource source) => new GameDataLoader(source, new TestButtons()).Load();
+    public static GameData Load(IDataSource source) => new GameDataLoader(source).Load();
 }

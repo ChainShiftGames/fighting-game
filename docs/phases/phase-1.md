@@ -83,7 +83,7 @@ Done when:
 ## B. Input
 
 ### P1-05 Input word and history
-Status: in progress (p1-05-input-word) · Needs: P1-02 · Parallel: yes · Where: `src/Sim/Input/`
+Status: done · Needs: P1-02 · Parallel: yes · Where: `src/Sim/Input/`
 Read: ADR-0002, ADR-0010, CURRENT_STATE §3 Controls
 - Button set loaded from data (`data/input/buttons.json`): A, B, C, D, Special, Dash. **Developer setting.**
 - 16-bit input word: 4 direction bits + 6 button bits from the button set + 6 spare bits.

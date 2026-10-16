@@ -27,7 +27,7 @@ public sealed class InputStepTests
     [Fact]
     public void ButtonsAreKeptWhileDirectionsResolve()
     {
-        Assert.True(_buttons.TryFind("A", out int a));
+        Assert.True(_buttons.TryFind("a", out int a));
         ushort buttonA = _buttons.MaskOf(a);
 
         InputWord recorded = RecordForBothPlayers(
@@ -51,7 +51,7 @@ public sealed class InputStepTests
     {
         ButtonSet buttons = TestButtonSets.FiveButtons();
         var step = new InputStep(buttons);
-        Assert.True(buttons.TryFind("Dash", out int dash));
+        Assert.True(buttons.TryFind("dash", out int dash));
         // Bit 9 is Dash in the default set but unused here.
         var raw = new InputWord((ushort)(buttons.MaskOf(dash) | (1 << 9)));
         InputHistories histories = default;

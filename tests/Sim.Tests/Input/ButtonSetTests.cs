@@ -12,8 +12,8 @@ public sealed class ButtonSetTests
         ButtonSet buttons = TestButtonSets.SixButtons();
 
         Assert.Equal(6, buttons.Count);
-        Assert.True(buttons.TryFind("Dash", out int dash));
-        Assert.Equal("Dash", buttons.NameOf(dash));
+        Assert.True(buttons.TryFind("dash", out int dash));
+        Assert.Equal("dash", buttons.IdOf(dash));
         Assert.Equal(1 << 9, buttons.MaskOf(dash));
         Assert.Equal(0b11_1111_0000, buttons.AllButtons);
     }
@@ -22,23 +22,23 @@ public sealed class ButtonSetTests
     public void FiveButtonSetWorksWithoutCodeChanges()
     {
         ButtonSet buttons = TestButtonSets.FiveButtons();
-        Assert.True(buttons.TryFind("Heavy", out int heavy));
-        Assert.True(buttons.TryFind("Dash", out int dash));
+        Assert.True(buttons.TryFind("heavy", out int heavy));
+        Assert.True(buttons.TryFind("dash", out int dash));
         var input = new InputWord((ushort)(InputWord.Down | buttons.MaskOf(dash)));
 
         Assert.Equal(5, buttons.Count);
-        Assert.False(buttons.TryFind("D", out _));
+        Assert.False(buttons.TryFind("d", out _));
         Assert.True(buttons.IsHeld(input, dash));
         Assert.False(buttons.IsHeld(input, heavy));
         Assert.Equal(1 << 12, buttons.MaskOf(dash));
     }
 
     [Fact]
-    public void UnknownNameIsNotFound()
+    public void UnknownIdIsNotFound()
     {
         ButtonSet buttons = TestButtonSets.SixButtons();
 
-        Assert.False(buttons.TryFind("a", out int button));
+        Assert.False(buttons.TryFind("A", out int button));
         Assert.Equal(-1, button);
     }
 
@@ -49,25 +49,25 @@ public sealed class ButtonSetTests
     [InlineData(16)]
     public void BitOutsideTheButtonBitsIsRejected(int bit)
     {
-        Assert.Throws<ArgumentException>(() => new ButtonSet([new ButtonDefinition("A", bit)]));
+        Assert.Throws<ArgumentException>(() => new ButtonSet([new ButtonDefinition("a", bit)]));
     }
 
     [Fact]
     public void RepeatedBitIsRejected()
     {
         Assert.Throws<ArgumentException>(
-            () => new ButtonSet([new ButtonDefinition("A", 4), new ButtonDefinition("B", 4)]));
+            () => new ButtonSet([new ButtonDefinition("a", 4), new ButtonDefinition("b", 4)]));
     }
 
     [Fact]
-    public void RepeatedNameIsRejected()
+    public void RepeatedIdIsRejected()
     {
         Assert.Throws<ArgumentException>(
-            () => new ButtonSet([new ButtonDefinition("A", 4), new ButtonDefinition("A", 5)]));
+            () => new ButtonSet([new ButtonDefinition("a", 4), new ButtonDefinition("a", 5)]));
     }
 
     [Fact]
-    public void EmptyNameIsRejected()
+    public void EmptyIdIsRejected()
     {
         Assert.Throws<ArgumentException>(() => new ButtonSet([new ButtonDefinition("", 4)]));
     }
