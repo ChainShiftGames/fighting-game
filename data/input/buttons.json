@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "buttons": [
+    { "name": "A", "bit": 4 },
+    { "name": "B", "bit": 5 },
+    { "name": "C", "bit": 6 },
+    { "name": "D", "bit": 7 },
+    { "name": "Special", "bit": 8 },
+    { "name": "Dash", "bit": 9 }
+  ]
+}
