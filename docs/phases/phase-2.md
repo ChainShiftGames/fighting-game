@@ -86,7 +86,7 @@ Done when:
 - [ ] at 150 ms with 5 % loss, no doubled hit sounds or ghost sparks in a 10-minute session
 
 ### P2-09 Desync detection and tools
-Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Desync/`, `tools/DesyncDiff/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Desync/`, `tools/DesyncDiff/`
 Read: ADR-0005
 - Per-frame checksum compared between peers.
 - On mismatch, both sides write a dump (state at the last agreed frame and the first mismatched frame, inputs,
@@ -94,7 +94,7 @@ Read: ADR-0005
 - `DesyncDiff` tool: given two dumps, lists differing fields by name.
 
 Done when:
-- [ ] a deliberately injected desync produces dumps and the tool names the exact field
+- [x] a deliberately injected desync produces dumps and the tool names the exact field
 
 ### P2-10 Replays
 Status: done · Needs: P2-01 · Parallel: yes · Where: `src/Netcode/Replays/`

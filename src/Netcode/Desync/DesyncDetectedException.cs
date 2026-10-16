@@ -15,4 +15,14 @@ public sealed class DesyncDetectedException : Exception
         : base(message, innerException)
     {
     }
+
+    /// <param name="dumpPath">The desync dump this PC wrote.</param>
+    public DesyncDetectedException(string message, string dumpPath)
+        : base(message)
+    {
+        DumpPath = dumpPath;
+    }
+
+    /// <summary>The desync dump this PC wrote; null when the desync came without one (e.g. SyncTest).</summary>
+    public string? DumpPath { get; }
 }

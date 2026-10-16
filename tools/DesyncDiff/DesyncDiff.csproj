@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compares the two desync dumps of one desync and names the fields that differ (P2-09, ADR-0005 §5). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
+  </ItemGroup>
+</Project>
