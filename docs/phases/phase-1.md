@@ -302,9 +302,18 @@ Read: ADR-0004, ADR-0008
 - Animation frame picked from the logic frame number.
 
 ### P1-16 Input latency counter
-Status: todo · Needs: P1-15 · Parallel: yes · Where: `game/Diagnostics/`
+Status: done · Needs: P1-15 · Parallel: yes · Where: `game/Diagnostics/`
 Read: ADR-0004
 - Measure from device read to the frame being shown (ADR-0004). Developer overlay; recorded per milestone.
+- Built: `InputLatencyCounter` (start: `MatchLoop` after the device read; end: `Main` on Godot's frame post-draw),
+  avg/max over the last `LatencyWindowFrames` drawn frames (**developer setting**, `Main.cs`), shown on the F3
+  developer overlay as "input to draw". Ends at "drawn": vsync wait and monitor delay come on top (doc comment).
+- Recording: at each phase exit, read the overlay in a local match with vsync on and off (F2) and write both
+  avg/max next to that phase's "Latency counter numbers recorded" exit item. Baseline (P0-12): ADR-0013.
+
+Done when:
+- [x] latency from device read to draw shows on the developer overlay; counter tested
+  (`tests/FightingGame.Tests/Diagnostics/`); where the numbers are recorded is defined
 
 ### P1-17 Testman
 Status: todo · Needs: P1-21 · Parallel: yes · Where: `data/characters/testman/`
