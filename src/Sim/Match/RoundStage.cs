@@ -1,4 +1,5 @@
 using Sim.Events;
+using Sim.Fighters.States;
 using Sim.Math;
 using Sim.Pipeline;
 using Sim.Rules;
@@ -72,7 +73,7 @@ public sealed class RoundStage : ITickStage
     {
         for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
         {
-            if (RoundJudge.IsKnockedOut(in state.Fighters[fighter]))
+            if (KnockOut.IsKnockedOut(in state.Fighters[fighter]))
             {
                 state.Events.Emit(
                     state.Frame, FrameEventKind.KnockOut, fighter, state.Fighters[fighter].Position, 0);

@@ -11,8 +11,9 @@ namespace Sim.Fighters.States;
 /// Per frame, at most one transition: a pending cancel (core request, honoured from any state) first; otherwise the
 /// move frame advances and the current action decides. Free actions start moves in input priority, then dashes, then
 /// follow the held direction; in the air, air actions (double jump, air dash) come after moves. Attacks cancel
-/// through their data windows and end into a free action. Jumps go through <see cref="JumpActions"/>. The machine
-/// reads only the fighter's own state, input and character data, so both fighters are treated alike.
+/// through their data windows and end into a free action. Jumps go through <see cref="JumpActions"/>. A KO'd fighter
+/// (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own state, input
+/// and character data, so both fighters are treated alike.
 /// </remarks>
 public sealed class FighterStateMachine
 {
@@ -56,7 +57,7 @@ public sealed class FighterStateMachine
                 AdvanceDash(ref fighter, in history, character, in move);
                 break;
             case FighterAction.Knockdown:
-                EndAfter(ref fighter, move.TotalFrames, FighterAction.WakeUp, character);
+                AdvanceKnockdown(ref fighter, character, in move);
                 break;
             case FighterAction.AirHitstun:
                 EndOnLanding(ref fighter, FighterAction.Knockdown, character);
@@ -201,6 +202,19 @@ public sealed class FighterStateMachine
         }
 
         fighter.StunFramesLeft--;
+    }
+
+    // A KO'd fighter stays down on the knockdown's last frame until the next round resets it; others wake up.
+    private static void AdvanceKnockdown(ref FighterState fighter, CharacterData character, in MoveData move)
+    {
+        if (!KnockOut.IsKnockedOut(in fighter))
+        {
+            EndAfter(ref fighter, move.TotalFrames, FighterAction.WakeUp, character);
+        }
+        else if (fighter.MoveFrame > move.TotalFrames)
+        {
+            fighter.MoveFrame = move.TotalFrames;
+        }
     }
 
     private void EndIntoFreeAfter(

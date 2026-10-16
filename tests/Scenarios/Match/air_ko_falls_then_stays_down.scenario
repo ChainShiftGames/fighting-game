@@ -1,0 +1,21 @@
+# An air KO falls, then stays down: P2 jumps straight up into P1's 5a with 300 health left. P2 falls in air hitstun,
+# is knocked down on landing and holds it to the end of the round-over pause; round 2 resets it.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p2 health = 300
+
+frames 1-5: p2 8                         # 4 prejump frames, takeoff on frame 5
+frame 3: p1 5a                           # hits on frame 7, with p2 in the air
+
+frame 7: expect p2 event knock_out
+frame 7: expect p2 y > 0
+frame 7: expect p2 state = air_hitstun
+frame 124: expect round_phase = round_over
+frame 124: expect p2 y = 0
+frame 124: expect p2 state = knockdown
+frame 124: expect p2 move_frame = 40
+
+frame 127: expect round = 2
+frame 127: expect p2 state = idle

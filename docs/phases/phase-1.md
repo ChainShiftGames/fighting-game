@@ -221,13 +221,15 @@ Read: CURRENT_STATE §3 Match
   - Round over: the result and wins are fixed on that frame; the logic keeps running (a KO'd fighter falls and
     lands) with neutral input for `roundOverFrames`, then the next round or match over. Damage in the pause doesn't
     count.
+  - KO'd fighters stay down (`KnockOut`, `HitReactions`, state machine): a hit or chip that KOs a grounded fighter
+    knocks it down at once; an airborne one falls in air hitstun and is knocked down on landing. A KO'd fighter
+    holds the knockdown's last frame until the next round resets it.
   - Time-out: larger share of max health wins; equal shares draw. A draw (also a double KO) gives both a win; if
     that would give both their last win, nobody gets one and an extra round is played. Undecided after `maxRounds`
     (only via extra rounds): a draw match.
   - Match over: phase stays `MatchOver`, input neutral, the logic keeps ticking.
-- Follow-ups: a KO state that keeps the KO'd fighter down (state machine); a round intro ("Fight!") lock; a
-  round-start module hook (ADR-0011) for per-round module state; untimed rounds for training (HUD then needs the
-  rules); debug panel entries for the new settings.
+- Follow-ups: a round intro ("Fight!") lock; a round-start module hook (ADR-0011) for per-round module state;
+  untimed rounds for training (HUD then needs the rules); debug panel entries for the new settings.
 
 Done when:
 - [x] scenario tests: KO ends the round and the next starts reset, time-out with a health lead, time-out draw,

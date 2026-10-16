@@ -17,6 +17,7 @@ internal sealed class FighterDriver
         _character = character;
         _machine = new FighterStateMachine(input ?? new ButtonPressMoveInput());
         Fighter.Facing = facing;
+        Fighter.Health = character.Stats.Health;
         MoveEntry.EnterBasic(ref Fighter, FighterAction.Idle, character);
     }
 

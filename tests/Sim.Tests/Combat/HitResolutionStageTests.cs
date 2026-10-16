@@ -90,6 +90,38 @@ public sealed class HitResolutionStageTests
         Assert.Equal((FighterAction.Knockdown, 0), (state.Fighters[1].Action, state.Fighters[1].StunFramesLeft));
     }
 
+    // Standard rule: a KO always knocks down, whatever the hit's reaction.
+    [Fact]
+    public void AHitThatKnocksOutAGroundedDefenderKnocksItDown()
+    {
+        MatchState state = P1Attacks(Mid, At(30_000, -1) with { Health = MidHit.Damage });
+
+        _stages.Run(ref state);
+
+        Assert.Equal((0, FighterAction.Knockdown), (state.Fighters[1].Health, state.Fighters[1].Action));
+    }
+
+    [Fact]
+    public void AnAirborneDefenderKnockedOutStillFallsInAirHitstun()
+    {
+        MatchState state = P1Attacks(
+            Mid, At(30_000, -1) with { Action = FighterAction.Jump, IsAirborne = 1, Health = MidHit.Damage });
+
+        _stages.Run(ref state);
+
+        Assert.Equal(FighterAction.AirHitstun, state.Fighters[1].Action);
+    }
+
+    [Fact]
+    public void AChipKnockOutKnocksTheBlockingDefenderDown()
+    {
+        MatchState state = P1Attacks(Mid, At(30_000, -1) with { Health = MidHit.ChipDamage }, _back);
+
+        _stages.Run(ref state);
+
+        Assert.Equal((0, FighterAction.Knockdown), (state.Fighters[1].Health, state.Fighters[1].Action));
+    }
+
     [Fact]
     public void ABlockCostsChipDamageAndPutsTheDefenderInBlockstun()
     {
