@@ -1,0 +1,16 @@
+# A 236 motion out of 5a's recovery, with the 2-frame button buffer (ADR-0002, P1-06).
+# 5a pressed on frame 1 lasts frames 1-15, so frame 16 is the first free frame.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+# p1: 236b with b pressed on frame 14, 2 frames before the free frame: accepted.
+frame 1: p1 5a
+frame 12: p1 2, 3, 6b
+frame 15: expect p1 move = 5a
+frame 16: expect p1 move = 236b
+frame 16: expect p1 move_frame = 1
+
+# p2: the same with b pressed on frame 13, 3 frames before: rejected.
+frame 1: p2 5a
+frame 11: p2 2, 3, 6b
+frame 16: expect p2 state = idle

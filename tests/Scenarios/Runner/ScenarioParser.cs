@@ -26,7 +26,7 @@ public sealed class ScenarioParser
 
     public Scenario Parse(string file, string text)
     {
-        ScenarioSetup setup = new(_data.Buttons);
+        ScenarioSetup setup = new(_data.Buttons, _data.Motions, _data.CreateMatchRules());
         ScenarioInputs inputs = new();
         List<FrameExpectation> expectations = [];
         bool setupDone = false;

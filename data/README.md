@@ -48,6 +48,10 @@ Matching rules (`src/Sim/Input/Motions/MotionParser.cs`); every leniency is in t
 - **Priority:** list order. When several motions match on one frame, the first wins, but only among motions the
   character has a move for with the same button and stance (no 623C → 6236C gives 236C).
 - `motionWindow` and `buttonBuffer` are copied into `MatchRules` (developer settings, compared online).
+- `movementInputs`: the motions that dash, backdash and high jump (they must be in the list; `28` is the high
+  jump, with its own short window) and the optional `dashButton` (a button id), which backdashes when pressed with
+  back. The high jump is checked on the frame a prejump starts; a double jump is a fresh up press in the air.
+- Every move's `input.motion` must be in the list; `GameDataLoader` reports the move file otherwise.
 
 ## Loading pattern (for every new data kind)
 

@@ -46,7 +46,7 @@ public sealed class ExpectationKindTests
     public void NamedValuesListTheValidNames()
     {
         Assert.Contains("walk_forward", ParseError("frame 1: expect p1 state = walking"));
-        Assert.Contains("moves: 5a, idle, crouch", ParseError("frame 1: expect p1 move = 2b"));
+        Assert.Contains("moves: 236b, 5a, idle, crouch, dash", ParseError("frame 1: expect p1 move = 2b"));
         Assert.Contains("swing", ParseError("frame 1: expect p1 event whiff"));
     }
 
