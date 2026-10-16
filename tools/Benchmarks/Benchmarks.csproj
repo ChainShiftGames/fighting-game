@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Netcode\Netcode.csproj" />
     <ProjectReference Include="..\..\src\Sim\Sim.csproj" />
+    <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
   </ItemGroup>
 </Project>

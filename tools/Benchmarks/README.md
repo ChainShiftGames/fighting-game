@@ -1,8 +1,10 @@
 # Benchmarks
 
-Speed and allocation benchmark for the game logic (ADR-0003, P0-14). Measures one tick, a resimulation of the
-rollback window (restore a snapshot + 8 ticks, the rollback worst case), snapshot save and load, and the checksum.
-Inputs are a fixed seeded sequence, so every run measures the same frames.
+Speed and allocation benchmark for the game logic (ADR-0003, P0-14). Measures one tick of the real match, a
+resimulation of the rollback window (restore a snapshot + 8 ticks, the rollback worst case), snapshot save and load,
+and the checksum. The match is composed from the game data embedded in Sim.Data, as the game composes it (the first
+character in a mirror). Inputs are a fixed seeded sequence of directions and button presses, so every run measures
+the same frames; snapshots start from a state 600 frames in. The tick starts the match over once it is decided.
 
 With `--backdash` it also times whole frames through `RollbackMatchDriver` and Backdash (ADR-0013): a SyncTest
 session and two peer sessions over loopback UDP. Those are recorded only, never gated.
@@ -31,7 +33,7 @@ Exit codes: `0` passed, `1` a gate failed (details on stderr), `2` invalid argum
 
 ## How it measures
 
-- Each sample times a batch of calls sized to last ~100 µs, because one toy call is far below the timer's
+- Each sample times a batch of calls sized to last ~100 µs, because one call is far below the timer's
   resolution. Mean, median and p99 are per call, over batch averages; a single slow call is smoothed out.
 - Allocations are counted over all timed calls. Any byte allocated fails the run.
 
@@ -71,8 +73,8 @@ The `Benchmark` step in `.github/workflows/ci.yml` runs `--max-tick-us 1000`, wi
 
 ## Results
 
-8-frame rollback window. Times in µs per call. Tick and resimulation run the toy simulation (P0-10) until the
-real tick exists (P1-03); snapshot and checksum rows are measured for both the toy state and `MatchState` (P1-02).
+8-frame rollback window. Times in µs per call. Rows before 2026-10-16 (second run) measured the Spike A toy
+simulation and an idle pipeline; since then every row is the real Testman match.
 
 | Machine | Operation | Mean µs | Median µs | p99 µs | Bytes/call |
 |---|---|---:|---:|---:|---:|
@@ -85,32 +87,40 @@ real tick exists (P1-03); snapshot and checksum rows are measured for both the t
 | | Snapshot load (MatchState) | 0.0203 | 0.0189 | 0.0309 | 0 |
 | | Checksum (MatchState) | 2.1359 | 2.1167 | 2.5194 | 0 |
 | | Tick (pipeline, P1-03: no gameplay systems yet) | 0.2933 | 0.2728 | 0.6088 | 0 |
+| Windows dev PC (same), 2026-10-16, real match (Phase 1 complete) | Tick (Testman mirror) | 0.6726 | 0.6611 | 0.9907 | 0 |
+| | Resimulate 8 frames | 4.7182 | 4.6550 | 5.6900 | 0 |
+| | Snapshot save (MatchState) | 0.0991 | 0.0990 | 0.1192 | 0 |
+| | Snapshot load (MatchState) | 0.0557 | 0.0391 | 0.1376 | 0 |
+| | Checksum (MatchState) | 8.0826 | 7.2091 | 16.4182 | 0 |
 | Steam Deck (deferred: no Deck available) | all rows | | | | |
 
-- The toy tick is ~3 ns, so the 1 ms budget isn't under pressure yet.
-- The pipeline tick (P1-03) runs every step, hook point and request application with idle stages: ~0.3 µs, the
-  fixed cost every gameplay system adds to.
-- `MatchState` save + load + checksum is ~2.2 µs, 0.2 % of the budget. The checksum dominates: FNV-1a goes byte
-  by byte. If it ever matters, hashing 8 bytes per step is a drop-in speed-up (it changes every checksum value, so
-  golden replays would need re-recording).
+- The real tick with every Phase 1 system is ~0.7 µs on the dev PC: under 0.1 % of the 1 ms budget, so even a Deck
+  several times slower has ample room.
+- A full 8-frame rollback (restore + 8 ticks) is ~5 µs.
+- The checksum (~8 µs) now costs more than a tick: FNV-1a goes byte by byte over the whole state. It runs once per
+  frame at most, so it is still under 1 % of the budget. If it ever matters, hashing 8 bytes per step is a drop-in
+  speed-up (it changes every checksum value, so golden replays would need re-recording).
 
 ### Backdash frames
 
-Whole frames through `RollbackMatchDriver<ToyState>`, toy simulation, 8-frame window. Times in µs per frame;
-bytes per frame per driver, whole process.
+Whole frames through `RollbackMatchDriver<MatchState>`, 8-frame window. Times in µs per frame; bytes per frame per
+driver, whole process. The 2026-10-16 (first) rows ran the toy simulation; the later rows the real match.
 
 | Machine | Operation | Mean µs | Median µs | p99 µs | Bytes/frame |
 |---|---|---:|---:|---:|---:|
 | Windows dev PC (i7-12700F, Windows 11, .NET 10.0.13), 2026-10-16 | SyncTest frame (8-frame check) | 0.34 | 0.2 | 1.2 | 0 |
 | | Peer frame (loopback UDP) | 34.4 | 29.2 | 111.8 | 4.5 |
+| Windows dev PC (same), 2026-10-16, real match | SyncTest frame (8-frame check) | 8.0 | 4.0 | 45.1 | 0 |
+| | Peer frame (loopback UDP) | 82.8 | 54.1 | 338.6 | 4.5 |
 | Steam Deck | SyncTest frame (8-frame check) | | | | |
 | | Peer frame (loopback UDP) | | | | |
 
-- **SyncTest:** Backdash adds ~0.2 µs to a plain frame (saving and checksumming the state) and ~1 µs to a
-  rollback frame. No allocation.
-- **Peer:** ~30 µs per frame, 3 % of the 1 ms logic budget (which covers our logic only, not Backdash). Most of it
-  is cold caches after the 1 ms sleep: pacing with a busy-wait instead gives ~6–11 µs mean. The real game is
-  closer to the sleep case, since it draws between logic frames. p99 varies between runs (~110–135 µs).
+- **SyncTest (real match):** ~4 µs for a plain frame (tick, save, Backdash's checksum of the state) and ~45 µs at
+  p99 for a rollback frame. No allocation.
+- **Peer (real match):** ~55–80 µs per frame (the toy measured ~30 µs). The 1 ms budget covers our logic only,
+  not Backdash, but this is still under 10 % of it. Much of it is cold caches after the 1 ms sleep (on the toy,
+  pacing with a busy-wait gave ~6–11 µs mean); the real game is closer to the sleep case, since it draws between
+  logic frames. p99 varies between runs.
 - **Allocation note:** the peer sessions allocate ~4.5 bytes per frame per driver at this pace, **all on
   Backdash's background network threads; 0 bytes on the frame thread.** That is at most a few KB per second, so
   gen-0 collections stay rare; not a per-frame cost of ours. Recheck it on 0.8.x and with the Steam relay transport.

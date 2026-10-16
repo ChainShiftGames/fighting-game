@@ -1,24 +1,25 @@
-using Sim.Toy;
+using Sim.Composition;
+using Sim.State;
 
 namespace Benchmarks.Operations;
 
 /// <summary>
-/// The rollback worst case (ADR-0003): restore a snapshot, then re-run the whole rollback window of frames.
+/// The rollback worst case (ADR-0003): restore a mid-match snapshot, then re-run the whole rollback window of frames.
 /// </summary>
 internal struct ResimulationOperation : IBenchmarkOperation
 {
-    private readonly ToySimulation _simulation;
+    private readonly MatchSimulation _simulation;
     private readonly InputSequence _inputs;
     private readonly int _rollbackFrames;
-    private readonly ToyState _snapshot;
-    private ToyState _state;
+    private readonly MatchState _snapshot;
+    private MatchState _state;
 
-    public ResimulationOperation(ToySimulation simulation, InputSequence inputs, int rollbackFrames)
+    public ResimulationOperation(MatchSimulation simulation, MatchState snapshot, InputSequence inputs, int rollbackFrames)
     {
         _simulation = simulation;
         _inputs = inputs;
         _rollbackFrames = rollbackFrames;
-        _snapshot = simulation.CreateInitialState();
+        _snapshot = snapshot;
         _state = _snapshot;
         Name = $"Resimulate {rollbackFrames} frames";
     }

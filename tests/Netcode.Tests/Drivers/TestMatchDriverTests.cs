@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Netcode.Drivers;
+using Netcode.Tests.Matches;
+using Sim.Composition;
 using Sim.Input;
 using Sim.State;
-using Sim.Toy;
 using Xunit;
 
 namespace Netcode.Tests.Drivers;
@@ -14,22 +15,22 @@ public sealed class TestMatchDriverTests
     private const int Player1Seed = 1357;
     private const int Player2Seed = 2468;
 
-    private readonly ToySimulation _simulation = new(ToyRules.Default);
+    private readonly MatchSimulation _match = TestmanMirror.Create();
 
     [Fact]
     public void FeedsTheWrappedDriverFromTheInputSources()
     {
-        using var driver = new TestMatchDriver<ToyState>(
-            new LocalMatchDriver<ToyState>(new ToyMatchSimulation(_simulation)),
+        using var driver = new TestMatchDriver<MatchState>(
+            new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(_match)),
             [new SeededInputs(Player1Seed), new SeededInputs(Player2Seed)]);
-        ToyState expected = _simulation.CreateInitialState();
+        MatchState expected = _match.StartState();
         var player1 = new SeededInputs(Player1Seed);
         var player2 = new SeededInputs(Player2Seed);
 
         for (int frame = 0; frame < Frames; frame++)
         {
             Assert.True(driver.TryAdvanceFrame([]));
-            _simulation.Tick(ref expected, player1.Next(), player2.Next());
+            _match.Tick(ref expected, player1.Next(), player2.Next());
         }
 
         Assert.Equal(0, driver.LocalPlayerCount);
@@ -41,7 +42,7 @@ public sealed class TestMatchDriverTests
     public void AFrameThatCantRunYetGetsTheSameInputsAgain()
     {
         var waiting = new WaitingDriver();
-        using var driver = new TestMatchDriver<ToyState>(waiting, [new CountingSource()]);
+        using var driver = new TestMatchDriver<MatchState>(waiting, [new CountingSource()]);
 
         Assert.False(driver.TryAdvanceFrame([]));
         Assert.True(driver.TryAdvanceFrame([]));
@@ -54,9 +55,9 @@ public sealed class TestMatchDriverTests
     [Fact]
     public void NeedsOneSourcePerLocalPlayer()
     {
-        using var local = new LocalMatchDriver<ToyState>(new ToyMatchSimulation(_simulation));
+        using var local = new LocalMatchDriver<MatchState>(new ComposedMatchSimulation(_match));
 
-        Assert.Throws<ArgumentException>(() => new TestMatchDriver<ToyState>(local, [new SeededInputs(Player1Seed)]));
+        Assert.Throws<ArgumentException>(() => new TestMatchDriver<MatchState>(local, [new SeededInputs(Player1Seed)]));
     }
 
     [Fact]
@@ -64,7 +65,7 @@ public sealed class TestMatchDriverTests
     {
         var waiting = new WaitingDriver();
 
-        new TestMatchDriver<ToyState>(waiting, [new CountingSource()]).Dispose();
+        new TestMatchDriver<MatchState>(waiting, [new CountingSource()]).Dispose();
 
         Assert.True(waiting.IsDisposed);
     }
@@ -78,9 +79,9 @@ public sealed class TestMatchDriverTests
     }
 
     // One local player; every other frame can't run yet, like an online match waiting for the other PC.
-    private sealed class WaitingDriver : IMatchDriver<ToyState>
+    private sealed class WaitingDriver : IMatchDriver<MatchState>
     {
-        private ToyState _state;
+        private MatchState _state;
         private bool _isReady = true;
 
         public List<int> Offered { get; } = [];
@@ -91,7 +92,7 @@ public sealed class TestMatchDriverTests
 
         public int CurrentFrame { get; private set; }
 
-        public ref readonly ToyState State => ref _state;
+        public ref readonly MatchState State => ref _state;
 
         public bool TryAdvanceFrame(ReadOnlySpan<InputWord> localInputs)
         {

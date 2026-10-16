@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Benchmarks.Drivers;
 using Benchmarks.Operations;
+using Sim.Composition;
 using Sim.State;
-using Sim.Toy;
 
 namespace Benchmarks;
 
@@ -14,7 +14,6 @@ internal static class Program
     private const int BudgetExceeded = 1;
     private const int InvalidArguments = 2;
 
-    private const string ToyStateName = "toy";
     private const string MatchStateName = "MatchState";
 
     public static int Main(string[] args)
@@ -26,23 +25,16 @@ internal static class Program
             return InvalidArguments;
         }
 
-        var simulation = new ToySimulation(ToyRules.Default);
         var inputs = new InputSequence(options.InputSeed);
         var timer = new OperationTimer(options);
+        var match = BenchmarkMatch.Create(inputs);
+        MatchSimulation simulation = match.Simulation;
 
         var tick = new TickOperation(simulation, inputs);
-        var resimulation = new ResimulationOperation(simulation, inputs, options.RollbackFrames);
-        ToyState toyState = simulation.CreateInitialState();
-        var snapshotSave = new SnapshotSaveOperation<ToyState>(ToyStateName, toyState, options.RollbackFrames);
-        var snapshotLoad = new SnapshotLoadOperation<ToyState>(ToyStateName, toyState, options.RollbackFrames);
-        var checksum = new ChecksumOperation<ToyState>(ToyStateName, toyState);
-
-        // The real match state; its tick runs the P1-03 pipeline, which later tasks fill with gameplay systems.
-        MatchState matchState = default;
-        var matchSave = new SnapshotSaveOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
-        var matchLoad = new SnapshotLoadOperation<MatchState>(MatchStateName, matchState, options.RollbackFrames);
-        var matchChecksum = new ChecksumOperation<MatchState>(MatchStateName, matchState);
-        var pipelineTick = new PipelineTickOperation(inputs);
+        var resimulation = new ResimulationOperation(simulation, match.MidMatch, inputs, options.RollbackFrames);
+        var snapshotSave = new SnapshotSaveOperation<MatchState>(MatchStateName, match.MidMatch, options.RollbackFrames);
+        var snapshotLoad = new SnapshotLoadOperation<MatchState>(MatchStateName, match.MidMatch, options.RollbackFrames);
+        var checksum = new ChecksumOperation<MatchState>(MatchStateName, match.MidMatch);
 
         OperationResult tickResult = timer.Measure(ref tick);
         List<OperationResult> results =
@@ -52,10 +44,6 @@ internal static class Program
             timer.Measure(ref snapshotSave),
             timer.Measure(ref snapshotLoad),
             timer.Measure(ref checksum),
-            timer.Measure(ref matchSave),
-            timer.Measure(ref matchLoad),
-            timer.Measure(ref matchChecksum),
-            timer.Measure(ref pipelineTick),
         ];
 
         ResultTable.Write(Console.Out, results);
@@ -75,7 +63,7 @@ internal static class Program
 
     // Not gated: Backdash's own time and allocations aren't ours to fix (ADR-0013), so they are only recorded.
     private static List<FrameResult> MeasureBackdash(
-        ToySimulation simulation, InputSequence inputs, BenchmarkOptions options)
+        MatchSimulation simulation, InputSequence inputs, BenchmarkOptions options)
     {
         var timer = new FrameTimer(options);
         return [Measure(timer, new SyncTestFrameBenchmark(simulation, inputs, options.RollbackFrames)),
