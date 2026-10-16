@@ -29,7 +29,7 @@ public struct FighterState
     /// <summary>What the current move has done so far (hit, block, whiff), for its cancel windows.</summary>
     public CancelOn MoveOutcome;
 
-    /// <summary>Hitstun or blockstun left; counts down at the start of each of the fighter's frames.</summary>
+    /// <summary>Hitstun or blockstun frames left after this one; the fighter acts again on the frame after it reaches 0.</summary>
     public int StunFramesLeft;
 
     /// <summary>1 while in the air; movement sets it on takeoff and clears it on landing.</summary>
