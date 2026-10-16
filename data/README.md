@@ -14,7 +14,8 @@ data/input/motions.json                           motions, their priority, motio
 
 Exported builds embed these files in `Sim.Data.dll`; `data/schema/` is not shipped (ADR-0015).
 
-Naming: [CONVENTIONS.md](../CONVENTIONS.md). Example character: `tests/Sim.Data.Tests/Fixtures/data/`.
+Naming: [CONVENTIONS.md](../CONVENTIONS.md). Characters: `characters/testman/` (Testman, the placeholder
+character, P1-17); a minimal example is in `tests/Sim.Data.Tests/Fixtures/data/`.
 
 ## Format rules (schema v1)
 

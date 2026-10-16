@@ -1,0 +1,17 @@
+# Testman's 2c sweep (startup 9, low) knocks down: the knockdown (40 frames, no hurtbox) ends in a 12-frame
+# wake-up, invulnerable throughout, and the fighter can act on the frame after it.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2c
+
+frame 9: expect p1 event hit
+frame 9: expect p2 damage = 900
+frame 9: expect p2 state = knockdown
+# Hitstop 12 freezes both on frames 10-21; the knockdown's move frames 2-40 run on frames 22-60.
+frame 60: expect p2 state = knockdown
+frame 61: expect p2 state = wake_up
+frame 72: expect p2 state = wake_up
+frame 73: expect p2 state = idle

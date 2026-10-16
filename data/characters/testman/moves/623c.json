@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "623c",
+  "category": "special",
+  "usableIn": "ground",
+  "input": { "motion": "623", "button": "c" },
+  "frameData": { "startup": 6, "active": 8, "recovery": 30 },
+  "invulnerable": { "firstFrame": 1, "lastFrame": 8 },
+  "velocity": [
+    { "firstFrame": 1, "lastFrame": 13, "x": 2500 }
+  ],
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 43, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "hurt", "firstFrame": 6, "lastFrame": 13, "x": 10000, "y": 40000, "width": 40000, "height": 90000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 43, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 6, "lastFrame": 13, "x": 10000, "y": 40000, "width": 45000, "height": 100000 }
+  ],
+  "cancels": [
+    {
+      "firstFrame": 6,
+      "lastFrame": 16,
+      "on": ["hit"],
+      "intoCategories": ["super"]
+    }
+  ],
+  "hit": {
+    "damage": 1400,
+    "chipDamage": 140,
+    "guard": "mid",
+    "hitstun": 30,
+    "blockstun": 18,
+    "hitstop": 14,
+    "pushback": 20000,
+    "reaction": "knockdown"
+  }
+}

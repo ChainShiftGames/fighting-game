@@ -1,0 +1,20 @@
+# Testman's 5a (startup 5, active 3, recovery 8; hitstun 13, hitstop 8) hits point blank on frame 5 and is +3 on
+# hit: it leaves 2 + 8 frames after the hit, the defender stays stunned for 13.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+
+frame 4: expect p2 damage = 0
+frame 5: expect p1 event hit
+frame 5: expect p2 state = hitstun
+frame 5: expect p2 stun = 13
+frame 5: expect p2 damage = 300
+frame 5: expect p2 hitstop = 8
+# Hitstop freezes both on frames 6-13; both run again from frame 14.
+frame 23: expect p1 state = attack
+frame 24: expect p1 state = idle         # the attacker can act on frame 24
+frame 26: expect p2 state = hitstun
+frame 27: expect p2 state = idle         # the defender on frame 27: +3

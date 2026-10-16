@@ -9,7 +9,7 @@ namespace FightingGame.Tests.Presentation;
 
 public sealed class FighterPoseTests
 {
-    private static readonly CharacterData _character = TestGameData.FixtureMan;
+    private static readonly CharacterData _character = TestGameData.Testman;
 
     [Theory]
     [InlineData(4, MovePhase.Startup)]

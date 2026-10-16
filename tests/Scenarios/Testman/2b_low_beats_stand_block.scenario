@@ -1,0 +1,14 @@
+# Testman's 2b is a low (startup 7, 450 damage, hitstun 17): holding back standing doesn't block it.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2b
+frames 1-20: p2 4
+
+frame 6: expect p2 state = walk_back
+frame 7: expect p1 event hit
+frame 7: expect p2 state = hitstun
+frame 7: expect p2 stun = 17
+frame 7: expect p2 damage = 450

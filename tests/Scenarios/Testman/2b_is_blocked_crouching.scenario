@@ -1,0 +1,14 @@
+# Holding down-back blocks Testman's low 2b (startup 7, blockstun 13, no chip).
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 2b
+frames 1-40: p2 1
+
+frame 6: expect p2 state = crouch
+frame 7: expect p1 event block
+frame 7: expect p2 state = crouch_blockstun
+frame 7: expect p2 stun = 13
+frames 7-40: expect p2 damage = 0
