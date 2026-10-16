@@ -12,6 +12,8 @@ data/input/buttons.json                           button set: button ids and inp
 data/input/motions.json                           motions, their priority, motion window and button buffer (ADR-0002)
 ```
 
+Exported builds embed these files in `Sim.Data.dll`; `data/schema/` is not shipped (ADR-0015).
+
 Naming: [CONVENTIONS.md](../CONVENTIONS.md). Example character: `tests/Sim.Data.Tests/Fixtures/data/`.
 
 ## Format rules (schema v1)

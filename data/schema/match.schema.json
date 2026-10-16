@@ -5,10 +5,11 @@
   "description": "data/rules/match.json: match-wide gameplay values, copied into MatchRules (developer settings, compared before online matches). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "roundStartDistance"],
+  "required": ["schemaVersion", "roundStartDistance", "wallDistance"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
-    "roundStartDistance": { "type": "integer", "minimum": 0, "maximum": 1000000, "description": "Each fighter's distance from the stage centre when a round starts, in subpixels." }
+    "roundStartDistance": { "type": "integer", "minimum": 0, "maximum": 1000000, "description": "Each fighter's distance from the stage centre when a round starts, in subpixels; less than wallDistance." },
+    "wallDistance": { "type": "integer", "minimum": 1, "maximum": 1000000, "description": "Each stage wall's distance from the stage centre, in subpixels. Fighters' pushboxes stay between the walls." }
   }
 }

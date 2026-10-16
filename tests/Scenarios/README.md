@@ -35,12 +35,12 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/input/motions.json`.
 - **Units**: positions in subpixels (1 px = 1000), velocities in subpixels per frame, times in frames.
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
-  real button set. `scenario_dummy` (moves `236b`, `5a`, `idle`, `crouch`, `dash`) is there until Testman (P1-17).
+  real button set. `scenario_dummy` (moves `236b`, `5a`, `idle`, `crouch`, `dash`, `jump`, `landing`) is there until Testman (P1-17).
 - **Start state** (until round start, P1-13): fighters at x = ∓`roundStartDistance` from `data/rules/match.json`
   (150000), y = 0, facing each other, full health, in idle, round 1. Settable values below override it.
 - **What runs**: the production match, `Sim.Composition.MatchSimulation`: every stage built so far (input step,
-  move state machines with the motion parser and button buffer, movement); the others still do nothing, so e.g.
-  nothing collides or gets hit yet. Match rules come from data (`GameData.CreateMatchRules`) plus the modules.
+  move state machines with the motion parser and button buffer, movement, pushboxes and walls at
+  ±`wallDistance` (600000)); the others still do nothing, so e.g. nothing gets hit yet. Match rules come from data (`GameData.CreateMatchRules`) plus the modules.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
   lineup slots in the order listed. Config integers are the module's raw config slice.
 

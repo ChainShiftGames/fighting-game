@@ -18,7 +18,13 @@ public static class MatchRulesFileLoader
 
         file.Ignore("$schema");
         int roundStartDistance = file.RequiredInt("roundStartDistance", 0, MatchRulesSchema.MaxDistance);
+        int wallDistance = file.RequiredInt("wallDistance", 1, MatchRulesSchema.MaxDistance);
+        if (errors.Count == errorsBefore && roundStartDistance >= wallDistance)
+        {
+            file.Error("roundStartDistance", $"must be less than wallDistance ({wallDistance}), or rounds start in the wall");
+        }
+
         file.Finish();
-        return errors.Count > errorsBefore ? null : new MatchRulesFile(roundStartDistance);
+        return errors.Count > errorsBefore ? null : new MatchRulesFile(roundStartDistance, wallDistance);
     }
 }

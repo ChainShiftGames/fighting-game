@@ -2,4 +2,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Sim\Sim.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- ADR-0015: exported builds read the game data from this assembly (EmbeddedDataSource). The schemas are an
+         editor aid and stay out. -->
+    <EmbeddedResource Include="..\..\data\**\*.json" Exclude="..\..\data\schema\**">
+      <LogicalName>data/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

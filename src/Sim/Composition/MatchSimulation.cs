@@ -1,4 +1,5 @@
 using Sim.Characters;
+using Sim.Collision;
 using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
@@ -54,6 +55,7 @@ public sealed class MatchSimulation
             Input = new ButtonSetInputStage(buttons),
             StateMachines = _stateMachines,
             Movement = new MovementStage(player1, player2),
+            Collision = new CollisionStage(player1, player2, StageWalls.From(in rules)),
         };
         _pipeline = new TickPipeline(stages, modules, requests);
     }
