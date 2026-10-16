@@ -16,6 +16,7 @@ public struct MatchState
     public int Frame;
     public RoundState Round;
     public RandomState Random;
+    public FreezeState Freeze;
     public FighterStates Fighters;
     public InputHistories Inputs;
     public ModuleStates Modules;
