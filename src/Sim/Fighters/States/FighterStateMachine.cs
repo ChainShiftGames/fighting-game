@@ -49,7 +49,7 @@ public sealed class FighterStateMachine
         {
             fighter.ShortcutCooldownLeft--;
         }
-        if (TryTakePendingCancel(ref fighter, character))
+        if (TryTakePendingCancel(ref fighter, in history, character))
         {
             return;
         }
@@ -97,8 +97,9 @@ public sealed class FighterStateMachine
     }
 
     // A cancel the core accepted (ADR-0011): taken from any action. A target the character doesn't have, or a basic
-    // move (only the state machine enters those), is a module bug and fails loudly.
-    private static bool TryTakePendingCancel(ref FighterState fighter, CharacterData character)
+    // move (only the state machine enters those), is a module bug and fails loudly. Into neutral, the fighter is free
+    // at once, as at the end of a move: a buffered press already starts its move.
+    private bool TryTakePendingCancel(ref FighterState fighter, in InputHistory history, CharacterData character)
     {
         if (fighter.Cancel.IsPending == 0)
         {
@@ -106,6 +107,13 @@ public sealed class FighterStateMachine
         }
 
         int target = fighter.Cancel.TargetMove;
+        if (target == CancelRequest.Neutral)
+        {
+            fighter.Cancel = default;
+            EnterFree(ref fighter, in history, character);
+            return true;
+        }
+
         if (target >= character.Moves.Length || character.Moves[target].Category == MoveCategory.Basic)
         {
             throw new InvalidOperationException(

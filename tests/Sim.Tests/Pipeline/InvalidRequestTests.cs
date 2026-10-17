@@ -27,7 +27,7 @@ public sealed class InvalidRequestTests
                 switch (kind)
                 {
                     case "cancel":
-                        context.RequestCancel(0, new CancelRequest { TargetMove = -1 });
+                        context.RequestCancel(0, new CancelRequest { TargetMove = CancelRequest.Neutral - 1 });
                         break;
                     case "speed-up":
                         context.RequestTimeScale(

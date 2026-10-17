@@ -1,0 +1,10 @@
+# Module off: a+b+c during 5a cancels nothing.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module meter 5000 0 0 0 10000 0
+frame 1: p1 5a
+frame 3: p1 5a+b+c
+
+frames 1-10: expect p1 event module = 0
+frame 10: expect p1 move = 5a
+frames 1-10: expect module meter[0] = 10000

@@ -92,7 +92,7 @@ public sealed class CoreRequestApplier
                 continue;
             }
 
-            if (request.TargetMove < 0)
+            if (request.TargetMove < CancelRequest.Neutral)
             {
                 throw Invalid(slot, $"a cancel into move {request.TargetMove}");
             }
