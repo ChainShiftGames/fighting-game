@@ -1,0 +1,13 @@
+# Testman, shipped combo limits (10 % proration per hit): 5a (300) gatlings into 5b (500), which deals 450 as the
+# combo's second hit.
+setup: module gatlings
+setup: module combo_limits 100 300 1 8 6 50 1000 1
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 14: p1 5b
+
+frame 5: expect p2 damage = 300
+frame 30: expect p2 damage = 750
