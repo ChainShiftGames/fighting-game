@@ -38,7 +38,10 @@ Done when:
 
 ## B. Mechanic modules
 
-In progress: P3-10, P3-12, P3-13, P3-16, P3-17, P3-20 (branches `p3-<id>-<name>`).
+In progress: P3-10, P3-12, P3-13, P3-16, P3-17 (branches `p3-<id>-<name>`).
+**P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
+`tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
+covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
 **Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
 (Offense: P3-10, P3-12 · Meter: P3-13, P3-18 · Defense: P3-15–17 · Controls: P3-19–20 · Movement: P3-21).
@@ -120,7 +123,7 @@ Done when (editor as a whole):
 ## E. CPU bot
 
 ### P3-50 CPU bot v1
-Status: in progress (p3-50-cpu-bot) · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
+Status: done (soak with bots: run the manual 1-hour job) · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
 Read: ADR-0006
 - Input provider that presses buttons like a player; never reads internals it couldn't "see".
 - Simple state machine (approach, attack, block, punish); difficulty = reaction delay (**player setting** in

@@ -1,0 +1,14 @@
+# In the air the core dash button air dashes (back + dash: backward air dash) out of testman's one air action.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 9
+frame 12: p1 dash
+frame 12: expect p1 state = air_dash
+# The budget is spent: a second press does nothing until landing.
+frame 30: p1 dash
+frame 30: expect p1 state = jump
+
+frame 1: p2 7
+frame 12: p2 4dash
+frame 12: expect p2 state = air_backdash
