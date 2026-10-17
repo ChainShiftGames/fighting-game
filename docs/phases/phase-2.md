@@ -108,7 +108,7 @@ Read: ADR-0005
   undecided.
 
 ### P2-11 Network simulator panel
-Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Transport/`, `game/Debug/`
+Status: done · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Transport/`, `game/Debug/`
 Read: ADR-0005
 - Latency, jitter and loss injection; on-screen rollback and ping stats. **Developer settings.**
 - A simple ping indicator for players: **player-facing**, no settings.

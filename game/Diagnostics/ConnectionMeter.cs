@@ -33,6 +33,9 @@ public sealed class ConnectionMeter
     /// <summary>Samples taken so far; one per second of running match.</summary>
     public int SampleCount => _ping.Count;
 
+    /// <summary>The latest sampled ping; null until the match runs (for the player's ping indicator).</summary>
+    public int? PingMilliseconds => _connection?.PingMilliseconds;
+
     /// <summary>Takes a sample once a second while the match runs. Returns true when it took one.</summary>
     public bool Sample(long timestamp)
     {

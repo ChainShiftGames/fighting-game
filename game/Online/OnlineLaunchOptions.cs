@@ -20,6 +20,8 @@ public static class OnlineLaunchOptions
         "--steam | --online --port <local port> --remote <ip:port> --player <1|2>, then optionally " +
         "--lag, --ping <ms>, --jitter <ms>, --loss <percent>, --rollback <frames>, --delay <frames>";
 
+    private const int MaxPacketLossPercent = 100;
+
     public static bool WantsSteam(string[] args) => Array.IndexOf(args, "--steam") >= 0;
 
     /// <summary>The opponent of a direct UDP match; null with no error when the arguments don't ask for one.</summary>
@@ -46,25 +48,37 @@ public static class OnlineLaunchOptions
     }
 
     /// <summary>
-    /// Applies the rollback, delay and network-simulation options to any online match. Developer settings: they
-    /// override the data's values for one run, as exported test builds can't edit data.
+    /// Applies the rollback and delay options to any online match. Developer settings: they override the data's
+    /// values for one run, as exported test builds can't edit data.
     /// </summary>
     /// <exception cref="FormatException">An option has an invalid value.</exception>
-    public static PeerMatchSettings WithTuning(PeerMatchSettings settings, string[] args)
+    public static PeerMatchSettings WithTuning(PeerMatchSettings settings, string[] args) => settings with
+    {
+        RollbackFrames = IntOption(args, "--rollback", settings.RollbackFrames),
+        InputDelayFrames = IntOption(args, "--delay", settings.InputDelayFrames),
+    };
+
+    /// <summary>
+    /// The network simulation the options ask for (developer settings): <c>--lag</c> starts from ADR-0005's test
+    /// conditions, <c>--ping</c>, <c>--jitter</c> and <c>--loss</c> set single values; none without options.
+    /// </summary>
+    /// <exception cref="FormatException">An option has an invalid value.</exception>
+    public static NetworkSimulation Simulation(string[] args)
     {
         NetworkSimulation simulation = Array.IndexOf(args, "--lag") >= 0
             ? NetworkSimulation.TestConditions
             : NetworkSimulation.None;
-        return settings with
+        int loss = IntOption(args, "--loss", simulation.PacketLossPercent);
+        if (loss > MaxPacketLossPercent)
         {
-            RollbackFrames = IntOption(args, "--rollback", settings.RollbackFrames),
-            InputDelayFrames = IntOption(args, "--delay", settings.InputDelayFrames),
-            NetworkSimulation = simulation with
-            {
-                PingMilliseconds = IntOption(args, "--ping", simulation.PingMilliseconds),
-                JitterMilliseconds = IntOption(args, "--jitter", simulation.JitterMilliseconds),
-                PacketLossPercent = IntOption(args, "--loss", simulation.PacketLossPercent),
-            },
+            throw new FormatException($"--loss must be 0 to {MaxPacketLossPercent}, got {loss}.");
+        }
+
+        return simulation with
+        {
+            PingMilliseconds = IntOption(args, "--ping", simulation.PingMilliseconds),
+            JitterMilliseconds = IntOption(args, "--jitter", simulation.JitterMilliseconds),
+            PacketLossPercent = loss,
         };
     }
 

@@ -7,6 +7,7 @@ using Netcode.Handshake;
 using Netcode.Online;
 using Netcode.Tests.Handshake;
 using Netcode.Tests.Matches;
+using Netcode.Transport;
 using Sim.State;
 using Xunit;
 
@@ -28,13 +29,18 @@ internal sealed class InMemoryMatch : IDisposable
     private static readonly IPEndPoint _player1Address = new(IPAddress.Loopback, 1);
     private static readonly IPEndPoint _player2Address = new(IPAddress.Loopback, 2);
 
+    private readonly NetworkSimulation _network;
+
     /// <param name="player2Simulation">P2's game logic; the same as P1's when null.</param>
     /// <param name="player2Identity">What P2 tells the handshake; the same build as P1 when null.</param>
+    /// <param name="network">Simulated conditions both peers add to what they send; none when null.</param>
     public InMemoryMatch(
         int fightingFrames,
         IMatchSimulation<MatchState>? player2Simulation = null,
-        MatchIdentity? player2Identity = null)
+        MatchIdentity? player2Identity = null,
+        NetworkSimulation? network = null)
     {
+        _network = network ?? NetworkSimulation.None;
         (Player1Transport, Player2Transport) = InMemoryTransport.CreatePair();
         Player1Peer = new PeerTransport(new OpenedTransport(Player1Transport));
         Player2Peer = new PeerTransport(new OpenedTransport(Player2Transport));
@@ -104,7 +110,7 @@ internal sealed class InMemoryMatch : IDisposable
         Player2.Dispose();
     }
 
-    private static TestMatchDriver<MatchState> CreatePeer(
+    private TestMatchDriver<MatchState> CreatePeer(
         PeerTransport transport,
         VersionHandshake handshake,
         EndPoint opponent,
@@ -117,6 +123,7 @@ internal sealed class InMemoryMatch : IDisposable
             RemoteEndPoint = opponent,
             LocalIsPlayer1 = localIsPlayer1,
             RollbackFrames = RollbackFrames,
+            NetworkSimulation = _network,
         };
         RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, transport, handshake);
         var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
