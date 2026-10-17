@@ -9,8 +9,8 @@ namespace Sim.Data.Modules;
 
 /// <summary>Reads <c>rules/modules.json</c> and every module file it lists, checked against the registered modules.</summary>
 /// <remarks>
-/// Fails loudly on a name no module registers, a module listed twice, a module file the order doesn't list and more
-/// enabled modules than the lineup has slots. A registered module data doesn't list is simply never enabled (e.g. the
+/// Fails loudly on a name no module registers, a module listed twice, a module file the order doesn't list, more
+/// enabled modules than the lineup has slots and two enabled meter gauges on one channel (ADR-0023). A registered module data doesn't list is simply never enabled (e.g. the
 /// test-only contract probe).
 /// </remarks>
 public static class ModuleLineupLoader
@@ -47,6 +47,7 @@ public static class ModuleLineupLoader
 
         CheckEveryFileIsListed(source, listed, errors);
         CheckEnabledModulesFit(file, modules);
+        CheckMeterChannels(catalog, modules, errors);
         return errors.Count > errorsBefore ? null : new ModuleLineupFile(modules);
     }
 
@@ -97,6 +98,43 @@ public static class ModuleLineupLoader
         if (enabled > ModuleStates.MaxModules)
         {
             file.Error(OrderField, $"{enabled} modules are enabled; the lineup has {ModuleStates.MaxModules} slots");
+        }
+    }
+
+    // The core routes each channel to one gauge, so a second one would never be asked.
+    private static void CheckMeterChannels(ModuleCatalog catalog, List<ModuleEntry> modules, DataErrors errors)
+    {
+        string?[] gaugeByChannel = new string?[IMeterGauge.ChannelCount];
+        foreach (ModuleEntry entry in modules)
+        {
+            if (!entry.Enabled || !catalog.TryFind(entry.Id, out IMechanicModule? module) ||
+                module is not IMeterGauge gauge)
+            {
+                continue;
+            }
+
+            ModuleConfig config = default;
+            for (int i = 0; i < entry.Config.Count; i++)
+            {
+                config[i] = entry.Config[i];
+            }
+
+            // The module's config layout bounds its channel; an out-of-range one is the module's bug (match start throws).
+            int channel = gauge.ChannelOf(in config);
+            if (channel < 0 || channel >= IMeterGauge.ChannelCount)
+            {
+                continue;
+            }
+
+            if (gaugeByChannel[channel] is { } other)
+            {
+                errors.Add(
+                    ModuleLineupSchema.ModuleFile(entry.Name),
+                    "",
+                    $"'{other}' already keeps meter channel {channel}; switch one off or give it another channel");
+            }
+
+            gaugeByChannel[channel] ??= entry.Name;
         }
     }
 

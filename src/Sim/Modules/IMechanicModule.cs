@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Sim.Rules;
 
 namespace Sim.Modules;
@@ -20,4 +21,11 @@ public interface IMechanicModule
 
     /// <summary>The keys its data file sets in its config struct (developer settings); none by default.</summary>
     ModuleConfigLayout ConfigLayout => ModuleConfigLayout.None;
+
+    /// <summary>Move roles every character must name for this module (ADR-0023); none by default.</summary>
+    /// <remarks>
+    /// Resolved once at match start; the module finds role <c>i</c>'s move with <see cref="ModuleContext.RoleMove"/>.
+    /// A character without one of them fails loudly when data is loaded, and when a match starts.
+    /// </remarks>
+    IReadOnlyList<string> MoveRoles => [];
 }

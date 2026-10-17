@@ -46,7 +46,7 @@ public sealed class MatchSimulation
         Player2 = player2;
         Rules = rules;
         CoreRequests requests = new();
-        ModuleLineup modules = new(RegisteredModules.Create(), in rules.Modules, requests);
+        ModuleLineup modules = new(RegisteredModules.Create(), in rules.Modules, requests, player1, player2);
         MotionParser parser = new(motions, in rules);
         _roundStart = new RoundStart(player1, player2, in rules);
         StateMachineStage stateMachines = new(

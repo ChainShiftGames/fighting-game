@@ -13,6 +13,11 @@ Example to copy: `AirBlock/`.
      the size).
    - With config: `ConfigLayout = ModuleConfigLayout.For<<Name>Config>(new ModuleConfigField("key", min, max), …)`,
      one field per config int in declaration order. Keys are camelCase; `enabled` is reserved.
+   - Needs a character's move (e.g. burst)? List role names in `MoveRoles` and find the move with
+     `context.RoleMove(fighter, roleIndex)`; characters name it in `character.json` `moveRoles` (ADR-0023). Never
+     store a move index in config. `context.CharacterOf(fighter)` reads the rest of the character.
+   - Keeps a resource? Implement `IMeterGauge` and take the channel from config (`ChannelOf`); others reach it with
+     `context.MeterOf(fighter, channel)` (Meter/README.md).
 2. **Register** with one line in `RegisteredModules.cs`, kept alphabetical.
 3. **Data** (developer settings):
    - `data/rules/modules/<name>.json`: `schemaVersion`, `enabled`, and every config key

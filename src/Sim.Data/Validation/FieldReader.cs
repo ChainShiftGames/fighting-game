@@ -99,6 +99,30 @@ public sealed class FieldReader
     public IReadOnlyList<TEnum> ChoiceArray<TEnum>(string name, JsonNames<TEnum> names, bool required)
         where TEnum : struct, Enum => ReadArray(name, required, (value, path) => ToChoice(value, path, names));
 
+    /// <summary>
+    /// This object read as a map from id to id (e.g. move roles), in file order; a field whose name or value isn't a
+    /// valid id is reported and left out.
+    /// </summary>
+    public IReadOnlyList<KeyValuePair<string, string>> IdMap()
+    {
+        List<KeyValuePair<string, string>> entries = [];
+        foreach (JsonProperty property in _object.EnumerateObject())
+        {
+            _knownFields.Add(property.Name);
+            string path = PathOf(property.Name);
+            if (!IsId(property.Name))
+            {
+                _errors.Add(File, path, $"key must be a lowercase snake_case id (at most {MaxIdLength} characters)");
+            }
+            else if (ToId(property.Value, path) is { } value)
+            {
+                entries.Add(new(property.Name, value));
+            }
+        }
+
+        return entries;
+    }
+
     /// <summary>True when the object has the field, read or not; for choosing between alternative fields.</summary>
     public bool Has(string name) => _object.TryGetProperty(name, out _);
 

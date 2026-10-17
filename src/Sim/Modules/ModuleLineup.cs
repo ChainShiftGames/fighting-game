@@ -26,13 +26,26 @@ public sealed class ModuleLineup
     private readonly HookList<IHitAdjustmentHook> _hitAdjustment;
     private readonly HookList<IBlockAdjustmentHook> _blockAdjustment;
     private readonly HookList<ICancelWindowHook> _cancelWindows;
+    private readonly ModuleCharacters? _characters;
 
+    /// <summary>A lineup without characters, for unit tests: a module asking for one throws.</summary>
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
     public ModuleLineup(ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests)
+        : this(catalog, in slots, requests, null, null)
+    {
+    }
+
+    /// <exception cref="ArgumentException">
+    /// The lineup names an unregistered module or one module twice, two meter gauges serve one channel, or a character
+    /// doesn't name a move role a module needs.
+    /// </exception>
+    public ModuleLineup(
+        ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests, CharacterData? player1, CharacterData? player2)
     {
         _slots = slots;
         _requests = requests;
         IMechanicModule?[] modulesBySlot = ResolveModules(catalog, in slots);
+        _characters = player1 is not null && player2 is not null ? new(modulesBySlot, player1, player2) : null;
         _afterInput = new(modulesBySlot);
         _beforeStateMachines = new(modulesBySlot);
         _afterStateMachines = new(modulesBySlot);
@@ -41,7 +54,7 @@ public sealed class ModuleLineup
         _onThrow = new(modulesBySlot);
         _endOfFrame = new(modulesBySlot);
         _airGuard = new(modulesBySlot);
-        _meters = CreateMeterAccess(modulesBySlot, in slots, requests);
+        _meters = new MeterAccess(modulesBySlot, in slots, requests, _characters);
         _hitAdjustment = new(modulesBySlot);
         _blockAdjustment = new(modulesBySlot);
         _cancelWindows = new(modulesBySlot);
@@ -174,21 +187,7 @@ public sealed class ModuleLineup
     }
 
     private ModuleContext ContextFor(ref MatchState state, int slot) =>
-        new(ref state, ref state.Modules[slot], in _slots[slot].Config, _requests, slot, _meters);
-
-    // The first meter gauge in hook order keeps the meter; a second one would never be asked.
-    private static MeterAccess CreateMeterAccess(
-        IMechanicModule?[] modulesBySlot, in ModuleSlots slots, CoreRequests requests)
-    {
-        var gauges = new HookList<IMeterGauge>(modulesBySlot);
-        if (gauges.Count == 0)
-        {
-            return new MeterAccess(null, 0, default, requests);
-        }
-
-        int slot = gauges.SlotAt(0);
-        return new MeterAccess(gauges.HookAt(0), slot, in slots[slot].Config, requests);
-    }
+        new(ref state, ref state.Modules[slot], in _slots[slot].Config, _requests, slot, _meters, _characters);
 
     private static IMechanicModule?[] ResolveModules(ModuleCatalog catalog, in ModuleSlots slots)
     {

@@ -8,7 +8,7 @@ namespace Sim.Characters;
 /// </summary>
 public sealed class CharacterData
 {
-    /// <summary>Marks a basic state that the character doesn't define.</summary>
+    /// <summary>Marks a basic state or move role that the character doesn't define.</summary>
     public const int NoMove = -1;
 
     private readonly string[] _moveIds;
@@ -20,6 +20,7 @@ public sealed class CharacterData
     private readonly VelocityData[] _velocities;
     private readonly int[] _basicStateMoves;
     private readonly ProjectileData[] _projectiles;
+    private readonly MoveRole[] _moveRoles;
 
     public CharacterData(
         string id,
@@ -33,7 +34,8 @@ public sealed class CharacterData
         HitData[] hits,
         VelocityData[] velocities,
         int[] basicStateMoves,
-        ProjectileData[]? projectiles = null)
+        ProjectileData[]? projectiles = null,
+        MoveRole[]? moveRoles = null)
     {
         Id = id;
         DisplayName = displayName;
@@ -47,6 +49,7 @@ public sealed class CharacterData
         _velocities = velocities;
         _basicStateMoves = basicStateMoves;
         _projectiles = projectiles ?? [];
+        _moveRoles = moveRoles ?? [];
     }
 
     public string Id { get; }
@@ -81,6 +84,24 @@ public sealed class CharacterData
     public ReadOnlySpan<int> BasicStateMoves => _basicStateMoves;
 
     public int BasicStateMove(BasicState state) => _basicStateMoves[(int)state];
+
+    /// <summary>The moves the character names for module jobs (ADR-0023), in data order.</summary>
+    public ReadOnlySpan<MoveRole> MoveRoles => _moveRoles;
+
+    /// <summary>The move the character names for <paramref name="role"/>, or <see cref="NoMove"/>.</summary>
+    /// <remarks>Compares strings, so the core resolves roles once at match start, never per frame.</remarks>
+    public int MoveForRole(string role)
+    {
+        foreach (MoveRole moveRole in _moveRoles)
+        {
+            if (string.Equals(moveRole.Name, role, StringComparison.Ordinal))
+            {
+                return moveRole.Move;
+            }
+        }
+
+        return NoMove;
+    }
 
     public ReadOnlySpan<BoxData> BoxesOf(in MoveData move) => _boxes.AsSpan(move.BoxStart, move.BoxCount);
 

@@ -26,6 +26,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0020](0020-special-button-shortcuts.md) | Special button shortcuts: motion set maps motions to a direction (236 → 5, 623 → 6, 214 → 4), direction + special + the move's button; real motions win; damage and cooldown trade-off in `MatchRules` (off) |
 | [0021](0021-data-migration-and-export.md) | Game reads only current schema versions; format changes ship a `tools/DataMigrate` step; external tools read a `tools/DataExport` file |
 | [0022](0022-multi-hit-moves-and-juggles.md) | Moves list hits with own frames (each connects once); launch, air launch, ground/wall bounce, knockdown length, OTG per hit; air recovery a match rule |
-| [0023](0023-character-mechanics-resources-move-conditions.md) | *Proposed:* character-scoped mechanic modules, move roles, resource channels, fighter flags, move conditions, core follow-up cancels |
+| [0023](0023-character-mechanics-resources-move-conditions.md) | *Proposed* (roles and channels built): character-scoped mechanic modules, move roles, resource channels, fighter flags, move conditions, core follow-up cancels |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

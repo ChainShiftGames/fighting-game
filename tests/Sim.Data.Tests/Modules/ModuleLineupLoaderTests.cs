@@ -196,6 +196,9 @@ public sealed class ModuleLineupLoaderTests
         }
 
         _data.SetText(OrderFile, Order(names));
+        string roles = string.Join(", ", Enumerable.Range(0, registered.Count)
+            .SelectMany(i => registered[i].MoveRoles).Select(role => $"\"{role}\": \"5a\""));
+        _data.Replace(Fixture.CharacterFile, "\"moveRoles\": {}", $"\"moveRoles\": {{ {roles} }}");
 
         MatchRules rules = new GameDataLoader(_data, registered).Load().CreateMatchRules();
 

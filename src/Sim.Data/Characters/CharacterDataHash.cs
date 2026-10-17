@@ -18,5 +18,11 @@ public static class CharacterDataHash
         hash.Add(character.Velocities);
         hash.Add(character.BasicStateMoves);
         hash.Add(character.Projectiles);
+        hash.Add(character.MoveRoles.Length);
+        foreach (MoveRole role in character.MoveRoles)
+        {
+            hash.Add(role.Name);
+            hash.Add(role.Move);
+        }
     }
 }

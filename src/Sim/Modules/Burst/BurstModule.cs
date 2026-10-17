@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Sim.Input;
 using Sim.Input.Motions;
 using Sim.Rules;
@@ -20,9 +21,15 @@ public sealed class BurstModule : IMechanicModule, IAfterInputHook, IOnHitHook
 {
     private const int AllButtons = (1 << InputWord.BitCount) - (1 << InputWord.FirstButtonBit);
 
+    // Index in MoveRoles.
+    private const int BurstRole = 0;
+
     public ModuleId Id => new(17);
 
     public string Name => "burst";
+
+    /// <summary>Each character's <c>burst</c> move: the move a burst cancels into.</summary>
+    public IReadOnlyList<string> MoveRoles { get; } = ["burst"];
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<BurstConfig>(
         new ModuleConfigField("maxGauge", 1, 1_000_000),
@@ -34,7 +41,6 @@ public sealed class BurstModule : IMechanicModule, IAfterInputHook, IOnHitHook
         new ModuleConfigField("usableInBlockstun", 0, 1),
         new ModuleConfigField("usableInNeutral", 0, 1),
         new ModuleConfigField("triggerButtons", 1 << InputWord.FirstButtonBit, AllButtons),
-        new ModuleConfigField("burstMove", 0, int.MaxValue),
         new ModuleConfigField("cancelPriority", 0, 1_000_000));
 
     public void AfterInput(ModuleContext context)
@@ -64,7 +70,7 @@ public sealed class BurstModule : IMechanicModule, IAfterInputHook, IOnHitHook
                 burst.Gauge -= config.BurstCost;
                 burst.BurstsUsed++;
                 context.RequestCancel(
-                    fighter, new CancelRequest { TargetMove = config.BurstMove, Priority = config.CancelPriority });
+                    fighter, new CancelRequest { TargetMove = context.RoleMove(fighter, BurstRole), Priority = config.CancelPriority });
             }
         }
     }

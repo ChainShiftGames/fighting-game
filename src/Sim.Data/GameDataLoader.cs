@@ -51,6 +51,7 @@ public sealed class GameDataLoader
         List<CharacterData> characters = LoadCharacters(buttonLookup, errors);
         errors.ThrowIfAny();
         CheckMoveMotions(characters, motions!, errors);
+        MoveRoleCheck.Check(characters, _modules, modules!, errors);
         errors.ThrowIfAny();
 
         using DataHashBuilder hash = new();

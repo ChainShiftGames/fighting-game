@@ -4,13 +4,15 @@ using Sim.Rules;
 namespace Sim.Tests.Modules;
 
 /// <summary>Test-only meter gauge: every fighter starts with <see cref="StartMeter"/> and keeps what isn't spent.</summary>
-internal sealed class SpentMeterGauge(int id) : IMechanicModule, IMeterGauge
+internal sealed class SpentMeterGauge(int id, int channel = IMeterGauge.MainChannel) : IMechanicModule, IMeterGauge
 {
     public const int StartMeter = 100;
 
     public ModuleId Id { get; } = new(id);
 
     public string Name { get; } = $"gauge_{id}";
+
+    public int ChannelOf(ref readonly ModuleConfig config) => channel;
 
     public int MeterOf(ModuleContext context, int fighter)
     {

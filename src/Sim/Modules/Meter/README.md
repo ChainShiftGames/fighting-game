@@ -15,9 +15,11 @@ State slice: `[0]` P1 meter, `[1]` P2 meter (scenarios: `module meter[0]`).
 
 Never read this module's slice. Use the core, through `ModuleContext`:
 
-- `context.MeterOf(fighter)`: current meter; 0 when no gauge is enabled.
-- `context.TrySpendMeter(fighter, amount)`: spends immediately and returns true if the fighter had `amount`;
+- `context.MeterOf(fighter, channel)`: current meter; 0 when no gauge serves the channel.
+- `context.TrySpendMeter(fighter, amount, channel)`: spends immediately and returns true if the fighter had `amount`;
   false (nothing spent) without enough meter or without a gauge. Later hooks in the same frame see the new value.
+- `channel` defaults to 0, the main meter (ADR-0023).
 
-The core routes both to the first enabled module implementing `IMeterGauge` (`Sim.Modules.MeterAccess`).
+The core routes both to the enabled `IMeterGauge` serving that channel (`Sim.Modules.MeterAccess`). This module serves
+its `channel` config (0 in data); two enabled gauges on one channel fail loading and match start.
 Run this module early in `modules.json` order so a spend in an earlier hook is reflected in the super lock.

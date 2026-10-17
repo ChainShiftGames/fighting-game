@@ -56,12 +56,35 @@ public sealed class DataMigratorTests
     }
 
     [Theory]
-    [InlineData("characters/man/character.json")]
+    [InlineData("input/buttons.json")]
     [InlineData("rules/match.json")]
     [InlineData("schema/move.schema.json")]
     public void OnlyFilesOfTheMigratedKindChange(string path)
     {
         Assert.Null(_migrator.Migrate(path, Encoding.UTF8.GetBytes(MoveV1)));
+    }
+
+    [Fact]
+    public void ACharacterGetsAnEmptyMoveRolesObjectAfterItsStates()
+    {
+        const string CharacterV1 = """
+            {
+              "schemaVersion": 1,
+              "id": "man",
+              "states": { "idle": "idle" },
+              "moves": ["idle"]
+            }
+            """;
+
+        string migrated = _migrator.Migrate("characters/man/character.json", Encoding.UTF8.GetBytes(CharacterV1))!;
+
+        Assert.Contains("\"schemaVersion\": 2", migrated, StringComparison.Ordinal);
+        Assert.True(
+            migrated.IndexOf("\"states\"", StringComparison.Ordinal) <
+            migrated.IndexOf("\"moveRoles\": {}", StringComparison.Ordinal));
+        Assert.True(
+            migrated.IndexOf("\"moveRoles\"", StringComparison.Ordinal) <
+            migrated.IndexOf("\"moves\"", StringComparison.Ordinal));
     }
 
     [Theory]

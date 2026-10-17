@@ -8,5 +8,6 @@ public static class MigrationList
     public static IReadOnlyList<IDataMigration> All { get; } =
     [
         new MoveHitsAsList(),
+        new CharacterMoveRoles(),
     ];
 }

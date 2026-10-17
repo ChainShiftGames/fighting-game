@@ -6,7 +6,7 @@ using Sim.Data.Validation;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads and validates <c>characters/&lt;id&gt;/character.json</c>: stats, move list and basic states.</summary>
+/// <summary>Reads and validates <c>characters/&lt;id&gt;/character.json</c>: stats, move list, basic states and move roles.</summary>
 public static class CharacterFileReader
 {
     /// <summary>The definition, or null when the file is unusable (errors are in <paramref name="errors"/>).</summary>
@@ -29,9 +29,10 @@ public static class CharacterFileReader
         CharacterStats stats = ReadStats(file.RequiredObject("stats"));
         List<string> moveIds = ReadMoveList(file);
         int[] basicStateMoves = ReadBasicStates(file.RequiredObject("states"), moveIds);
+        List<MoveRole> moveRoles = ReadMoveRoles(file.RequiredObject("moveRoles"), moveIds);
         file.Finish();
 
-        return new CharacterDefinition(characterId, displayName, stats, moveIds, basicStateMoves);
+        return new CharacterDefinition(characterId, displayName, stats, moveIds, basicStateMoves, moveRoles);
     }
 
     private static CharacterStats ReadStats(FieldReader? stats)
@@ -115,5 +116,30 @@ public static class CharacterFileReader
 
         states.Finish();
         return moves;
+    }
+
+    // Which roles exist is the registered modules' business; GameDataLoader checks the names against them.
+    private static List<MoveRole> ReadMoveRoles(FieldReader? roles, List<string> moveIds)
+    {
+        List<MoveRole> moveRoles = [];
+        if (roles is null)
+        {
+            return moveRoles;
+        }
+
+        foreach ((string role, string moveId) in roles.IdMap())
+        {
+            int index = moveIds.IndexOf(moveId);
+            if (index < 0)
+            {
+                roles.Error(role, $"move '{moveId}' is not in the character's move list");
+                continue;
+            }
+
+            moveRoles.Add(new MoveRole(role, index));
+        }
+
+        roles.Finish();
+        return moveRoles;
     }
 }

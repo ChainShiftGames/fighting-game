@@ -60,6 +60,61 @@ public sealed class MeterAccessTests
     }
 
     [Fact]
+    public void EachChannelHasItsOwnGauge()
+    {
+        int mainMeter = -1;
+        int otherMeter = -1;
+        var spender = new ScriptedModule(3)
+        {
+            OnAfterInput = context =>
+            {
+                context.TrySpendMeter(Player1, 30, channel: 3);
+                mainMeter = context.MeterOf(Player1);
+                otherMeter = context.MeterOf(Player1, channel: 3);
+            },
+        };
+
+        Run(frames: 1, new SpentMeterGauge(1), new SpentMeterGauge(2, channel: 3), spender);
+
+        Assert.Equal((SpentMeterGauge.StartMeter, SpentMeterGauge.StartMeter - 30), (mainMeter, otherMeter));
+    }
+
+    [Fact]
+    public void AChannelWithoutAGaugeHasNoMeter()
+    {
+        bool spent = true;
+        int meter = -1;
+        var spender = new ScriptedModule(3)
+        {
+            OnAfterInput = context =>
+            {
+                spent = context.TrySpendMeter(Player1, 0, channel: 5);
+                meter = context.MeterOf(Player1, channel: 5);
+            },
+        };
+
+        Run(frames: 1, new SpentMeterGauge(1), spender);
+
+        Assert.Equal((false, 0), (spent, meter));
+    }
+
+    [Fact]
+    public void TwoGaugesOnOneChannelFailAtMatchStart()
+    {
+        Assert.Throws<ArgumentException>(() => Run(frames: 0, new SpentMeterGauge(1, 2), new SpentMeterGauge(2, 2)));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(IMeterGauge.ChannelCount)]
+    public void AChannelOutOfRangeFailsLoudly(int channel)
+    {
+        Assert.Throws<ArgumentException>(() => Run(frames: 0, new SpentMeterGauge(1, channel)));
+        var reader = new ScriptedModule(2) { OnAfterInput = context => context.MeterOf(Player1, channel) };
+        Assert.Throws<ArgumentOutOfRangeException>(() => Run(frames: 1, new SpentMeterGauge(1), reader));
+    }
+
+    [Fact]
     public void MoveLocksFromSeveralModulesCombine()
     {
         var supers = new ScriptedModule(1)

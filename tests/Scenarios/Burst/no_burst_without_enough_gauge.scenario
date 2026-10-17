@@ -3,7 +3,7 @@ setup: p1 character testman
 setup: p2 character testman
 setup: p1 x = -30000
 setup: p2 x = 30000
-setup: module burst 10000 5000 0 0 10000 1 0 0 240 34 100
+setup: module burst 10000 5000 0 0 10000 1 0 0 240 100
 frame 1: p1 5a
 frame 6: p2 a+b+c+d
 

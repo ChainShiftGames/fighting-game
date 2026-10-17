@@ -20,4 +20,7 @@ public struct MeterConfig : IModuleConfig
 
     /// <summary>1: meter carries over into the next round; 0: every round starts at <see cref="RoundStartMeter"/>.</summary>
     public int CarryOverRounds;
+
+    /// <summary>The meter channel this gauge serves (ADR-0023); 0 is the main meter other modules spend.</summary>
+    public int Channel;
 }
