@@ -93,7 +93,7 @@ Read: ADR-0005
 ## D. Character editor
 
 ### P3-40 Editor plugin shell
-Status: in progress (p3-40-editor-shell) · Needs: — · Parallel: yes · Where: `game/addons/character_editor/`
+Status: done (Godot editor check pending) · Needs: — · Parallel: yes · Where: `game/addons/character_editor/`
 Read: ADR-0007
 - Godot editor plugin: open a character, list moves, save JSON via `Sim.Data` (same validation as the game).
 
