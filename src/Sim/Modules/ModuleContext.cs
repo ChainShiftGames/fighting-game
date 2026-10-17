@@ -59,6 +59,13 @@ public readonly ref struct ModuleContext
     public void RequestHitstopOverride(int fighter, in HitstopOverrideRequest request) =>
         _requests.HitstopOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
+    public void RequestStunOverride(int fighter, in StunOverrideRequest request) =>
+        _requests.StunOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
+
+    /// <summary>Tells presentation something happened, as a module event belonging to <paramref name="fighter"/>.</summary>
+    public void RequestEvent(int fighter, in ModuleEventRequest request) =>
+        _requests.Events.Set(CoreRequests.FighterKey(_slot, fighter), request);
+
     public void RequestFreeze(in FreezeRequest request) => _requests.Freezes.Set(_slot, request);
 
     /// <summary>Spawns an entity for <paramref name="owner"/> at the end of the frame (<see cref="CoreRequests.Spawns"/>).</summary>

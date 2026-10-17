@@ -1,6 +1,9 @@
+using Sim.Events;
 using Sim.Input;
+using Sim.Math;
 using Sim.Modules;
 using Sim.Pipeline;
+using Sim.Rules;
 using Sim.State;
 using Xunit;
 
@@ -143,6 +146,35 @@ public sealed class CoreCapabilityTests
         MatchState state = Run(new TickStages(), frames: 3, module);
 
         Assert.Equal(new PendingCancel { IsPending = 1, TargetMove = 4, Priority = 1 }, state.Fighters[Player1].Cancel);
+    }
+
+    [Fact]
+    public void StunOverrideReplacesTheFightersStunFromTheLaterSlot()
+    {
+        var first = OnFrame(0, context => context.RequestStunOverride(
+            Player2, new StunOverrideRequest { Frames = 9 }), id: 1);
+        var second = OnFrame(0, context => context.RequestStunOverride(
+            Player2, new StunOverrideRequest { Frames = 4 }), id: 2);
+        MatchState state = Run(new TickStages(), frames: 1, first, second);
+
+        Assert.Equal(4, state.Fighters[Player2].StunFramesLeft);
+        Assert.Equal(0, state.Fighters[Player1].StunFramesLeft);
+    }
+
+    [Fact]
+    public void AModuleEventIsEmittedInTheFrameItWasRequestedWithTheModuleAndCodePacked()
+    {
+        var module = OnFrame(0, context => context.RequestEvent(
+            Player2,
+            new ModuleEventRequest { Module = new ModuleId(7), Code = 3, Position = new IntVector2(10, 20) }));
+        MatchState state = Run(new TickStages(), frames: 1, module);
+
+        FrameEvent frameEvent = Assert.Single(state.Events.OfFrame(0).ToArray());
+        Assert.Equal(FrameEventKind.Module, frameEvent.Kind);
+        Assert.Equal(Player2, frameEvent.Fighter);
+        Assert.Equal(new IntVector2(10, 20), frameEvent.Position);
+        Assert.Equal(new ModuleId(7), ModuleEventRequest.ModuleOf(frameEvent.Detail));
+        Assert.Equal(3, ModuleEventRequest.CodeOf(frameEvent.Detail));
     }
 
     [Fact]

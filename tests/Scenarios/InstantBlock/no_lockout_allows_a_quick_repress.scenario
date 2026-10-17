@@ -1,0 +1,13 @@
+# With the lockout off (0), the tap-and-repress from mashing_back_is_locked_out is an instant block.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module instant_block 3 0 3
+
+frame 1: p1 5a
+frame 1: p2 1
+frames 4-30: p2 4
+
+frame 5: expect p2 event module
+frame 5: expect p2 stun = 6

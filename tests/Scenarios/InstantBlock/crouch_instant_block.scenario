@@ -1,0 +1,15 @@
+# Down-back counts as back: p2 presses 1 on frame 5, the frame p1's low 2a connects (blockstun 8), and instant
+# blocks it crouching: crouch blockstun 8 - 3 = 5.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module instant_block 3 5 3
+
+frame 1: p1 2a
+frames 5-20: p2 1
+
+frame 5: expect p1 event block
+frame 5: expect p2 event module
+frame 5: expect p2 state = crouch_blockstun
+frame 5: expect p2 stun = 5

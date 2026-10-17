@@ -28,6 +28,9 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Cancel from any state:** a cancel request with priority that the state machine honours.
 - **Per-fighter hitstop override.**
 - **Entity spawning:** projectiles and module objects through the entity pool (P1-21).
+- **Per-fighter stun override** (P3-16): replace remaining hitstun/blockstun (e.g. instant block).
+- **Module events** (P3-16): a module asks the core to emit a `FrameEventKind.Module` event for presentation; its
+  detail packs the module id and the module's own code.
 
 **Match rules**
 5. `MatchRules` is **one blittable struct** holding every gameplay-affecting setting: input windows, timer, trade
