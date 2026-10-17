@@ -9,33 +9,40 @@ using Sim.Data.Validation;
 namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
-/// The character editor's main screen: opens a character from <c>data/characters/</c>, lists its moves and saves
-/// the changed files through <see cref="CharacterSaver"/>, so only data the game accepts is written.
+/// The character editor's main screen: opens a character from <c>data/characters/</c>, lists its moves, edits the
+/// selected move or the character file, and saves the changed files through <see cref="CharacterSaver"/>, so only
+/// data the game accepts is written.
 /// </summary>
 /// <remarks>
-/// Editor panels change the open <see cref="CharacterDocument"/>'s JSON in place, mark the file changed and call
-/// <see cref="Refresh"/>; this screen owns opening, discarding and saving.
+/// Editor panels change the open <see cref="CharacterDocument"/>'s JSON in place, mark the file changed and raise an
+/// event; this screen owns opening, discarding, adding and deleting moves, and saving.
 /// </remarks>
 [Tool]
 public partial class CharacterEditorScreen : VBoxContainer
 {
     private readonly CharacterToolbar _toolbar = new();
     private readonly MoveList _moves = new();
-    private readonly MoveView _move = new();
+    private readonly MoveEditor _move = new();
+    private readonly CharacterPanel _character = new();
+    private readonly MoveFileActions _fileActions = new();
     private readonly ProblemList _problems = new();
     private readonly ConfirmationDialog _discard = new() { Title = "Unsaved changes", OkButtonText = "Discard" };
     private string? _dataRoot;
     private CharacterSaver? _saver;
     private CharacterDocument? _document;
     private string? _pendingCharacter;
+    private EditingContext? _context;
 
     public CharacterEditorScreen()
     {
         SizeFlagsVertical = SizeFlags.ExpandFill;
         var split = new HSplitContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
         split.AddChild(_moves);
-        split.AddChild(_move);
-        foreach (Node child in new Node[] { _toolbar, split, _problems, _discard })
+        var tabs = new TabContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        tabs.AddChild(Scrolling("Move", _move));
+        tabs.AddChild(Scrolling("Character", _character));
+        split.AddChild(tabs);
+        foreach (Node child in new Node[] { _toolbar, split, _problems, _discard, _fileActions })
         {
             AddChild(child);
         }
@@ -46,6 +53,16 @@ public partial class CharacterEditorScreen : VBoxContainer
         _toolbar.SavePressed += Save;
         _moves.MoveSelected += ShowMove;
         _moves.SwapRequested += SwapMoves;
+        _moves.NewRequested += index => _fileActions.AskNew(_document!, _context!, index);
+        _moves.DuplicateRequested += index => _fileActions.AskDuplicate(_document!, _context!, index);
+        _moves.DeleteRequested += index => _fileActions.AskDelete(_document!, index);
+        _fileActions.Done += (status, index) =>
+        {
+            _moves.ShowMoves(_document, index);
+            Refresh(status);
+        };
+        _move.Edited += listChanged => OnEdited(listChanged);
+        _character.Edited += () => OnEdited(listChanged: false);
         _discard.Confirmed += () => Open(_pendingCharacter);
     }
 
@@ -69,12 +86,31 @@ public partial class CharacterEditorScreen : VBoxContainer
         Open(ids.Count > 0 ? ids[0] : null);
     }
 
-    /// <summary>Shows the open document again after a panel changed it.</summary>
+    /// <summary>Shows the open document again after it changed as a whole (opened, saved, moves added…).</summary>
     public void Refresh(string status)
     {
         _moves.ShowMoves(_document, _moves.SelectedIndex);
         ShowMove(_moves.SelectedIndex);
+        _character.ShowCharacter(_document?.Character, _context);
         _toolbar.ShowState(_document is not null, _document?.HasChanges ?? false, status);
+    }
+
+    private static ScrollContainer Scrolling(string tabName, Control content)
+    {
+        var scroll = new ScrollContainer { Name = tabName, SizeFlagsVertical = SizeFlags.ExpandFill };
+        scroll.AddChild(content);
+        return scroll;
+    }
+
+    // A panel changed a value in place; its controls are already up to date, so only the list and toolbar follow.
+    private void OnEdited(bool listChanged)
+    {
+        if (listChanged)
+        {
+            _moves.ShowMoves(_document, _moves.SelectedIndex);
+        }
+
+        _toolbar.ShowState(true, _document!.HasChanges, "Edited");
     }
 
     private void OpenUnlessUnsaved(string? characterId)
@@ -100,7 +136,9 @@ public partial class CharacterEditorScreen : VBoxContainer
         {
             try
             {
-                _document = CharacterDocument.Open(new DirectoryDataSource(_dataRoot), characterId);
+                var source = new DirectoryDataSource(_dataRoot);
+                _document = CharacterDocument.Open(source, characterId);
+                _context = EditingContext.Read(source);
                 status = $"Opened {characterId}";
                 // Show problems already on disk (e.g. from a hand edit) straight away.
                 _problems.ShowProblems(_saver!.Validate(_document));
@@ -120,7 +158,8 @@ public partial class CharacterEditorScreen : VBoxContainer
     private void ShowMove(int index)
     {
         IReadOnlyList<string> moveIds = _document?.MoveIds ?? [];
-        _move.ShowMove(index >= 0 && index < moveIds.Count ? _document!.Move(moveIds[index]) : null);
+        EditedFile? move = index >= 0 && index < moveIds.Count ? _document!.Move(moveIds[index]) : null;
+        _move.ShowMove(move, _context, _document is null ? [] : MoveCancels.TargetsOf(_document));
     }
 
     private void SwapMoves(int index, int otherIndex)

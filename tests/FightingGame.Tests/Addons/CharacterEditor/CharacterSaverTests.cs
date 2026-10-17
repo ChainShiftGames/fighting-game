@@ -99,6 +99,58 @@ public sealed class CharacterSaverTests : IDisposable
         Assert.Contains(problems, problem => problem.File == MoveFile);
     }
 
+    [Fact]
+    public void ANewMoveIsWrittenAndADeletedOneRemoved()
+    {
+        CharacterDocument document = Open();
+        SchemaObject moveSchema = DataSchema.Read(new DirectoryDataSource(_root), "move")!.Root;
+        document.AddMove("5a_copy", MoveTemplate.Copy(document.Move("5a")!.Root, "5a_copy", moveSchema), 0);
+
+        Assert.Empty(_saver.Save(document));
+        Assert.True(File.Exists(PathOf("characters/testman/moves/5a_copy.json")));
+        Assert.Equal("5a_copy", Reload().Character("testman").MoveIds[0]);
+
+        document.RemoveMove("5a_copy");
+        Assert.Empty(_saver.Save(document));
+        Assert.False(File.Exists(PathOf("characters/testman/moves/5a_copy.json")));
+        Assert.False(Reload().Character("testman").MoveIds.Contains("5a_copy"));
+    }
+
+    [Fact]
+    public void AMoveMadeWithTheEditorHelpersLoadsInTheGame()
+    {
+        CharacterDocument document = Open();
+        SchemaObject moveSchema = DataSchema.Read(new DirectoryDataSource(_root), "move")!.Root;
+        JsonObject move = MoveTemplate.New("5e", "normal", moveSchema, "d");
+        MoveFrameData.Set(move, FramePhases.Attack(6, 2, 10), moveRanges: true, moveSchema.FieldNames);
+        // Boxes get their own editor in P3-42; until then a test adds them as the file would hold them.
+        move["boxes"]!.AsArray().Add(JsonNode.Parse(
+            """{ "kind": "hurt", "firstFrame": 1, "lastFrame": 17, "x": -25000, "y": 0, "width": 50000, "height": 120000 }"""));
+        JsonObject window = MoveCancels.Add(move, moveSchema.FieldNames);
+        JsonStringList.Set(window, "intoCategories", "special", included: true, keepWhenEmpty: false, []);
+        document.AddMove("5e", move, document.MoveIds.Count);
+        JsonStringList.Set(MoveCancels.Windows(document.Move("2a")!.Root)[0], "into", "5e", true, false, []);
+        document.Move("2a")!.MarkChanged();
+
+        Assert.Empty(_saver.Save(document));
+
+        CharacterData testman = Reload().Character("testman");
+        Assert.Equal(17, testman.Moves[testman.MoveIds.IndexOf("5e")].TotalFrames);
+    }
+
+    [Fact]
+    public void DeletingAMoveOthersStillNameIsRefusedAndNothingIsDeleted()
+    {
+        CharacterDocument document = Open();
+
+        document.RemoveMove("idle");
+        IReadOnlyList<DataError> problems = _saver.Save(document);
+
+        Assert.NotEmpty(problems);
+        Assert.True(File.Exists(PathOf("characters/testman/moves/idle.json")));
+        Assert.True(document.HasChanges);
+    }
+
     private static int IndexOf(IReadOnlyList<string> ids, string id)
     {
         for (int i = 0; i < ids.Count; i++)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -12,7 +13,8 @@ namespace FightingGame.Addons.CharacterEditor.Documents;
 /// </summary>
 /// <remarks>
 /// Layout rules: the root object is always broken over lines. A list of objects or lists puts each item on its own
-/// line. A list of plain values goes on one line when it fits, else it fills lines up to <see cref="LineWidth"/>.
+/// line. A list of plain values goes on one line when it fits, else it fills lines up to <see cref="LineWidth"/>; a
+/// top-level one that was wrapped by hand keeps its line starts (<see cref="ListLineStarts"/>).
 /// An object inside a list (a box) goes on one line when it has only plain values and fits; an object field (frame
 /// data, input) when it has at most <see cref="MaxInlineFields"/> fields, no objects inside, and fits.
 /// </remarks>
@@ -33,10 +35,21 @@ public static class JsonDataWriter
     };
 
     /// <summary>The file's text, '\n' line endings and a final newline.</summary>
-    public static string Write(JsonNode root)
+    public static string Write(JsonNode root) => Write(root, ListLineStarts.None);
+
+    /// <summary>The file's text, keeping the hand wrapping of its top-level lists of names.</summary>
+    public static string Write(JsonNode root, ListLineStarts layout)
     {
         StringBuilder text = new();
-        WriteBroken(text, root, 0);
+        if (root is JsonObject obj)
+        {
+            WriteObject(text, obj, 0, layout);
+        }
+        else
+        {
+            WriteBroken(text, root, 0);
+        }
+
         text.Append('\n');
         return text.ToString();
     }
@@ -72,10 +85,10 @@ public static class JsonDataWriter
         switch (node)
         {
             case JsonObject obj:
-                WriteObject(text, obj, depth);
+                WriteObject(text, obj, depth, ListLineStarts.None);
                 break;
             case JsonArray array when !HasContainers(array):
-                WriteFilledList(text, array, depth);
+                WriteFilledList(text, array, depth, _ => false);
                 break;
             case JsonArray array:
                 WriteList(text, array, depth);
@@ -86,7 +99,7 @@ public static class JsonDataWriter
         }
     }
 
-    private static void WriteObject(StringBuilder text, JsonObject obj, int depth)
+    private static void WriteObject(StringBuilder text, JsonObject obj, int depth, ListLineStarts layout)
     {
         if (obj.Count == 0)
         {
@@ -100,7 +113,16 @@ public static class JsonDataWriter
         {
             int lineStart = StartLine(text, depth + 1);
             text.Append(Value(JsonValue.Create(field.Key))).Append(": ");
-            WriteNode(text, field.Value, depth + 1, lineStart, isListItem: false);
+            if (field.Value is JsonArray list && !HasContainers(list) && layout.IsWrapped(field.Key, list))
+            {
+                string key = field.Key;
+                WriteFilledList(text, list, depth + 1, item => layout.StartsLine(key, item));
+            }
+            else
+            {
+                WriteNode(text, field.Value, depth + 1, lineStart, isListItem: false);
+            }
+
             text.Append(++index < obj.Count ? "," : "");
         }
 
@@ -122,8 +144,10 @@ public static class JsonDataWriter
         text.Append(']');
     }
 
-    // Long lists of names (a character's move list) fill each line instead of taking one line per name.
-    private static void WriteFilledList(StringBuilder text, JsonArray array, int depth)
+    // Long lists of names (a character's move list) fill each line instead of taking one line per name, and start a
+    // new line where the file was wrapped by hand.
+    private static void WriteFilledList(
+        StringBuilder text, JsonArray array, int depth, Func<JsonNode?, bool> startsLine)
     {
         text.Append('[');
         int lineStart = StartLine(text, depth + 1);
@@ -131,7 +155,7 @@ public static class JsonDataWriter
         {
             string item = Inline(array[i]) + (i + 1 < array.Count ? "," : "");
             bool lineIsEmpty = text.Length - lineStart == (depth + 1) * Indent.Length;
-            if (!lineIsEmpty && text.Length - lineStart + 1 + item.Length > LineWidth)
+            if (!lineIsEmpty && (startsLine(array[i]) || text.Length - lineStart + 1 + item.Length > LineWidth))
             {
                 lineStart = StartLine(text, depth + 1);
                 lineIsEmpty = true;
