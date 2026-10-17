@@ -1,5 +1,6 @@
 # Testman's 5a cancels into 5b on hit or block (its data cancel window, move frames 5-12): pressing B right after
 # the hitstop starts 5b at once instead of waiting out 5a's recovery.
+setup: module gatlings
 setup: p1 character testman
 setup: p2 character testman
 setup: p1 x = -30000
