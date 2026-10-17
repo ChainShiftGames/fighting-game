@@ -24,5 +24,7 @@ public static class TrainingMenuText
     }
 
     // Digit keys read "1", not "Key1".
-    private static string KeyName(Key key) => key is >= Key.Key0 and <= Key.Key9 ? ((int)(key - Key.Key0)).ToString(CultureInfo.InvariantCulture) : key.ToString();
+    private static string KeyName(Key key) => key is >= Key.Key0 and <= Key.Key9
+        ? ((int)(key - Key.Key0)).ToString(CultureInfo.InvariantCulture)
+        : key.ToString();
 }
