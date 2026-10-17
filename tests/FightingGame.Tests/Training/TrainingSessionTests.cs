@@ -1,4 +1,6 @@
+using System;
 using FightingGame.Online;
+using FightingGame.Presentation.Events;
 using FightingGame.Training;
 using Godot;
 using Netcode.Drivers;
@@ -17,6 +19,8 @@ public sealed class TrainingSessionTests
     private static readonly InputWord _back = new(InputWord.Left);
 
     private readonly FrameMeter _meter = new();
+    private readonly CountingEffect _effect = new();
+    private readonly FrameEventReconciler _reconciler;
     private readonly TrainingMatchDriver<MatchState> _driver;
     private readonly TrainingSession _session;
 
@@ -24,8 +28,9 @@ public sealed class TrainingSessionTests
     {
         MatchLineup lineup = MatchLineup.From(TestGameData.Data);
         var timings = new TrainingTimings(GuardResetFrames: 20, HealthRefillDelayFrames: 60);
+        _reconciler = new FrameEventReconciler(_effect, MatchEffects.RememberedFrames);
         _driver = new TrainingMatchDriver<MatchState>(
-            new ComposedMatchSimulation(lineup.Simulation),
+            new EventObservingSimulation(new ComposedMatchSimulation(lineup.Simulation), _reconciler),
             DummyModeInputs.Create(
                 lineup.Characters[TrainingSides.Player],
                 timings,
@@ -33,7 +38,7 @@ public sealed class TrainingSessionTests
                 new RecordingSlots(),
                 () => default),
             TrainingAdjustments.Create(lineup.Simulation, timings));
-        _session = new TrainingSession(_driver, _meter);
+        _session = new TrainingSession(_driver, _meter, new ReconcilerReset(_reconciler));
     }
 
     [Fact]
@@ -92,6 +97,28 @@ public sealed class TrainingSessionTests
         Assert.Equal(savedX, _driver.State.Fighters[TrainingSides.Player].Position.X);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EffectsKeepWorkingAfterJumpingBackFurtherThanTheirWindow(bool loadState)
+    {
+        _session.SaveState();
+        Run(_forward, 3 * MatchEffects.RememberedFrames);
+
+        if (loadState)
+        {
+            _session.LoadState();
+        }
+        else
+        {
+            _session.Restart();
+        }
+
+        // Frames numbered lower than the remembered ones run again; without the reset this throws.
+        Exception? thrown = Record.Exception(() => Run(_forward, 3 * MatchEffects.RememberedFrames));
+        Assert.Null(thrown);
+    }
+
     [Fact]
     public void TheMenuLinesSayWhetherAStateIsSaved()
     {
@@ -103,6 +130,22 @@ public sealed class TrainingSessionTests
 
         Assert.Equal("Load state", load.Describe());
         Assert.Equal("Save state (replaces the saved one)", save.Describe());
+    }
+
+    private sealed class ReconcilerReset(FrameEventReconciler reconciler) : IEffectReset
+    {
+        public void ResetEffects() => reconciler.Reset();
+    }
+
+    private sealed class CountingEffect : IFrameEventEffect
+    {
+        public void Play(in Sim.Events.FrameEvent frameEvent)
+        {
+        }
+
+        public void Cancel(in Sim.Events.FrameEvent frameEvent)
+        {
+        }
     }
 
     private void Run(InputWord input, int frames)

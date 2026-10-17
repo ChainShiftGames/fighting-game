@@ -125,6 +125,23 @@ public sealed class FrameEventReconcilerTests
     }
 
     [Fact]
+    public void ResetCancelsWhatPlayedAndAcceptsLowerFramesAfterwards()
+    {
+        FrameEvent hit = Hit(frame: 10);
+        for (int frame = 0; frame <= 10; frame++)
+        {
+            _reconciler.Simulated(frame, frame == 10 ? [hit] : []);
+        }
+
+        _reconciler.Reset();
+        FrameEvent fresh = Hit(frame: 0);
+        _reconciler.Simulated(0, [fresh]);
+
+        Assert.Equal([hit], _effect.Cancelled);
+        Assert.Equal([hit, fresh], _effect.Played);
+    }
+
+    [Fact]
     public void TellsEventsOfTheSameKindApartByOccurrence()
     {
         FrameEvent first = Event(5, FrameEventKind.ProjectileHit, occurrence: 0);
