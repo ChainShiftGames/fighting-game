@@ -9,7 +9,7 @@ namespace Sim.Data.Modules;
 
 /// <summary>
 /// Checks the characters' move roles against the modules (ADR-0023): every role is one a registered module asks for
-/// (catches typos), and every character names each role an enabled module needs.
+/// (catches typos), and every character names each role an enabled module or its own mechanic needs.
 /// </summary>
 public static class MoveRoleCheck
 {
@@ -36,6 +36,11 @@ public static class MoveRoleCheck
                     ReportMissingRoles(character, module!, file, errors);
                 }
             }
+
+            if (!character.Mechanic.Module.IsNone && catalog.TryFind(character.Mechanic.Module, out IMechanicModule? mechanic))
+            {
+                ReportMissingRoles(character, mechanic!, file, errors);
+            }
         }
     }
 
@@ -46,7 +51,7 @@ public static class MoveRoleCheck
         {
             if (character.MoveForRole(role) == CharacterData.NoMove)
             {
-                errors.Add(file, Field, $"names no '{role}' move, which the enabled module '{module.Name}' needs");
+                errors.Add(file, Field, $"names no '{role}' move, which the module '{module.Name}' needs");
             }
         }
     }

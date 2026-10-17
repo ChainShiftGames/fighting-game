@@ -28,4 +28,12 @@ public interface IMechanicModule
     /// A character without one of them fails loudly when data is loaded, and when a match starts.
     /// </remarks>
     IReadOnlyList<string> MoveRoles => [];
+
+    /// <summary>True for a character's own mechanic (ADR-0023): never in the match-wide lineup.</summary>
+    /// <remarks>
+    /// A character names it in <c>character.json</c> (<c>mechanic</c>, with its config); it then runs in that fighter's
+    /// mechanic slot after the lineup and serves only that fighter (<see cref="ModuleContext.Owner"/>). In a mirror
+    /// match the same instance runs in both fighters' slots, each with its own state slice and config.
+    /// </remarks>
+    bool IsCharacterMechanic => false;
 }

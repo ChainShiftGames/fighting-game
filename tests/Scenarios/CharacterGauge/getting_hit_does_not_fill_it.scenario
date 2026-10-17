@@ -1,0 +1,9 @@
+# Only the owner's own attacks pay: being hit adds nothing to its gauge.
+setup: p1 character scenario_dummy
+setup: p2 character gauge_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 2: p1 5a
+
+frame 6: expect p1 event hit
+frame 6: expect p2 mechanic 0 = 106

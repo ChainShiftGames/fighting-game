@@ -1,0 +1,10 @@
+# The owner's 5a hitting adds hitGain (50) on top of the per-frame gain.
+setup: p1 character gauge_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 2: p1 5a
+
+frame 5: expect p1 mechanic 0 = 105
+frame 6: expect p1 event hit
+frame 6: expect p1 mechanic 0 = 156

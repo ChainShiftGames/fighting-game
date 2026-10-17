@@ -64,7 +64,14 @@ public readonly ref struct ModuleContext
         _characters = characters;
     }
 
+    /// <summary><see cref="Owner"/> of a match-wide module.</summary>
+    public const int NoOwner = -1;
+
     public ref readonly MatchState State => ref _state;
+
+    /// <summary>The fighter whose character mechanic this is (ADR-0023); <see cref="NoOwner"/> for a lineup module.</summary>
+    /// <remarks>A character mechanic's hooks still run once per frame for the match; it acts for its owner only.</remarks>
+    public int Owner => _slot >= ModuleStates.LineupSlots ? _slot - ModuleStates.LineupSlots : NoOwner;
 
     /// <summary>This module's state slice viewed as its own state struct; throws if the struct doesn't fit.</summary>
     public ref TState GetState<TState>()

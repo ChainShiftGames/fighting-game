@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Sim.Characters;
 using Sim.Modules;
 using Sim.Rules;
 using Sim.State;
@@ -21,15 +23,52 @@ public sealed class RegisteredModulesTests
     {
         ModuleCatalog catalog = RegisteredModules.Create();
         MatchRules rules = default;
+        int slot = 0;
         for (int i = 0; i < catalog.Count; i++)
         {
-            rules.Modules[i].Module = catalog[i].Id;
+            if (!catalog[i].IsCharacterMechanic)
+            {
+                rules.Modules[slot++].Module = catalog[i].Id;
+            }
         }
 
-        var lineup = new ModuleLineup(catalog, in rules.Modules, new CoreRequests());
-        MatchState state = default;
+        // Each character mechanic joins as P1's, in its own match, with P2 playing a character without one. Its largest
+        // config values put a gauge on the last channel, clear of the lineup's main meter.
+        for (int i = 0; i < catalog.Count; i++)
+        {
+            ModuleSlot mechanic = catalog[i].IsCharacterMechanic ? LargestConfig(catalog[i]) : default;
+            var lineup = new ModuleLineup(
+                catalog, in rules.Modules, new CoreRequests(), Character(catalog, mechanic), Character(catalog, default));
+            MatchState state = default;
 
-        lineup.RunAfterInput(ref state);
-        lineup.RunEndOfFrame(ref state);
+            lineup.RunAfterInput(ref state);
+            lineup.RunEndOfFrame(ref state);
+        }
+    }
+
+    private static ModuleSlot LargestConfig(IMechanicModule module)
+    {
+        ModuleSlot slot = new() { Module = module.Id };
+        for (int i = 0; i < module.ConfigLayout.Count; i++)
+        {
+            slot.Config[i] = module.ConfigLayout[i].Max;
+        }
+
+        return slot;
+    }
+
+    // Names every role any module asks for, all as its one move.
+    private static CharacterData Character(ModuleCatalog catalog, ModuleSlot mechanic)
+    {
+        List<MoveRole> roles = [];
+        for (int i = 0; i < catalog.Count; i++)
+        {
+            foreach (string role in catalog[i].MoveRoles)
+            {
+                roles.Add(new MoveRole(role, 0));
+            }
+        }
+
+        return new CharacterData("any", "Any", default, ["move"], new MoveData[1], [], [], [], [], [], [], null, [.. roles], mechanic);
     }
 }

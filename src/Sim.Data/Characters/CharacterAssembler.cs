@@ -65,7 +65,8 @@ public static class CharacterAssembler
             velocities.ToArray(),
             definition.BasicStateMoves,
             projectiles.ToArray(),
-            [.. definition.MoveRoles]);
+            [.. definition.MoveRoles],
+            definition.Mechanic);
     }
 
     // Projectile boxes go into the same box array as move boxes, each projectile pointing at its own range.

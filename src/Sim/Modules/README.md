@@ -29,6 +29,19 @@ Example to copy: `AirBlock/`.
 4. **Tests**: scenarios in `tests/Scenarios/<Name>/` turn it on with `setup: module <name> [config…]`; they never
    see the data lineup. Unit tests go in `tests/Sim.Tests/Modules/<Name>/`.
 
+## Character mechanics (ADR-0023)
+
+A mechanic only some characters have (installs, a stance gauge, ammo) is a module with `IsCharacterMechanic => true`.
+Example: `CharacterGauge/`.
+- No `data/rules/modules/` file and no `order` entry: a character switches it on in its `character.json`,
+  `"mechanic": { "name": "<name>", <every config key> }` (at most one per character; part of the data hash).
+- It runs in its owner's own slot after the lineup (`ModuleStates.MechanicSlot`), P1's before P2's.
+  `context.Owner` is that fighter; act for it only. In a mirror the same instance runs in both slots, each with its
+  own slice and config.
+- A gauge (`IMeterGauge`) serves its channel for its owner only, so mirrors don't collide; a lineup gauge on the same
+  channel fails loading and match start.
+- Scenarios read its slice with `p1 mechanic <i>`; use a fixture character whose data names it.
+
 ## Switching modules during development
 
 Edit `enabled` or a config value in `data/rules/modules/<name>.json` (or the hook order in `modules.json`), then
@@ -37,4 +50,5 @@ rules hash. Exported builds read embedded data, so their rules are fixed.
 
 ## Removing a module
 
-Delete its folder, its registration line, its data file and its `order` entry; then build and test.
+Delete its folder, its registration line, its data file and its `order` entry; then build and test. For a character
+mechanic, remove the `mechanic` object from every character naming it instead of a data file.

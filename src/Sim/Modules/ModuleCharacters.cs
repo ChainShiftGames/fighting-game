@@ -8,7 +8,8 @@ namespace Sim.Modules;
 /// <summary>The match's characters as modules see them (ADR-0023): read-only data, and each module's roles as moves.</summary>
 /// <remarks>
 /// Built once by <see cref="ModuleLineup"/>: role names are strings, so they are resolved to move indexes here, at
-/// match start, and a hook's lookup is an array read.
+/// match start, and a hook's lookup is an array read. A character mechanic's roles are its owner's only: the other
+/// fighter's are <see cref="CharacterData.NoMove"/>.
 /// </remarks>
 internal sealed class ModuleCharacters
 {
@@ -24,7 +25,7 @@ internal sealed class ModuleCharacters
         _roleMoves = new int[modulesBySlot.Length][];
         for (int slot = 0; slot < modulesBySlot.Length; slot++)
         {
-            _roleMoves[slot] = modulesBySlot[slot] is { } module ? ResolveRoles(module) : [];
+            _roleMoves[slot] = modulesBySlot[slot] is { } module ? ResolveRoles(module, slot) : [];
         }
     }
 
@@ -40,12 +41,19 @@ internal sealed class ModuleCharacters
         return moves[(fighter * roleCount) + role];
     }
 
-    private int[] ResolveRoles(IMechanicModule module)
+    // A character mechanic needs its roles from its owner's character only; the other fighter's stay NoMove.
+    private int[] ResolveRoles(IMechanicModule module, int slot)
     {
         IReadOnlyList<string> roles = module.MoveRoles;
         int[] moves = new int[roles.Count * MatchState.PlayerCount];
+        Array.Fill(moves, CharacterData.NoMove);
         for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
         {
+            if (slot >= ModuleStates.LineupSlots && slot != ModuleStates.MechanicSlot(fighter))
+            {
+                continue;
+            }
+
             for (int role = 0; role < roles.Count; role++)
             {
                 int move = _characters[fighter].MoveForRole(roles[role]);

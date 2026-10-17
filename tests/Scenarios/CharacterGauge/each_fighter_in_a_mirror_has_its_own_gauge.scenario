@@ -1,0 +1,10 @@
+# Both characters run the same mechanic, each in its own slot: P1's hit fills P1's gauge only.
+setup: p1 character gauge_dummy
+setup: p2 character gauge_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 2: p1 5a
+
+frame 6: expect p1 event hit
+frame 6: expect p1 mechanic 0 = 156
+frame 6: expect p2 mechanic 0 = 106

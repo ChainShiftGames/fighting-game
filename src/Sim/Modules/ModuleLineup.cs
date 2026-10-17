@@ -7,12 +7,13 @@ namespace Sim.Modules;
 
 /// <summary>The match's enabled modules in hook order; the tick pipeline calls its hooks at fixed points.</summary>
 /// <remarks>
-/// Built once at match start from the <see cref="MatchRules"/> lineup, which is fixed for the match. Within a hook
-/// point, modules run in slot order (the module order from data). Running hooks allocates nothing.
+/// Built once at match start from the <see cref="MatchRules"/> lineup, which is fixed for the match, followed by each
+/// fighter's character mechanic (ADR-0023), P1 then P2. Within a hook point, modules run in slot order (the module
+/// order from data, then the mechanics). Running hooks allocates nothing.
 /// </remarks>
 public sealed class ModuleLineup
 {
-    private readonly ModuleSlots _slots;
+    private readonly ModuleConfig[] _configs = new ModuleConfig[ModuleStates.MaxModules];
     private readonly CoreRequests _requests;
     private readonly HookList<IAfterInputHook> _afterInput;
     private readonly HookList<IBeforeStateMachinesHook> _beforeStateMachines;
@@ -36,16 +37,27 @@ public sealed class ModuleLineup
     }
 
     /// <exception cref="ArgumentException">
-    /// The lineup names an unregistered module or one module twice, two meter gauges serve one channel, or a character
-    /// doesn't name a move role a module needs.
+    /// The lineup names an unregistered module, one module twice or a character mechanic; a character names a module
+    /// that isn't a character mechanic; two meter gauges serve one channel for a fighter; or a character doesn't name a
+    /// move role a module needs.
     /// </exception>
     public ModuleLineup(
         ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests, CharacterData? player1, CharacterData? player2)
     {
-        _slots = slots;
         _requests = requests;
         IMechanicModule?[] modulesBySlot = ResolveModules(catalog, in slots);
-        _characters = player1 is not null && player2 is not null ? new(modulesBySlot, player1, player2) : null;
+        for (int slot = 0; slot < ModuleStates.LineupSlots; slot++)
+        {
+            _configs[slot] = slots[slot].Config;
+        }
+
+        if (player1 is not null && player2 is not null)
+        {
+            AddMechanic(catalog, modulesBySlot, 0, player1);
+            AddMechanic(catalog, modulesBySlot, 1, player2);
+            _characters = new(modulesBySlot, player1, player2);
+        }
+
         _afterInput = new(modulesBySlot);
         _beforeStateMachines = new(modulesBySlot);
         _afterStateMachines = new(modulesBySlot);
@@ -54,7 +66,7 @@ public sealed class ModuleLineup
         _onThrow = new(modulesBySlot);
         _endOfFrame = new(modulesBySlot);
         _airGuard = new(modulesBySlot);
-        _meters = new MeterAccess(modulesBySlot, in slots, requests, _characters);
+        _meters = new MeterAccess(modulesBySlot, _configs, requests, _characters);
         _hitAdjustment = new(modulesBySlot);
         _blockAdjustment = new(modulesBySlot);
         _cancelWindows = new(modulesBySlot);
@@ -187,12 +199,31 @@ public sealed class ModuleLineup
     }
 
     private ModuleContext ContextFor(ref MatchState state, int slot) =>
-        new(ref state, ref state.Modules[slot], in _slots[slot].Config, _requests, slot, _meters, _characters);
+        new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, _meters, _characters);
+
+    private void AddMechanic(ModuleCatalog catalog, IMechanicModule?[] modulesBySlot, int fighter, CharacterData character)
+    {
+        ModuleId id = character.Mechanic.Module;
+        if (id.IsNone)
+        {
+            return;
+        }
+
+        if (!catalog.TryFind(id, out IMechanicModule? module) || !module!.IsCharacterMechanic)
+        {
+            throw new ArgumentException(
+                $"Character '{character.Id}' names module {id} as its mechanic, which isn't a registered character mechanic.");
+        }
+
+        int slot = ModuleStates.MechanicSlot(fighter);
+        modulesBySlot[slot] = module;
+        _configs[slot] = character.Mechanic.Config;
+    }
 
     private static IMechanicModule?[] ResolveModules(ModuleCatalog catalog, in ModuleSlots slots)
     {
         var modulesBySlot = new IMechanicModule?[ModuleStates.MaxModules];
-        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        for (int slot = 0; slot < ModuleStates.LineupSlots; slot++)
         {
             ModuleId id = slots[slot].Module;
             if (id.IsNone)
@@ -208,6 +239,12 @@ public sealed class ModuleLineup
             if (Array.IndexOf(modulesBySlot, module) >= 0)
             {
                 throw new ArgumentException($"Module {id} is in the lineup more than once.", nameof(slots));
+            }
+
+            if (module!.IsCharacterMechanic)
+            {
+                throw new ArgumentException(
+                    $"Module {id} is a character mechanic; characters name it, the lineup can't.", nameof(slots));
             }
 
             modulesBySlot[slot] = module;

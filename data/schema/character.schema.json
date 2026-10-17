@@ -73,6 +73,15 @@
       "type": "object",
       "propertyNames": { "$ref": "#/$defs/id" },
       "additionalProperties": { "$ref": "#/$defs/id" }
+    },
+    "mechanic": {
+      "description": "The character's own mechanic (ADR-0023): a registered character mechanic module by name, plus every key of that module's config (whole numbers; ranges in src/Sim/Modules/<Name>/). Optional; at most one.",
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "$ref": "#/$defs/id", "description": "The module's data name, e.g. character_gauge." }
+      },
+      "additionalProperties": { "type": "integer" }
     }
   },
   "$defs": {

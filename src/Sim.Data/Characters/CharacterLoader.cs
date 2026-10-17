@@ -5,6 +5,7 @@ using Sim.Data.Characters.Reading;
 using Sim.Data.Input;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Modules;
 
 namespace Sim.Data.Characters;
 
@@ -15,11 +16,14 @@ public sealed class CharacterLoader
 
     private readonly IDataSource _source;
     private readonly IButtonLookup _buttons;
+    private readonly ModuleCatalog _modules;
 
-    public CharacterLoader(IDataSource source, IButtonLookup buttons)
+    /// <param name="modules">The registered modules, which a character's mechanic must be one of.</param>
+    public CharacterLoader(IDataSource source, IButtonLookup buttons, ModuleCatalog modules)
     {
         _source = source;
         _buttons = buttons;
+        _modules = modules;
     }
 
     /// <summary>The character in compact form.</summary>
@@ -36,7 +40,7 @@ public sealed class CharacterLoader
     public CharacterData? Load(string characterId, DataErrors errors)
     {
         int errorsBefore = errors.Count;
-        CharacterDefinition? definition = CharacterFileReader.Read(_source, characterId, errors);
+        CharacterDefinition? definition = CharacterFileReader.Read(_source, characterId, _modules, errors);
         if (definition is null)
         {
             return null;

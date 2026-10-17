@@ -158,12 +158,12 @@ public sealed class ModuleLineupTests
     public void RunningHooksAllocatesNothing()
     {
         MatchRules rules = default;
-        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        for (int slot = 0; slot < ModuleStates.LineupSlots; slot++)
         {
             rules.Modules[slot].Module = new ModuleId(slot + 1);
         }
 
-        var modules = new IMechanicModule[ModuleStates.MaxModules];
+        var modules = new IMechanicModule[ModuleStates.LineupSlots];
         for (int i = 0; i < modules.Length; i++)
         {
             modules[i] = new CountingModule(i + 1);

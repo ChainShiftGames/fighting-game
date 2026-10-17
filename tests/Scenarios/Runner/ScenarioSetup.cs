@@ -94,9 +94,9 @@ public sealed class ScenarioSetup
             throw new ScenarioSyntaxException(location, $"module {module.Name} is already enabled");
         }
 
-        if (_modules.Count == ModuleStates.MaxModules)
+        if (_modules.Count == ModuleStates.LineupSlots)
         {
-            throw new ScenarioSyntaxException(location, $"at most {ModuleStates.MaxModules} modules fit the lineup");
+            throw new ScenarioSyntaxException(location, $"at most {ModuleStates.LineupSlots} modules fit the lineup");
         }
 
         _modules.Add(module);

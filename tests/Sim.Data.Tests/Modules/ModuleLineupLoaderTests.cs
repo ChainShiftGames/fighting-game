@@ -153,7 +153,7 @@ public sealed class ModuleLineupLoaderTests
     [Fact]
     public void MoreEnabledModulesThanLineupSlotsIsReported()
     {
-        LineupTestModule[] modules = Enumerable.Range(1, ModuleStates.MaxModules + 1)
+        LineupTestModule[] modules = Enumerable.Range(1, ModuleStates.LineupSlots + 1)
             .Select(id => new LineupTestModule(id, $"module_{id}"))
             .ToArray();
         _data.SetText(OrderFile, Order(modules.Select(module => module.Name).ToArray()));
@@ -185,25 +185,50 @@ public sealed class ModuleLineupLoaderTests
     public void EveryRegisteredModuleLoadsFromItsDataFile()
     {
         ModuleCatalog registered = RegisteredModules.Create();
-        string[] names = new string[registered.Count];
-        for (int i = 0; i < registered.Count; i++)
+        IMechanicModule[] lineup = Enumerable.Range(0, registered.Count).Select(i => registered[i])
+            .Where(module => !module.IsCharacterMechanic).ToArray();
+        foreach (IMechanicModule module in lineup)
         {
-            IMechanicModule module = registered[i];
-            names[i] = module.Name;
-            string config = string.Concat(Enumerable.Range(0, module.ConfigLayout.Count)
-                .Select(field => $", \"{module.ConfigLayout[field].Key}\": {module.ConfigLayout[field].Min}"));
-            _data.SetText(ModuleLineupSchema.ModuleFile(module.Name), $$"""{ "schemaVersion": 1, "enabled": true{{config}} }""");
+            _data.SetText(ModuleLineupSchema.ModuleFile(module.Name), $$"""{ "schemaVersion": 1, "enabled": true{{Config(module, max: false)}} }""");
         }
 
-        _data.SetText(OrderFile, Order(names));
+        _data.SetText(OrderFile, Order(lineup.Select(module => module.Name).ToArray()));
         string roles = string.Join(", ", Enumerable.Range(0, registered.Count)
-            .SelectMany(i => registered[i].MoveRoles).Select(role => $"\"{role}\": \"5a\""));
+            .SelectMany(i => registered[i].MoveRoles).Distinct().Select(role => $"\"{role}\": \"5a\""));
         _data.Replace(Fixture.CharacterFile, "\"moveRoles\": {}", $"\"moveRoles\": {{ {roles} }}");
 
         MatchRules rules = new GameDataLoader(_data, registered).Load().CreateMatchRules();
 
-        Assert.Equal(registered[registered.Count - 1].Id, rules.Modules[registered.Count - 1].Module);
+        Assert.Equal(lineup[^1].Id, rules.Modules[lineup.Length - 1].Module);
     }
+
+    // ADR-0023: a character mechanic loads from the character's mechanic object instead of a module file. Its
+    // largest values put a gauge on the last channel, clear of the lineup's main meter.
+    [Fact]
+    public void EveryRegisteredCharacterMechanicLoadsFromACharacter()
+    {
+        ModuleCatalog registered = RegisteredModules.Create();
+        string original = _data.GetText(Fixture.CharacterFile);
+        foreach (IMechanicModule module in Enumerable.Range(0, registered.Count).Select(i => registered[i])
+            .Where(module => module.IsCharacterMechanic))
+        {
+            string roles = string.Join(", ", module.MoveRoles.Select(role => $"\"{role}\": \"5a\""));
+            _data.SetText(Fixture.CharacterFile, original.Replace(
+                "\"moveRoles\": {}",
+                $$"""
+                "moveRoles": { {{roles}} }, "mechanic": { "name": "{{module.Name}}"{{Config(module, max: true)}} }
+                """,
+                StringComparison.Ordinal));
+
+            ModuleSlot mechanic = new GameDataLoader(_data, registered).Load().Character(Fixture.CharacterId).Mechanic;
+
+            Assert.Equal(module.Id, mechanic.Module);
+        }
+    }
+
+    private static string Config(IMechanicModule module, bool max) =>
+        string.Concat(Enumerable.Range(0, module.ConfigLayout.Count).Select(field =>
+            $", \"{module.ConfigLayout[field].Key}\": {(max ? module.ConfigLayout[field].Max : module.ConfigLayout[field].Min)}"));
 
     // ADR-0005 §8: exported builds read the embedded data, so they play exactly the rules in the repository's data.
     [Fact]

@@ -1,4 +1,5 @@
 using System;
+using Sim.Rules;
 
 namespace Sim.Characters;
 
@@ -35,7 +36,8 @@ public sealed class CharacterData
         VelocityData[] velocities,
         int[] basicStateMoves,
         ProjectileData[]? projectiles = null,
-        MoveRole[]? moveRoles = null)
+        MoveRole[]? moveRoles = null,
+        ModuleSlot mechanic = default)
     {
         Id = id;
         DisplayName = displayName;
@@ -50,6 +52,7 @@ public sealed class CharacterData
         _basicStateMoves = basicStateMoves;
         _projectiles = projectiles ?? [];
         _moveRoles = moveRoles ?? [];
+        Mechanic = mechanic;
     }
 
     public string Id { get; }
@@ -58,6 +61,9 @@ public sealed class CharacterData
     public string DisplayName { get; }
 
     public CharacterStats Stats { get; }
+
+    /// <summary>The character's own mechanic module and its config (ADR-0023); its module is none without one.</summary>
+    public ModuleSlot Mechanic { get; }
 
     /// <summary>Moves in the order of the character file, which is also their input priority.</summary>
     public ReadOnlySpan<MoveData> Moves => _moves;

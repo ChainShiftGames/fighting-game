@@ -52,6 +52,7 @@ public sealed class GameDataLoader
         errors.ThrowIfAny();
         CheckMoveMotions(characters, motions!, errors);
         MoveRoleCheck.Check(characters, _modules, modules!, errors);
+        MechanicChannelCheck.Check(characters, _modules, modules!, errors);
         errors.ThrowIfAny();
 
         using DataHashBuilder hash = new();
@@ -90,7 +91,7 @@ public sealed class GameDataLoader
     // The data source lists folders in ordinal order, so characters (and the hash) never depend on the file system.
     private List<CharacterData> LoadCharacters(IButtonLookup buttons, DataErrors errors)
     {
-        CharacterLoader loader = new(_source, buttons);
+        CharacterLoader loader = new(_source, buttons, _modules);
         List<CharacterData> characters = [];
         foreach (string folder in _source.ListDirectories(CharacterSchema.CharactersDirectory))
         {

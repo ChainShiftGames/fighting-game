@@ -1,0 +1,7 @@
+# gauge_dummy's character_gauge mechanic starts at 100 and gains 1 per frame; scenario_dummy has no mechanic.
+setup: p1 character gauge_dummy
+setup: p2 character scenario_dummy
+
+frame 1: expect p1 mechanic 0 = 101
+frame 10: expect p1 mechanic 0 = 110
+frames 1-10: expect p2 mechanic 0 = 0
