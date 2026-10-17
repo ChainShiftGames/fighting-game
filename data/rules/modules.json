@@ -5,6 +5,7 @@
     "air_block",
     "instant_block",
     "burst",
-    "gatlings"
+    "gatlings",
+    "combo_limits"
   ]
 }

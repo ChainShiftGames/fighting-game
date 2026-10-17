@@ -16,6 +16,10 @@ in before it's built, and it must already support what Roman Cancel and the open
    - **Air guard question** (P1-24, ADR-0017): `IAirGuardHook` lets a module answer whether an airborne defender
      holding back may block an attack. The core asks only then, blocks when any module says yes, and does the rest
      (air blockstun, chip). A question, not a hook point: no state changes or requests in it.
+   - **Cancel window question** (P3-10): `ICancelWindowHook` decides whether a fighter may take a cancel its
+     move's data window offers (into a move or a jump). With no module saying yes, data windows never cancel.
+   - **Hit adjustment question** (P3-12): `IHitAdjustmentHook` adjusts a hit's damage, hitstun and hitstop before
+     it lands, or makes it whiff; modules answer in slot order, each adjusting the previous result.
 2. Each module owns a **fixed-size state slice** in `MatchState` (declared at compile time, part of snapshots and
    the checksum). Modules never touch another module's slice.
 3. Modules change core state only through **core requests** (e.g. request cancel, spend meter, spawn entity,
@@ -28,6 +32,7 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Cancel from any state:** a cancel request with priority that the state machine honours.
 - **Per-fighter hitstop override.**
 - **Entity spawning:** projectiles and module objects through the entity pool (P1-21).
+- **Per-fighter gravity scale** (P3-12): extra gravity in thousandths, kept until the next request (combo limits).
 - **Per-fighter stun override** (P3-16): replace remaining hitstun/blockstun (e.g. instant block).
 - **Module events** (P3-16): a module asks the core to emit a `FrameEventKind.Module` event for presentation; its
   detail packs the module id and the module's own code.

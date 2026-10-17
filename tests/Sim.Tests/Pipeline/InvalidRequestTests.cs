@@ -10,7 +10,10 @@ namespace Sim.Tests.Pipeline;
 public sealed class InvalidRequestTests
 {
     public static TheoryData<string> InvalidRequests =>
-        ["cancel", "speed-up", "zero denominator", "hitstop", "stun", "event without module", "event code", "freeze"];
+        [
+            "cancel", "speed-up", "zero denominator", "hitstop", "gravity", "stun", "event without module", "event code",
+            "freeze",
+        ];
 
     [Theory]
     [MemberData(nameof(InvalidRequests))]
@@ -34,6 +37,9 @@ public sealed class InvalidRequestTests
                         break;
                     case "hitstop":
                         context.RequestHitstopOverride(0, new HitstopOverrideRequest { Frames = -1 });
+                        break;
+                    case "gravity":
+                        context.RequestGravityScale(0, new GravityScaleRequest { ExtraPermille = -1 });
                         break;
                     case "stun":
                         context.RequestStunOverride(0, new StunOverrideRequest { Frames = -1 });

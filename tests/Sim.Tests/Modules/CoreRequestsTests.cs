@@ -46,11 +46,13 @@ public sealed class CoreRequestsTests
         requests.Freezes.Set(3, new FreezeRequest { Frames = 4 });
         requests.StunOverrides.Set(4, new StunOverrideRequest { Frames = 5 });
         requests.Events.Set(5, new ModuleEventRequest { Code = 6 });
+        requests.GravityScales.Set(6, new GravityScaleRequest { ExtraPermille = 7 });
 
         requests.Clear();
 
         Assert.False(requests.StunOverrides.TryGet(4, out _));
         Assert.False(requests.Events.TryGet(5, out _));
+        Assert.False(requests.GravityScales.TryGet(6, out _));
         Assert.False(requests.Cancels.TryGet(0, out _));
         Assert.False(requests.TimeScales.TryGet(1, out _));
         Assert.False(requests.HitstopOverrides.TryGet(2, out _));

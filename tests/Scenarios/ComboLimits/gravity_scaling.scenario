@@ -1,0 +1,16 @@
+# Gravity scaling of 50 % per hit: p2 jumps, p1's 5a hits it in the air on frame 8, and from the next frame gravity
+# pulls it 1500 a frame instead of its own 1000.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module combo_limits 0 0 0 0 0 500 1000 0
+frame 1: p2 8
+frame 6: p1 5a
+
+frame 7: expect p2 vy = 17000
+frame 8: expect p1 event hit
+frame 8: expect p2 vy = 16000
+frame 9: expect p2 vy = 14500
+frame 10: expect p2 vy = 13000
+frame 11: expect p2 vy = 11500

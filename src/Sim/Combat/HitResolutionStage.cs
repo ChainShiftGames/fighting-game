@@ -11,7 +11,8 @@ namespace Sim.Combat;
 /// <remarks>
 /// For each attack <see cref="HitDetectionStage"/> found touching: blocked if the defender's stance stops its guard
 /// (<see cref="Guarding"/>: stand or crouch block, air block through a module), else a hit, with its counter hit bonus when it caught the defender attacking
-/// (<see cref="CounterHits"/>). The attacker's move records the outcome (for its cancel windows, and so it
+/// (<see cref="CounterHits"/>), as the modules adjust it (<see cref="IHitAdjustmentHook"/>; a hit they make whiff
+/// doesn't connect). The attacker's move records the outcome (for its cancel windows, and so it
 /// can't connect again); the defender takes the hit or block (<see cref="HitReactions"/>); both fighters get the
 /// hit's hitstop, the longer one if two hits trade. Hitstop counts from the next frame (<see cref="TimeControl"/>).
 /// Same-frame exchanges (<see cref="HitContacts.IsSameFrameExchange"/>, which counts projectile touches too) follow
@@ -105,11 +106,17 @@ public sealed class HitResolutionStage : ITickStage
         bool isBlocked = Blocking.Stops(stance, hit.Guard);
         CounterHitKind counter =
             isBlocked ? CounterHitKind.None : CounterHits.KindAgainst(in defender, defenderCharacter);
+        HitData landed = _counterHits.Apply(in hit, counter);
+        if (!isBlocked && !_modules.AdjustHit(ref state, new FighterContact(attacker, defenderIndex), ref landed))
+        {
+            return Connection.None;
+        }
+
         return new Connection
         {
             Outcome = isBlocked ? HitOutcome.Block : HitOutcome.Hit,
             Stance = isBlocked ? stance : BlockStance.None,
-            Hit = _counterHits.Apply(in hit, counter),
+            Hit = landed,
             Counter = counter,
             Move = attackerState.Move,
         };

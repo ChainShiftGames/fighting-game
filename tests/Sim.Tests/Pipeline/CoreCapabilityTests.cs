@@ -162,6 +162,19 @@ public sealed class CoreCapabilityTests
     }
 
     [Fact]
+    public void GravityScaleIsKeptInTheFightersStateFromTheLaterSlot()
+    {
+        var first = OnFrame(0, context => context.RequestGravityScale(
+            Player2, new GravityScaleRequest { ExtraPermille = 900 }), id: 1);
+        var second = OnFrame(0, context => context.RequestGravityScale(
+            Player2, new GravityScaleRequest { ExtraPermille = 250 }), id: 2);
+        MatchState state = Run(new TickStages(), frames: 3, first, second);
+
+        Assert.Equal(250, state.Fighters[Player2].ExtraGravityPermille);
+        Assert.Equal(0, state.Fighters[Player1].ExtraGravityPermille);
+    }
+
+    [Fact]
     public void AModuleEventIsEmittedInTheFrameItWasRequestedWithTheModuleAndCodePacked()
     {
         var module = OnFrame(0, context => context.RequestEvent(

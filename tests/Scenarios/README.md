@@ -63,6 +63,11 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   Scenario dummy basic move `air_blockstun`.
 - **Instant block** (P3-16): `setup: module instant_block <window> <lockout> <blockstun reduction>`
   (`Sim.Modules.InstantBlock.InstantBlockConfig`); an instant block shows as `p<n> event module` on the defender.
+- **Combo limits** (P3-12): `setup: module combo_limits <damage proration‰> <minimum damage‰> <hitstun decay>
+  <maximum decay> <minimum hitstun> <gravity scaling‰> <maximum gravity‰> <OTG hits>`
+  (`Sim.Modules.ComboLimits.ComboLimitsConfig`). Its scenarios use `sparring_dummy`
+  (`Fixtures/data/characters/sparring_dummy/`): `5a` and `2a` (1000 damage, 20 hitstun, startup 3; `2a` knocks
+  down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
 - **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for

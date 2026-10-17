@@ -18,6 +18,7 @@ public sealed class CoreRequests
     public RequestTable<CancelRequest> Cancels { get; } = new(FighterKeyCount);
     public RequestTable<TimeScaleRequest> TimeScales { get; } = new(FighterKeyCount);
     public RequestTable<HitstopOverrideRequest> HitstopOverrides { get; } = new(FighterKeyCount);
+    public RequestTable<GravityScaleRequest> GravityScales { get; } = new(FighterKeyCount);
     public RequestTable<StunOverrideRequest> StunOverrides { get; } = new(FighterKeyCount);
 
     /// <summary>Keyed per fighter the event belongs to, like the fighter requests.</summary>
@@ -44,6 +45,7 @@ public sealed class CoreRequests
         Cancels.Clear();
         TimeScales.Clear();
         HitstopOverrides.Clear();
+        GravityScales.Clear();
         StunOverrides.Clear();
         Freezes.Clear();
         Events.Clear();

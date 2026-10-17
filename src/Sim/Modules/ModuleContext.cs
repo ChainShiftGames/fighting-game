@@ -59,6 +59,8 @@ public readonly ref struct ModuleContext
     public void RequestHitstopOverride(int fighter, in HitstopOverrideRequest request) =>
         _requests.HitstopOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
+    public void RequestGravityScale(int fighter, in GravityScaleRequest request) =>
+        _requests.GravityScales.Set(CoreRequests.FighterKey(_slot, fighter), request);
     public void RequestStunOverride(int fighter, in StunOverrideRequest request) =>
         _requests.StunOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 

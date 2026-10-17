@@ -7,11 +7,11 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, stun overrides, freezes, module events; within a kind, fighter by
-/// fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier slot); for time scale,
-/// hitstop and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every module event is emitted.
-/// An invalid request is a module bug and throws, naming the slot, rather than being silently fixed. The request
-/// tables are cleared after applying.
+/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, freezes, module events; within a
+/// kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier slot);
+/// for time scale, hitstop, gravity and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every
+/// module event is emitted. An invalid request is a module bug and throws, naming the slot, rather than being
+/// silently fixed. The request tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
 {
@@ -30,6 +30,7 @@ public sealed class CoreRequestApplier
             ApplyCancels(ref fighterState.Cancel, fighter);
             ApplyTimeScales(ref fighterState.Timing, fighter);
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
+            ApplyGravityScales(ref fighterState, fighter);
             ApplyStunOverrides(ref fighterState, fighter);
         }
 
@@ -147,6 +148,25 @@ public sealed class CoreRequestApplier
             }
 
             timing.HitstopFramesLeft = request.Frames;
+        }
+    }
+
+    private void ApplyGravityScales(ref FighterState fighterState, int fighter)
+    {
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            int key = CoreRequests.FighterKey(slot, fighter);
+            if (!_requests.GravityScales.TryGet(key, out GravityScaleRequest request))
+            {
+                continue;
+            }
+
+            if (request.ExtraPermille < 0)
+            {
+                throw Invalid(slot, $"{request.ExtraPermille} permille of extra gravity");
+            }
+
+            fighterState.ExtraGravityPermille = request.ExtraPermille;
         }
     }
 

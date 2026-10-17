@@ -54,6 +54,9 @@ public struct FighterState
 
     public PendingCancel Cancel;
 
+    /// <summary>Extra gravity in thousandths of the character's own (0 = normal); set by module requests.</summary>
+    public int ExtraGravityPermille;
+
     /// <summary>Frames the fighter can't be thrown, counting this one: wake-up and landing protection.</summary>
     public int ThrowInvulnerableFramesLeft;
 
