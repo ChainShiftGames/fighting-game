@@ -45,21 +45,11 @@ public sealed class FieldReader
     public int OptionalInt(string name, int absent, int min, int max) =>
         TryGet(name, required: false, out JsonElement value) ? ToInt(value, PathOf(name), min, max) : absent;
 
-    public bool OptionalBool(string name, bool absent)
-    {
-        if (!TryGet(name, required: false, out JsonElement value))
-        {
-            return absent;
-        }
+    public bool RequiredBool(string name) =>
+        TryGet(name, required: true, out JsonElement value) && ToBool(value, PathOf(name), absent: false);
 
-        if (value.ValueKind is JsonValueKind.True or JsonValueKind.False)
-        {
-            return value.GetBoolean();
-        }
-
-        Report(PathOf(name), "must be true or false", value);
-        return absent;
-    }
+    public bool OptionalBool(string name, bool absent) =>
+        TryGet(name, required: false, out JsonElement value) ? ToBool(value, PathOf(name), absent) : absent;
 
     /// <summary>A non-empty string, e.g. a display name.</summary>
     public string RequiredText(string name)
@@ -196,6 +186,17 @@ public sealed class FieldReader
 
         Report(path, $"must be a whole number from {min} to {max}", value);
         return min;
+    }
+
+    private bool ToBool(JsonElement value, string path, bool absent)
+    {
+        if (value.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            return value.GetBoolean();
+        }
+
+        Report(path, "must be true or false", value);
+        return absent;
     }
 
     // TryGetInt32 accepts "5.0" and "5e0"; the data format only allows plain digits so values read the same in

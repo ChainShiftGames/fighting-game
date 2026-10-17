@@ -16,6 +16,9 @@ public sealed class AirBlockModule : IMechanicModule, IAirGuardHook
 
     public string Name => "air_block";
 
+    public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<AirBlockConfig>(
+        new ModuleConfigField("unblockableAttacks", 0, AirBlockAttacks.All));
+
     public bool CanAirGuard(ModuleContext context, in AirGuardCheck check)
     {
         ref readonly AirBlockConfig config = ref context.GetConfig<AirBlockConfig>();

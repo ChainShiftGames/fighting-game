@@ -15,6 +15,9 @@ public static class AirBlockAttacks
     public const int Supers = 1 << 3;
     public const int Projectiles = 1 << 4;
 
+    /// <summary>Every kind: the largest mask the config accepts.</summary>
+    public const int All = GroundNormals | AirNormals | Specials | Supers | Projectiles;
+
     /// <summary>The kind bit of the attack an airborne fighter wants to block.</summary>
     public static int Of(in AirGuardCheck check)
     {

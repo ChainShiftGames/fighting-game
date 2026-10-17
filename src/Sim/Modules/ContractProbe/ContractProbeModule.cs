@@ -13,6 +13,13 @@ public sealed class ContractProbeModule : IMechanicModule, IAfterInputHook, IOnH
 
     public string Name => "contract_probe";
 
+    // Test-only, so no data file sets these; the layout keeps it a complete example of the contract.
+    public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<ContractProbeConfig>(
+        new ModuleConfigField("hitstopFrames", 0, int.MaxValue),
+        new ModuleConfigField("spawnOnFrame", 0, int.MaxValue),
+        new ModuleConfigField("spawnOwner", 0, 1),
+        new ModuleConfigField("spawnProjectile", 0, int.MaxValue));
+
     public void AfterInput(ModuleContext context)
     {
         int frame = ++context.GetState<ContractProbeState>().FramesSeen;

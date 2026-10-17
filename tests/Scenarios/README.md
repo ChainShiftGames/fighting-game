@@ -55,7 +55,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   pause with neutral input, the next round or match over). Match rules come from
   data (`GameData.CreateMatchRules`) plus the setup lines below.
 - **Modules** (match rules): `setup: module <name> [config integers…]` enables a registered module; modules take
-  lineup slots in the order listed. Config integers are the module's raw config slice.
+  lineup slots in the order listed. Config integers are the module's raw config slice. Only these modules run: the
+  module lineup in `data/rules/modules*` (switched on and off during development) never reaches a scenario.
 - **Air block** (P1-24): `setup: module air_block [mask]`; the mask lists attack kinds that can't be air-blocked
   (`Sim.Modules.AirBlock.AirBlockAttacks`: 1 ground normals, 2 air normals, 4 specials, 8 supers, 16
   projectiles); none means everything blockable can be. Without the module airborne fighters never block.

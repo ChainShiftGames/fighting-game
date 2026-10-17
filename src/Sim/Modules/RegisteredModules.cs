@@ -6,14 +6,17 @@ namespace Sim.Modules;
 /// <summary>The one place mechanics modules are registered (ARCHITECTURE.md §5): one line per module.</summary>
 /// <remarks>
 /// The only type outside a module's folder that may name it (architecture test), so removing a module means deleting
-/// its folder and its line here. Registering doesn't enable a module; <see cref="Rules.MatchRules"/> does.
+/// its folder and its line here (plus its data file, which data loading would otherwise reject). Registering doesn't
+/// enable a module: <c>data/rules/modules.json</c> and the module's own data file do, through
+/// <see cref="Rules.MatchRules"/>. Order here doesn't matter (hook order is in data); keep it alphabetical so parallel
+/// module tasks add their lines in different places. How to add one: README.md in this folder.
 /// </remarks>
 public static class RegisteredModules
 {
-    /// <summary>Creates every registered module; called once at match start.</summary>
+    /// <summary>Creates every registered module; called once at match start and when data is loaded.</summary>
     public static ModuleCatalog Create() => new(
     [
-        new ContractProbeModule(),
         new AirBlockModule(),
+        new ContractProbeModule(),
     ]);
 }

@@ -15,6 +15,9 @@ public interface IMechanicModule
     /// <summary>Stable, non-zero and unique among registered modules.</summary>
     ModuleId Id { get; }
 
-    /// <summary>The snake_case name the module order in data uses for this module.</summary>
+    /// <summary>The snake_case name data uses for this module (<c>data/rules/modules/&lt;name&gt;.json</c>).</summary>
     string Name { get; }
+
+    /// <summary>The keys its data file sets in its config struct (developer settings); none by default.</summary>
+    ModuleConfigLayout ConfigLayout => ModuleConfigLayout.None;
 }

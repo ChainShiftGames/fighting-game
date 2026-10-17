@@ -41,7 +41,7 @@ public sealed class MatchLineup
         CharacterData player1 = data.Characters[0];
         CharacterData player2 = data.Characters[data.Characters.Count > 1 ? 1 : 0];
 
-        // No mechanics modules yet: the module lineup in data is P3-01.
+        // Includes the module lineup from data/rules/modules.json (P3-01).
         MatchRules rules = data.CreateMatchRules();
         return Compose(data, player1, player2, in rules);
     }

@@ -38,7 +38,20 @@ in before it's built, and it must already support what Roman Cancel and the open
    so no gameplay setting can be left out of the online check.
 8. Match rules are **developer settings**: players can never change them (ADR-0005 §8).
 
+**Module lineup in data** (P3-01)
+9. Modules are registered in code in one place, `Sim.Modules.RegisteredModules` (one line each), and switched in
+   data: `data/rules/modules.json` lists module names in hook order; each listed module has
+   `data/rules/modules/<name>.json` with `enabled` and every key of its config. A module declares those keys and
+   their ranges as its `ConfigLayout` (in its own folder), so Sim.Data reads any module's file without naming it.
+10. Enabled modules fill lineup slots in hook order; disabled ones take none and their config stays out of
+    `MatchRules` (it is in the data hash). Unknown names, unlisted files and missing keys fail loading.
+11. Data is reloaded for every match, so a module switched in a dev build applies when the match restarts, with a
+    new rules hash. Exported builds read the embedded data (ADR-0015), so they have one fixed lineup.
+12. Scenario tests ignore the data lineup and enable only the modules they list, so dev toggles can't change them.
+    How to add a module: `src/Sim/Modules/README.md`.
+
 ## Consequences
 
-- P1-20 builds this contract before the core pipeline; P3-01 only adds live toggling for development.
+- P1-20 builds this contract before the core pipeline; P3-01 only adds toggling for development (§9–12).
+- Removing a module also means deleting its data file and its `modules.json` entry, or data loading fails.
 - Adding a capability to the core later needs an ADR update.

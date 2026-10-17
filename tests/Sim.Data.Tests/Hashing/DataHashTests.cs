@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (P1-24): the basic state list gained airBlockstun, so every character's state table grew.
-    private const string FixtureHash = "ed00ceeb5f49f7be7fcba6c784b5b1aaa8a72ab2837bbe5e30ade5c7e6f98f60";
+    // Last change (P3-01): the hash covers the module lineup (rules/modules.json), empty in the fixture.
+    private const string FixtureHash = "c0900315ab5d12b2250cf9a148bc40e17f2fc508394e371b239e1cfa3b23504f";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

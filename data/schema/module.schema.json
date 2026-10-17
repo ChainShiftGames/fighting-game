@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "module.schema.json",
+  "title": "Module",
+  "description": "data/rules/modules/<name>.json: one mechanics module switched on or off, with its config (developer settings, part of the match rules when enabled). The config keys and their ranges come from the module's ConfigLayout in src/Sim/Modules/<Name>/; Sim.Data's validator is authoritative and requires every key, also while the module is off.",
+  "type": "object",
+  "required": ["schemaVersion", "enabled"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "enabled": { "type": "boolean", "description": "Whether the module is in the match rules. Changing it in a dev build applies when the match restarts, with a new rules hash." }
+  },
+  "additionalProperties": { "type": "integer" }
+}
