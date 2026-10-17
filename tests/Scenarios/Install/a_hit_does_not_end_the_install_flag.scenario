@@ -1,0 +1,10 @@
+# The install flag isn't clearedWhenHit in data/rules/flags.json, so a hit leaves it.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p1 flags = 2
+frame 2: p2 5a
+
+frame 6: expect p2 event hit
+frame 6: expect p1 flags = 2

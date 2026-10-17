@@ -27,18 +27,22 @@ namespace Sim.Throws;
 public sealed class ThrowHoldStage : ITickStage
 {
     private readonly CharacterData _player1;
+    private readonly int _flagsClearedWhenHit;
     private readonly CharacterData _player2;
     private readonly ThrowTechInput _player1Tech;
     private readonly ThrowTechInput _player2Tech;
     private readonly ModuleLineup _modules;
 
+    /// <param name="flagsClearedWhenHit">Fighter flags a landed hit takes away (<c>MatchRules.FlagsClearedWhenHit</c>).</param>
     public ThrowHoldStage(
         CharacterData player1,
         CharacterData player2,
         ThrowTechInput player1Tech,
         ThrowTechInput player2Tech,
-        ModuleLineup modules)
+        ModuleLineup modules,
+        int flagsClearedWhenHit = 0)
     {
+        _flagsClearedWhenHit = flagsClearedWhenHit;
         _player1 = player1;
         _player2 = player2;
         _player1Tech = player1Tech;
@@ -97,7 +101,7 @@ public sealed class ThrowHoldStage : ITickStage
         ThrowHolds.Clear(ref defender);
         int releaseX = throwerState.Position.X + (throwerState.Facing * move.ThrowReleaseX);
         defender.Position = new IntVector2(releaseX, defender.Position.Y);
-        HitReactions.TakeHit(ref defender, in hit, defenderCharacter, throwerState.Facing);
+        HitReactions.TakeHit(ref defender, in hit, defenderCharacter, throwerState.Facing, _flagsClearedWhenHit);
         Hitstop.Extend(ref throwerState.Timing, hit.Hitstop);
         Hitstop.Extend(ref defender.Timing, hit.Hitstop);
         state.Events.Emit(state.Frame, FrameEventKind.ThrowHit, thrower, defender.Position, throwMove);

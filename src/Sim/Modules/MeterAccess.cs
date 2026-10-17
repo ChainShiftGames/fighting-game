@@ -94,6 +94,6 @@ internal sealed class MeterAccess
     private ModuleContext GaugeContext(ref MatchState state, int route)
     {
         int slot = _slots[route];
-        return new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, this, _characters);
+        return new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, this, _characters, null);
     }
 }

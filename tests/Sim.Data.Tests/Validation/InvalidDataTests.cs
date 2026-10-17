@@ -86,9 +86,9 @@ public sealed class InvalidDataTests
     [Fact]
     public void UnsupportedSchemaVersion()
     {
-        _data.Replace(_move5A, "\"schemaVersion\": 2", "\"schemaVersion\": 3");
+        _data.Replace(_move5A, "\"schemaVersion\": 3", "\"schemaVersion\": 4");
 
-        AssertSingleError(_move5A, "schemaVersion", "this build reads schema version 2, the file has 3");
+        AssertSingleError(_move5A, "schemaVersion", "this build reads schema version 3, the file has 4");
     }
 
     [Fact]

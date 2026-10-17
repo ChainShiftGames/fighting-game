@@ -11,7 +11,8 @@ namespace Sim.Fighters.States;
 /// (symmetry rule of <see cref="ITickStage"/>). With the match's modules, they decide which data cancel windows can
 /// be taken (<see cref="CancelPermission"/>); without, every window can. Every fighter's started move category is
 /// cleared before the step and its move lock after it, whether or not it advanced
-/// (<see cref="FighterState.StartedMoveCategory"/>, <see cref="FighterState.LockedMoveCategories"/>).
+/// (<see cref="FighterState.StartedMoveCategory"/>, <see cref="FighterState.LockedMoveCategories"/>). A move's cost
+/// (ADR-0023) is checked against the fighter's meter as the step starts and paid right after the step.
 /// </remarks>
 public sealed class StateMachineStage : ITickStage
 {
@@ -57,21 +58,59 @@ public sealed class StateMachineStage : ITickStage
         FighterState player2 = state.Fighters[1];
         player1.StartedMoveCategory = MoveCategory.None;
         player2.StartedMoveCategory = MoveCategory.None;
+        AvailableMeter player1Meter = MeterOf(ref state, 0);
+        AvailableMeter player2Meter = MeterOf(ref state, 1);
         if (activity.Advances(0))
         {
-            _player1Machine.Advance(ref player1, in state.Inputs[0], _player1, CancelsFor(ref state, 0));
+            _player1Machine.Advance(
+                ref player1, in state.Inputs[0], _player1, CancelsFor(ref state, 0), in player1Meter);
         }
 
         if (activity.Advances(1))
         {
-            _player2Machine.Advance(ref player2, in state.Inputs[1], _player2, CancelsFor(ref state, 1));
+            _player2Machine.Advance(
+                ref player2, in state.Inputs[1], _player2, CancelsFor(ref state, 1), in player2Meter);
         }
+
+        PayCost(ref state, 0, in player1, _player1);
+        PayCost(ref state, 1, in player2, _player2);
 
         // A move lock covers one step, whether or not the fighter advanced in it.
         player1.LockedMoveCategories = MoveCategory.None;
         player2.LockedMoveCategories = MoveCategory.None;
         state.Fighters[0] = player1;
         state.Fighters[1] = player2;
+    }
+
+    private AvailableMeter MeterOf(ref MatchState state, int fighter)
+    {
+        if (_modules is null)
+        {
+            return AvailableMeter.Unlimited;
+        }
+
+        AvailableMeter meter = default;
+        for (int channel = 0; channel < IMeterGauge.ChannelCount; channel++)
+        {
+            meter[channel] = _modules.MeterOf(ref state, fighter, channel);
+        }
+
+        return meter;
+    }
+
+    // An attack entered without the check (a module's cancel request) still pays if it can.
+    private void PayCost(ref MatchState state, int fighter, in FighterState fighterState, CharacterData character)
+    {
+        if (_modules is null || fighterState.StartedMoveCategory == MoveCategory.None)
+        {
+            return;
+        }
+
+        ref readonly MoveData move = ref character.Moves[fighterState.Move];
+        if (move.CostAmount > 0)
+        {
+            _modules.TrySpendMeter(ref state, fighter, move.CostAmount, move.CostChannel);
+        }
     }
 
     private CancelPermission CancelsFor(ref MatchState state, int fighter) =>

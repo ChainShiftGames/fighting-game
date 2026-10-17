@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 3,
+  "id": "install",
+  "category": "special",
+  "usableIn": "ground",
+  "input": { "motion": "214", "button": "d" },
+  "cost": { "channel": 0, "amount": 5000 },
+  "frameData": { "startup": 5, "active": 2, "recovery": 15 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 21, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 21, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 5, "lastFrame": 6, "x": 25000, "y": 60000, "width": 30000, "height": 20000 }
+  ],
+  "hits": [
+    { "damage": 200, "chipDamage": 0, "guard": "mid", "hitstun": 14, "blockstun": 10, "hitstop": 6, "pushback": 8000 }
+  ]
+}

@@ -1,0 +1,10 @@
+# install costs 5000 of the main meter (channel 0), paid as it starts.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+setup: module meter 5000 0 0 0 10000 0
+frame 1: p1 2, 1, 4d
+
+frame 3: expect p1 move = install
+frame 3: expect module meter[0] = 5000

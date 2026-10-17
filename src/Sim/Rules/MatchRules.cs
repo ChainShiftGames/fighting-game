@@ -114,6 +114,10 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>airRecovery</c>).</remarks>
     public int AirRecovery;
 
+    /// <summary>Fighter flags (ADR-0023) a fighter loses when it is hit or thrown, one bit per flag.</summary>
+    /// <remarks>Developer setting, from data/rules/flags.json (<c>clearedWhenHit</c>).</remarks>
+    public int FlagsClearedWhenHit;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

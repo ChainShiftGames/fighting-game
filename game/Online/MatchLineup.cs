@@ -75,7 +75,7 @@ public sealed class MatchLineup
     private static MatchLineup Compose(GameData data, CharacterData player1, CharacterData player2, in MatchRules rules)
     {
         var simulation = new MatchSimulation(
-            player1, player2, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
+            player1, player2, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules, data.Flags.Names);
         return new MatchLineup([player1, player2], simulation, StageWalls.From(in rules));
     }
 }

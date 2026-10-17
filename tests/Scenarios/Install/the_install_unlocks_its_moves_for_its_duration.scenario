@@ -1,0 +1,16 @@
+# mechanics_dummy's install mechanic (30 frames) sets the install flag (2) when its install move starts; 6c is then
+# install_c. On frame 33 the time runs out and the flag is cleared before the state machines.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+setup: module meter 5000 0 0 0 10000 0
+frame 1: p1 2, 1, 4d
+frame 25: p1 6c
+
+frame 3: expect p1 move = install
+frame 3: expect p1 mechanic 0 = 30
+frames 3-32: expect p1 flags = 2
+frame 25: expect p1 move = install_c
+frame 33: expect p1 mechanic 0 = 0
+frame 33: expect p1 flags = 0

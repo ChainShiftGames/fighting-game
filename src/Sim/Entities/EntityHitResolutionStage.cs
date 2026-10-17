@@ -34,6 +34,7 @@ namespace Sim.Entities;
 public sealed class EntityHitResolutionStage : ITickStage
 {
     private readonly OwnerCharacters _characters;
+    private readonly int _flagsClearedWhenHit;
     private readonly EntityContacts _contacts;
     private readonly HitContacts _fighterContacts;
     private readonly ModuleLineup _modules;
@@ -43,6 +44,7 @@ public sealed class EntityHitResolutionStage : ITickStage
     private readonly Pushback _pushback;
     private readonly ShortcutDamage _shortcutDamage;
 
+    /// <param name="flagsClearedWhenHit">Fighter flags a landed hit takes away (<c>MatchRules.FlagsClearedWhenHit</c>).</param>
     public EntityHitResolutionStage(
         OwnerCharacters characters,
         EntityContacts contacts,
@@ -52,8 +54,10 @@ public sealed class EntityHitResolutionStage : ITickStage
         CounterHits counterHits,
         Guarding guarding,
         Pushback pushback,
-        ShortcutDamage shortcutDamage)
+        ShortcutDamage shortcutDamage,
+        int flagsClearedWhenHit = 0)
     {
+        _flagsClearedWhenHit = flagsClearedWhenHit;
         _characters = characters;
         _contacts = contacts;
         _fighterContacts = fighterContacts;
@@ -177,7 +181,7 @@ public sealed class EntityHitResolutionStage : ITickStage
             return CounterHitKind.None;
         }
 
-        HitReactions.TakeHit(ref defenderState, in landed, character, facing);
+        HitReactions.TakeHit(ref defenderState, in landed, character, facing, _flagsClearedWhenHit);
         Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
         _pushback.Start(ref defenderState, landed.Pushback, facing, pushesAttacker: false);
         return counter;

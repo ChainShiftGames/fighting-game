@@ -11,7 +11,7 @@ Content model (this order; ADR-0021–0023):
 - [x] Multi-hit moves, launches, juggles, ground/wall bounce, knockdown length, OTG; air recovery rule (ADR-0022)
 - [x] Character-unique mechanics and several meter types (ADR-0023): character mechanic modules, move roles,
   resource channels; move `cost` comes with move conditions
-- [ ] Move conditions: rekkas/follow-ups, stance-only and install moves (ADR-0023)
+- [x] Move conditions: rekkas/follow-ups, stance-only and install moves, move costs, fighter flags (ADR-0023)
 - [ ] `tools/DataExport` for external character tools (ADR-0021)
 Netcode hardening (ADR-0024–0025) and presentation hardening (ADR-0026) run in their own branches.
 

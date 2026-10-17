@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../../../../data/schema/character.schema.json",
+  "schemaVersion": 2,
+  "id": "mechanics_dummy",
+  "displayName": "Mechanics Dummy",
+  "stats": {
+    "health": 10000,
+    "walkForwardSpeed": 4000,
+    "walkBackSpeed": 3200,
+    "dashStyle": "run",
+    "prejumpFrames": 4,
+    "jumpVelocity": 20000,
+    "highJumpVelocity": 25000,
+    "jumpForwardSpeed": 4500,
+    "jumpBackSpeed": 4000,
+    "gravity": 1000,
+    "airActions": 2
+  },
+  "moves": [
+    "rekka_2", "rekka_3", "rekka_1", "stance_c", "install_c", "5c", "stance_enter", "install", "5a", "idle", "crouch",
+    "hitstun", "crouch_hitstun", "blockstun", "crouch_blockstun"
+  ],
+  "states": {
+    "idle": "idle",
+    "crouch": "crouch",
+    "hitstun": "hitstun",
+    "crouchHitstun": "crouch_hitstun",
+    "blockstun": "blockstun",
+    "crouchBlockstun": "crouch_blockstun"
+  },
+  "moveRoles": { "install": "install" },
+  "mechanic": { "name": "install", "durationFrames": 30 }
+}

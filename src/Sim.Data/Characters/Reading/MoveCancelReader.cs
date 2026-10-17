@@ -5,7 +5,10 @@ using Sim.Data.Validation;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads a move's <c>cancels</c>: windows, outcomes and targets (move ids, whole categories or a jump).</summary>
+/// <summary>
+/// Reads a move's <c>cancels</c>: windows, outcomes and targets (move ids, whole categories or a jump), and whether a
+/// window is a follow-up (ADR-0023).
+/// </summary>
 public sealed class MoveCancelReader
 {
     private readonly IReadOnlyList<string> _moveIds;
@@ -48,7 +51,14 @@ public sealed class MoveCancelReader
 
         List<int> targets = ReadTargets(cancel);
         bool intoJump = cancel.OptionalBool("intoJump", absent: false);
+        bool followUp = cancel.OptionalBool("followUp", absent: false);
         cancel.Finish();
+
+        // A follow-up belongs to the move, so it names the moves it leads to.
+        if (followUp && (targets.Count == 0 || categories != MoveCategory.None || intoJump))
+        {
+            cancel.Error("followUp", "a follow-up window names its moves in \"into\" only");
+        }
 
         if (on == CancelOn.None)
         {
@@ -68,6 +78,7 @@ public sealed class MoveCancelReader
             On = on,
             IntoCategories = categories,
             JumpCancel = intoJump ? 1 : 0,
+            IsFollowUp = followUp ? 1 : 0,
         };
         return new CancelRecord(data, targets);
     }

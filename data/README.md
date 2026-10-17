@@ -12,6 +12,7 @@ data/input/buttons.json                           button set: button ids and inp
 data/input/motions.json                           motions, their priority, motion window and button buffer (ADR-0002)
 data/netcode/online.json                          online match settings: rollback window (not in the data hash)
 data/rules/match.json                             match-wide gameplay values (MatchRules)
+data/rules/flags.json                             fighter flags in bit order, stances and installs (ADR-0023)
 data/rules/modules.json                           mechanics modules in hook order (ADR-0011)
 data/rules/modules/<name>.json                    one module: enabled, plus its config keys
 ```
@@ -40,6 +41,9 @@ character, P1-17); a minimal example is in `tests/Sim.Data.Tests/Fixtures/data/`
   a generated file in the shared style.
 - `moves` order in `character.json` is input priority. Every listed move file must exist and every move file must be
   listed.
+- Moves (schema 3, ADR-0023) may add `requires` (`flags` set / `notFlags` clear), `setsFlags`, `clearsFlags`,
+  `cost` (`channel`, `amount`) and `followUpOnly`; a cancel window may be `followUp` (always allowed, names its moves
+  in `into`). Flags are the names in `rules/flags.json`; append new ones, since a flag's bit is its place.
 - `mechanic` in `character.json` (optional) switches on the character's own mechanic module with its config, e.g.
   `{ "name": "character_gauge", "channel": 1, … }` (ADR-0023; keys in `src/Sim/Modules/<Name>/`).
 - `moveRoles` in `character.json` names moves for jobs modules need, e.g. `{ "burst": "burst" }` (ADR-0023). A role no

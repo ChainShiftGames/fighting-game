@@ -95,4 +95,11 @@ public struct FighterState
 
     /// <summary>Speed off the wall on this juggle's next wall touch (x away from it); x 0 = none.</summary>
     public IntVector2 WallBounce;
+
+    /// <summary>One bit per fighter flag of <c>data/rules/flags.json</c> (ADR-0023): stances, installs, locks.</summary>
+    /// <remarks>
+    /// Set and cleared by attacks as they start (their data), by being hit (flags marked so), and by module requests.
+    /// Moves can require flags to be set or clear. A new round starts with none.
+    /// </remarks>
+    public int Flags;
 }

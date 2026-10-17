@@ -1,0 +1,11 @@
+# The stance flag is clearedWhenHit in data/rules/flags.json: a hit takes it away.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p1 flags = 1
+frame 2: p2 5a
+
+frame 5: expect p1 flags = 1
+frame 6: expect p2 event hit
+frame 6: expect p1 flags = 0

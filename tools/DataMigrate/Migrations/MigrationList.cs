@@ -9,5 +9,6 @@ public static class MigrationList
     [
         new MoveHitsAsList(),
         new CharacterMoveRoles(),
+        new MoveConditions(),
     ];
 }

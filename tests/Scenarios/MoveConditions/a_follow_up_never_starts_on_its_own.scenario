@@ -1,0 +1,12 @@
+# rekka_2 comes first in the move list but is follow-up only: from neutral 236a starts rekka_1, and 236a again
+# before the follow-up window opens starts nothing.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 2, 3, 6a
+frame 4: p1 2, 3, 6a
+
+frame 3: expect p1 move = rekka_1
+frame 6: expect p1 move = rekka_1
+frame 6: expect p1 move_frame = 4

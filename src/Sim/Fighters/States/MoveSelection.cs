@@ -10,7 +10,9 @@ namespace Sim.Fighters.States;
 /// A move starts from its motion and button, or from its special button shortcut (ADR-0020) while the fighter's
 /// shortcut cooldown is over; <see cref="PickedByShortcut"/> tells which, for the move just returned. A move input by
 /// a multi-step motion (236C) beats a shortcut; a shortcut beats a single-direction move (5C) the same press matches.
-/// Without a shortcut input, the first move in the character's order wins.
+/// Without a shortcut input, the first move in the character's order wins. A move starts only when the fighter's flags
+/// meet its conditions and it can pay its cost (ADR-0023); otherwise the input falls through, as with a move lock. A
+/// follow-up-only move (a rekka) starts only from a cancel window naming it, and a follow-up window needs no module.
 /// </remarks>
 public sealed class MoveSelection
 {
@@ -23,6 +25,9 @@ public sealed class MoveSelection
 
     /// <summary>The move the last search returned came from its shortcut, not its motion (only then valid).</summary>
     public bool PickedByShortcut { get; private set; }
+
+    /// <summary>The fighter's meter per channel for this step's move costs; set before each step.</summary>
+    public AvailableMeter Meter { get; set; } = AvailableMeter.Unlimited;
 
     /// <summary>Any non-basic move usable in the fighter's stance (from a free action).</summary>
     public int FindFreeMove(in FighterState fighter, in InputHistory history, CharacterData character)
@@ -87,7 +92,8 @@ public sealed class MoveSelection
         ReadOnlySpan<MoveData> moves = character.Moves;
         for (int move = 0; move < moves.Length; move++)
         {
-            if (moves[move].Category != MoveCategory.Basic && CanStart(in fighter, in history, in moves[move], byShortcut))
+            if (moves[move].Category != MoveCategory.Basic && moves[move].IsFollowUpOnly == 0 &&
+                CanStart(in fighter, in history, in moves[move], byShortcut))
             {
                 return move;
             }
@@ -134,12 +140,19 @@ public sealed class MoveSelection
         ReadOnlySpan<int> targets = character.TargetsOf(in cancel);
         for (int move = 0; move < moves.Length; move++)
         {
-            // Basic moves are entered by the state machine itself, never through a cancel.
-            bool isAllowed = moves[move].Category != MoveCategory.Basic &&
-                ((moves[move].Category & cancel.IntoCategories) != 0 || targets.Contains(move));
+            // Basic moves are entered by the state machine itself, never through a cancel; a follow-up-only move only
+            // through a window naming it.
+            bool byCategory = (moves[move].Category & cancel.IntoCategories) != 0 && moves[move].IsFollowUpOnly == 0;
+            bool isAllowed = moves[move].Category != MoveCategory.Basic && (byCategory || targets.Contains(move));
             if (!isAllowed || !CanStart(in fighter, in history, in moves[move], byShortcut))
             {
                 continue;
+            }
+
+            // A follow-up (rekka, target combo) belongs to the move, so no module decides on it.
+            if (cancel.IsFollowUp != 0)
+            {
+                return move;
             }
 
             CancelCheck check = new(
@@ -158,12 +171,18 @@ public sealed class MoveSelection
         return CharacterData.NoMove;
     }
 
+    private bool MeetsConditions(in FighterState fighter, in MoveData move) =>
+        (fighter.Flags & move.RequiredFlags) == move.RequiredFlags &&
+        (fighter.Flags & move.ForbiddenFlags) == 0 &&
+        Meter[move.CostChannel] >= move.CostAmount;
+
     private bool CanStart(in FighterState fighter, in InputHistory history, in MoveData move, bool byShortcut)
     {
         MoveStance stance = fighter.IsAirborne != 0 ? MoveStance.Air : MoveStance.Ground;
         // A locked category (core request, e.g. a super without meter) is skipped, so the input falls through to the
         // next move in priority order.
-        if (move.Stance != stance || (move.Category & fighter.LockedMoveCategories) != 0)
+        if (move.Stance != stance || (move.Category & fighter.LockedMoveCategories) != 0 ||
+            !MeetsConditions(in fighter, in move))
         {
             return false;
         }

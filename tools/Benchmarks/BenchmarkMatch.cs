@@ -33,7 +33,7 @@ internal sealed class BenchmarkMatch
         CharacterData character = data.Characters[0];
         MatchRules rules = data.CreateMatchRules();
         var simulation = new MatchSimulation(
-            character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
+            character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules, data.Flags.Names);
 
         MatchState state = simulation.StartState();
         for (int frame = 0; frame < MidMatchFrames; frame++)

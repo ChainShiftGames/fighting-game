@@ -5,7 +5,9 @@ using Sim.Data.Characters.Reading;
 using Sim.Data.Input;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Fighters;
 using Sim.Modules;
+using Sim.Rules;
 
 namespace Sim.Data.Characters;
 
@@ -17,13 +19,16 @@ public sealed class CharacterLoader
     private readonly IDataSource _source;
     private readonly IButtonLookup _buttons;
     private readonly ModuleCatalog _modules;
+    private readonly FighterFlagNames _flags;
 
     /// <param name="modules">The registered modules, which a character's mechanic must be one of.</param>
-    public CharacterLoader(IDataSource source, IButtonLookup buttons, ModuleCatalog modules)
+    /// <param name="flags">The fighter flags moves may name (ADR-0023).</param>
+    public CharacterLoader(IDataSource source, IButtonLookup buttons, ModuleCatalog modules, FighterFlagNames flags)
     {
         _source = source;
         _buttons = buttons;
         _modules = modules;
+        _flags = flags;
     }
 
     /// <summary>The character in compact form.</summary>
@@ -46,7 +51,7 @@ public sealed class CharacterLoader
             return null;
         }
 
-        MoveFileReader moveReader = new(_source, definition.MoveIds, _buttons, errors);
+        MoveFileReader moveReader = new(_source, definition.MoveIds, _buttons, _flags, errors);
         List<MoveRecord> moves = [];
         foreach (string moveId in definition.MoveIds)
         {

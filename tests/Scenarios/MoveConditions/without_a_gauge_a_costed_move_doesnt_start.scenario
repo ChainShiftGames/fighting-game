@@ -1,0 +1,8 @@
+# No gauge serves channel 0 without the meter module, so a move with a cost there never starts.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 2, 1, 4d
+
+frame 3: expect p1 move = idle

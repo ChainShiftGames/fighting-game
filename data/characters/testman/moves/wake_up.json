@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "wake_up",
   "category": "basic",
   "duration": 12,

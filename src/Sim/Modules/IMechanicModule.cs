@@ -36,4 +36,8 @@ public interface IMechanicModule
     /// match the same instance runs in both fighters' slots, each with its own state slice and config.
     /// </remarks>
     bool IsCharacterMechanic => false;
+
+    /// <summary>Fighter flags this module sets, clears or reads (ADR-0023), by their names in data/rules/flags.json.</summary>
+    /// <remarks>Resolved once at match start; <see cref="ModuleContext.FlagMask"/> gives flag <c>i</c>'s bit.</remarks>
+    IReadOnlyList<string> Flags => [];
 }

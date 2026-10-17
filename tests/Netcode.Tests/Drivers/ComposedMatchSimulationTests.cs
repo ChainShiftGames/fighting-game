@@ -67,7 +67,7 @@ public sealed class ComposedMatchSimulationTests
         CharacterData character = data.Character("fixture_man");
         MatchRules rules = data.CreateMatchRules();
         return new MatchSimulation(
-            character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules);
+            character, character, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules, data.Flags.Names);
     }
 
     // The Sim.Data fixture folder: complete game data with one character, fixture_man.

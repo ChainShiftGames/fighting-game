@@ -23,9 +23,12 @@ public static class HitReactions
     /// other hits go to standing or crouching hitstun after the defender's posture.
     /// </summary>
     /// <param name="attackFacing">The attacker's (or projectile's) facing: launches send the defender that way.</param>
-    public static void TakeHit(ref FighterState defender, in HitData hit, CharacterData character, int attackFacing)
+    /// <param name="flagsClearedWhenHit">Fighter flags a hit takes away (<c>MatchRules.FlagsClearedWhenHit</c>).</param>
+    public static void TakeHit(
+        ref FighterState defender, in HitData hit, CharacterData character, int attackFacing, int flagsClearedWhenHit)
     {
         defender.Health = LoseHealth(defender.Health, hit.Damage);
+        defender.Flags &= ~flagsClearedWhenHit;
         defender.KnockdownFrames = hit.KnockdownFrames;
         defender.GroundBounce = hit.GroundBounce;
         defender.WallBounce = hit.WallBounce;

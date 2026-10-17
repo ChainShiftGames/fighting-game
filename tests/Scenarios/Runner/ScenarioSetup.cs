@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Sim.Characters;
 using Sim.Data.Motions;
+using Sim.Fighters;
 using Sim.Input;
 using Sim.Rules;
 using Sim.State;
@@ -21,8 +22,9 @@ public sealed class ScenarioSetup
     private int? _shortcutCooldownFrames;
     private bool? _airRecovery;
 
-    public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules)
+    public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules, FighterFlagNames flags)
     {
+        Flags = flags;
         Buttons = buttons;
         Motions = motions;
         _dataRules = dataRules;
@@ -33,6 +35,9 @@ public sealed class ScenarioSetup
 
     /// <summary>The motions and input timing the match runs with (from data).</summary>
     public MotionFile Motions { get; }
+
+    /// <summary>The fighter flag names the match runs with (from data, ADR-0023).</summary>
+    public FighterFlagNames Flags { get; }
 
     /// <summary>In lineup order: the module at index i runs in slot i.</summary>
     public IReadOnlyList<EnabledModule> Modules => _modules;
