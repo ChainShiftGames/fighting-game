@@ -98,7 +98,7 @@ Read: ADR-0007
 - Godot editor plugin: open a character, list moves, save JSON via `Sim.Data` (same validation as the game).
 
 ### P3-41 Move and frame data editing
-Status: todo · Needs: P3-40 · Parallel: no · Where: `game/addons/character_editor/`
+Status: in progress (p3-41-move-editing) · Needs: P3-40 · Parallel: no · Where: `game/addons/character_editor/`
 Read: ADR-0007
 - Create/duplicate/delete moves; frame timeline with startup/active/recovery; cancel windows; hit properties;
   motion + button; per-module character data (e.g. meter gain).
