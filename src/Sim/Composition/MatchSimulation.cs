@@ -104,7 +104,15 @@ public sealed class MatchSimulation
                     guarding,
                     pushback),
                 new EntityHitResolutionStage(
-                    owners, entityContacts, contacts, modules, rules.TradeRule, counterHits, guarding, pushback)),
+                    owners,
+                    entityContacts,
+                    contacts,
+                    modules,
+                    rules.TradeRule,
+                    counterHits,
+                    guarding,
+                    pushback,
+                    new ShortcutDamage(in rules))),
             RoundTimer = new StageSequence(
                 new SpawnRequestStage(owners, spawner, requests),
                 new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),

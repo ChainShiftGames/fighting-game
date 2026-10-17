@@ -51,7 +51,15 @@ internal sealed class EntityStages
                 character, character, contacts, lineup, tradeRule, counterHits, new ShortcutDamage(in rules), guarding,
                 new Pushback(rules.PushbackFrames)),
             new EntityHitResolutionStage(
-                owners, entityContacts, contacts, lineup, tradeRule, counterHits, guarding, new Pushback(rules.PushbackFrames)));
+                owners,
+                entityContacts,
+                contacts,
+                lineup,
+                tradeRule,
+                counterHits,
+                guarding,
+                new Pushback(rules.PushbackFrames),
+                new ShortcutDamage(in rules)));
         _spawnRequests = new SpawnRequestStage(owners, Spawner, Requests);
     }
 

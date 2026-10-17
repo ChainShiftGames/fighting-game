@@ -28,6 +28,6 @@ core as an alternative to motions.
 ## Consequences
 
 - Characters opt in per move in data; the editor edits `input.shortcut` through the schema form.
-- Projectiles spawned by a shortcut move deal full damage for now (the entity doesn't carry the flag); add it if the
-  trade-off should cover them.
+- Projectiles a shortcut move spawns carry the flag (`EntityState.IsShortcut`) and take the same damage trade-off;
+  module spawns never do.
 - P3-19 is core work, not a module: no module folder, no removal test.

@@ -41,6 +41,7 @@ public sealed class EntityHitResolutionStage : ITickStage
     private readonly CounterHits _counterHits;
     private readonly Guarding _guarding;
     private readonly Pushback _pushback;
+    private readonly ShortcutDamage _shortcutDamage;
 
     public EntityHitResolutionStage(
         OwnerCharacters characters,
@@ -50,7 +51,8 @@ public sealed class EntityHitResolutionStage : ITickStage
         TradeRule tradeRule,
         CounterHits counterHits,
         Guarding guarding,
-        Pushback pushback)
+        Pushback pushback,
+        ShortcutDamage shortcutDamage)
     {
         _characters = characters;
         _contacts = contacts;
@@ -60,6 +62,7 @@ public sealed class EntityHitResolutionStage : ITickStage
         _counterHits = counterHits;
         _guarding = guarding;
         _pushback = pushback;
+        _shortcutDamage = shortcutDamage;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -113,7 +116,7 @@ public sealed class EntityHitResolutionStage : ITickStage
     {
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
-        HitData hit = _characters.ProjectileOf(in entity).Hit;
+        HitData hit = _shortcutDamage.Apply(_characters.ProjectileOf(in entity).Hit, entity.IsShortcut != 0);
         CounterHitKind counter = Defend(
             ref state, defender, in hit, entity.Owner, entity.Facing, out bool isBlocked, out bool whiffs);
         if (whiffs)

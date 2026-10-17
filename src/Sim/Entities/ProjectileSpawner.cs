@@ -38,7 +38,8 @@ public sealed class ProjectileSpawner
     }
 
     /// <summary>Spawns projectile <paramref name="projectile"/> of the owner's character; false when refused.</summary>
-    public bool TrySpawn(ref MatchState state, int owner, int projectile)
+    /// <param name="isShortcut">A shortcut move spawns it, so its hit deals the shortcut damage (ADR-0020).</param>
+    public bool TrySpawn(ref MatchState state, int owner, int projectile, bool isShortcut = false)
     {
         int slot = FreeSlotOf(in state.Entities, owner);
         if (slot < 0)
@@ -59,6 +60,7 @@ public sealed class ProjectileSpawner
             Velocity = Facing(data.Velocity, fighter.Facing),
             Facing = fighter.Facing,
             Durability = data.Durability,
+            IsShortcut = isShortcut ? 1 : 0,
         };
         state.Events.Emit(state.Frame, FrameEventKind.ProjectileSpawn, owner, position, projectile);
         return true;

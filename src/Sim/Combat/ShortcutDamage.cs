@@ -22,7 +22,10 @@ public sealed class ShortcutDamage
         _percent = rules.ShortcutDamagePercent == 0 ? Percent : rules.ShortcutDamagePercent;
     }
 
-    public HitData Apply(in HitData hit, in FighterState attacker) => attacker.IsShortcutMove == 0 || _percent == Percent
+    public HitData Apply(in HitData hit, in FighterState attacker) => Apply(in hit, attacker.IsShortcutMove != 0);
+
+    /// <summary>The hit as it lands from a shortcut move (or a projectile one spawned) when <paramref name="isShortcut"/>.</summary>
+    public HitData Apply(in HitData hit, bool isShortcut) => !isShortcut || _percent == Percent
         ? hit
         : hit with
         {

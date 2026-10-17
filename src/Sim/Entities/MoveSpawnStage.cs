@@ -44,7 +44,7 @@ public sealed class MoveSpawnStage : ITickStage
         {
             if (character.Projectiles[projectile].SpawnFrame == moveFrame)
             {
-                _spawner.TrySpawn(ref state, owner, projectile);
+                _spawner.TrySpawn(ref state, owner, projectile, state.Fighters[owner].IsShortcutMove != 0);
             }
         }
     }

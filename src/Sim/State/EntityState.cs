@@ -30,4 +30,7 @@ public struct EntityState
 
     /// <summary>Clash points left against opposing projectiles.</summary>
     public int Durability;
+
+    /// <summary>1 when a move started from its special button shortcut spawned it: its hit has the trade-off (ADR-0020).</summary>
+    public int IsShortcut;
 }
