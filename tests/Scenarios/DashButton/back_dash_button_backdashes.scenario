@@ -1,0 +1,8 @@
+# The core dash button pressed with back backdashes (testman's backdash: 22 frames, 12000 back at first).
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 4dash
+frame 1: expect p1 x = -162000
+frames 1-22: expect p1 state = backdash
+frame 23: expect p1 state = idle
