@@ -18,6 +18,7 @@
       "lastFrame": 14,
       "on": ["hit", "block"],
       "into": ["5c", "2c", "5d"],
+      "intoJump": true,
       "intoCategories": ["special", "super"]
     }
   ],

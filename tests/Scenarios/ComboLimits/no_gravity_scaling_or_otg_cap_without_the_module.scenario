@@ -1,0 +1,18 @@
+# Without the combo limits module a juggled p2 falls at its own gravity (1000 a frame), and every hit on a
+# knocked-down p2 connects.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p2 8
+frame 6: p1 5a
+frame 60: p1 2a
+frame 69: p1 2a
+frame 78: p1 2a
+
+frame 8: expect p1 event hit
+frame 9: expect p2 vy = 15000
+frame 10: expect p2 vy = 14000
+frame 62: expect p2 state = knockdown
+frame 71: expect p1 event hit
+frame 80: expect p1 event hit

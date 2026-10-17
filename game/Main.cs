@@ -10,6 +10,7 @@ using FightingGame.Online;
 using FightingGame.Platform;
 using FightingGame.Presentation.Events;
 using FightingGame.Settings;
+using FightingGame.Training;
 using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
@@ -30,6 +31,7 @@ public partial class Main : Node2D
     private const string PlayerSettingsPath = "user://player_settings.json";
     private const string DevBindingsPath = "user://dev_bindings.jsonc";
     private const string ReplaysPath = "user://replays";
+    private const string TrainingSettingsPath = "user://training_settings.json";
 
     // Developer setting: where online desync dumps go (ADR-0005 §5); the players send these files to the devs.
     private const string DesyncsPath = "user://" + DesyncDumpSettings.DefaultFolderName;
@@ -42,7 +44,7 @@ public partial class Main : Node2D
     private const int ConnectionLogIntervalSeconds = 30;
     private const string DeveloperKeys =
         "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
-        "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one";
+        "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one | --training: Tab menu";
 
     // Player setting: a shortcut for the options menu's vsync entry.
     private const Key ToggleVsyncKey = Key.F2;
@@ -74,6 +76,8 @@ public partial class Main : Node2D
     private LocalMatchStartup? _localStartup;
     private OnlineMatchStartup? _onlineStartup;
     private ReplayMatchStartup? _replayStartup;
+    private TrainingMatchStartup? _trainingStartup;
+    private bool _wantsTraining;
     private ReplayFolder? _replays;
     private MatchLauncher? _launcher;
     private StartedMatch? _match;
@@ -131,6 +135,7 @@ public partial class Main : Node2D
         _optionsMenu.Bind(() => _settings, ChangeSettings);
 
         string[] args = OS.GetCmdlineUserArgs();
+        _wantsTraining = TrainingLaunchOptions.WantsTraining(args);
         CreateStartups(args);
         _launcher = new MatchLauncher(CreateLocalMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
         if (_launcher.Matchmaking is { } matchmaking)
@@ -310,9 +315,25 @@ public partial class Main : Node2D
             ProjectSettings.GlobalizePath(DesyncsPath),
             args);
         _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
+        var trainingStore = new TrainingSettingsStore(TrainingSettingsPath);
+        var trainingMenu = new TrainingMenu();
+        AddChild(trainingMenu);
+        _trainingStartup = new TrainingMatchStartup(
+            bindings[0],
+            devices,
+            _joypads,
+            loops,
+            _stepping!,
+            _hitboxOverlay,
+            _effectToggles,
+            new CurrentTrainingSettings(trainingStore.Load(), trainingStore.Save),
+            trainingMenu);
     }
 
-    private StartedMatch? CreateLocalMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
+    // --training replaces the local match until there is a main menu.
+    private StartedMatch? CreateLocalMatch() => _wantsTraining
+        ? TryCreateMatch("training", () => _trainingStartup!.Create(_data!.Load()))
+        : TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
 
     private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent)
     {

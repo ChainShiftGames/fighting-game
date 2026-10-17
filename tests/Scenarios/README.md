@@ -61,6 +61,13 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   (`Sim.Modules.AirBlock.AirBlockAttacks`: 1 ground normals, 2 air normals, 4 specials, 8 supers, 16
   projectiles); none means everything blockable can be. Without the module airborne fighters never block.
   Scenario dummy basic move `air_blockstun`.
+- **Instant block** (P3-16): `setup: module instant_block <window> <lockout> <blockstun reduction>`
+  (`Sim.Modules.InstantBlock.InstantBlockConfig`); an instant block shows as `p<n> event module` on the defender.
+- **Combo limits** (P3-12): `setup: module combo_limits <damage proration‰> <minimum damage‰> <hitstun decay>
+  <maximum decay> <minimum hitstun> <gravity scaling‰> <maximum gravity‰> <OTG hits>`
+  (`Sim.Modules.ComboLimits.ComboLimitsConfig`). Its scenarios use `sparring_dummy`
+  (`Fixtures/data/characters/sparring_dummy/`): `5a` and `2a` (1000 damage, 20 hitstun, startup 3; `2a` knocks
+  down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
 - **Meter** (P3-13): `setup: module meter <superCost> <hitGain> <blockGain> <forwardGain> <roundStartMeter>
   <carryOverRounds>` (hundredths of a percent); read with `module meter[0]` (P1) / `[1]` (P2).
 - **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
@@ -92,7 +99,7 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `move_frame` | fighter | frame of the playing move, 1 on its first frame | no |
 | `stun` | fighter | hitstun or blockstun frames left | no |
 | `wins` | fighter | rounds won so far | yes |
-| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`, `throw_grab`, `throw_tech`, `throw_hit`; projectile and counter hit events belong to the owner or attacker, throw events to the thrower, a tech to each fighter); alone means at least one, or compare a count: `p2 event hit = 0` | no |
+| `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`, `throw_grab`, `throw_tech`, `throw_hit`, `module`; projectile and counter hit events belong to the owner or attacker, throw events to the thrower, a tech to each fighter); alone means at least one, or compare a count: `p2 event hit = 0` | no |
 | `entities` | fighter | projectiles the fighter has out in the entity pool | no |
 | `entity_x` | fighter | x of the fighter's oldest projectile still out; `none` without one | no |
 | `entity_durability` | fighter | clash durability left on that projectile; `none` without one | no |

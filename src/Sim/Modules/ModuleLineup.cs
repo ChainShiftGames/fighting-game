@@ -1,4 +1,5 @@
 using System;
+using Sim.Characters;
 using Sim.Rules;
 using Sim.State;
 
@@ -22,6 +23,8 @@ public sealed class ModuleLineup
     private readonly HookList<IEndOfFrameHook> _endOfFrame;
     private readonly HookList<IAirGuardHook> _airGuard;
     private readonly MeterAccess _meters;
+    private readonly HookList<IHitAdjustmentHook> _hitAdjustment;
+    private readonly HookList<ICancelWindowHook> _cancelWindows;
 
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
     public ModuleLineup(ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests)
@@ -38,6 +41,8 @@ public sealed class ModuleLineup
         _endOfFrame = new(modulesBySlot);
         _airGuard = new(modulesBySlot);
         _meters = CreateMeterAccess(modulesBySlot, in slots, requests);
+        _hitAdjustment = new(modulesBySlot);
+        _cancelWindows = new(modulesBySlot);
     }
 
     public void RunAfterInput(ref MatchState state)
@@ -102,6 +107,45 @@ public sealed class ModuleLineup
         for (int i = 0; i < _airGuard.Count; i++)
         {
             if (_airGuard.HookAt(i).CanAirGuard(ContextFor(ref state, _airGuard.SlotAt(i)), in check))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Lets the enabled modules adjust a hit about to land; false when one makes it whiff (<see cref="IHitAdjustmentHook"/>).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">A module set a negative damage, hitstun or hitstop.</exception>
+    public bool AdjustHit(ref MatchState state, in FighterContact contact, ref HitData hit)
+    {
+        for (int i = 0; i < _hitAdjustment.Count; i++)
+        {
+            int slot = _hitAdjustment.SlotAt(i);
+            if (!_hitAdjustment.HookAt(i).AdjustHit(ContextFor(ref state, slot), in contact, ref hit))
+            {
+                return false;
+            }
+
+            if (hit.Damage < 0 || hit.Hitstun < 0 || hit.Hitstop < 0)
+            {
+                throw new InvalidOperationException(
+                    $"The module in slot {slot} adjusted a hit to {hit.Damage} damage, {hit.Hitstun} hitstun and " +
+                    $"{hit.Hitstop} hitstop, which the core can't apply.");
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>True when any enabled module lets the fighter take a data cancel (<see cref="ICancelWindowHook"/>).</summary>
+    public bool AllowsCancel(ref MatchState state, in CancelCheck check)
+    {
+        for (int i = 0; i < _cancelWindows.Count; i++)
+        {
+            if (_cancelWindows.HookAt(i).CanCancel(ContextFor(ref state, _cancelWindows.SlotAt(i)), in check))
             {
                 return true;
             }

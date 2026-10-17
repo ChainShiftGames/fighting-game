@@ -67,6 +67,34 @@ public sealed class JumpActions
         return true;
     }
 
+    /// <summary>
+    /// The input for a jump cancel out of an attack: on the ground up held, as for a jump from a free action; in the
+    /// air a new jump input with air actions left, as for a double jump.
+    /// </summary>
+    public bool IsJumpCancelInput(in FighterState fighter, in InputHistory history, CharacterData character)
+    {
+        if (fighter.IsAirborne == 0)
+        {
+            return NumpadDirection.IsUp(NumpadDirection.Of(history.FramesAgo(0), fighter.Facing));
+        }
+
+        return fighter.AirActionsUsed < character.Stats.AirActions &&
+            _input.IsAirJumpTriggered(in history, fighter.Facing);
+    }
+
+    /// <summary>Starts the jump cancel <see cref="IsJumpCancelInput"/> found: a prejump, or a double jump.</summary>
+    public void StartJumpCancel(ref FighterState fighter, in InputHistory history, CharacterData character)
+    {
+        if (fighter.IsAirborne == 0)
+        {
+            MoveEntry.EnterBasic(ref fighter, FighterAction.Prejump, character);
+            return;
+        }
+
+        Start(ref fighter, in history, character, Takeoff.AirJump);
+        fighter.AirActionsUsed++;
+    }
+
     private static void Start(
         ref FighterState fighter, in InputHistory history, CharacterData character, Takeoff takeoff)
     {

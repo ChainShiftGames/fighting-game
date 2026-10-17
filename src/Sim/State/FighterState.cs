@@ -61,6 +61,8 @@ public struct FighterState
     /// <summary>The category of the attack the state machine started this frame (e.g. a super), for modules.</summary>
     /// <remarks>None on frames that start no attack; the state machines step clears it before each step.</remarks>
     public MoveCategory StartedMoveCategory;
+    /// <summary>Extra gravity in thousandths of the character's own (0 = normal); set by module requests.</summary>
+    public int ExtraGravityPermille;
 
     /// <summary>Frames the fighter can't be thrown, counting this one: wake-up and landing protection.</summary>
     public int ThrowInvulnerableFramesLeft;

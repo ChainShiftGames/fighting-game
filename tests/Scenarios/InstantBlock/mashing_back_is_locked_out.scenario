@@ -1,0 +1,16 @@
+# Anti-mash: p2 taps down-back on frame 1 (crouching, so it doesn't walk away), lets go, and presses back again on
+# frame 4. The press is fresh (2 frames at the block on frame 5), but back was held within the 5 lockout frames
+# before it, so it is a normal block.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module instant_block 3 5 3
+
+frame 1: p1 5a
+frame 1: p2 1
+frames 4-30: p2 4
+
+frame 5: expect p1 event block
+frame 5: expect p2 event module = 0
+frame 5: expect p2 stun = 9

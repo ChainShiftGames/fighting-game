@@ -25,6 +25,8 @@ namespace Sim.Entities;
 ///   counter hit event follows the hit event). Only the defender gets the
 ///   projectile's hitstop (<see cref="Hitstop"/>); the owner isn't in contact, so it keeps acting, and its move
 ///   doesn't record the outcome (no cancel on a projectile's hit).
+/// - The modules adjust a hit before it lands (<see cref="IHitAdjustmentHook"/>); one they make whiff leaves the
+///   projectile flying and the defender untouched.
 /// - One hit per projectile: it disappears on hit or block. Several touching the same defender land in slot order.
 /// - Each landed touch emits its event and runs the modules' hit or block hooks with the owner as the attacker.
 /// A projectile only ever changes its owner's opponent, so P1's and P2's projectiles can't affect each other here.
@@ -109,7 +111,12 @@ public sealed class EntityHitResolutionStage : ITickStage
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
         HitData hit = _characters.ProjectileOf(in entity).Hit;
-        CounterHitKind counter = Defend(ref state, defender, in hit, entity.Owner, out bool isBlocked);
+        CounterHitKind counter = Defend(ref state, defender, in hit, entity.Owner, out bool isBlocked, out bool whiffs);
+        if (whiffs)
+        {
+            return;
+        }
+
         IntVector2 point = _contacts.TouchPointOf(slot);
         Remove(ref state, slot, isBlocked ? FrameEventKind.ProjectileBlock : FrameEventKind.ProjectileHit, point);
         CounterHitEvent.Emit(ref state, counter, entity.Owner, point);
@@ -126,8 +133,11 @@ public sealed class EntityHitResolutionStage : ITickStage
     }
 
     // The defender takes the hit or block and the projectile's hitstop; returns whether a hit was a counter.
-    private CounterHitKind Defend(ref MatchState state, int defender, in HitData hit, int owner, out bool isBlocked)
+    // A hit the modules make whiff changes nothing, and the projectile flies on.
+    private CounterHitKind Defend(
+        ref MatchState state, int defender, in HitData hit, int owner, out bool isBlocked, out bool whiffs)
     {
+        whiffs = false;
         CharacterData character = _characters.Of(defender);
         ref FighterState defenderState = ref state.Fighters[defender];
         AirGuardCheck check = new(owner, defender, MoveCategory.None, MoveStance.Ground, isProjectile: true);
@@ -143,6 +153,12 @@ public sealed class EntityHitResolutionStage : ITickStage
 
         CounterHitKind counter = CounterHits.KindAgainst(in defenderState, character);
         HitData landed = _counterHits.Apply(in hit, counter);
+        if (!_modules.AdjustHit(ref state, new FighterContact(owner, defender), ref landed))
+        {
+            whiffs = true;
+            return CounterHitKind.None;
+        }
+
         HitReactions.TakeHit(ref defenderState, in landed, character);
         Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
         return counter;

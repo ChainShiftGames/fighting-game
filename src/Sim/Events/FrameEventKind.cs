@@ -118,4 +118,11 @@ public enum FrameEventKind
     /// where the thrown fighter was released. Detail: the throw move.
     /// </summary>
     ThrowHit = 19,
+
+    /// <summary>
+    /// A mechanics module reported something (a core request, ADR-0011), e.g. an instant block. Fighter: as the
+    /// module says. Position: as the module says. Detail: the module and its own code, packed
+    /// (<c>Sim.Modules.ModuleEventRequest.ModuleOf</c> and <c>CodeOf</c> unpack them).
+    /// </summary>
+    Module = 20,
 }

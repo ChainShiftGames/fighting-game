@@ -3,6 +3,10 @@
   "schemaVersion": 1,
   "order": [
     "air_block",
-    "meter"
+    "meter",
+    "instant_block",
+    "burst",
+    "gatlings",
+    "combo_limits"
   ]
 }
