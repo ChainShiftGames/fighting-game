@@ -1,0 +1,38 @@
+{
+  "$schema": "../../../../../../data/schema/character.schema.json",
+  "schemaVersion": 2,
+  "id": "gauge_dummy",
+  "displayName": "Gauge Dummy",
+  "stats": {
+    "health": 10000,
+    "walkForwardSpeed": 4000,
+    "walkBackSpeed": 3200,
+    "dashStyle": "run",
+    "prejumpFrames": 4,
+    "jumpVelocity": 20000,
+    "highJumpVelocity": 25000,
+    "jumpForwardSpeed": 4500,
+    "jumpBackSpeed": 4000,
+    "gravity": 1000,
+    "airActions": 2
+  },
+  "moves": ["5a", "idle", "crouch", "hitstun", "blockstun", "crouch_blockstun"],
+  "states": {
+    "idle": "idle",
+    "crouch": "crouch",
+    "hitstun": "hitstun",
+    "blockstun": "blockstun",
+    "crouchBlockstun": "crouch_blockstun"
+  },
+  "moveRoles": {},
+  "mechanic": {
+    "name": "character_gauge",
+    "channel": 1,
+    "maxGauge": 1000,
+    "roundStartGauge": 100,
+    "gainPerFrame": 1,
+    "hitGain": 50,
+    "blockGain": 20,
+    "carryOverRounds": 0
+  }
+}

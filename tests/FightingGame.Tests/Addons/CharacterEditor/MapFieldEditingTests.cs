@@ -6,11 +6,13 @@ using Xunit;
 
 namespace FightingGame.Tests.Addons.CharacterEditor;
 
-/// <summary>Map fields such as a character's move roles (ADR-0023) are edited entry by entry.</summary>
+/// <summary>Keys a schema allows without listing, such as move roles and a mechanic's config (ADR-0023).</summary>
 public sealed class MapFieldEditingTests
 {
-    private static readonly SchemaField _moveRoles =
-        DataSchema.Read(new DirectoryDataSource(TestGameData.DataRoot), "character")!.Root.Field("moveRoles")!;
+    private static readonly SchemaObject _characterSchema =
+        DataSchema.Read(new DirectoryDataSource(TestGameData.DataRoot), "character")!.Root;
+
+    private static readonly SchemaField _moveRoles = _characterSchema.Field("moveRoles")!;
 
     [Fact]
     public void TheCharacterSchemaReadsMoveRolesAsAMapOfIds()
@@ -38,14 +40,18 @@ public sealed class MapFieldEditingTests
     }
 
     [Fact]
-    public void EntriesBecomeOptionalFieldsOfTheValueKindInFileOrder()
+    public void AMechanicHasAFixedNameAndIntegerKeysForItsConfig()
     {
-        JsonObject roles = new() { ["burst"] = "burst", ["install"] = "236236d" };
+        SchemaObject mechanic = _characterSchema.ObjectOf("mechanic");
 
-        SchemaObject entries = JsonMap.EntriesOf(roles, _moveRoles.Value!);
+        Assert.Equal(["name"], mechanic.FieldNames);
+        Assert.Equal(SchemaFieldKind.Integer, mechanic.Extra!.Kind);
+    }
 
-        Assert.Equal(["burst", "install"], entries.FieldNames);
-        Assert.All(entries.Fields, field => Assert.Equal((SchemaFieldKind.Text, false), (field.Kind, field.IsRequired)));
+    [Fact]
+    public void AnObjectAllowingNoOtherKeysHasNoExtra()
+    {
+        Assert.Null(_characterSchema.ObjectOf("stats").Extra);
     }
 
     [Fact]

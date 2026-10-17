@@ -1,8 +1,8 @@
 # ADR-0023: Character mechanics, resource channels and move conditions
 
 - **Status:** Proposed (Oct 2026). Lukas asked for all of it (see Context); details below are the implementer's
-  proposal, to confirm while building. **Built:** 2 and 3 (without move `cost`, which comes with move schema 3).
-  Not built yet: 1, 4–6.
+  proposal, to confirm while building. **Built:** 1–3 (without move `cost`, which comes with move schema 3).
+  Not built yet: 4–6.
 - **Gaps:** foundation review before Phase 4 (no character-unique mechanics, one meter, no rekkas/stances/installs)
 
 ## Context
@@ -20,6 +20,9 @@ ground/air, move locks are by category, and cancel windows only work when the ga
    module's `ConfigLayout`, part of the data hash, not of `MatchRules`). The lineup gives each fighter's mechanic a
    reserved slot after the systemic modules; `ModuleContext.Owner` says which fighter it serves (-1 = match-wide).
    Same hooks, requests, events and removal test as other modules. Raise `ModuleStates.MaxModules` (e.g. 24 + 2).
+   Built as: `IMechanicModule.IsCharacterMechanic`; 24 lineup slots + one mechanic slot per fighter
+   (`ModuleStates.MechanicSlot`); a mechanic's gauge serves its channel for its owner only, so mirrors don't
+   collide. First mechanic: `character_gauge`, a character's own gauge on a channel.
 2. **Modules see characters read-only:** `ModuleContext.CharacterOf(fighter)`. Moves are found by role, not index:
    `character.json` `moveRoles: { "burst": "burst" }`, resolved once at match start (fixes `burstMove: 34`). A module
    lists the roles it needs (`IMechanicModule.MoveRoles`) and reads them with `ModuleContext.RoleMove(fighter, i)`.

@@ -5,70 +5,95 @@ using Sim.State;
 namespace Sim.Modules;
 
 /// <summary>Routes meter questions and spends from any module to the gauge serving that channel (<see cref="IMeterGauge"/>).</summary>
-/// <remarks>Built once by <see cref="ModuleLineup"/>; a channel without a gauge has 0 meter for every fighter.</remarks>
+/// <remarks>
+/// Built once by <see cref="ModuleLineup"/>. A lineup gauge serves its channel for both fighters; a character
+/// mechanic's gauge only for its owner (ADR-0023), so mirror matches don't collide. A channel without a gauge has 0
+/// meter.
+/// </remarks>
 internal sealed class MeterAccess
 {
-    private readonly IMeterGauge?[] _gauges = new IMeterGauge?[IMeterGauge.ChannelCount];
-    private readonly int[] _slots = new int[IMeterGauge.ChannelCount];
-    private readonly ModuleConfig[] _configs = new ModuleConfig[IMeterGauge.ChannelCount];
+    private const int Routes = IMeterGauge.ChannelCount * MatchState.PlayerCount;
+
+    // Indexed by Route(channel, fighter).
+    private readonly IMeterGauge?[] _gauges = new IMeterGauge?[Routes];
+    private readonly int[] _slots = new int[Routes];
+    private readonly ModuleConfig[] _configs;
     private readonly CoreRequests _requests;
     private readonly ModuleCharacters? _characters;
 
-    /// <exception cref="ArgumentException">A gauge names a channel out of range, or two serve one channel.</exception>
+    /// <param name="configs">Every slot's config, indexed by slot.</param>
+    /// <exception cref="ArgumentException">A gauge names a channel out of range, or two serve one channel for a fighter.</exception>
     public MeterAccess(
-        IMechanicModule?[] modulesBySlot, in ModuleSlots slots, CoreRequests requests, ModuleCharacters? characters)
+        IMechanicModule?[] modulesBySlot, ModuleConfig[] configs, CoreRequests requests, ModuleCharacters? characters)
     {
+        _configs = configs;
         _requests = requests;
         _characters = characters;
         var gauges = new HookList<IMeterGauge>(modulesBySlot);
         for (int i = 0; i < gauges.Count; i++)
         {
             int slot = gauges.SlotAt(i);
-            int channel = gauges.HookAt(i).ChannelOf(in slots[slot].Config);
+            int channel = gauges.HookAt(i).ChannelOf(in configs[slot]);
             if (channel < 0 || channel >= IMeterGauge.ChannelCount)
             {
-                throw new ArgumentException($"The gauge in slot {slot} names meter channel {channel}.", nameof(slots));
+                throw new ArgumentException($"The gauge in slot {slot} names meter channel {channel}.", nameof(modulesBySlot));
             }
 
-            if (_gauges[channel] is not null)
+            for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
             {
-                throw new ArgumentException(
-                    $"The gauges in slots {_slots[channel]} and {slot} both serve meter channel {channel}.",
-                    nameof(slots));
+                if (Serves(slot, fighter))
+                {
+                    AddRoute(gauges.HookAt(i), slot, channel, fighter);
+                }
             }
-
-            _gauges[channel] = gauges.HookAt(i);
-            _slots[channel] = slot;
-            _configs[channel] = slots[slot].Config;
         }
     }
 
     public int MeterOf(ref MatchState state, int fighter, int channel)
     {
-        CheckChannel(channel);
-        return _gauges[channel] is { } gauge ? gauge.MeterOf(GaugeContext(ref state, channel), fighter) : 0;
+        int route = Route(channel, fighter);
+        return _gauges[route] is { } gauge ? gauge.MeterOf(GaugeContext(ref state, route), fighter) : 0;
     }
 
     public bool TrySpend(ref MatchState state, int fighter, int amount, int channel)
     {
-        CheckChannel(channel);
+        int route = Route(channel, fighter);
         if (amount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(amount), amount, "Meter can't be spent negatively.");
         }
 
-        return _gauges[channel] is { } gauge && gauge.TrySpend(GaugeContext(ref state, channel), fighter, amount);
+        return _gauges[route] is { } gauge && gauge.TrySpend(GaugeContext(ref state, route), fighter, amount);
     }
 
-    private static void CheckChannel(int channel)
+    private static bool Serves(int slot, int fighter) =>
+        slot < ModuleStates.LineupSlots || slot == ModuleStates.MechanicSlot(fighter);
+
+    private static int Route(int channel, int fighter)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(channel);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(channel, IMeterGauge.ChannelCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(fighter);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(fighter, MatchState.PlayerCount);
+        return (channel * MatchState.PlayerCount) + fighter;
     }
 
-    private ModuleContext GaugeContext(ref MatchState state, int channel)
+    private void AddRoute(IMeterGauge gauge, int slot, int channel, int fighter)
     {
-        int slot = _slots[channel];
-        return new(ref state, ref state.Modules[slot], in _configs[channel], _requests, slot, this, _characters);
+        int route = Route(channel, fighter);
+        if (_gauges[route] is not null)
+        {
+            throw new ArgumentException(
+                $"The gauges in slots {_slots[route]} and {slot} both serve meter channel {channel} for fighter {fighter}.");
+        }
+
+        _gauges[route] = gauge;
+        _slots[route] = slot;
+    }
+
+    private ModuleContext GaugeContext(ref MatchState state, int route)
+    {
+        int slot = _slots[route];
+        return new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, this, _characters);
     }
 }

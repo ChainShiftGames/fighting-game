@@ -68,6 +68,12 @@ public static class ModuleLineupLoader
             return false;
         }
 
+        if (module!.IsCharacterMechanic)
+        {
+            file.Error(field, $"'{name}' is a character mechanic: a character switches it on in its character.json");
+            return false;
+        }
+
         return true;
     }
 
@@ -95,9 +101,9 @@ public static class ModuleLineupLoader
             enabled += module.Enabled ? 1 : 0;
         }
 
-        if (enabled > ModuleStates.MaxModules)
+        if (enabled > ModuleStates.LineupSlots)
         {
-            file.Error(OrderField, $"{enabled} modules are enabled; the lineup has {ModuleStates.MaxModules} slots");
+            file.Error(OrderField, $"{enabled} modules are enabled; the lineup has {ModuleStates.LineupSlots} slots");
         }
     }
 

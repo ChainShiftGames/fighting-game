@@ -10,8 +10,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// <summary>
 /// Edits a JSON object through the fields its schema lists: a spin box, text box, check box or choice per field,
 /// nested objects indented, lists of objects as one nested form per item (hits, velocity ranges, projectiles) with
-/// Add item/Remove item, maps (move roles) as one row per entry with Add entry/Remove, and Add/Remove for optional
-/// fields. Anything the form can't edit (hand-edited values of the
+/// Add item/Remove item, keys the schema allows without listing (move roles, a mechanic's config) as rows with
+/// Add key/Remove, and Add/Remove for optional fields. Anything the form can't edit (hand-edited values of the
 /// wrong type, fields the schema doesn't know) is shown read-only, never hidden.
 /// </summary>
 /// <remarks>Changes are made to the object in place; <see cref="Changed"/> tells the owner to mark its file.</remarks>
@@ -27,9 +27,6 @@ public partial class SchemaForm : VBoxContainer
     private SchemaObject _schema = SchemaObject.Empty;
     private Func<string, bool> _shows = _ => true;
 
-    // Set when this form edits a map's entries: its schema is then the entries, read again on every rebuild.
-    private SchemaField? _mapValue;
-
     /// <summary>A value in the object changed, or a field was added or removed.</summary>
     public event Action? Changed;
 
@@ -39,16 +36,6 @@ public partial class SchemaForm : VBoxContainer
         _target = target;
         _schema = schema;
         _shows = shows ?? (_ => true);
-        _mapValue = null;
-        Rebuild();
-    }
-
-    /// <summary>Edits the entries of a map field (<see cref="SchemaFieldKind.Map"/>), each holding a <paramref name="value"/>.</summary>
-    public void ShowMap(JsonObject map, SchemaField value)
-    {
-        _target = map;
-        _shows = _ => true;
-        _mapValue = value;
         Rebuild();
     }
 
@@ -58,11 +45,6 @@ public partial class SchemaForm : VBoxContainer
         {
             RemoveChild(child);
             child.QueueFree();
-        }
-
-        if (_mapValue is not null)
-        {
-            _schema = JsonMap.EntriesOf(_target, _mapValue);
         }
 
         foreach (SchemaField field in _schema.Fields)
@@ -75,10 +57,24 @@ public partial class SchemaForm : VBoxContainer
 
         foreach (KeyValuePair<string, JsonNode?> entry in _target)
         {
-            if (_shows(entry.Key) && _schema.Field(entry.Key) is null)
+            if (!_shows(entry.Key) || _schema.Field(entry.Key) is not null)
+            {
+                continue;
+            }
+
+            if (_schema.Extra is { } extra)
+            {
+                AddField(extra with { Name = entry.Key, IsRequired = false });
+            }
+            else
             {
                 AddRow(entry.Key, "Not in the schema: validation reports it.", ReadOnly(entry.Value), removable: true);
             }
+        }
+
+        if (_schema.Extra is { } extraValue)
+        {
+            AddKeyAdder(extraValue);
         }
     }
 
@@ -157,34 +153,40 @@ public partial class SchemaForm : VBoxContainer
         }
     }
 
+    // A map is an object whose every key is an extra one: its entries and the key adder come from the nested form.
     private void AddMap(SchemaField field, SchemaField entryValue, JsonObject map)
     {
-        var adder = new HBoxContainer();
-        var key = new LineEdit { PlaceholderText = "new key", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var add = new Button { Text = "Add entry", Disabled = true, TooltipText = JsonMap.AddProblem(map, "") };
-        key.TextChanged += text =>
-        {
-            string? problem = JsonMap.AddProblem(map, text.Trim());
-            add.Disabled = problem is not null;
-            add.TooltipText = problem ?? $"Add '{text.Trim()}' to {field.Name}";
-        };
-        add.Pressed += () =>
-        {
-            JsonMap.Add(map, key.Text.Trim(), entryValue);
-            Changed?.Invoke();
-            RebuildLater();
-        };
-        adder.AddChild(key);
-        adder.AddChild(add);
-        AddRow(field.Name, field.Description, adder, removable: !field.IsRequired);
-
+        AddRow(field.Name, field.Description, new Control(), removable: !field.IsRequired);
         var form = new SchemaForm();
-        form.ShowMap(map, entryValue);
+        form.Show(map, new SchemaObject([], entryValue));
         form.Changed += () => Changed?.Invoke();
         var indent = new MarginContainer();
         indent.AddThemeConstantOverride("margin_left", (int)NestedIndent);
         indent.AddChild(form);
         AddChild(indent);
+    }
+
+    // A key the schema doesn't list, such as a move role or a mechanic's config key, added with the extra kind's default.
+    private void AddKeyAdder(SchemaField extra)
+    {
+        var adder = new HBoxContainer();
+        var key = new LineEdit { PlaceholderText = "new key", SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var add = new Button { Text = "Add key", Disabled = true, TooltipText = JsonMap.AddProblem(_target, "") };
+        key.TextChanged += text =>
+        {
+            string? problem = JsonMap.AddProblem(_target, text.Trim());
+            add.Disabled = problem is not null;
+            add.TooltipText = problem ?? $"Add '{text.Trim()}'";
+        };
+        add.Pressed += () =>
+        {
+            JsonMap.Add(_target, key.Text.Trim(), extra);
+            Changed?.Invoke();
+            RebuildLater();
+        };
+        adder.AddChild(key);
+        adder.AddChild(add);
+        AddRow("", "Keys the schema doesn't list; validation checks them.", adder, removable: false);
     }
 
     private void AddListItem(string name, SchemaObject itemSchema, JsonArray list, int index)

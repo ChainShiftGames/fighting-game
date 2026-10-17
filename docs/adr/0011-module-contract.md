@@ -60,7 +60,8 @@ in before it's built, and it must already support what Roman Cancel and the open
    `data/rules/modules/<name>.json` with `enabled` and every key of its config. A module declares those keys and
    their ranges as its `ConfigLayout` (in its own folder), so Sim.Data reads any module's file without naming it.
 10. Enabled modules fill lineup slots in hook order; disabled ones take none and their config stays out of
-    `MatchRules` (it is in the data hash). Unknown names, unlisted files and missing keys fail loading.
+    `MatchRules` (it is in the data hash). Unknown names, unlisted files and missing keys fail loading. After the
+    lineup, each fighter has one slot for its character's own mechanic (ADR-0023).
 11. Data is reloaded for every match, so a module switched in a dev build applies when the match restarts, with a
     new rules hash. Exported builds read the embedded data (ADR-0015), so they have one fixed lineup.
 12. Scenario tests ignore the data lineup and enable only the modules they list, so dev toggles can't change them.

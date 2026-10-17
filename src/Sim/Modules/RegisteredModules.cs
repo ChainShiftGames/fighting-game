@@ -1,5 +1,6 @@
 using Sim.Modules.AirBlock;
 using Sim.Modules.Burst;
+using Sim.Modules.CharacterGauge;
 using Sim.Modules.ComboLimits;
 using Sim.Modules.ContractProbe;
 using Sim.Modules.Gatlings;
@@ -26,6 +27,7 @@ public static class RegisteredModules
     [
         new AirBlockModule(),
         new BurstModule(),
+        new CharacterGaugeModule(),
         new ComboLimitsModule(),
         new ContractProbeModule(),
         new GatlingsModule(),

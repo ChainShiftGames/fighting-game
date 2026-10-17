@@ -1,0 +1,10 @@
+# The owner's blocked 5a adds blockGain (20).
+setup: p1 character gauge_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 2: p1 5a
+frames 1-10: p2 4
+
+frame 6: expect p1 event block
+frame 6: expect p1 mechanic 0 = 126

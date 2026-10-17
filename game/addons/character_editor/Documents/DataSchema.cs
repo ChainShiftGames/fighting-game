@@ -57,6 +57,10 @@ public sealed class DataSchema
             return SchemaObject.Empty;
         }
 
+        SchemaField? extra = node["additionalProperties"] is JsonObject extraNode
+            ? ReadField("", extraNode, isRequired: false, depth + 1)
+            : null;
+
         HashSet<string> required = new(StringComparer.Ordinal);
         foreach (JsonNode? name in node["required"] as JsonArray ?? [])
         {
@@ -75,7 +79,7 @@ public sealed class DataSchema
             }
         }
 
-        return new SchemaObject(fields);
+        return new SchemaObject(fields, extra);
     }
 
     private SchemaField ReadField(string name, JsonObject definition, bool isRequired, int depth)

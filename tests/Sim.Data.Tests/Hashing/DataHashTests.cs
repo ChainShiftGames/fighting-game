@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (ADR-0023): characters hash their move roles.
-    private const string FixtureHash = "1a491e006fd7b39ab0a95769532d62a8a2b9b9b29c17acb5126de2edba537aa8";
+    // Last change (ADR-0023): characters hash their move roles and mechanic.
+    private const string FixtureHash = "c0780c849d2a7b7ca2f84bdb63c57f80b42ce59cc42548349f72f600f59596ab";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

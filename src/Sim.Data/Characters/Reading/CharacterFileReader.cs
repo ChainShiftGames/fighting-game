@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using Sim.Characters;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Modules;
+using Sim.Rules;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads and validates <c>characters/&lt;id&gt;/character.json</c>: stats, move list, basic states and move roles.</summary>
+/// <summary>Reads and validates <c>characters/&lt;id&gt;/character.json</c>: stats, move list, basic states, move roles and mechanic.</summary>
 public static class CharacterFileReader
 {
     /// <summary>The definition, or null when the file is unusable (errors are in <paramref name="errors"/>).</summary>
-    public static CharacterDefinition? Read(IDataSource source, string characterId, DataErrors errors)
+    /// <param name="modules">The registered modules, which a character's mechanic must be one of.</param>
+    public static CharacterDefinition? Read(
+        IDataSource source, string characterId, ModuleCatalog modules, DataErrors errors)
     {
         FieldReader? file = JsonDataFile.Open(source, CharacterSchema.CharacterFile(characterId), errors);
         if (file is null || !SchemaVersion.Check(file, CharacterSchema.CharacterVersion))
@@ -30,9 +34,10 @@ public static class CharacterFileReader
         List<string> moveIds = ReadMoveList(file);
         int[] basicStateMoves = ReadBasicStates(file.RequiredObject("states"), moveIds);
         List<MoveRole> moveRoles = ReadMoveRoles(file.RequiredObject("moveRoles"), moveIds);
+        ModuleSlot mechanic = CharacterMechanicReader.Read(file.OptionalObject("mechanic"), modules);
         file.Finish();
 
-        return new CharacterDefinition(characterId, displayName, stats, moveIds, basicStateMoves, moveRoles);
+        return new CharacterDefinition(characterId, displayName, stats, moveIds, basicStateMoves, moveRoles, mechanic);
     }
 
     private static CharacterStats ReadStats(FieldReader? stats)

@@ -24,5 +24,7 @@ public static class CharacterDataHash
             hash.Add(role.Name);
             hash.Add(role.Move);
         }
+
+        hash.Add(character.Mechanic);
     }
 }
