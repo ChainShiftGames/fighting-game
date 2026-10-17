@@ -9,6 +9,9 @@ public interface IMoveInput
     /// <summary>The move's motion and button were input for this frame.</summary>
     bool IsTriggered(in InputHistory history, in MoveData move, int facing);
 
+    /// <summary>The move's special button shortcut was input for this frame (ADR-0020); false without one.</summary>
+    bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing);
+
     /// <summary>A forward dash was input: a dash on the ground, an air dash in the air.</summary>
     bool IsDashTriggered(in InputHistory history, int facing);
 

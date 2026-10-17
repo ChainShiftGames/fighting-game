@@ -37,7 +37,7 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
   real button set. `testman` (`data/characters/testman/`, P1-17) is the game's character; its scenarios are in
   `Testman/` and follow its tuning. `scenario_dummy` is the stable fixture for rule scenarios: attacks `5a` (mid), `2a` (low), `6b`
-  (overhead), `236b` (mid with chip damage); projectile specials (P1-21; each spawns on move frame 13, 40000 in
+  (overhead), `236b` (mid with chip damage; shortcut 6 + special); projectile specials (P1-21; each spawns on move frame 13, 40000 in
   front) `236c` (mid fireball, 8000 per frame, durability 1, projectile 0), `236d` (low fireball at the floor, same
   speed, projectile 1), `214c` (slow mid fireball, 2000 per frame, lifetime 200, durability 2, projectile 2); basic
   moves `idle`, `crouch`, `dash`, `jump`, `landing`, `hitstun`,
@@ -77,6 +77,10 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
   same-frame hits: `trade` (both land) or `clash` (neither lands).
+- **Special button shortcut** (match rules, ADR-0020): `setup: shortcut_damage <percent>` and
+  `setup: shortcut_cooldown <frames>` override `shortcutDamagePercent` and `shortcutCooldownFrames` from
+  `data/rules/match.json` (80, 0). The scenario dummy's `236b` and Testman's `236c` have the shortcut `6`, Testman's
+  `623c` the shortcut `3` (`6special`, `3special`).
 - **Entity pool** (match rules): `setup: entities_per_player <n>` overrides `entitiesPerPlayer` from
   `data/rules/match.json`: projectiles each player can have out at once (0 to 8).
 - **Module spawns**: the contract probe's config is `<hitstop> <spawn frame> <owner> <projectile>`; on that frame it

@@ -27,6 +27,12 @@ public static class MatchRulesSchema
     /// <summary>Upper bound for the tech window and throw protection: a sanity bound, not a design value.</summary>
     public const int MaxThrowFrames = 99;
 
+    /// <summary>A shortcut move can at most keep its full damage; less is the trade-off (ADR-0020).</summary>
+    public const int MaxShortcutDamagePercent = 100;
+
+    /// <summary>Ten seconds: far beyond any cooldown tuning, it only catches typos.</summary>
+    public const int MaxShortcutCooldownFrames = 600;
+
     /// <summary>JSON spellings of <see cref="ThrowPriority"/>; match.schema.json lists the same names.</summary>
     public static readonly JsonNames<ThrowPriority> ThrowPriorities = new(
         ("throw", ThrowPriority.Throw),

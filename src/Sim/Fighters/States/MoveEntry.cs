@@ -15,6 +15,8 @@ public static class MoveEntry
     {
         Enter(ref fighter, FighterAction.Attack, move);
         fighter.StartedMoveCategory = character.Moves[move].Category;
+        // The state machine marks a move it started from a shortcut; any other entry (a module's cancel) isn't one.
+        fighter.IsShortcutMove = 0;
     }
 
     /// <summary>Enters a basic action with the character's move for it, or its idle move if it defines none.</summary>
@@ -39,5 +41,6 @@ public static class MoveEntry
         fighter.MoveFrame = 1;
         fighter.MoveOutcome = CancelOn.None;
         fighter.StunFramesLeft = 0;
+        fighter.IsShortcutMove = 0;
     }
 }

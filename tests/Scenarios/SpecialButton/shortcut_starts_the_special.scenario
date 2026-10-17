@@ -1,0 +1,12 @@
+# 236b has the shortcut 6: forward + special starts it without the motion, and its hit deals the shortcut damage
+# (80 %): 800 → 640.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: shortcut_damage 80
+frame 1: p1 6special
+
+frame 1: expect p1 move = 236b
+frame 12: expect p1 event hit
+frame 12: expect p2 damage = 640

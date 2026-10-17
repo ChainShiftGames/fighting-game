@@ -187,7 +187,8 @@ public sealed class MatchRulesFileTests
               "entitiesPerPlayer": 4, "counterHitExtraHitstun": 2, "counterHitExtraHitstop": 2,
               "counterHitExtraDamagePercent": 20, "punishCounterExtraHitstun": 4, "punishCounterExtraHitstop": 4,
               "punishCounterExtraDamagePercent": 20, "throwTechWindowFrames": 5, "wakeUpThrowInvulnerableFrames": 3,
-              "landingThrowInvulnerableFrames": 3, "throwVsStrike": "throw" }
+              "landingThrowInvulnerableFrames": 3, "throwVsStrike": "throw", "shortcutDamagePercent": 80,
+              "shortcutCooldownFrames": 0 }
             """);
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);

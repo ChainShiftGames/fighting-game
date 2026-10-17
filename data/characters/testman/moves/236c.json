@@ -4,7 +4,7 @@
   "id": "236c",
   "category": "special",
   "usableIn": "ground",
-  "input": { "motion": "236", "button": "c" },
+  "input": { "motion": "236", "button": "c", "shortcut": "6" },
   "frameData": { "startup": 13, "active": 1, "recovery": 32 },
   "boxes": [
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 45, "x": -25000, "y": 0, "width": 55000, "height": 115000 },

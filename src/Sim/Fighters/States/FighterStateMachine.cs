@@ -23,12 +23,17 @@ public sealed class FighterStateMachine
     private readonly MoveSelection _moves;
     private readonly IMoveInput _input;
     private readonly JumpActions _jumps;
+    private readonly int _shortcutCooldownFrames;
 
-    public FighterStateMachine(IMoveInput input)
+    /// <param name="shortcutCooldownFrames">
+    /// Fighter frames after a shortcut move starts before the next one can (<c>MatchRules.ShortcutCooldownFrames</c>).
+    /// </param>
+    public FighterStateMachine(IMoveInput input, int shortcutCooldownFrames = 0)
     {
         _input = input;
         _moves = new MoveSelection(input);
         _jumps = new JumpActions(input);
+        _shortcutCooldownFrames = shortcutCooldownFrames;
     }
 
     /// <summary>Advances with every data cancel window usable, as when no modules are involved (unit tests).</summary>
@@ -40,6 +45,10 @@ public sealed class FighterStateMachine
     {
         // A takeoff is only this frame's request to movement.
         fighter.Takeoff = Takeoff.None;
+        if (fighter.ShortcutCooldownLeft > 0)
+        {
+            fighter.ShortcutCooldownLeft--;
+        }
         if (TryTakePendingCancel(ref fighter, character))
         {
             return;
@@ -137,7 +146,7 @@ public sealed class FighterStateMachine
         int move = _moves.FindFreeMove(in fighter, in history, character);
         if (move != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, move, character);
+            StartAttack(ref fighter, move, character);
             return;
         }
 
@@ -163,7 +172,7 @@ public sealed class FighterStateMachine
         int cancel = _moves.FindCancel(in fighter, in history, character, cancels);
         if (cancel != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, cancel, character);
+            StartAttack(ref fighter, cancel, character);
         }
         else if (TryJumpCancel(ref fighter, in history, character, in move, cancels))
         {
@@ -292,7 +301,18 @@ public sealed class FighterStateMachine
         int move = _moves.FindFreeMove(in fighter, in history, character);
         if (move != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, move, character);
+            StartAttack(ref fighter, move, character);
+        }
+    }
+
+    // An attack the input picked: a shortcut one is marked for its damage trade-off and starts the cooldown.
+    private void StartAttack(ref FighterState fighter, int move, CharacterData character)
+    {
+        MoveEntry.EnterAttack(ref fighter, move, character);
+        if (_moves.PickedByShortcut)
+        {
+            fighter.IsShortcutMove = 1;
+            fighter.ShortcutCooldownLeft = _shortcutCooldownFrames;
         }
     }
 

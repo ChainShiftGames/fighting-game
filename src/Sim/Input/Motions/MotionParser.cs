@@ -53,6 +53,9 @@ public sealed class MotionParser
 
     public MotionSet Motions { get; }
 
+    /// <summary>Frames a button press stays valid (<see cref="MatchRules.ButtonBuffer"/>).</summary>
+    public int ButtonBuffer => _buttonBuffer;
+
     /// <summary>The motion was input, with a press of every button in <paramref name="buttonMask"/>.</summary>
     /// <param name="motion">Index in <see cref="Motions"/>.</param>
     /// <param name="history">The fighter's cleaned input history.</param>

@@ -1,0 +1,8 @@
+# During the shortcut cooldown the motion still works.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: shortcut_cooldown 300
+frame 1: p1 6special
+frame 40: p1 2, 3, 6b
+
+frame 42: expect p1 move = 236b

@@ -6,6 +6,10 @@ using Sim.State;
 namespace Sim.Fighters.States;
 
 /// <summary>Picks the move a fighter starts this frame, if any, in the character's input priority order.</summary>
+/// <remarks>
+/// A move starts from its motion and button, or from its special button shortcut (ADR-0020) while the fighter's
+/// shortcut cooldown is over; <see cref="PickedByShortcut"/> tells which, for the move just returned.
+/// </remarks>
 public sealed class MoveSelection
 {
     private readonly IMoveInput _input;
@@ -14,6 +18,9 @@ public sealed class MoveSelection
     {
         _input = input;
     }
+
+    /// <summary>The move the last search returned came from its shortcut, not its motion (only then valid).</summary>
+    public bool PickedByShortcut { get; private set; }
 
     /// <summary>Any non-basic move usable in the fighter's stance (from a free action).</summary>
     public int FindFreeMove(in FighterState fighter, in InputHistory history, CharacterData character)
@@ -114,7 +121,19 @@ public sealed class MoveSelection
         MoveStance stance = fighter.IsAirborne != 0 ? MoveStance.Air : MoveStance.Ground;
         // A locked category (core request, e.g. a super without meter) is skipped, so the input falls through to the
         // next move in priority order.
-        return move.Stance == stance && (move.Category & fighter.LockedMoveCategories) == 0 &&
-            _input.IsTriggered(in history, in move, fighter.Facing);
+        if (move.Stance != stance || (move.Category & fighter.LockedMoveCategories) != 0)
+        {
+            return false;
+        }
+
+        // The motion wins when both were input, so the move gets no shortcut trade-off.
+        if (_input.IsTriggered(in history, in move, fighter.Facing))
+        {
+            PickedByShortcut = false;
+            return true;
+        }
+
+        PickedByShortcut = fighter.ShortcutCooldownLeft == 0 && _input.IsShortcutTriggered(in history, in move, fighter.Facing);
+        return PickedByShortcut;
     }
 }

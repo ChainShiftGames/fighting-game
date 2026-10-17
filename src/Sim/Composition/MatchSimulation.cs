@@ -54,7 +54,8 @@ public sealed class MatchSimulation
             new MotionMoveInput(parser, movement, player2),
             player1,
             player2,
-            modules);
+            modules,
+            rules.ShortcutCooldownFrames);
         HitContacts contacts = new();
         EntityContacts entityContacts = new();
         OwnerCharacters owners = new(player1, player2);
@@ -90,7 +91,8 @@ public sealed class MatchSimulation
                     new ThrowTechInput(player2, rules.ButtonBuffer),
                     modules),
                 new ThrowResolutionStage(player1, player2, throwContacts, contacts, in rules),
-                new HitResolutionStage(player1, player2, contacts, modules, rules.TradeRule, counterHits, guarding),
+                new HitResolutionStage(
+                    player1, player2, contacts, modules, rules.TradeRule, counterHits, new ShortcutDamage(in rules), guarding),
                 new EntityHitResolutionStage(
                     owners, entityContacts, contacts, modules, rules.TradeRule, counterHits, guarding)),
             RoundTimer = new StageSequence(

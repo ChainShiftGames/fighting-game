@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "motionWindow": 12,
   "buttonBuffer": 2,
-  "movementInputs": { "dash": "66", "backdash": "44", "highJump": "28", "dashButton": "dash" },
+  "movementInputs": { "dash": "66", "backdash": "44", "highJump": "28", "dashButton": "dash", "specialButton": "special" },
   "motions": [
     { "motion": "632146", "steps": "6 3 2 1 4 6" },
     { "motion": "236236", "steps": "2 3 6 2 3 6" },

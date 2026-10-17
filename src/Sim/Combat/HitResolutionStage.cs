@@ -30,6 +30,7 @@ public sealed class HitResolutionStage : ITickStage
     private readonly ModuleLineup _modules;
     private readonly TradeRule _tradeRule;
     private readonly CounterHits _counterHits;
+    private readonly ShortcutDamage _shortcutDamage;
     private readonly Guarding _guarding;
 
     public HitResolutionStage(
@@ -39,6 +40,7 @@ public sealed class HitResolutionStage : ITickStage
         ModuleLineup modules,
         TradeRule tradeRule,
         CounterHits counterHits,
+        ShortcutDamage shortcutDamage,
         Guarding guarding)
     {
         _player1 = player1;
@@ -47,6 +49,7 @@ public sealed class HitResolutionStage : ITickStage
         _modules = modules;
         _tradeRule = tradeRule;
         _counterHits = counterHits;
+        _shortcutDamage = shortcutDamage;
         _guarding = guarding;
     }
 
@@ -106,7 +109,7 @@ public sealed class HitResolutionStage : ITickStage
         bool isBlocked = Blocking.Stops(stance, hit.Guard);
         CounterHitKind counter =
             isBlocked ? CounterHitKind.None : CounterHits.KindAgainst(in defender, defenderCharacter);
-        HitData landed = _counterHits.Apply(in hit, counter);
+        HitData landed = _shortcutDamage.Apply(_counterHits.Apply(in hit, counter), in attackerState);
         if (!isBlocked && !_modules.AdjustHit(ref state, new FighterContact(attacker, defenderIndex), ref landed))
         {
             return Connection.None;

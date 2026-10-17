@@ -17,9 +17,11 @@ public sealed class MotionSetLoaderTests
 {
     private const string File = MotionSetSchema.File;
     private const int DashBit = 9;
+    private const int SpecialBit = 8;
 
     private static readonly ButtonSetLookup _buttons =
-        new(new ButtonSet([new ButtonDefinition("a", 4), new ButtonDefinition("dash", DashBit)]));
+        new(new ButtonSet(
+            [new ButtonDefinition("a", 4), new ButtonDefinition("special", SpecialBit), new ButtonDefinition("dash", DashBit)]));
 
     private readonly InMemoryDataSource _data = new();
 
@@ -179,7 +181,15 @@ public sealed class MotionSetLoaderTests
     {
         MovementInputs movement = Load(_data).Movement;
 
-        Assert.Equal(new MovementInputs(66, 44, 28, 1 << DashBit), movement);
+        Assert.Equal(new MovementInputs(66, 44, 28, 1 << DashBit, 1 << SpecialBit), movement);
+    }
+
+    [Fact]
+    public void AnUnknownSpecialButtonIsReported()
+    {
+        _data.Replace(File, "\"specialButton\": \"special\"", "\"specialButton\": \"skill\"");
+
+        AssertSingleError("movementInputs.specialButton", "unknown button \"skill\"");
     }
 
     [Fact]

@@ -1,0 +1,6 @@
+# Only the move's own direction counts: back + special starts nothing (the dummy has no other shortcut).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+frame 1: p1 4special
+
+frames 1-5: expect p1 state != attack

@@ -1,0 +1,12 @@
+# Cooldown 60: 236b (33 frames) ends on frame 33, but a second 6 + special on frame 40 is still within the 60 frames,
+# so nothing starts; one on frame 62 is past it. The motion is never locked.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: shortcut_cooldown 60
+frame 1: p1 6special
+frame 40: p1 6special
+frame 62: p1 6special
+
+frame 1: expect p1 move = 236b
+frames 40-45: expect p1 state != attack
+frame 62: expect p1 move = 236b

@@ -16,6 +16,12 @@ public readonly record struct MoveData
     /// <summary>The button's bit in the input word (ADR-0010); 0 for basic moves.</summary>
     public int ButtonMask { get; init; }
 
+    /// <summary>
+    /// The special button shortcut (ADR-0020): a numpad direction 1–9 held as the special button is pressed starts
+    /// this move instead of its motion and button; 0 when the move has none.
+    /// </summary>
+    public int ShortcutDirection { get; init; }
+
     /// <summary>Length of the move; basic moves loop over it.</summary>
     public int TotalFrames { get; init; }
 

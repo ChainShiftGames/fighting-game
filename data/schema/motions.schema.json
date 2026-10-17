@@ -20,7 +20,8 @@
         "dash": { "type": "string", "pattern": "^[1-9]{1,8}$" },
         "backdash": { "type": "string", "pattern": "^[1-9]{1,8}$" },
         "highJump": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Checked on the frame a prejump starts." },
-        "dashButton": { "type": "string", "description": "A button id from input/buttons.json." }
+        "dashButton": { "type": "string", "description": "A button id from input/buttons.json." },
+        "specialButton": { "type": "string", "description": "A button id from input/buttons.json: with a move's input.shortcut direction it starts that move (ADR-0020)." }
       }
     },
     "motions": {

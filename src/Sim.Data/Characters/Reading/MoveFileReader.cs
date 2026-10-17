@@ -117,8 +117,27 @@ public sealed class MoveFileReader
 
         int motion = ReadMotion(input);
         int buttonMask = input.Has("buttons") ? ReadButtonCombination(input) : ReadButton(input);
+        int shortcut = ReadShortcut(input);
         input.Finish();
-        return new MoveData { Stance = stance, Motion = motion, ButtonMask = buttonMask };
+        return new MoveData { Stance = stance, Motion = motion, ButtonMask = buttonMask, ShortcutDirection = shortcut };
+    }
+
+    // The special button shortcut (ADR-0020): one numpad direction, held as the special button is pressed.
+    private static int ReadShortcut(FieldReader input)
+    {
+        if (!input.Has("shortcut"))
+        {
+            return 0;
+        }
+
+        string shortcut = input.RequiredText("shortcut");
+        if (shortcut.Length != 1 || shortcut[0] is < '1' or > '9')
+        {
+            input.Error("shortcut", $"must be one numpad direction from 1 to 9 (e.g. \"6\"), got \"{shortcut}\"");
+            return 0;
+        }
+
+        return shortcut[0] - '0';
     }
 
     private static int ReadMotion(FieldReader input)

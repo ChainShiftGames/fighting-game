@@ -54,16 +54,24 @@ public static class MotionSetLoader
         int dash = ReadDefinedMotion(entry, "dash", motions);
         int backdash = ReadDefinedMotion(entry, "backdash", motions);
         int highJump = ReadDefinedMotion(entry, "highJump", motions);
-        int dashButton = 0;
-        string? buttonId = entry.OptionalId("dashButton");
-        if (buttonId is not null && !buttons.TryGetMask(buttonId, out dashButton))
+        int dashButton = ReadButton(entry, "dashButton", buttons);
+        int specialButton = ReadButton(entry, "specialButton", buttons);
+        entry.Finish();
+        return new MovementInputs(dash, backdash, highJump, dashButton, specialButton);
+    }
+
+    // An optional button id from the button set; 0 when absent.
+    private static int ReadButton(FieldReader entry, string field, IButtonLookup buttons)
+    {
+        int mask = 0;
+        string? buttonId = entry.OptionalId(field);
+        if (buttonId is not null && !buttons.TryGetMask(buttonId, out mask))
         {
-            entry.Error("dashButton", $"unknown button \"{buttonId}\"; the button set has " +
+            entry.Error(field, $"unknown button \"{buttonId}\"; the button set has " +
                 string.Join(", ", buttons.ButtonIds));
         }
 
-        entry.Finish();
-        return new MovementInputs(dash, backdash, highJump, dashButton);
+        return mask;
     }
 
     private static int ReadDefinedMotion(FieldReader entry, string field, List<MotionDefinition> motions)
