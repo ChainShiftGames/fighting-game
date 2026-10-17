@@ -1,11 +1,12 @@
+using FightingGame.Presentation.Events;
 using Netcode.Drivers;
 using Sim.State;
 
 namespace FightingGame.Training;
 
 /// <summary>
-/// What the training menu does to the running training match: start over, and save and load a savestate. Each
-/// also clears the frame meter, whose stretch belonged to the state left behind.
+/// What the training menu does to the running training match: start over, and save and load a savestate. Starting
+/// over and loading also clear the frame meter and stop running effects, which belonged to the state left behind.
 /// </summary>
 /// <remarks>
 /// A savestate is a copy of the match state, the same plain-data snapshot rollback keeps (ADR-0007 §4). It lives
@@ -16,12 +17,14 @@ public sealed class TrainingSession
 {
     private readonly ITrainingMatchDriver<MatchState> _driver;
     private readonly FrameMeter _meter;
+    private readonly IEffectReset _effects;
     private MatchState _saved;
 
-    public TrainingSession(ITrainingMatchDriver<MatchState> driver, FrameMeter meter)
+    public TrainingSession(ITrainingMatchDriver<MatchState> driver, FrameMeter meter, IEffectReset effects)
     {
         _driver = driver;
         _meter = meter;
+        _effects = effects;
     }
 
     public bool HasSavestate { get; private set; }
@@ -31,6 +34,7 @@ public sealed class TrainingSession
     {
         _driver.Restart();
         _meter.Clear();
+        _effects.ResetEffects();
     }
 
     /// <summary>Remembers the match as it is now, replacing an earlier savestate.</summary>
@@ -50,5 +54,6 @@ public sealed class TrainingSession
 
         _driver.Restore(in _saved);
         _meter.Clear();
+        _effects.ResetEffects();
     }
 }

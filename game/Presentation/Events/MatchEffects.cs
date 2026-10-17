@@ -12,7 +12,7 @@ namespace FightingGame.Presentation.Events;
 /// The match startup wraps the driver's simulation with <see cref="Observe"/>; the view adds <see cref="Sounds"/> to
 /// the scene as its child, draws <see cref="Sparks"/> and offsets its camera by <see cref="Shake"/>.
 /// </remarks>
-public sealed class MatchEffects
+public sealed class MatchEffects : IEffectReset
 {
     /// <summary>
     /// Frames whose played events are remembered: twice the deepest rollback window the data allows
@@ -40,6 +40,8 @@ public sealed class MatchEffects
 
     /// <summary>The host adds this node to the scene tree; sounds only play while it is there.</summary>
     public PlaceholderSounds Sounds { get; } = new();
+
+    public void ResetEffects() => _reconciler.Reset();
 
     /// <summary>The simulation to give the match driver: <paramref name="simulation"/>, reporting every frame here.</summary>
     public IMatchSimulation<MatchState> Observe(IMatchSimulation<MatchState> simulation) =>

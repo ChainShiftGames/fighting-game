@@ -62,6 +62,26 @@ public sealed class FrameEventReconciler
         _playedCount[slot] = PlayNew(played, kept, events);
     }
 
+    /// <summary>
+    /// Cancels every remembered effect and forgets all frames, for a jump to another point of the match (training
+    /// restart or savestate): frames run from there may be numbered lower than those remembered.
+    /// </summary>
+    /// <remarks>Effects live shorter than the window, so cancelling the remembered events stops every one on screen.</remarks>
+    public void Reset()
+    {
+        for (int slot = 0; slot < _frameOfSlot.Length; slot++)
+        {
+            Span<FrameEvent> played = _played.AsSpan(slot * FrameEvents.Capacity, _playedCount[slot]);
+            foreach (FrameEvent frameEvent in played)
+            {
+                _effect.Cancel(in frameEvent);
+            }
+
+            _frameOfSlot[slot] = NoFrame;
+            _playedCount[slot] = 0;
+        }
+    }
+
     // Keeps the played events that are still there at the front; returns how many.
     private int CancelMissing(Span<FrameEvent> played, ReadOnlySpan<FrameEvent> events)
     {
