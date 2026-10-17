@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using FightingGame.Addons.CharacterEditor.Documents;
 using Sim.Data.Sources;
@@ -34,6 +35,20 @@ public sealed class OverlayDataSourceTests
         Assert.Equal("5aa.json", moves[IndexOf(moves, "5a.json") + 1]);
         Assert.Equal(["aaa", .. _disk.ListDirectories("characters")], source.ListDirectories("characters"));
         Assert.DoesNotContain("aaa", source.ListFiles("characters"));
+    }
+
+    [Fact]
+    public void ARemovedFileIsGoneUnlessItIsWrittenAgain()
+    {
+        const string Removed = "characters/testman/moves/5a.json";
+        const string Rewritten = "characters/testman/moves/5b.json";
+        OverlayDataSource source = new(_disk, Files((Rewritten, "{}")), [Removed, Rewritten]);
+
+        Assert.False(source.FileExists(Removed));
+        Assert.Throws<FileNotFoundException>(() => source.ReadFile(Removed));
+        Assert.DoesNotContain("5a.json", source.ListFiles("characters/testman/moves"));
+        Assert.True(source.FileExists(Rewritten));
+        Assert.Contains("5b.json", source.ListFiles("characters/testman/moves"));
     }
 
     private static Dictionary<string, byte[]> Files(params (string Path, string Text)[] files)
