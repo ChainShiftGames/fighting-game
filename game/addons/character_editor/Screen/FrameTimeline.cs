@@ -6,7 +6,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
 /// Draws a <see cref="MoveTimeline"/>: one cell per frame, a row for the phases and for each box kind, cancel
-/// window, velocity and projectile spawns. Hovering a cell shows its frame number.
+/// window, velocity and projectile spawns. Hovering a cell shows its frame number; clicking picks that frame, which
+/// is marked (the box editor's frame).
 /// </summary>
 [Tool]
 public partial class FrameTimeline : Control
@@ -23,8 +24,13 @@ public partial class FrameTimeline : Control
     private static readonly Color _emptyCell = new(0.18f, 0.18f, 0.2f);
     private static readonly Color _textColor = new(0.85f, 0.85f, 0.9f);
     private static readonly Color _outsideMove = new(1f, 1f, 1f, 0.35f);
+    private static readonly Color _marker = new(1f, 1f, 1f, 0.8f);
 
     private MoveTimeline? _timeline;
+    private int _markedFrame;
+
+    /// <summary>A frame was clicked.</summary>
+    public event System.Action<int>? FrameClicked;
 
     public void ShowTimeline(MoveTimeline? timeline)
     {
@@ -36,11 +42,34 @@ public partial class FrameTimeline : Control
         QueueRedraw();
     }
 
+    /// <summary>Outlines the frame's column; 0 for none.</summary>
+    public void MarkFrame(int frame)
+    {
+        _markedFrame = frame;
+        QueueRedraw();
+    }
+
+    public override void _GuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click
+            && FrameAt(click.Position) is int frame)
+        {
+            FrameClicked?.Invoke(frame);
+            AcceptEvent();
+        }
+    }
+
     public override void _Draw()
     {
         if (_timeline is null)
         {
             return;
+        }
+
+        if (_markedFrame >= 1 && _markedFrame <= _timeline.FrameCount)
+        {
+            DrawRect(new Rect2(CellLeft(_markedFrame) - CellGap, HeaderHeight - RowGap, CellWidth + (2f * CellGap),
+                Size.Y - HeaderHeight + RowGap), _marker, filled: false, width: 1f);
         }
 
         for (int frame = 1; frame <= _timeline.FrameCount; frame++)
@@ -81,12 +110,12 @@ public partial class FrameTimeline : Control
         }
     }
 
-    public override string _GetTooltip(Vector2 atPosition)
+    public override string _GetTooltip(Vector2 atPosition) => FrameAt(atPosition) is int frame ? $"Frame {frame}" : "";
+
+    private int? FrameAt(Vector2 position)
     {
-        int frame = (int)((atPosition.X - LabelWidth) / (CellWidth + CellGap)) + 1;
-        return _timeline is not null && atPosition.X >= LabelWidth && frame <= _timeline.FrameCount
-            ? $"Frame {frame}"
-            : "";
+        int frame = (int)((position.X - LabelWidth) / (CellWidth + CellGap)) + 1;
+        return _timeline is not null && position.X >= LabelWidth && frame <= _timeline.FrameCount ? frame : null;
     }
 
     private static float CellLeft(int frame) => LabelWidth + ((frame - 1) * (CellWidth + CellGap));
