@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Tests for Platform.Steam's Steam-free logic (the lobby flow). Nothing here calls Steamworks.NET: the tests run
+    without Steam (CI has none), with fakes standing in for the thin Steamworks adapters.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Platform.Steam\Platform.Steam.csproj" />
+  </ItemGroup>
+</Project>

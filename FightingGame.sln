@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesyncDiff.Tests", "tests\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soak", "tests\Soak\Soak.csproj", "{B0057049-8A5F-4CE8-90B9-30B2FA0278D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platform.Steam.Tests", "tests\Platform.Steam.Tests\Platform.Steam.Tests.csproj", "{937E97CD-82E4-4C4C-A560-D415E6B3B545}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +191,14 @@ Global
 		{B0057049-8A5F-4CE8-90B9-30B2FA0278D1}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{B0057049-8A5F-4CE8-90B9-30B2FA0278D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0057049-8A5F-4CE8-90B9-30B2FA0278D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -211,5 +221,6 @@ Global
 		{51101B83-BBF6-42F1-80F8-D501EFC340B4} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{91A1585C-2782-4EC9-9842-240DACDBF3BD} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{B0057049-8A5F-4CE8-90B9-30B2FA0278D1} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{937E97CD-82E4-4C4C-A560-D415E6B3B545} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
