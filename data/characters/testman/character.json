@@ -20,7 +20,7 @@
     "forward_throw", "back_throw", "236236d", "623c", "236c", "2a", "2b", "2c", "5a", "5b", "5c", "5d", "j_c",
     "idle", "crouch", "walk_forward", "walk_back", "prejump", "jump", "landing", "dash", "backdash", "air_dash",
     "air_backdash", "hitstun", "crouch_hitstun", "air_hitstun", "blockstun", "crouch_blockstun", "knockdown",
-    "wake_up", "thrown", "throw_tech", "air_blockstun"
+    "wake_up", "thrown", "throw_tech", "air_blockstun", "burst"
   ],
   "states": {
     "idle": "idle",

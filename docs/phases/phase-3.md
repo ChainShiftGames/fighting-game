@@ -38,7 +38,7 @@ Done when:
 
 ## B. Mechanic modules
 
-In progress: P3-10, P3-12, P3-13, P3-16, P3-17 (branches `p3-<id>-<name>`).
+Done: P3-16. Partly merged: P3-17. In progress: P3-10, P3-12, P3-13 (branches `p3-<id>-<name>`).
 **P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
 `tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
 covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
