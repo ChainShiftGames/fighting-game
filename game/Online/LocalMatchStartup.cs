@@ -58,7 +58,7 @@ public sealed class LocalMatchStartup
         view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay, effects);
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players, _stepping);
-        var recording = new MatchRecording(recorder, driver, predictionFrames: 0, kind: "local");
+        var recording = new MatchRecording(recorder, driver, confirmed: null, kind: "local");
         return new StartedMatch(loop, driver, view, () => $"local {lineup.Description}", connection: null, recording);
     }
 

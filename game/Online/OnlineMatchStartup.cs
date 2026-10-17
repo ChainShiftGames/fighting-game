@@ -9,6 +9,7 @@ using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
 using FightingGame.Settings;
 using Godot;
+using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Online;
@@ -30,6 +31,7 @@ public sealed class OnlineMatchStartup
     private readonly DeveloperToggle _hitboxOverlay;
     private readonly EffectToggles _effectToggles;
     private readonly LiveNetworkSimulation _networkSimulation;
+    private readonly string _desyncFolder;
     private readonly string[] _args;
 
     /// <param name="bindings">One per player on this PC (player settings).</param>
@@ -38,6 +40,9 @@ public sealed class OnlineMatchStartup
     /// <param name="networkSimulation">
     /// This PC's simulated network conditions, changed from the debug panel mid-match (developer settings). Starts at
     /// the command line's conditions; from then on the panel's values carry over to every later match (rematches).
+    /// </param>
+    /// <param name="desyncFolder">
+    /// Full path of the folder desync dumps go to (developer setting; the host uses <c>user://desyncs</c>).
     /// </param>
     /// <param name="args">Command line, for the online tuning options of <see cref="OnlineLaunchOptions"/>.</param>
     public OnlineMatchStartup(
@@ -48,6 +53,7 @@ public sealed class OnlineMatchStartup
         DeveloperToggle hitboxOverlay,
         EffectToggles effectToggles,
         LiveNetworkSimulation networkSimulation,
+        string desyncFolder,
         string[] args)
     {
         _bindings = bindings;
@@ -57,6 +63,7 @@ public sealed class OnlineMatchStartup
         _hitboxOverlay = hitboxOverlay;
         _effectToggles = effectToggles;
         _networkSimulation = networkSimulation;
+        _desyncFolder = desyncFolder;
         _args = args;
         try
         {
@@ -98,9 +105,9 @@ public sealed class OnlineMatchStartup
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);
-        // Frames inside the rollback window may still change, so the replay keeps only the ones before it.
+        // Frames still on predicted inputs may change, so the replay keeps only the final ones.
         var recording = new MatchRecording(
-            recorder, driver, settings.RollbackFrames, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
+            recorder, driver, confirmed: driver, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
         return new StartedMatch(
             loop, driver, view, () => Describe(settings, delay, driver, opponent, lineup), connection, recording, handshake,
             connectionStatus: driver,
@@ -127,6 +134,13 @@ public sealed class OnlineMatchStartup
 
             // Only the packets this PC sends change; the game logic never sees the simulation (ARCHITECTURE.md §6).
             NetworkSimulation = NetworkSimulation.Following(_networkSimulation),
+
+            // Always on: a desync is never hidden (ARCHITECTURE.md §8). The players send these files to the devs.
+            DesyncDumps = new DesyncDumpSettings
+            {
+                Folder = _desyncFolder,
+                HistoryFrames = online.Desync.HistoryFrames,
+            },
         };
         try
         {

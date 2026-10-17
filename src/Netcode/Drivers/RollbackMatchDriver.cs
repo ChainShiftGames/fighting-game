@@ -12,30 +12,58 @@ namespace Netcode.Drivers;
 /// <remarks>
 /// Works for every Backdash session type (SyncTest, peer-to-peer), so the session is built outside and passed in.
 /// Backdash calls back into this class to save, load and resimulate frames; the host never sees a rollback.
+/// Online, an optional desync monitor sees every frame run and compares each final one with the other PC
+/// (ADR-0005 §5); Backdash's own periodic consistency check stays on as a second line.
 /// </remarks>
 public sealed class RollbackMatchDriver<TState> :
-    IMatchDriver<TState>, IConnectionReadout, IConnectionStatusReadout, INetcodeSessionHandler
+    IMatchDriver<TState>, IConfirmedFrameReadout, IConnectionReadout, IConnectionStatusReadout, INetcodeSessionHandler
     where TState : unmanaged
 {
+    private const int NoMismatch = -1;
+
     private readonly IMatchSimulation<TState> _simulation;
     private readonly INetcodeSession<InputWord> _session;
     private readonly NetcodePlayer[] _localPlayers;
     private readonly ConnectionWatch _connection;
+    private readonly ConfirmedInputFrames? _confirmedInputs;
+    private readonly DesyncMonitor<TState>? _desyncMonitor;
     private TState _state;
     private int _currentFrame;
     private int _framesToWait;
-    private string? _desync;
+    private int _backdashMismatchFrame = NoMismatch;
+    private string _backdashMismatch = string.Empty;
+    private DesyncDetectedException? _desync;
     private int _rollbacks;
     private long _rolledBackFrames;
     private int _longestRollbackFrames;
     private int _framesInThisRollback;
 
     /// <param name="clock">Times the countdown while the connection is interrupted; the system clock when null.</param>
+    /// <param name="confirmedInputs">
+    /// The input listener the session was built with (online); null when every frame is final as soon as it runs
+    /// (SyncTest).
+    /// </param>
+    /// <param name="desyncMonitor">
+    /// Compares each final frame with the other PC (online); needs <paramref name="confirmedInputs"/>.
+    /// </param>
     public RollbackMatchDriver(
-        IMatchSimulation<TState> simulation, INetcodeSession<InputWord> session, TimeProvider? clock = null)
+        IMatchSimulation<TState> simulation,
+        INetcodeSession<InputWord> session,
+        TimeProvider? clock = null,
+        ConfirmedInputFrames? confirmedInputs = null,
+        DesyncMonitor<TState>? desyncMonitor = null)
     {
+        if (desyncMonitor is not null && confirmedInputs is null)
+        {
+            // Comparing a frame that may still be rolled back would report desyncs that never happened.
+            throw new ArgumentException(
+                "A desync monitor may only see final frames: pass the session's confirmed inputs.", nameof(confirmedInputs));
+        }
+
         _simulation = simulation;
         _session = session;
+        _confirmedInputs = confirmedInputs;
+        _desyncMonitor = desyncMonitor;
         _connection = new ConnectionWatch(clock ?? TimeProvider.System);
         _state = simulation.CreateInitialState();
         _localPlayers = LocalPlayersInPortOrder(session);
@@ -49,49 +77,40 @@ public sealed class RollbackMatchDriver<TState> :
 
     public ref readonly TState State => ref _state;
 
+    // Backdash reports a frame confirmed only after rerunning every frame it had predicted wrongly, and a frame
+    // still to run will run with those inputs: the frames up to the smaller number are final.
+    public int ConfirmedFrame =>
+        _confirmedInputs is null ? _currentFrame : Math.Min(_confirmedInputs.Count, _currentFrame);
+
+    /// <summary>The newest frame both PCs' desync monitors computed the same checksum for; 0 without a monitor.</summary>
+    public int AgreedFrame => _desyncMonitor?.LastAgreedFrame ?? 0;
+
+    /// <exception cref="DesyncDetectedException">
+    /// The PCs disagree. Every later call throws it again: the match is over, and its dump is written only once.
+    /// </exception>
     public bool TryAdvanceFrame(ReadOnlySpan<InputWord> localInputs)
     {
         MatchPlayers.EnsureInputCount(localInputs, _localPlayers.Length);
+        if (_desync is not null)
+        {
+            throw _desync;
+        }
+
         try
         {
-            if (!_connection.IsDisconnected)
-            {
-                _session.BeginFrame();
-            }
-
-            if (_desync is not null)
-            {
-                throw new DesyncDetectedException(_desync);
-            }
-
-            // After a disconnect Backdash plays on alone, with default inputs for the other player, so the two PCs
-            // would drift apart unnoticed. The match holds instead and is over (ReadConnectionStatus), without a result.
-            if (_connection.IsDisconnected)
-            {
-                return false;
-            }
-
-            // Time sync: this PC is ahead of the other one, so it waits a frame for it to catch up (ADR-0004 §4).
-            if (_framesToWait > 0)
-            {
-                _framesToWait--;
-                return false;
-            }
-
-            for (int i = 0; i < _localPlayers.Length; i++)
-            {
-                InputWord input = localInputs[i];
-                if (_session.AddLocalInput(_localPlayers[i], in input) != ResultCode.Ok)
-                {
-                    return false;
-                }
-            }
-
-            return RunSynchronizedFrame();
+            bool advanced = AdvanceSession(localInputs);
+            _desyncMonitor?.ConfirmThrough(ConfirmedFrame);
+            return advanced;
+        }
+        catch (DesyncDetectedException desync)
+        {
+            _desync = desync;
+            throw;
         }
         catch (NetcodeException exception) when (_session.IsSyncTest())
         {
-            throw new DesyncDetectedException($"SyncTest found a desync near frame {_currentFrame}.", exception);
+            _desync = new DesyncDetectedException($"SyncTest found a desync near frame {_currentFrame}.", exception);
+            throw _desync;
         }
     }
 
@@ -162,10 +181,11 @@ public sealed class RollbackMatchDriver<TState> :
     // Raised from Backdash's callback, thrown from the host's next frame so the host sees it (ARCHITECTURE.md §8).
     void INetcodeSessionHandler.OnPeerEvent(NetcodePlayer player, in PeerEventInfo evt)
     {
-        if (evt.Type == PeerEvent.ChecksumMismatch)
+        if (evt.Type == PeerEvent.ChecksumMismatch && _backdashMismatchFrame == NoMismatch)
         {
             ChecksumMismatchEventInfo mismatch = evt.ChecksumMismatch;
-            _desync = $"Checksums differ at frame {mismatch.MismatchFrame.Number}: " +
+            _backdashMismatchFrame = mismatch.MismatchFrame.Number;
+            _backdashMismatch = $"Backdash's consistency check: checksums differ at frame {_backdashMismatchFrame}: " +
                 $"this PC {mismatch.LocalChecksum}, other PC {mismatch.RemoteChecksum}.";
         }
         else if (evt.Type == PeerEvent.ConnectionInterrupted)
@@ -182,6 +202,54 @@ public sealed class RollbackMatchDriver<TState> :
         }
     }
 
+    private bool AdvanceSession(ReadOnlySpan<InputWord> localInputs)
+    {
+        if (!_connection.IsDisconnected)
+        {
+            _session.BeginFrame();
+        }
+
+        ThrowIfBackdashFoundADesync();
+
+        // After a disconnect Backdash plays on alone, with default inputs for the other player, so the two PCs
+        // would drift apart unnoticed. The match holds instead and is over (ReadConnectionStatus), without a result.
+        if (_connection.IsDisconnected)
+        {
+            return false;
+        }
+
+        // Time sync: this PC is ahead of the other one, so it waits a frame for it to catch up (ADR-0004 §4).
+        if (_framesToWait > 0)
+        {
+            _framesToWait--;
+            return false;
+        }
+
+        for (int i = 0; i < _localPlayers.Length; i++)
+        {
+            InputWord input = localInputs[i];
+            if (_session.AddLocalInput(_localPlayers[i], in input) != ResultCode.Ok)
+            {
+                return false;
+            }
+        }
+
+        return RunSynchronizedFrame();
+    }
+
+    // One desync path for the game whichever check found it: with a monitor, Backdash's finding gets a dump too.
+    // Backdash numbers the state it saved before running frame n as frame n: the monitor's frame n, after n frames.
+    private void ThrowIfBackdashFoundADesync()
+    {
+        if (_backdashMismatchFrame == NoMismatch)
+        {
+            return;
+        }
+
+        _desyncMonitor?.ReportMismatch(_backdashMismatchFrame, _backdashMismatch);
+        throw new DesyncDetectedException(_backdashMismatch);
+    }
+
     private bool RunSynchronizedFrame()
     {
         if (_session.SynchronizeInputs() != ResultCode.Ok)
@@ -192,6 +260,7 @@ public sealed class RollbackMatchDriver<TState> :
         ReadOnlySpan<SynchronizedInput<InputWord>> inputs = _session.CurrentSynchronizedInputs;
         _simulation.Tick(ref _state, inputs[0].Input, inputs[1].Input);
         _currentFrame++;
+        _desyncMonitor?.RecordFrame(_currentFrame, in _state, inputs[0].Input, inputs[1].Input);
         _session.AdvanceFrame();
         return true;
     }

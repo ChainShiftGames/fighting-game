@@ -10,9 +10,8 @@ namespace FightingGame.Online;
 /// The replay of one running match, handed over once: when the match is over, or whatever is final when it ends early.
 /// </summary>
 /// <remarks>
-/// Online, the newest frames may still run on predicted inputs that a rollback replaces, so only frames older than
-/// the prediction window are handed over: Backdash never runs more frames ahead of the last confirmed one
-/// (<c>PredictionFrames</c>, our rollback window), so those frames are confirmed on both PCs.
+/// Online, the newest frames may still run on predicted inputs that a rollback replaces, so only the frames the
+/// driver reports final are handed over: they ran with both players' confirmed inputs.
 /// </remarks>
 public sealed class MatchRecording
 {
@@ -20,21 +19,19 @@ public sealed class MatchRecording
 
     private readonly ReplayRecorder _recorder;
     private readonly IMatchDriver<MatchState> _driver;
-    private readonly int _predictionFrames;
+    private readonly IConfirmedFrameReadout? _confirmed;
     private int _overAtFrameCount = NotOver;
     private bool _handedOver;
 
     /// <param name="recorder">Records the driver's match (<see cref="MatchLineup.RecordedSimulation"/>).</param>
-    /// <param name="predictionFrames">
-    /// The newest frames that may still be rolled back: the online rollback window, 0 when every frame is final.
-    /// </param>
+    /// <param name="confirmed">Which frames are final (online); null when every frame is final once it runs.</param>
     /// <param name="kind">What kind of match it is, e.g. "local" or "online-p2", for the file name.</param>
-    public MatchRecording(ReplayRecorder recorder, IMatchDriver<MatchState> driver, int predictionFrames, string kind)
+    public MatchRecording(
+        ReplayRecorder recorder, IMatchDriver<MatchState> driver, IConfirmedFrameReadout? confirmed, string kind)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(predictionFrames);
         _recorder = recorder;
         _driver = driver;
-        _predictionFrames = predictionFrames;
+        _confirmed = confirmed;
         Kind = kind;
     }
 
@@ -42,7 +39,7 @@ public sealed class MatchRecording
 
     /// <summary>Recorded frames no rollback can change any more.</summary>
     public int ConfirmedFrameCount =>
-        Math.Clamp(_driver.CurrentFrame - _predictionFrames, 0, _recorder.FrameCount);
+        Math.Clamp(_confirmed?.ConfirmedFrame ?? _driver.CurrentFrame, 0, _recorder.FrameCount);
 
     /// <summary>
     /// Call once per displayed frame. The whole match up to its result, once it is over and that part is confirmed;

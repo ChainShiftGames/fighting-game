@@ -31,6 +31,9 @@ public partial class Main : Node2D
     private const string DevBindingsPath = "user://dev_bindings.jsonc";
     private const string ReplaysPath = "user://replays";
 
+    // Developer setting: where online desync dumps go (ADR-0005 §5); the players send these files to the devs.
+    private const string DesyncsPath = "user://" + DesyncDumpSettings.DefaultFolderName;
+
     // Developer settings.
     private const int LatencyWindowFrames = 120;
     private const Key ToggleDebugPanelKey = Key.F1;
@@ -297,7 +300,15 @@ public partial class Main : Node2D
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
         _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
         _onlineStartup = new OnlineMatchStartup(
-            bindings, devices, _joypads, loops, _hitboxOverlay, _effectToggles, _networkSimulation, args);
+            bindings,
+            devices,
+            _joypads,
+            loops,
+            _hitboxOverlay,
+            _effectToggles,
+            _networkSimulation,
+            ProjectSettings.GlobalizePath(DesyncsPath),
+            args);
         _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
     }
 

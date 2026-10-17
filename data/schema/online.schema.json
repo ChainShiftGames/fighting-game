@@ -5,7 +5,7 @@
   "description": "data/netcode/online.json: how online matches run (developer settings). They don't change game results, so they are not part of the data hash or the match rules. Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Online).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "rollbackFrames", "automaticInputDelay", "disconnect"],
+  "required": ["schemaVersion", "rollbackFrames", "automaticInputDelay", "disconnect", "desync"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
@@ -31,6 +31,15 @@
       "properties": {
         "warningAfterMilliseconds": { "type": "integer", "minimum": 250, "maximum": 60000, "description": "Silence before the \"connection interrupted\" warning, with the seconds left. At least 250, above Backdash's 200 ms keep-alive. Default 3000." },
         "endMatchAfterMilliseconds": { "type": "integer", "minimum": 250, "maximum": 60000, "description": "Silence before the match ends without a result; more than warningAfterMilliseconds. Default 10000." }
+      }
+    },
+    "desync": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The per-frame desync check of online matches (ADR-0005 §5, ADR-0019): both PCs compare every final frame's checksum and each writes a dump to user://desyncs on the first mismatch. There is no switch to turn it off.",
+      "required": ["historyFrames"],
+      "properties": {
+        "historyFrames": { "type": "integer", "minimum": 60, "maximum": 3600, "description": "Newest frames of states and inputs kept for a dump (each keeps a whole state). Also how far one PC's checksums may run ahead of the other's before the check fails as \"history too short\". Default 600 (10 s)." }
       }
     }
   }

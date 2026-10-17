@@ -91,7 +91,8 @@ internal sealed class SoakRun
     private void Log(string line) => _log.WriteLine($"[{_clock.Elapsed:hh\\:mm\\:ss}] {line}");
 
     private static string Status(SoakMatch match) =>
-        $"frames {match.Player1Frame} / {match.Player2Frame}, matched through {match.ComparedThroughFrame}; " +
+        $"frames {match.Player1Frame} / {match.Player2Frame}, matched through {match.ComparedThroughFrame} " +
+        $"(monitors agreed through {match.Player1AgreedFrame} / {match.Player2AgreedFrame}); " +
         $"P1 {Connection(match.Player1Connection)}; P2 {Connection(match.Player2Connection)}";
 
     private static string Connection(IConnectionReadout readout) =>

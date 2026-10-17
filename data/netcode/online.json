@@ -12,5 +12,8 @@
   "disconnect": {
     "warningAfterMilliseconds": 3000,
     "endMatchAfterMilliseconds": 10000
+  },
+  "desync": {
+    "historyFrames": 600
   }
 }

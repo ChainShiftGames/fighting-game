@@ -25,7 +25,7 @@ public sealed class RecordedMatchPlaybackTests : IDisposable
         MatchLineup lineup = MatchLineup.From(TestGameData.Data);
         var recorder = new ReplayRecorder(lineup.CreateReplayHeader(TestGameData.Data));
         using var match = new LocalMatchDriver<MatchState>(lineup.RecordedSimulation(recorder));
-        var recording = new MatchRecording(recorder, match, predictionFrames: 0, "local");
+        var recording = new MatchRecording(recorder, match, confirmed: null, "local");
         for (int frame = 0; frame < Frames; frame++)
         {
             Assert.True(match.TryAdvanceFrame([Player1Input(frame), Player2Input(frame)]));

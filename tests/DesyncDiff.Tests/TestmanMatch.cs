@@ -14,6 +14,9 @@ internal static class TestmanMatch
 {
     private static readonly GameData _data = new GameDataLoader(new DirectoryDataSource(DataRoot())).Load();
 
+    /// <summary>The game data the match is composed from, for its handshake identity.</summary>
+    public static GameData Data => _data;
+
     public static MatchSimulation Create()
     {
         CharacterData testman = _data.Character("testman");

@@ -9,7 +9,8 @@ namespace Netcode.Transport;
 
 /// <summary>
 /// Backdash's socket over an <see cref="ITransport"/>, for a session with one opponent. Every packet that arrives is
-/// checked before Backdash reads it; oversized and malformed ones are dropped and counted.
+/// checked before Backdash reads it; oversized and malformed ones are dropped and counted. The desync check's
+/// packets travel alongside (ADR-0019) and go to their link instead.
 /// </summary>
 /// <remarks>The only place transports meet Backdash, so transports stay free of Backdash types (ADR-0005 §2).</remarks>
 internal sealed class TransportSocket : IPeerSocket
@@ -18,15 +19,19 @@ internal sealed class TransportSocket : IPeerSocket
     private readonly EndPoint _opponent;
     private readonly SocketAddress _opponentAddress;
     private readonly DroppedPackets _dropped;
+    private readonly TransportChecksumLink? _checksums;
 
     /// <param name="opponent">The other PC, as the session's remote player knows it.</param>
     /// <param name="port">The port Backdash was told this socket has.</param>
-    public TransportSocket(ITransport transport, EndPoint opponent, int port, DroppedPackets dropped)
+    /// <param name="checksums">Takes the desync check's packets; without it they count as malformed.</param>
+    public TransportSocket(
+        ITransport transport, EndPoint opponent, int port, DroppedPackets dropped, TransportChecksumLink? checksums = null)
     {
         _transport = transport;
         _opponent = opponent;
         _opponentAddress = opponent.Serialize();
         _dropped = dropped;
+        _checksums = checksums;
         Port = port;
     }
 
@@ -73,6 +78,13 @@ internal sealed class TransportSocket : IPeerSocket
             if (length > packetSpace.Length)
             {
                 _dropped.CountOversized();
+            }
+            else if (ChecksumMessage.IsChecksumMessage(packetSpace.Span[..length]))
+            {
+                if (_checksums is null || !_checksums.Deliver(packetSpace.Span[..length]))
+                {
+                    _dropped.CountMalformed();
+                }
             }
             else if (!BackdashPacketFormat.IsWellFormed(packetSpace.Span[..length]))
             {

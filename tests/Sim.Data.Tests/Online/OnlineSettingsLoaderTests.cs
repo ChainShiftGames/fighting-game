@@ -55,11 +55,54 @@ public sealed class OnlineSettingsLoaderTests
     {
         _data.SetText(
             OnlineSchema.File,
-            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"automaticInputDelay\": {Delay(1, 2)} }}");
+            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"automaticInputDelay\": {Delay(1, 2)}, \"desync\": {Desync(600)} }}");
 
         DataError error = Assert.Single(
             Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
         Assert.Equal("disconnect", error.Field);
+    }
+
+    [Fact]
+    public void RepositorySettingsKeepTenSecondsOfDesyncHistory()
+    {
+        OnlineSettings settings = OnlineSettingsLoader.Load(new DirectoryDataSource(Fixture.RepositoryDataRoot));
+
+        Assert.Equal(new DesyncSettings(600), settings.Desync);
+    }
+
+    [Theory]
+    [InlineData(OnlineSchema.MinDesyncHistoryFrames)]
+    [InlineData(OnlineSchema.MaxDesyncHistoryFrames)]
+    public void ReadsTheDesyncHistory(int frames)
+    {
+        _data.SetText(OnlineSchema.File, File(8, Delay(1, 2), Disconnect(3000, 10_000), Desync(frames)));
+
+        Assert.Equal(new DesyncSettings(frames), OnlineSettingsLoader.Load(_data).Desync);
+    }
+
+    [Theory]
+    [InlineData(OnlineSchema.MinDesyncHistoryFrames - 1)]
+    [InlineData(OnlineSchema.MaxDesyncHistoryFrames + 1)]
+    public void ADesyncHistoryOutOfRangeIsReported(int frames)
+    {
+        _data.SetText(OnlineSchema.File, File(8, Delay(1, 2), Disconnect(3000, 10_000), Desync(frames)));
+
+        DataError error = Assert.Single(
+            Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
+        Assert.Equal("desync.historyFrames", error.Field);
+    }
+
+    [Fact]
+    public void AMissingDesyncSectionIsReported()
+    {
+        _data.SetText(
+            OnlineSchema.File,
+            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"automaticInputDelay\": {Delay(1, 2)}, " +
+            $"\"disconnect\": {Disconnect(3000, 10_000)} }}");
+
+        DataError error = Assert.Single(
+            Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
+        Assert.Equal("desync", error.Field);
     }
 
     [Theory]
@@ -119,7 +162,7 @@ public sealed class OnlineSettingsLoaderTests
     {
         _data.SetText(
             OnlineSchema.File,
-            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"disconnect\": {Disconnect(3000, 10_000)} }}");
+            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"disconnect\": {Disconnect(3000, 10_000)}, \"desync\": {Desync(600)} }}");
 
         DataError error = Assert.Single(
             Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
@@ -150,8 +193,13 @@ public sealed class OnlineSettingsLoaderTests
         File(rollbackFrames, automaticDelay, Disconnect(3000, 10_000));
 
     private static string File(int rollbackFrames, string automaticDelay, string disconnect) =>
+        File(rollbackFrames, automaticDelay, disconnect, Desync(600));
+
+    private static string File(int rollbackFrames, string automaticDelay, string disconnect, string desync) =>
         $"{{ \"schemaVersion\": 1, \"rollbackFrames\": {rollbackFrames}, \"automaticInputDelay\": {automaticDelay}, " +
-        $"\"disconnect\": {disconnect} }}";
+        $"\"disconnect\": {disconnect}, \"desync\": {desync} }}";
+
+    private static string Desync(int historyFrames) => $"{{ \"historyFrames\": {historyFrames} }}";
 
     private static string Disconnect(int warningAfterMilliseconds, int endMatchAfterMilliseconds) =>
         $"{{ \"warningAfterMilliseconds\": {warningAfterMilliseconds}, " +

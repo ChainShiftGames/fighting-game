@@ -13,6 +13,13 @@
     <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Shared with the Netcode tests rather than copied: the seeded fighter inputs and in-memory transport pair the
+         online tests use, for the injected desync between two online peers. -->
+    <Compile Include="..\Netcode.Tests\Matches\FightingInputs.cs" Link="Shared\FightingInputs.cs" />
+    <Compile Include="..\Netcode.Tests\Transport\InMemoryTransport.cs" Link="Shared\InMemoryTransport.cs" />
+    <Compile Include="..\Netcode.Tests\Transport\OpenedTransport.cs" Link="Shared\OpenedTransport.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Lets the injected-desync test run the real match from data/. -->
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>RepositoryRoot</_Parameter1>

@@ -30,8 +30,20 @@ public static class OnlineSettingsLoader
         AutomaticInputDelaySettings? automaticDelay = delay is null ? null : ReadAutomaticDelay(delay, errors);
         FieldReader? disconnect = file.RequiredObject("disconnect");
         DisconnectSettings? disconnectSettings = disconnect is null ? null : ReadDisconnect(disconnect, errors);
+        FieldReader? desync = file.RequiredObject("desync");
+        DesyncSettings? desyncSettings = desync is null ? null : ReadDesync(desync);
         file.Finish();
-        return errors.Count > 0 ? null : new OnlineSettings(rollbackFrames, automaticDelay!, disconnectSettings!);
+        return errors.Count > 0
+            ? null
+            : new OnlineSettings(rollbackFrames, automaticDelay!, disconnectSettings!, desyncSettings!);
+    }
+
+    private static DesyncSettings ReadDesync(FieldReader desync)
+    {
+        int historyFrames = desync.RequiredInt(
+            "historyFrames", OnlineSchema.MinDesyncHistoryFrames, OnlineSchema.MaxDesyncHistoryFrames);
+        desync.Finish();
+        return new DesyncSettings(historyFrames);
     }
 
     private static AutomaticInputDelaySettings ReadAutomaticDelay(FieldReader delay, DataErrors errors)

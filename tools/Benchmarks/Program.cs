@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Benchmarks.Drivers;
 using Benchmarks.Operations;
 using Sim.Composition;
+using Sim.Data.Online;
+using Sim.Data.Sources;
 using Sim.State;
 
 namespace Benchmarks;
@@ -35,6 +37,8 @@ internal static class Program
         var snapshotSave = new SnapshotSaveOperation<MatchState>(MatchStateName, match.MidMatch, options.RollbackFrames);
         var snapshotLoad = new SnapshotLoadOperation<MatchState>(MatchStateName, match.MidMatch, options.RollbackFrames);
         var checksum = new ChecksumOperation<MatchState>(MatchStateName, match.MidMatch);
+        OnlineSettings online = OnlineSettingsLoader.Load(new EmbeddedDataSource());
+        var desyncMonitor = new DesyncMonitorOperation(match.MidMatch, online.Desync.HistoryFrames);
 
         OperationResult tickResult = timer.Measure(ref tick);
         List<OperationResult> results =
@@ -44,12 +48,13 @@ internal static class Program
             timer.Measure(ref snapshotSave),
             timer.Measure(ref snapshotLoad),
             timer.Measure(ref checksum),
+            timer.Measure(ref desyncMonitor),
         ];
 
         ResultTable.Write(Console.Out, results);
         if (options.IncludeBackdash)
         {
-            ResultTable.WriteBackdash(Console.Out, MeasureBackdash(simulation, inputs, options));
+            ResultTable.WriteBackdash(Console.Out, MeasureBackdash(simulation, inputs, options, online.Desync.HistoryFrames));
         }
 
         List<string> violations = BudgetCheck.FindViolations(results, tickResult, options.MaxTickMicroseconds);
@@ -63,11 +68,12 @@ internal static class Program
 
     // Not gated: Backdash's own time and allocations aren't ours to fix (ADR-0013), so they are only recorded.
     private static List<FrameResult> MeasureBackdash(
-        MatchSimulation simulation, InputSequence inputs, BenchmarkOptions options)
+        MatchSimulation simulation, InputSequence inputs, BenchmarkOptions options, int desyncHistoryFrames)
     {
         var timer = new FrameTimer(options);
         return [Measure(timer, new SyncTestFrameBenchmark(simulation, inputs, options.RollbackFrames)),
-            Measure(timer, new PeerFrameBenchmark(simulation, inputs, options.RollbackFrames))];
+            Measure(timer, new PeerFrameBenchmark(simulation, inputs, options.RollbackFrames, desyncHistoryFrames: null)),
+            Measure(timer, new PeerFrameBenchmark(simulation, inputs, options.RollbackFrames, desyncHistoryFrames))];
     }
 
     // One session at a time: allocations are counted for the whole process, so another session's network threads

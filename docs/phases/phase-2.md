@@ -94,6 +94,7 @@ Read: ADR-0005
 - On mismatch, both sides write a dump (state at the last agreed frame and the first mismatched frame, inputs,
   version) to a `desyncs/` folder.
 - `DesyncDiff` tool: given two dumps, lists differing fields by name.
+- Online: every online match runs it over the match transport (ADR-0019); the game writes dumps to `user://desyncs`.
 
 Done when:
 - [x] a deliberately injected desync produces dumps and the tool names the exact field
