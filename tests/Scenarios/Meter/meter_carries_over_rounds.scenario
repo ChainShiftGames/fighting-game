@@ -1,0 +1,13 @@
+# carryOverRounds 1: p1's meter after the KO (1000 + 300 for the hit) is still there in round 2.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: p2 health = 1
+setup: module meter 5000 300 0 0 1000 1
+frame 2: p1 5a
+
+frame 6: expect p1 event hit
+frame 6: expect module meter[0] = 1300
+frame 200: expect round = 2
+frame 200: expect module meter[0] = 1300

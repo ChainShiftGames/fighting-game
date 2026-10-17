@@ -1,4 +1,5 @@
 using System;
+using Sim.Characters;
 using Sim.Events;
 using Sim.Modules;
 using Sim.State;
@@ -7,11 +8,11 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, freezes, module events; within a
-/// kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier slot);
-/// for time scale, hitstop, gravity and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every
-/// module event is emitted. An invalid request is a module bug and throws, naming the slot, rather than being
-/// silently fixed. The request tables are cleared after applying.
+/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, move locks, freezes, module events;
+/// within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier
+/// slot); for time scale, hitstop, gravity and stun the latest slot wins; move locks combine; the longest freeze wins
+/// (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
+/// slot, rather than being silently fixed. The request tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
 {
@@ -32,6 +33,7 @@ public sealed class CoreRequestApplier
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
             ApplyGravityScales(ref fighterState, fighter);
             ApplyStunOverrides(ref fighterState, fighter);
+            ApplyMoveLocks(ref fighterState.LockedMoveCategories, fighter);
         }
 
         ApplyFreezes(ref state.Freeze);
@@ -167,6 +169,26 @@ public sealed class CoreRequestApplier
             }
 
             fighterState.ExtraGravityPermille = request.ExtraPermille;
+        }
+    }
+
+    private void ApplyMoveLocks(ref MoveCategory locked, int fighter)
+    {
+        const MoveCategory Lockable = MoveCategory.Normal | MoveCategory.Special | MoveCategory.Super |
+            MoveCategory.Throw;
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            if (!_requests.MoveLocks.TryGet(CoreRequests.FighterKey(slot, fighter), out MoveLockRequest request))
+            {
+                continue;
+            }
+
+            if ((request.Categories & ~Lockable) != 0)
+            {
+                throw Invalid(slot, $"a move lock on categories {request.Categories}");
+            }
+
+            locked |= request.Categories;
         }
     }
 

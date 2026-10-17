@@ -1,4 +1,5 @@
 using System;
+using Sim.Characters;
 using Sim.Modules;
 using Sim.State;
 using Xunit;
@@ -47,12 +48,14 @@ public sealed class CoreRequestsTests
         requests.StunOverrides.Set(4, new StunOverrideRequest { Frames = 5 });
         requests.Events.Set(5, new ModuleEventRequest { Code = 6 });
         requests.GravityScales.Set(6, new GravityScaleRequest { ExtraPermille = 7 });
+        requests.MoveLocks.Set(7, new MoveLockRequest { Categories = MoveCategory.Super });
 
         requests.Clear();
 
         Assert.False(requests.StunOverrides.TryGet(4, out _));
         Assert.False(requests.Events.TryGet(5, out _));
         Assert.False(requests.GravityScales.TryGet(6, out _));
+        Assert.False(requests.MoveLocks.TryGet(7, out _));
         Assert.False(requests.Cancels.TryGet(0, out _));
         Assert.False(requests.TimeScales.TryGet(1, out _));
         Assert.False(requests.HitstopOverrides.TryGet(2, out _));

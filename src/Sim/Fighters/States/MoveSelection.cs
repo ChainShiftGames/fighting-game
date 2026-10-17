@@ -112,6 +112,9 @@ public sealed class MoveSelection
     private bool CanStart(in FighterState fighter, in InputHistory history, in MoveData move)
     {
         MoveStance stance = fighter.IsAirborne != 0 ? MoveStance.Air : MoveStance.Ground;
-        return move.Stance == stance && _input.IsTriggered(in history, in move, fighter.Facing);
+        // A locked category (core request, e.g. a super without meter) is skipped, so the input falls through to the
+        // next move in priority order.
+        return move.Stance == stance && (move.Category & fighter.LockedMoveCategories) == 0 &&
+            _input.IsTriggered(in history, in move, fighter.Facing);
     }
 }

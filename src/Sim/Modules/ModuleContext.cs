@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Sim.Rules;
 using Sim.State;
@@ -8,7 +9,8 @@ namespace Sim.Modules;
 /// <summary>What one module sees in a hook: the match read-only, its own state slice, its config and core requests.</summary>
 /// <remarks>
 /// The match state is read-only, so a module can't write core state. It must not read another module's slice either
-/// (ADR-0011); modules interact only through interfaces or events the core defines.
+/// (ADR-0011); modules interact only through interfaces or events the core defines, such as the meter of the
+/// lineup's <see cref="IMeterGauge"/> (<see cref="MeterOf"/>, <see cref="TrySpendMeter"/>).
 /// </remarks>
 public readonly ref struct ModuleContext
 {
@@ -18,6 +20,11 @@ public readonly ref struct ModuleContext
     private readonly CoreRequests _requests;
     private readonly int _slot;
 
+    // Writable only so the meter gauge can update its own slice when another module spends; null without one.
+    private readonly ref MatchState _meterState;
+    private readonly MeterAccess? _meters;
+
+    /// <summary>A context without meter access: <see cref="MeterOf"/> is 0 and spending fails.</summary>
     public ModuleContext(
         ref readonly MatchState state,
         ref ModuleStateSlice slice,
@@ -30,6 +37,25 @@ public readonly ref struct ModuleContext
         _config = ref config;
         _requests = requests;
         _slot = slot;
+        _meterState = ref Unsafe.NullRef<MatchState>();
+        _meters = null;
+    }
+
+    internal ModuleContext(
+        ref MatchState state,
+        ref ModuleStateSlice slice,
+        ref readonly ModuleConfig config,
+        CoreRequests requests,
+        int slot,
+        MeterAccess meters)
+    {
+        _state = ref state;
+        _slice = ref slice;
+        _config = ref config;
+        _requests = requests;
+        _slot = slot;
+        _meterState = ref state;
+        _meters = meters;
     }
 
     public ref readonly MatchState State => ref _state;
@@ -50,6 +76,13 @@ public readonly ref struct ModuleContext
         return ref MemoryMarshal.AsRef<TConfig>(MemoryMarshal.AsBytes(config));
     }
 
+    /// <summary>The fighter's meter from the lineup's <see cref="IMeterGauge"/>; 0 without one.</summary>
+    public int MeterOf(int fighter) => _meters is null ? 0 : _meters.MeterOf(ref _meterState, fighter);
+
+    /// <summary>Spends the fighter's meter now if it has <paramref name="amount"/>; false without enough or a gauge.</summary>
+    public bool TrySpendMeter(int fighter, int amount) =>
+        _meters is not null && _meters.TrySpend(ref _meterState, fighter, amount);
+
     public void RequestCancel(int fighter, in CancelRequest request) =>
         _requests.Cancels.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
@@ -59,8 +92,11 @@ public readonly ref struct ModuleContext
     public void RequestHitstopOverride(int fighter, in HitstopOverrideRequest request) =>
         _requests.HitstopOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
+    public void RequestMoveLock(int fighter, in MoveLockRequest request) =>
+        _requests.MoveLocks.Set(CoreRequests.FighterKey(_slot, fighter), request);
     public void RequestGravityScale(int fighter, in GravityScaleRequest request) =>
         _requests.GravityScales.Set(CoreRequests.FighterKey(_slot, fighter), request);
+
     public void RequestStunOverride(int fighter, in StunOverrideRequest request) =>
         _requests.StunOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 

@@ -18,6 +18,7 @@ public sealed class CoreRequests
     public RequestTable<CancelRequest> Cancels { get; } = new(FighterKeyCount);
     public RequestTable<TimeScaleRequest> TimeScales { get; } = new(FighterKeyCount);
     public RequestTable<HitstopOverrideRequest> HitstopOverrides { get; } = new(FighterKeyCount);
+    public RequestTable<MoveLockRequest> MoveLocks { get; } = new(FighterKeyCount);
     public RequestTable<GravityScaleRequest> GravityScales { get; } = new(FighterKeyCount);
     public RequestTable<StunOverrideRequest> StunOverrides { get; } = new(FighterKeyCount);
 
@@ -45,6 +46,7 @@ public sealed class CoreRequests
         Cancels.Clear();
         TimeScales.Clear();
         HitstopOverrides.Clear();
+        MoveLocks.Clear();
         GravityScales.Clear();
         StunOverrides.Clear();
         Freezes.Clear();

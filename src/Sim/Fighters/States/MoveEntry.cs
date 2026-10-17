@@ -10,8 +10,12 @@ namespace Sim.Fighters.States;
 /// </remarks>
 public static class MoveEntry
 {
-    public static void EnterAttack(ref FighterState fighter, int move) =>
+    /// <summary>Enters an attack (any non-basic move) and reports its category as started this frame.</summary>
+    public static void EnterAttack(ref FighterState fighter, int move, CharacterData character)
+    {
         Enter(ref fighter, FighterAction.Attack, move);
+        fighter.StartedMoveCategory = character.Moves[move].Category;
+    }
 
     /// <summary>Enters a basic action with the character's move for it, or its idle move if it defines none.</summary>
     public static void EnterBasic(ref FighterState fighter, FighterAction action, CharacterData character)

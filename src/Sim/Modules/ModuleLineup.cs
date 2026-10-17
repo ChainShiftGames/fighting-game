@@ -22,6 +22,7 @@ public sealed class ModuleLineup
     private readonly HookList<IOnThrowHook> _onThrow;
     private readonly HookList<IEndOfFrameHook> _endOfFrame;
     private readonly HookList<IAirGuardHook> _airGuard;
+    private readonly MeterAccess _meters;
     private readonly HookList<IHitAdjustmentHook> _hitAdjustment;
     private readonly HookList<ICancelWindowHook> _cancelWindows;
 
@@ -39,6 +40,7 @@ public sealed class ModuleLineup
         _onThrow = new(modulesBySlot);
         _endOfFrame = new(modulesBySlot);
         _airGuard = new(modulesBySlot);
+        _meters = CreateMeterAccess(modulesBySlot, in slots, requests);
         _hitAdjustment = new(modulesBySlot);
         _cancelWindows = new(modulesBySlot);
     }
@@ -153,7 +155,21 @@ public sealed class ModuleLineup
     }
 
     private ModuleContext ContextFor(ref MatchState state, int slot) =>
-        new(in state, ref state.Modules[slot], in _slots[slot].Config, _requests, slot);
+        new(ref state, ref state.Modules[slot], in _slots[slot].Config, _requests, slot, _meters);
+
+    // The first meter gauge in hook order keeps the meter; a second one would never be asked.
+    private static MeterAccess CreateMeterAccess(
+        IMechanicModule?[] modulesBySlot, in ModuleSlots slots, CoreRequests requests)
+    {
+        var gauges = new HookList<IMeterGauge>(modulesBySlot);
+        if (gauges.Count == 0)
+        {
+            return new MeterAccess(null, 0, default, requests);
+        }
+
+        int slot = gauges.SlotAt(0);
+        return new MeterAccess(gauges.HookAt(0), slot, in slots[slot].Config, requests);
+    }
 
     private static IMechanicModule?[] ResolveModules(ModuleCatalog catalog, in ModuleSlots slots)
     {

@@ -4,6 +4,7 @@ using Sim.Modules.ComboLimits;
 using Sim.Modules.ContractProbe;
 using Sim.Modules.Gatlings;
 using Sim.Modules.InstantBlock;
+using Sim.Modules.Meter;
 
 namespace Sim.Modules;
 
@@ -26,5 +27,6 @@ public static class RegisteredModules
         new ContractProbeModule(),
         new GatlingsModule(),
         new InstantBlockModule(),
+        new MeterModule(),
     ]);
 }
