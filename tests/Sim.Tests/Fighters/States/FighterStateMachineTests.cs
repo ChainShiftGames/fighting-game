@@ -408,6 +408,8 @@ public sealed class FighterStateMachineTests
 
         public bool IsBackdashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Backdash);
 
+        public bool IsRunHeld(in InputHistory history, int facing) => _moves.IsRunHeld(in history, facing);
+
         public bool IsHighJumpTriggered(in InputHistory history, int facing) =>
             _moves.IsHighJumpTriggered(in history, facing);
 

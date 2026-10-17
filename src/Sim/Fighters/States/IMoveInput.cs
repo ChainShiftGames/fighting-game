@@ -21,6 +21,9 @@ public interface IMoveInput
     /// <summary>A backdash was input: a backdash on the ground, a backward air dash in the air.</summary>
     bool IsBackdashTriggered(in InputHistory history, int facing);
 
+    /// <summary>A run keeps going: forward held, or the dash button held without back (Strive style).</summary>
+    bool IsRunHeld(in InputHistory history, int facing);
+
     /// <summary>The jump input starting a prejump this frame was a high jump (e.g. 2 then 8).</summary>
     bool IsHighJumpTriggered(in InputHistory history, int facing);
 

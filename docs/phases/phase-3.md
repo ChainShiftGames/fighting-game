@@ -40,8 +40,8 @@ Done when:
 
 Done: P3-10, P3-12, P3-15 (after core pushback), P3-13, P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-20 (closed as core, Lukas's call), P3-21.
 **P3-20:** the dash button is just a button any game with dashes has, not a module: the core (P1-09) already does
-dash, backdash and air dash from it; scenarios in `tests/Scenarios/DashButton/`. Still to check: dash with no
-direction stops after 1 frame for run-style characters (core bug?).
+dash, backdash and air dash from it; scenarios in `tests/Scenarios/DashButton/`. A run lasts while forward or
+the dash button is held (Strive style, Lukas's call); whether Testman keeps a run at all is still open.
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
 **Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
 (Offense: P3-10, P3-12 · Meter: P3-13, P3-18 · Defense: P3-15–17 · Controls: P3-19–20 · Movement: P3-21).

@@ -80,6 +80,10 @@ public sealed class MotionMoveInput : IMoveInput
         _parser.IsInput(_backdash, in history, facing, buttonMask: 0) ||
         (IsDashButtonPressed(in history) && IsHoldingBack(in history, facing));
 
+    public bool IsRunHeld(in InputHistory history, int facing) =>
+        NumpadDirection.IsForward(NumpadDirection.Of(history.FramesAgo(0), facing)) ||
+        (_dashButton != 0 && history.FramesAgo(0).IsHeld((ushort)_dashButton) && !IsHoldingBack(in history, facing));
+
     public bool IsHighJumpTriggered(in InputHistory history, int facing) =>
         _parser.IsInput(_highJump, in history, facing, buttonMask: 0);
 
