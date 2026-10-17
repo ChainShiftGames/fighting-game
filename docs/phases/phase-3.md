@@ -38,7 +38,7 @@ Done when:
 
 ## B. Mechanic modules
 
-In progress: P3-10, P3-12, P3-13, P3-16, P3-17 (branches `p3-<id>-<name>`).
+Done: P3-10, P3-12, P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16. Partly merged: P3-17.
 **P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
 `tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
 covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
@@ -68,29 +68,29 @@ Done when (each):
 ## C. Training mode
 
 ### P3-30 Training mode shell
-Status: in progress (p3-30-training-shell) · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
 Read: ADR-0007
 - Training match driver; dummy options (stand, crouch, block all, block after first hit, jump, record).
   Dummy options are **player settings** in the training menu.
 
 ### P3-31 Frame meter
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `src/Sim/Diagnostics/`, `game/Training/`
+Status: done (Godot visual check pending) · Needs: P3-30 · Parallel: yes · Where: `src/Sim/Diagnostics/`, `game/Training/`
 Read: ADR-0007
 - Logic reports each fighter's frame state (startup/active/recovery/stun/invincible) every frame (ADR-0007).
 - Strive/SF6-style bar with frame advantage. Shown/hidden: **player setting**.
 
 ### P3-32 Record and playback
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-30 · Parallel: yes · Where: `game/Training/`, `src/Netcode/Drivers/Training/`
 Read: —
 - Record dummy inputs in slots, play back once/looped/randomised.
 
 ### P3-33 Savestates
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
 Read: ADR-0007
 - Reuse rollback snapshots; kept in memory while training is open, no time limit, not saved to disk (ADR-0007).
 
 ### P3-34 Developer control panel
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
+Status: done (Godot check pending) · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
 Read: ADR-0005
 - Toggle modules and edit their configs (restarts the round). **Developer settings**; not present in release builds.
 

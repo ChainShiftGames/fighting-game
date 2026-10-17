@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "jump",
+  "category": "basic",
+  "duration": 1,
+  "boxes": [
+    {
+      "kind": "hurt",
+      "firstFrame": 1,
+      "lastFrame": 1,
+      "x": -25000,
+      "y": 10000,
+      "width": 50000,
+      "height": 100000
+    },
+    {
+      "kind": "push",
+      "firstFrame": 1,
+      "lastFrame": 1,
+      "x": -20000,
+      "y": 10000,
+      "width": 40000,
+      "height": 100000
+    }
+  ]
+}

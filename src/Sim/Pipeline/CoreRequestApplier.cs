@@ -1,4 +1,6 @@
 using System;
+using Sim.Characters;
+using Sim.Events;
 using Sim.Modules;
 using Sim.State;
 
@@ -6,9 +8,10 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, freezes; within a kind, fighter by fighter in module slot order.
-/// Conflicts: the highest-priority cancel wins (ties: earlier slot); for time scale and hitstop the latest slot
-/// wins; the longest freeze wins (ties: earlier slot). An invalid request is a module bug and throws, naming the
+/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, move locks, freezes, module events;
+/// within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier
+/// slot); for time scale, hitstop, gravity and stun the latest slot wins; move locks combine; the longest freeze wins
+/// (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
 /// slot, rather than being silently fixed. The request tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
@@ -28,10 +31,56 @@ public sealed class CoreRequestApplier
             ApplyCancels(ref fighterState.Cancel, fighter);
             ApplyTimeScales(ref fighterState.Timing, fighter);
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
+            ApplyGravityScales(ref fighterState, fighter);
+            ApplyStunOverrides(ref fighterState, fighter);
+            ApplyMoveLocks(ref fighterState.LockedMoveCategories, fighter);
         }
 
         ApplyFreezes(ref state.Freeze);
+        EmitEvents(ref state);
         _requests.Clear();
+    }
+
+    private void ApplyStunOverrides(ref FighterState fighter, int fighterIndex)
+    {
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            int key = CoreRequests.FighterKey(slot, fighterIndex);
+            if (!_requests.StunOverrides.TryGet(key, out StunOverrideRequest request))
+            {
+                continue;
+            }
+
+            if (request.Frames < 0)
+            {
+                throw Invalid(slot, $"a stun of {request.Frames} frames");
+            }
+
+            fighter.StunFramesLeft = request.Frames;
+        }
+    }
+
+    // Fighter by fighter in slot order, like the other requests, so both PCs emit the same events in the same order.
+    private void EmitEvents(ref MatchState state)
+    {
+        for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
+        {
+            for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+            {
+                if (!_requests.Events.TryGet(CoreRequests.FighterKey(slot, fighter), out ModuleEventRequest request))
+                {
+                    continue;
+                }
+
+                if (request.Module.IsNone || request.Code < 0 || request.Code >= ModuleEventRequest.CodesPerModule)
+                {
+                    throw Invalid(slot, $"an event with code {request.Code} for module {request.Module}");
+                }
+
+                int detail = ModuleEventRequest.DetailOf(request.Module, request.Code);
+                state.Events.Emit(state.Frame, FrameEventKind.Module, fighter, request.Position, detail);
+            }
+        }
     }
 
     private void ApplyCancels(ref PendingCancel pending, int fighter)
@@ -101,6 +150,45 @@ public sealed class CoreRequestApplier
             }
 
             timing.HitstopFramesLeft = request.Frames;
+        }
+    }
+
+    private void ApplyGravityScales(ref FighterState fighterState, int fighter)
+    {
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            int key = CoreRequests.FighterKey(slot, fighter);
+            if (!_requests.GravityScales.TryGet(key, out GravityScaleRequest request))
+            {
+                continue;
+            }
+
+            if (request.ExtraPermille < 0)
+            {
+                throw Invalid(slot, $"{request.ExtraPermille} permille of extra gravity");
+            }
+
+            fighterState.ExtraGravityPermille = request.ExtraPermille;
+        }
+    }
+
+    private void ApplyMoveLocks(ref MoveCategory locked, int fighter)
+    {
+        const MoveCategory Lockable = MoveCategory.Normal | MoveCategory.Special | MoveCategory.Super |
+            MoveCategory.Throw;
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            if (!_requests.MoveLocks.TryGet(CoreRequests.FighterKey(slot, fighter), out MoveLockRequest request))
+            {
+                continue;
+            }
+
+            if ((request.Categories & ~Lockable) != 0)
+            {
+                throw Invalid(slot, $"a move lock on categories {request.Categories}");
+            }
+
+            locked |= request.Categories;
         }
     }
 

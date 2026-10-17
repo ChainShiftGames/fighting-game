@@ -1,0 +1,11 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "superCost": 5000,
+  "hitGain": 300,
+  "blockGain": 150,
+  "forwardGain": 6,
+  "roundStartMeter": 0,
+  "carryOverRounds": 0
+}

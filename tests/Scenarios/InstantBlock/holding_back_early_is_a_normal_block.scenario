@@ -1,0 +1,16 @@
+# Back held from frame 1 is 5 frames old when p1's 5a is blocked on frame 5: outside the 3-frame window, so it is
+# a normal block (blockstun 9, no module event, acts on frame 23).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module instant_block 3 5 3
+
+frame 1: p1 5a
+frames 1-30: p2 4
+
+frame 5: expect p1 event block
+frame 5: expect p2 event module = 0
+frame 5: expect p2 stun = 9
+frame 22: expect p2 state = blockstun
+frame 23: expect p2 state = walk_back

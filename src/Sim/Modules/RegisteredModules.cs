@@ -1,5 +1,10 @@
 using Sim.Modules.AirBlock;
+using Sim.Modules.Burst;
+using Sim.Modules.ComboLimits;
 using Sim.Modules.ContractProbe;
+using Sim.Modules.Gatlings;
+using Sim.Modules.InstantBlock;
+using Sim.Modules.Meter;
 
 namespace Sim.Modules;
 
@@ -17,6 +22,11 @@ public static class RegisteredModules
     public static ModuleCatalog Create() => new(
     [
         new AirBlockModule(),
+        new BurstModule(),
+        new ComboLimitsModule(),
         new ContractProbeModule(),
+        new GatlingsModule(),
+        new InstantBlockModule(),
+        new MeterModule(),
     ]);
 }

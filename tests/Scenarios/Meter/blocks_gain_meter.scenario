@@ -1,0 +1,12 @@
+# A blocked 5a gives the attacker blockGain (150).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module meter 5000 300 150 0 0 0
+frame 2: p1 5a
+frames 1-10: p2 4
+
+frame 6: expect p1 event block
+frame 6: expect module meter[0] = 150
+frame 6: expect module meter[1] = 0

@@ -1,0 +1,17 @@
+# Burst on with a full gauge: p2 is hit by p1's 5a (frame 5), presses a+b+c+d in hitstun and is cancelled into its
+# burst move once its hitstop ends; the full gauge is spent and the burst knocks p1 down.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module burst 10000 10000 0 0 10000 1 0 0 240 34 100
+frame 1: p1 5a
+frame 6: p2 a+b+c+d
+
+frame 6: expect p2 state = hitstun
+frame 6: expect module burst[2] = 0
+frame 6: expect module burst[3] = 1
+frame 6: expect module burst[0] = 10000
+frames 7-40: expect p2 damage > 0
+frame 40: expect p2 move = burst
+frame 40: expect p1 event hit = 0

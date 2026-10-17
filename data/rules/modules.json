@@ -2,6 +2,11 @@
   "$schema": "../schema/modules.schema.json",
   "schemaVersion": 1,
   "order": [
-    "air_block"
+    "air_block",
+    "meter",
+    "instant_block",
+    "burst",
+    "gatlings",
+    "combo_limits"
   ]
 }

@@ -8,12 +8,15 @@ namespace Sim.Fighters.Movement;
 /// <remarks>
 /// Velocity comes from, in order: a jump starting this frame (<see cref="FighterState.Takeoff"/>), the current move's
 /// velocity data for this frame, then on the ground the action (walking) and in the air the momentum the fighter
-/// already has. Gravity pulls on airborne frames that move data doesn't cover. Landing happens when an airborne
+/// already has. Gravity pulls on airborne frames that move data doesn't cover, made heavier by
+/// <see cref="FighterState.ExtraGravityPermille"/> (a module request, e.g. combo limits). Landing happens when an airborne
 /// fighter reaches the ground (y = 0) moving down: it stops, and its air actions are refilled. All values are
 /// character data, so both fighters follow the same rules. Walls and pushboxes come after this step (P1-10).
 /// </remarks>
 public sealed class FighterMovement
 {
+    private const int Permille = 1000;
+
     public void Advance(ref FighterState fighter, CharacterData character)
     {
         CharacterStats stats = character.Stats;
@@ -45,9 +48,12 @@ public sealed class FighterMovement
         }
         else if (!hasMoveVelocity)
         {
-            fighter.Velocity = new IntVector2(fighter.Velocity.X, fighter.Velocity.Y - stats.Gravity);
+            fighter.Velocity = new IntVector2(fighter.Velocity.X, fighter.Velocity.Y - GravityOf(in fighter, in stats));
         }
     }
+
+    private static int GravityOf(in FighterState fighter, in CharacterStats stats) =>
+        stats.Gravity + IntMath.MulDiv(stats.Gravity, fighter.ExtraGravityPermille, Permille);
 
     // A grounded fighter whose move data lifts it leaves the ground; anything pushing it down stops at the floor.
     private static void KeepOnGround(ref FighterState fighter)

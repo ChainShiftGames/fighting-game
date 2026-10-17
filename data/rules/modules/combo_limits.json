@@ -1,0 +1,13 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "damageProrationPermille": 100,
+  "minimumDamagePermille": 300,
+  "hitstunDecayFrames": 1,
+  "maximumHitstunDecayFrames": 8,
+  "minimumHitstunFrames": 6,
+  "gravityScalingPermille": 50,
+  "maximumGravityPermille": 1000,
+  "otgHits": 1
+}

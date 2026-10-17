@@ -1,0 +1,8 @@
+# Meter on, at 40 %: 236236d can't come out; testman has no other move for 6d, so p1 just walks forward. No meter is spent.
+setup: p1 character testman
+setup: p2 character testman
+setup: module meter 5000 0 0 0 4000 0
+frame 1: p1 2, 3, 6, 2, 3, 6d
+
+frame 6: expect p1 state = walk_forward
+frames 1-10: expect module meter[0] = 4000

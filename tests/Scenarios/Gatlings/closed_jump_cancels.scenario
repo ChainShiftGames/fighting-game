@@ -1,0 +1,13 @@
+# The module's config closes jump cancels (closedCancels 16): holding up after 5b hits leaves Testman in 5b.
+setup: module gatlings 16
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5b
+frames 8-25: p1 8
+
+frame 7: expect p1 event hit
+frame 25: expect p1 move = 5b
+frame 25: expect p1 y = 0
