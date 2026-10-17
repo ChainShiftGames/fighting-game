@@ -77,14 +77,7 @@ public sealed class TrainingMatchStartup
         var meterBar = new FrameMeterBar();
         meterBar.Show(meter, () => _settings.Value.ShowFrameMeter);
         view.AddChild(meterBar);
-        _menu.Use(TrainingMenuEntries.Create(
-            _settings,
-            () =>
-            {
-                driver.Restart();
-                meter.Clear();
-            },
-            _recordings));
+        _menu.Use(TrainingMenuEntries.Create(_settings, new TrainingSession(driver, meter), _recordings));
 
         PlayerInputReader player = new(
             new KeyboardDevice(_bindings.Keyboard, _devices),

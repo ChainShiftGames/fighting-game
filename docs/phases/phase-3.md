@@ -85,7 +85,7 @@ Read: —
 - Record dummy inputs in slots, play back once/looped/randomised.
 
 ### P3-33 Savestates
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
 Read: ADR-0007
 - Reuse rollback snapshots; kept in memory while training is open, no time limit, not saved to disk (ADR-0007).
 
