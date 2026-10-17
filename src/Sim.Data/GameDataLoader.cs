@@ -4,26 +4,37 @@ using Sim.Data.Characters;
 using Sim.Data.Characters.Reading;
 using Sim.Data.Hashing;
 using Sim.Data.Input;
+using Sim.Data.Modules;
 using Sim.Data.Motions;
 using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 using Sim.Input;
+using Sim.Modules;
 
 namespace Sim.Data;
 
 /// <summary>Loads and validates every data file under the data root and computes the data hash.</summary>
 /// <remarks>
 /// New kinds of data (match rules…) add their loader here and append to the same hash, in a fixed order:
-/// buttons, motions, match rules, characters.
+/// buttons, motions, match rules, module lineup, characters.
 /// </remarks>
 public sealed class GameDataLoader
 {
     private readonly IDataSource _source;
+    private readonly ModuleCatalog _modules;
 
+    /// <summary>Checks the module lineup in data against the registered modules (<see cref="RegisteredModules"/>).</summary>
     public GameDataLoader(IDataSource source)
+        : this(source, RegisteredModules.Create())
+    {
+    }
+
+    /// <param name="modules">The modules the lineup in data may name.</param>
+    public GameDataLoader(IDataSource source, ModuleCatalog modules)
     {
         _source = source;
+        _modules = modules;
     }
 
     /// <exception cref="DataValidationException">Any file is invalid; lists every problem in every file.</exception>
@@ -36,6 +47,7 @@ public sealed class GameDataLoader
         ButtonSetLookup buttonLookup = new(buttons!);
         MotionFile? motions = MotionSetLoader.Load(_source, buttonLookup, errors);
         MatchRulesFile? rules = MatchRulesFileLoader.Load(_source, errors);
+        ModuleLineupFile? modules = ModuleLineupLoader.Load(_source, _modules, errors);
         List<CharacterData> characters = LoadCharacters(buttonLookup, errors);
         errors.ThrowIfAny();
         CheckMoveMotions(characters, motions!, errors);
@@ -45,13 +57,14 @@ public sealed class GameDataLoader
         ButtonSetDataHash.Append(hash, buttons!);
         MotionSetDataHash.Append(hash, motions!);
         MatchRulesDataHash.Append(hash, rules!);
+        ModuleLineupDataHash.Append(hash, modules!);
         hash.Add(characters.Count);
         foreach (CharacterData character in characters)
         {
             CharacterDataHash.Append(hash, character);
         }
 
-        return new GameData(buttons!, motions!, rules!, characters, hash.Finish());
+        return new GameData(buttons!, motions!, rules!, modules!, characters, hash.Finish());
     }
 
     // A move whose motion the motion set doesn't define could never be input.

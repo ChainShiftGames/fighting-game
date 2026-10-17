@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "modules.schema.json",
+  "title": "Module lineup",
+  "description": "data/rules/modules.json: the mechanics modules data knows, in hook order (ADR-0011). Each listed module has its own file in rules/modules/ that switches it on or off (developer settings). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Modules).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "order"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "order": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$" },
+      "description": "Registered module names (snake_case), in the order their hooks run. Enabled modules take lineup slots in this order; at most 16 may be enabled. Every file in rules/modules/ must be listed; a registered module that isn't listed is never enabled."
+    }
+  }
+}

@@ -11,6 +11,9 @@ data/characters/<id>/moves/<move_id>.json         one move: frame data, boxes, c
 data/input/buttons.json                           button set: button ids and input word bits (ADR-0010)
 data/input/motions.json                           motions, their priority, motion window and button buffer (ADR-0002)
 data/netcode/online.json                          online match settings: rollback window (not in the data hash)
+data/rules/match.json                             match-wide gameplay values (MatchRules)
+data/rules/modules.json                           mechanics modules in hook order (ADR-0011)
+data/rules/modules/<name>.json                    one module: enabled, plus its config keys
 ```
 
 Exported builds embed these files in `Sim.Data.dll`; `data/schema/` is not shipped (ADR-0015).
@@ -71,6 +74,12 @@ Matching rules (`src/Sim/Input/Motions/MotionParser.cs`); every leniency is in t
 - Basic states `thrown` (held; no hurtbox, so nothing else hits it) and `throwTech` (its velocity separates the
   fighters).
 - Basic state `airBlockstun` (P1-24): used only while the air block module is enabled; a landing ends it.
+
+## Modules (`rules/modules.json`, `rules/modules/`)
+
+- `order` lists registered module names in hook order; enabled ones take lineup slots in that order. Each listed
+  module has its own file with `enabled` and every key of its config (also while off). How to add, switch or remove
+  a module: [src/Sim/Modules/README.md](../src/Sim/Modules/README.md).
 
 ## Loading pattern (for every new data kind)
 

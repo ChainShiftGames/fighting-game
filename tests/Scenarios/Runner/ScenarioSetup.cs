@@ -47,12 +47,17 @@ public sealed class ScenarioSetup
     /// The match rules: the values from data, the trade rule, entity pool size and throw against strike rule if set,
     /// then the modules in lineup order.
     /// </summary>
+    /// <remarks>
+    /// Only the modules the scenario enables run, never the lineup in data: switching a module there for development
+    /// must not change what a scenario proves.
+    /// </remarks>
     public MatchRules BuildRules()
     {
         MatchRules rules = _dataRules;
         rules.TradeRule = _tradeRule ?? rules.TradeRule;
         rules.EntitiesPerPlayer = _entitiesPerPlayer ?? rules.EntitiesPerPlayer;
         rules.ThrowVsStrike = _throwVsStrike ?? rules.ThrowVsStrike;
+        rules.Modules = default;
         for (int slot = 0; slot < _modules.Count; slot++)
         {
             rules.Modules[slot].Module = _modules[slot].Id;
