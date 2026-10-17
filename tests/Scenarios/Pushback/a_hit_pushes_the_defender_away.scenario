@@ -1,0 +1,9 @@
+# On hit too: p2 slides 12000 away.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+
+frame 30: expect p2 x = 42000
+frames 1-30: expect p1 x = -30000

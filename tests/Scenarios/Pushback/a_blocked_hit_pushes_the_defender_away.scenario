@@ -1,0 +1,12 @@
+# 5a's pushback (12000) slides p2 away over pushbackFrames (8) once the hitstop ends; p1 doesn't move.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frames 5-21: p2 4                         # back from the hit until the slide ends
+
+frame 5: expect p2 state = blockstun
+frame 12: expect p2 x = 33200            # one walk-back frame before the block
+frame 21: expect p2 x = 45200            # 8 slices of 1500, frames 14-21
+frames 1-21: expect p1 x = -30000

@@ -1,0 +1,12 @@
+# In the corner a fireball's pushback is just stopped by the wall: p1, far away, stays where it is.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = 300000
+setup: p2 x = 580000
+frame 1: p1 2, 3, 6c
+frames 1-80: p2 4
+
+frames 1-80: expect p1 x = 300000
+frames 1-80: expect p2 x = 580000
+frame 20: expect p1 entities = 1
+frame 50: expect p2 state = blockstun          # the fireball was blocked: the wall stopped its slide

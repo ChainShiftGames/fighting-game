@@ -63,6 +63,7 @@ public sealed class MatchSimulation
         CounterHits counterHits = new(in rules);
         ThrowContacts throwContacts = new();
         Guarding guarding = new(modules);
+        Pushback pushback = new(rules.PushbackFrames);
 
         // Entities (P1-21) run after the fighters in each step. Module spawn requests apply after the end-of-frame
         // hooks, so they lead the round and timer step (SpawnRequestStage). Throws (P1-23) resolve before strikes, so
@@ -77,6 +78,7 @@ public sealed class MatchSimulation
                 new MoveSpawnStage(owners, spawner),
                 new ThrowProtectionStage(player1, player2, in rules)),
             Collision = new StageSequence(
+                new PushbackStage(player1, player2, StageWalls.From(in rules)),
                 new CollisionStage(player1, player2, StageWalls.From(in rules)),
                 new CameraStage(player1, player2, CameraFraming.From(in rules))),
             HitDetection = new StageSequence(
@@ -92,9 +94,17 @@ public sealed class MatchSimulation
                     modules),
                 new ThrowResolutionStage(player1, player2, throwContacts, contacts, in rules),
                 new HitResolutionStage(
-                    player1, player2, contacts, modules, rules.TradeRule, counterHits, new ShortcutDamage(in rules), guarding),
+                    player1,
+                    player2,
+                    contacts,
+                    modules,
+                    rules.TradeRule,
+                    counterHits,
+                    new ShortcutDamage(in rules),
+                    guarding,
+                    pushback),
                 new EntityHitResolutionStage(
-                    owners, entityContacts, contacts, modules, rules.TradeRule, counterHits, guarding)),
+                    owners, entityContacts, contacts, modules, rules.TradeRule, counterHits, guarding, pushback)),
             RoundTimer = new StageSequence(
                 new SpawnRequestStage(owners, spawner, requests),
                 new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),

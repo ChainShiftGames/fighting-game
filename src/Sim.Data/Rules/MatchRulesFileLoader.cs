@@ -42,6 +42,7 @@ public static class MatchRulesFileLoader
         var shortcuts = new ShortcutFormat(
             file.RequiredInt("shortcutDamagePercent", 1, MatchRulesSchema.MaxShortcutDamagePercent),
             file.RequiredInt("shortcutCooldownFrames", 0, MatchRulesSchema.MaxShortcutCooldownFrames));
+        int pushbackFrames = file.RequiredInt("pushbackFrames", 1, MatchRulesSchema.MaxPushbackFrames);
         file.Finish();
         return errors.Count > errorsBefore
             ? null
@@ -55,7 +56,8 @@ public static class MatchRulesFileLoader
                 counterHit,
                 punishCounter,
                 throws,
-                shortcuts);
+                shortcuts,
+                pushbackFrames);
     }
 
     private static ThrowFormat ReadThrows(FieldReader file)

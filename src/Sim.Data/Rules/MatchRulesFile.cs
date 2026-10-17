@@ -17,7 +17,8 @@ public sealed class MatchRulesFile
         CounterBonus counterHit,
         CounterBonus punishCounter,
         ThrowFormat throws,
-        ShortcutFormat shortcuts)
+        ShortcutFormat shortcuts,
+        int pushbackFrames)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
@@ -29,6 +30,7 @@ public sealed class MatchRulesFile
         PunishCounter = punishCounter;
         Throws = throws;
         Shortcuts = shortcuts;
+        PushbackFrames = pushbackFrames;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -61,6 +63,9 @@ public sealed class MatchRulesFile
     /// <summary>The special button shortcut's damage and cooldown (ADR-0020).</summary>
     public ShortcutFormat Shortcuts { get; }
 
+    /// <summary>Frames a hit's or block's pushback slide takes.</summary>
+    public int PushbackFrames { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -81,5 +86,6 @@ public sealed class MatchRulesFile
         rules.ThrowVsStrike = Throws.ThrowVsStrike;
         rules.ShortcutDamagePercent = Shortcuts.DamagePercent;
         rules.ShortcutCooldownFrames = Shortcuts.CooldownFrames;
+        rules.PushbackFrames = PushbackFrames;
     }
 }

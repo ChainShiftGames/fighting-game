@@ -24,5 +24,6 @@ public static class MatchRulesDataHash
         hash.Add((int)file.Throws.ThrowVsStrike);
         hash.Add(file.Shortcuts.DamagePercent);
         hash.Add(file.Shortcuts.CooldownFrames);
+        hash.Add(file.PushbackFrames);
     }
 }

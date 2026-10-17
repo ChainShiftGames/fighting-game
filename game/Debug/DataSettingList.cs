@@ -42,6 +42,7 @@ public static class DataSettingList
         new("Landing throw invulnerability", MatchRules, "landingThrowInvulnerableFrames", 0, MaxThrowFrames, 1),
         new("Shortcut damage %", MatchRules, "shortcutDamagePercent", 1, MatchRulesSchema.MaxShortcutDamagePercent, 5),
         new("Shortcut cooldown (frames)", MatchRules, "shortcutCooldownFrames", 0, MatchRulesSchema.MaxShortcutCooldownFrames, 10),
+        new("Pushback slide (frames)", MatchRules, "pushbackFrames", 1, MatchRulesSchema.MaxPushbackFrames, 1),
         new("Motion window", Motions, "motionWindow", 1, InputHistory.Capacity, 1),
         new("Button buffer", Motions, "buttonBuffer", 0, InputHistory.Capacity - 1, 1),
         new("Rollback window (online)", OnlineSchema.File, "rollbackFrames", 1, OnlineSchema.MaxRollbackFrames, 1),

@@ -1,0 +1,11 @@
+# p2's pushbox already touches the right wall (600000 - 20000), so the wall stops its slide and p1 is pushed back the
+# full 12000 instead.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = 520000
+setup: p2 x = 580000
+frame 1: p1 5a
+frames 5-30: p2 4
+
+frame 30: expect p1 x = 508000
+frames 1-30: expect p2 x = 580000

@@ -78,4 +78,7 @@ public struct FighterState
 
     /// <summary>Fighter frames until the special button can start another shortcut move (ADR-0020); 0 = ready.</summary>
     public int ShortcutCooldownLeft;
+
+    /// <summary>The pushback slide in progress after a hit or block (<c>Sim.Collision.PushbackStage</c>).</summary>
+    public PushbackSlide Pushback;
 }

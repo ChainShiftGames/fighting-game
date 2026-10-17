@@ -203,7 +203,7 @@ Read: CURRENT_STATE §3 Defense
   `MatchRules.TradeRule` (developer setting, `tradeRule` in `data/rules/match.json`): `trade` = both hits land,
   `clash` = neither lands and both moves are spent (`CancelOn.Clash`, `FrameEventKind.Clash`). Behaviour is in the
   stage and `Blocking` doc comments.
-- Follow-ups: pushback (`HitData.Pushback` is read but not applied), launch velocity for launchers (P1-09 note),
+- Follow-ups: ~~pushback~~ (done before P3-15: `Sim.Collision.PushbackStage`, `pushbackFrames`), launch velocity for launchers (P1-09 note),
   the move in `FighterContact`. Counter hits, throws and air block: P1-22–P1-24.
 
 Done when:
@@ -269,7 +269,7 @@ Read: ADR-0011
   - Round start empties the pool. Module spawn requests apply at the end of the frame they were made in
     (`CoreRequests.Spawns`, cleared by the entity step rather than `CoreRequestApplier`).
 - Follow-ups: per-move "one projectile on screen" rule, projectiles hit by attacks (projectile hurtboxes),
-  projectile hitstop/hit intervals and multi-hit, pushback (with P1-12's), owner time scale for entities, a
+  projectile hitstop/hit intervals and multi-hit, ~~pushback~~ (done, never moves the owner), owner time scale for entities, a
   `FighterContact` flag so modules can tell projectile hits apart, `data/README.md` format note.
 
 Done when:

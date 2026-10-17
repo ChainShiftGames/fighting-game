@@ -13,7 +13,9 @@ namespace Netcode.Tests.Bots;
 public sealed class CpuBotTests
 {
     private const int Frames = 10_000;
-    private const uint Player1Seed = 50;
+    // A pair whose 10,000 frames show every action and intent the fight test checks; re-picked when core pushback
+    // (hits push the defender away) changed how matches go.
+    private const uint Player1Seed = 51;
     private const uint Player2Seed = 3050;
 
     private static readonly BotSettings _defaults = new();

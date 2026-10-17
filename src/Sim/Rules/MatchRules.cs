@@ -106,6 +106,10 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>shortcutCooldownFrames</c>); motions are never locked.</remarks>
     public int ShortcutCooldownFrames;
 
+    /// <summary>Frames a hit's or block's pushback slide takes (<c>HitData.Pushback</c> is its distance).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>pushbackFrames</c>). 0 (rules built in code) = no pushback.</remarks>
+    public int PushbackFrames;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

@@ -85,6 +85,9 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `setup: shortcut_cooldown <frames>` override `shortcutDamagePercent` and `shortcutCooldownFrames` from
   `data/rules/match.json` (80, 0). The scenario dummy's `236b` and Testman's `236c` have the shortcut `6`, Testman's
   `623c` the shortcut `3` (`6special`, `3special`).
+- **Pushback**: a hit or block slides the defender its hit's `pushback` over `pushbackFrames` (8, from
+  `data/rules/match.json`) once its hitstop ends, in equal shares; against a wall the rest pushes the attacker back
+  (never for projectiles). Scenarios that check x after a hit see the slide.
 - **Entity pool** (match rules): `setup: entities_per_player <n>` overrides `entitiesPerPlayer` from
   `data/rules/match.json`: projectiles each player can have out at once (0 to 8).
 - **Module spawns**: the contract probe's config is `<hitstop> <spawn frame> <owner> <projectile>`; on that frame it

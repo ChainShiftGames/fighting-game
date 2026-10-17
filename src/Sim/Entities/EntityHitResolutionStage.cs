@@ -40,6 +40,7 @@ public sealed class EntityHitResolutionStage : ITickStage
     private readonly TradeRule _tradeRule;
     private readonly CounterHits _counterHits;
     private readonly Guarding _guarding;
+    private readonly Pushback _pushback;
 
     public EntityHitResolutionStage(
         OwnerCharacters characters,
@@ -48,7 +49,8 @@ public sealed class EntityHitResolutionStage : ITickStage
         ModuleLineup modules,
         TradeRule tradeRule,
         CounterHits counterHits,
-        Guarding guarding)
+        Guarding guarding,
+        Pushback pushback)
     {
         _characters = characters;
         _contacts = contacts;
@@ -57,6 +59,7 @@ public sealed class EntityHitResolutionStage : ITickStage
         _tradeRule = tradeRule;
         _counterHits = counterHits;
         _guarding = guarding;
+        _pushback = pushback;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -111,7 +114,8 @@ public sealed class EntityHitResolutionStage : ITickStage
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
         HitData hit = _characters.ProjectileOf(in entity).Hit;
-        CounterHitKind counter = Defend(ref state, defender, in hit, entity.Owner, out bool isBlocked, out bool whiffs);
+        CounterHitKind counter = Defend(
+            ref state, defender, in hit, entity.Owner, entity.Facing, out bool isBlocked, out bool whiffs);
         if (whiffs)
         {
             return;
@@ -134,8 +138,15 @@ public sealed class EntityHitResolutionStage : ITickStage
 
     // The defender takes the hit or block and the projectile's hitstop; returns whether a hit was a counter.
     // A hit the modules make whiff changes nothing, and the projectile flies on.
+    // Projectile pushback never moves the owner, however far away it is: the wall just stops the slide.
     private CounterHitKind Defend(
-        ref MatchState state, int defender, in HitData hit, int owner, out bool isBlocked, out bool whiffs)
+        ref MatchState state,
+        int defender,
+        in HitData hit,
+        int owner,
+        int facing,
+        out bool isBlocked,
+        out bool whiffs)
     {
         whiffs = false;
         CharacterData character = _characters.Of(defender);
@@ -148,6 +159,7 @@ public sealed class EntityHitResolutionStage : ITickStage
         {
             HitReactions.Block(ref defenderState, in hit, stance, character);
             Hitstop.Extend(ref defenderState.Timing, hit.Hitstop);
+            _pushback.Start(ref defenderState, hit.Pushback, facing, pushesAttacker: false);
             return CounterHitKind.None;
         }
 
@@ -161,6 +173,7 @@ public sealed class EntityHitResolutionStage : ITickStage
 
         HitReactions.TakeHit(ref defenderState, in landed, character);
         Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
+        _pushback.Start(ref defenderState, landed.Pushback, facing, pushesAttacker: false);
         return counter;
     }
 
