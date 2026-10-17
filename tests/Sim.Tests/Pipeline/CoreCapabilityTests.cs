@@ -162,6 +162,21 @@ public sealed class CoreCapabilityTests
     }
 
     [Fact]
+    public void PushbackScalesMultiplyTheSlideLeft()
+    {
+        var first = OnFrame(0, context => context.RequestPushbackScale(
+            Player2, new PushbackScaleRequest { Permille = 2000 }), id: 1);
+        var second = OnFrame(0, context => context.RequestPushbackScale(
+            Player2, new PushbackScaleRequest { Permille = 1500 }), id: 2);
+        MatchState state = default;
+        state.Fighters[Player2].Pushback = new PushbackSlide { DistanceLeft = 1000, FramesLeft = 8, Direction = 1 };
+
+        state = Run(state, new TickStages(), frames: 1, first, second);
+
+        Assert.Equal(3000, state.Fighters[Player2].Pushback.DistanceLeft);
+    }
+
+    [Fact]
     public void GravityScaleIsKeptInTheFightersStateFromTheLaterSlot()
     {
         var first = OnFrame(0, context => context.RequestGravityScale(
@@ -217,10 +232,12 @@ public sealed class CoreCapabilityTests
         },
     };
 
-    private static MatchState Run(TickStages stages, int frames, params IMechanicModule[] modules)
+    private static MatchState Run(TickStages stages, int frames, params IMechanicModule[] modules) =>
+        Run(default, stages, frames, modules);
+
+    private static MatchState Run(MatchState state, TickStages stages, int frames, params IMechanicModule[] modules)
     {
         TickPipeline pipeline = Pipelines.Create(stages, modules);
-        MatchState state = default;
         for (int frame = 0; frame < frames; frame++)
         {
             pipeline.Tick(ref state, InputWord.Neutral, InputWord.Neutral);

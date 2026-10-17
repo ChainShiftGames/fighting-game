@@ -39,6 +39,8 @@ in before it's built, and it must already support what Roman Cancel and the open
   detail packs the module id and the module's own code.
 - **Move lock** (P3-13, proposed): a request that stops a fighter starting moves of given categories for one state
   machine step; the state machine reports the category of an attack it started (`FighterState.StartedMoveCategory`).
+- **Pushback scale** (P3-15, proposed): a request that scales what is left of a fighter's pushback slide (core
+  pushback: `Sim.Collision.PushbackStage`); scales from several modules multiply.
 - **Meter gauge** (P3-13, proposed): `IMeterGauge` module role; any module reads/spends meter via
   `ModuleContext.MeterOf` / `TrySpendMeter`, routed by the core to the enabled gauge.
 

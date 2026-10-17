@@ -1,0 +1,10 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "buttonMask": 48,
+  "buttonCount": 2,
+  "pushbackPermille": 2000,
+  "meterCost": 200,
+  "drainPerFrame": 5
+}
