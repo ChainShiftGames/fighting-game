@@ -25,7 +25,7 @@ graph LR
 ## A. Module system
 
 ### P3-01 Module toggling for development
-Status: todo · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
+Status: in progress (p3-01-module-toggling) · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
 Read: ADR-0005, ADR-0011
 - The module contract and `MatchRules` already exist (P1-20). This task adds switching modules and their configs
   during development: changes apply by restarting the round.
@@ -93,7 +93,7 @@ Read: ADR-0005
 ## D. Character editor
 
 ### P3-40 Editor plugin shell
-Status: todo · Needs: — · Parallel: yes · Where: `game/addons/character_editor/`
+Status: in progress (p3-40-editor-shell) · Needs: — · Parallel: yes · Where: `game/addons/character_editor/`
 Read: ADR-0007
 - Godot editor plugin: open a character, list moves, save JSON via `Sim.Data` (same validation as the game).
 
@@ -119,7 +119,7 @@ Done when (editor as a whole):
 ## E. CPU bot
 
 ### P3-50 CPU bot v1
-Status: todo · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
+Status: in progress (p3-50-cpu-bot) · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
 Read: ADR-0006
 - Input provider that presses buttons like a player; never reads internals it couldn't "see".
 - Simple state machine (approach, attack, block, punish); difficulty = reaction delay (**player setting** in

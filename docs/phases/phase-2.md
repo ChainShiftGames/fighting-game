@@ -67,7 +67,7 @@ Done when:
 - [x] a peer with one changed rule value (dev build) is refused
 
 ### P2-06 Input delay
-Status: in progress (p2-06-input-delay) · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Online/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Online/`
 Read: ADR-0005
 - Automatic delay 1–2 frames from measured ping; recalculated between rounds only.
 - Override 0–4: **player setting**.
@@ -78,7 +78,7 @@ Read: ADR-0005
 - Warning after 3 s without data; match ends without a result after 10 s. Timeouts are **developer settings**.
 
 ### P2-08 Effects during rollback
-Status: in progress (p2-08-p2-10-game-wiring) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
+Status: done (150 ms playtest pending) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
 Read: ADR-0005
 - Play each frame-tagged event once (by id); cancel effects whose event disappears after a rollback.
 - Applies to sounds, sparks, shake and rumble. Wired into local, online and replay matches; F7–F10 toggle each kind
