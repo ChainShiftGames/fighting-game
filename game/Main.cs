@@ -108,7 +108,12 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         _platform!.Update();
-        if (_match is null && _launcher!.TakeReadyMatch() is { } ready)
+        if (_launcher!.EndsMatch(_match))
+        {
+            EndMatch();
+        }
+
+        if (_match is null && _launcher.TakeReadyMatch() is { } ready)
         {
             StartMatch(ready);
         }
@@ -174,13 +179,7 @@ public partial class Main : Node2D
     public override void _ExitTree()
     {
         RenderingServer.FramePostDraw -= OnFramePostDraw;
-        if (_match is not null)
-        {
-            GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
-            LogConnection();
-            _match.Dispose();
-        }
-
+        EndMatch();
         _launcher?.Dispose();
         _joypadWatcher?.Dispose();
         _platform?.Dispose();
@@ -277,6 +276,21 @@ public partial class Main : Node2D
         AddChild(match.View);
         MoveChild(match.View, 0);
         _matchmakingMenu!.Visible = false;
+    }
+
+    private void EndMatch()
+    {
+        if (_match is null)
+        {
+            return;
+        }
+
+        GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
+        LogConnection();
+        _match.Dispose();
+        _match = null;
+        _stopped = false;
+        _wasWaiting = true;
     }
 
     // Online, the log gets the connection readings every so often and at the end, for the P0-22 measurements.

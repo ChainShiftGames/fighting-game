@@ -69,7 +69,9 @@ public sealed class OnlineMatchStartup
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);
-        return new StartedMatch(loop, driver, view, Describe(settings, opponent, lineup), connection, handshake);
+        return new StartedMatch(
+            loop, driver, view, Describe(settings, opponent, lineup), connection, handshake,
+            isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
     // The command line's tuning options override the data's values for this match (exported builds can't edit data).

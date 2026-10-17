@@ -1,22 +1,14 @@
 using System;
-using System.Collections.Generic;
+using Platform.Steam.Lobbies;
 
 namespace FightingGame.Platform;
 
-/// <summary>Finds an online opponent through the platform: invite a friend, or accept a friend's invite.</summary>
+/// <summary>Finds an online opponent through the platform's lobby: host or accept an invite, both ready, rematch.</summary>
 public interface IMatchmaking : IDisposable
 {
-    /// <summary>Whether invites can be sent yet.</summary>
-    bool IsReady { get; }
+    /// <summary>The lobby's stage, players and actions, for the lobby menu.</summary>
+    LobbyFlow Lobby { get; }
 
-    /// <summary>Friends who can be invited now, as of the last <see cref="RefreshFriends"/>.</summary>
-    IReadOnlyList<string> InvitableFriends { get; }
-
-    /// <summary>The opponent and how to reach them, once someone has joined.</summary>
-    MatchmakingResult? Result { get; }
-
-    void RefreshFriends();
-
-    /// <summary>Invites the friend at this index of <see cref="InvitableFriends"/>.</summary>
-    void Invite(int friendIndex);
+    /// <summary>The opponent of the match the lobby starts now, and how to reach them; once per match, else null.</summary>
+    MatchmakingResult? TakeMatchToStart();
 }
