@@ -1,0 +1,16 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "maxGauge": 10000,
+  "startGauge": 10000,
+  "gainPerFrame": 2,
+  "gainWhenHit": 300,
+  "burstCost": 10000,
+  "usableInHitstun": 1,
+  "usableInBlockstun": 0,
+  "usableInNeutral": 0,
+  "triggerButtons": 240,
+  "burstMove": 34,
+  "cancelPriority": 100
+}
