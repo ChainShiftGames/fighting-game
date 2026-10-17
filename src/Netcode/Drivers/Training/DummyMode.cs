@@ -1,7 +1,7 @@
 namespace Netcode.Drivers.Training;
 
 /// <summary>What the training dummy does: a player setting chosen in the training menu (ARCHITECTURE.md §6).</summary>
-/// <remarks>Saved by name, so the values may be reordered; new modes (P3-32 playback) are added at the end.</remarks>
+/// <remarks>Saved by name, so the values may be reordered.</remarks>
 public enum DummyMode
 {
     /// <summary>Stands still and never blocks.</summary>
@@ -19,6 +19,9 @@ public enum DummyMode
     /// <summary>Holds up: jumps again on every landing.</summary>
     Jump,
 
-    /// <summary>The player controls the dummy while their own fighter stands still; P3-32 records these inputs.</summary>
+    /// <summary>The player controls the dummy while their own fighter stands still, and may record it into a slot.</summary>
     Record,
+
+    /// <summary>Plays the recordings back (<see cref="PlaybackStyle"/>).</summary>
+    Playback,
 }

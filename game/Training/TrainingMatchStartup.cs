@@ -28,6 +28,9 @@ public sealed class TrainingMatchStartup
     private readonly CurrentTrainingSettings _settings;
     private readonly TrainingMenu _menu;
 
+    // Kept across training matches (restarts, reloaded data) while the game runs; never saved (P3-32).
+    private readonly RecordingSlots _recordings = new();
+
     /// <param name="bindings">Player 1's bindings (player settings): the training player.</param>
     public TrainingMatchStartup(
         PlayerBindings bindings,
@@ -60,7 +63,12 @@ public sealed class TrainingMatchStartup
         var meter = new FrameMeter();
         IMatchSimulation<MatchState> simulation = new FrameMeterSimulation(
             effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), lineup.Characters, meter);
-        var inputs = DummyModeInputs.Create(lineup.Characters[TrainingSides.Player], timings, () => _settings.Value.Dummy);
+        var inputs = DummyModeInputs.Create(
+            lineup.Characters[TrainingSides.Player],
+            timings,
+            () => _settings.Value.Dummy,
+            _recordings,
+            () => _settings.Value.ToPlaybackChoice());
         var driver = new TrainingMatchDriver<MatchState>(
             simulation, inputs, TrainingAdjustments.Create(lineup.Simulation, timings));
 
@@ -69,11 +77,14 @@ public sealed class TrainingMatchStartup
         var meterBar = new FrameMeterBar();
         meterBar.Show(meter, () => _settings.Value.ShowFrameMeter);
         view.AddChild(meterBar);
-        _menu.Use(TrainingMenuEntries.Create(_settings, () =>
-        {
-            driver.Restart();
-            meter.Clear();
-        }));
+        _menu.Use(TrainingMenuEntries.Create(
+            _settings,
+            () =>
+            {
+                driver.Restart();
+                meter.Clear();
+            },
+            _recordings));
 
         PlayerInputReader player = new(
             new KeyboardDevice(_bindings.Keyboard, _devices),

@@ -73,6 +73,20 @@ public sealed class TrainingMatchDriverTests
         Assert.Equal(StateChecksum.Compute(in saved), StateChecksum.Compute(in driver.State));
     }
 
+    [Fact]
+    public void RestoringResetsTheDummysOwnProgress()
+    {
+        var guard = new ResetCounter();
+        using var driver = new TrainingMatchDriver<MatchState>(
+            new ComposedMatchSimulation(_match), guard, [guard]);
+        MatchState saved = driver.State;
+
+        driver.Restore(in saved);
+        driver.Restart();
+
+        Assert.Equal(4, guard.Resets);
+    }
+
     private static void Run(TrainingMatchDriver<MatchState> driver, InputWord input, int frames)
     {
         for (int frame = 0; frame < frames; frame++)
@@ -83,6 +97,20 @@ public sealed class TrainingMatchDriverTests
 
     private TrainingMatchDriver<MatchState> Create(DummyMode mode) => new(
         new ComposedMatchSimulation(_match),
-        DummyModeInputs.Create(_match.Player1, _timings, () => mode),
+        DummyModeInputs.Create(_match.Player1, _timings, () => mode, new RecordingSlots(), () => default),
         TrainingAdjustments.Create(_match, _timings));
+
+    // Counts resets, as both the dummy's inputs and an adjustment.
+    private sealed class ResetCounter : ITrainingInputs<MatchState>, ITrainingAdjustment<MatchState>, ITrainingReset
+    {
+        public int Resets { get; private set; }
+
+        public FrameInputs Next(in MatchState state, InputWord player) => new(player, InputWord.Neutral);
+
+        public void Apply(ref MatchState state)
+        {
+        }
+
+        public void Reset() => Resets++;
+    }
 }

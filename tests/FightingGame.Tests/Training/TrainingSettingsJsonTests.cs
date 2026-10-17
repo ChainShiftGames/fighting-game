@@ -31,6 +31,18 @@ public sealed class TrainingSettingsJsonTests
     }
 
     [Fact]
+    public void KeepsTheRecordingSlotAndPlaybackStyle()
+    {
+        var saved = new TrainingSettings { Slot = 4, Playback = PlaybackStyle.Random, ShowFrameMeter = false };
+
+        string json = TrainingSettingsJson.Write(saved);
+
+        Assert.Equal(saved, TrainingSettingsJson.Read(json, out _));
+        Assert.Contains("\"playback\": \"random\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("choice", json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void SavesTheDummyModeByName()
     {
         string json = TrainingSettingsJson.Write(new TrainingSettings { Dummy = DummyMode.BlockAfterFirstHit });

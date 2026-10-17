@@ -68,7 +68,7 @@ Done when (each):
 ## C. Training mode
 
 ### P3-30 Training mode shell
-Status: in progress (p3-30-training-shell) · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
 Read: ADR-0007
 - Training match driver; dummy options (stand, crouch, block all, block after first hit, jump, record).
   Dummy options are **player settings** in the training menu.
@@ -80,7 +80,7 @@ Read: ADR-0007
 - Strive/SF6-style bar with frame advantage. Shown/hidden: **player setting**.
 
 ### P3-32 Record and playback
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Training/`
+Status: done (Godot playtest pending) · Needs: P3-30 · Parallel: yes · Where: `game/Training/`, `src/Netcode/Drivers/Training/`
 Read: —
 - Record dummy inputs in slots, play back once/looped/randomised.
 
