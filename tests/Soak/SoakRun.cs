@@ -50,9 +50,9 @@ internal sealed class SoakRun
     {
         uint player1Seed = MatchSeeds.Player1(_seed, number);
         uint player2Seed = MatchSeeds.Player2(_seed, number);
-        string reproduction = $"Soak seed {_seed}, match {number} (P1 inputs seed {player1Seed}, P2 {player2Seed}); " +
+        string reproduction = $"Soak seed {_seed}, match {number} (P1 bot seed {player1Seed}, P2 {player2Seed}); " +
             _game.Describe();
-        Log($"Match {number}: P1 seed {player1Seed}, P2 seed {player2Seed}");
+        Log($"Match {number}: P1 bot seed {player1Seed}, P2 bot seed {player2Seed}");
 
         using var match = new SoakMatch(_game, player1Seed, player2Seed, _options.DumpDirectory, reproduction);
         try

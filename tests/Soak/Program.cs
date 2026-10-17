@@ -5,11 +5,13 @@ namespace Soak;
 
 /// <summary>
 /// Bot soak test (ADR-0006, P2-12): plays online matches between two in-process peers for a set time and fails on
-/// the first desync or stall, printing the seed that replays the run's inputs.
+/// the first desync or stall, printing the seed that seeds the run's CPU bots.
 /// </summary>
 /// <remarks>
 /// <c>dotnet run --project tests/Soak -c Release -- --minutes 2</c> for a short local run. Lag, jitter and loss are
-/// random per packet and the timing is real, so a seed replays the inputs, not the exact network.
+/// random per packet and the timing is real, so a seed replays the bots' choices, not the exact network. The bots
+/// react to what each peer shows, predictions included, so a different network can also change what they press;
+/// the desync dumps hold the inputs actually played.
 /// </remarks>
 internal static class Program
 {
@@ -27,8 +29,9 @@ internal static class Program
         }
 
         uint seed = options.Seed ?? (uint)Random.Shared.NextInt64(uint.MaxValue);
-        var game = new SoakGame();
-        string replay = $"Replay the inputs with: dotnet run --project tests/Soak -c Release -- --seed {seed}";
+        var game = new SoakGame(options.Bots);
+        string replay = "Replay the bots with: dotnet run --project tests/Soak -c Release -- " +
+            $"--seed {seed} --bot-reaction {options.Bots.ReactionDelayFrames}";
         Console.WriteLine($"Soak test: {options.Duration.TotalMinutes} min, seed {seed}");
         Console.WriteLine($"Conditions: {game.Describe()}");
 

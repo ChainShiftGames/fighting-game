@@ -1,6 +1,6 @@
 namespace Soak;
 
-/// <summary>The input seeds of each soak match, all derived from the one soak seed so a run can be replayed.</summary>
+/// <summary>The bot seeds of each soak match, all derived from the one soak seed so a run can be replayed.</summary>
 internal static class MatchSeeds
 {
     public static uint Player1(uint soakSeed, int match) => Mix(soakSeed, match * 2);

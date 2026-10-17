@@ -1,0 +1,10 @@
+# The core dash button (P1-09, data/input/motions.json dashButton): 6 + dash starts testman's run, which lasts
+# while forward is held, like 66.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 6dash
+frames 2-20: p1 6
+frame 1: expect p1 x = -141000
+frames 1-20: expect p1 state = dash
+frame 21: expect p1 state = idle

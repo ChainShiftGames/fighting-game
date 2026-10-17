@@ -1,4 +1,4 @@
-# On-demand bot soak test (ADR-0006, P2-12): two in-process online peers, simulated lag/loss, seeded inputs,
+# On-demand bot soak test (ADR-0006, P2-12): two in-process online peers, simulated lag/loss, seeded CPU bots (P3-50),
 # 1 hour by default; fails on a desync or stall. Manual trigger only, never on PRs or a schedule.
 name: Soak test
 

@@ -1,16 +1,19 @@
 using System;
 using System.Globalization;
+using Netcode.Bots;
 
 namespace Soak;
 
 /// <summary>Command-line options of the soak test. All are developer settings (ARCHITECTURE.md §6).</summary>
 internal sealed record SoakOptions
 {
-    public const string Usage =
-        "Usage: Soak [--minutes <n>] [--seed <n>] [--dump-dir <path>]\n" +
-        "  --minutes   How long to play matches (developer setting). Default 60: the soak of ADR-0006.\n" +
-        "  --seed      Seeds every match's inputs (developer setting). Default: a new random seed, printed.\n" +
-        "  --dump-dir  Where a desync dump is written. Default: soak-dumps.";
+    public static readonly string Usage =
+        "Usage: Soak [--minutes <n>] [--seed <n>] [--bot-reaction <frames>] [--dump-dir <path>]\n" +
+        "  --minutes       How long to play matches (developer setting). Default 60: the soak of ADR-0006.\n" +
+        "  --seed          Seeds every match's bots (developer setting). Default: a new random seed, printed.\n" +
+        $"  --bot-reaction  Both bots' reaction delay in frames, 0 to {BotSettings.MaxReactionDelayFrames} " +
+        $"(developer setting). Default {BotSettings.DefaultReactionDelayFrames}.\n" +
+        "  --dump-dir      Where a desync dump is written. Default: soak-dumps.";
 
     private const double DefaultMinutes = 60;
     private const string DefaultDumpDirectory = "soak-dumps";
@@ -19,10 +22,13 @@ internal sealed record SoakOptions
     public TimeSpan Duration { get; init; } = TimeSpan.FromMinutes(DefaultMinutes);
 
     /// <summary>
-    /// Seeds the inputs of every match (developer setting). Null: pick one at random, so each run tries new inputs;
+    /// Seeds the bots of every match (developer setting). Null: pick one at random, so each run tries new inputs;
     /// the run prints it either way so a failure can be replayed.
     /// </summary>
     public uint? Seed { get; init; }
+
+    /// <summary>How both CPU bots play; the command line sets their reaction delay (developer setting).</summary>
+    public BotSettings Bots { get; init; } = new();
 
     public string DumpDirectory { get; init; } = DefaultDumpDirectory;
 
@@ -49,10 +55,14 @@ internal sealed record SoakOptions
                 case "--seed" when uint.TryParse(value, CultureInfo.InvariantCulture, out uint seed):
                     options = options with { Seed = seed };
                     break;
+                case "--bot-reaction" when int.TryParse(value, CultureInfo.InvariantCulture, out int frames)
+                    && frames >= 0 && frames <= BotSettings.MaxReactionDelayFrames:
+                    options = options with { Bots = options.Bots with { ReactionDelayFrames = frames } };
+                    break;
                 case "--dump-dir" when value.Length > 0:
                     options = options with { DumpDirectory = value };
                     break;
-                case "--minutes" or "--seed" or "--dump-dir":
+                case "--minutes" or "--seed" or "--bot-reaction" or "--dump-dir":
                     error = $"Invalid value '{value}' for '{name}'.";
                     return false;
                 default:

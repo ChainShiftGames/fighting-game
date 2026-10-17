@@ -5,7 +5,6 @@ using System.Threading;
 using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Online;
-using Netcode.Tests.Matches;
 using Netcode.Tests.Transport;
 using Sim.State;
 
@@ -13,7 +12,7 @@ namespace Soak;
 
 /// <summary>
 /// One online match between two peers in this process, through the real online driver (Backdash) over an
-/// in-memory transport pair with simulated lag and loss, each peer played by seeded fighter inputs.
+/// in-memory transport pair with simulated lag and loss, each peer played by a seeded CPU bot (P3-50).
 /// </summary>
 /// <remarks>
 /// Three desync checks, all fatal: Backdash's own consistency check and each peer's desync monitor, both inside the
@@ -46,6 +45,8 @@ internal sealed class SoakMatch : IDisposable
     private readonly Stopwatch _sinceProgress = Stopwatch.StartNew();
     private int _lastProgressFrame;
 
+    /// <param name="player1Seed">Seeds P1's bot.</param>
+    /// <param name="player2Seed">Seeds P2's bot.</param>
     /// <param name="reproduction">How to replay this match, for the failure message.</param>
     public SoakMatch(SoakGame game, uint player1Seed, uint player2Seed, string dumpDirectory, string reproduction)
     {
@@ -57,8 +58,8 @@ internal sealed class SoakMatch : IDisposable
         _player2Simulation = new RecordingSimulation(game.CreateSimulation(), game.DesyncHistoryFrames);
         _player1Driver = CreateDriver(game, player1Transport, _player2Address, true, _player1Simulation, dumpDirectory);
         _player2Driver = CreateDriver(game, player2Transport, _player1Address, false, _player2Simulation, dumpDirectory);
-        _player1 = new TestMatchDriver<MatchState>(_player1Driver, [new FightingInputs(player1Seed)]);
-        _player2 = new TestMatchDriver<MatchState>(_player2Driver, [new FightingInputs(player2Seed)]);
+        _player1 = new TestMatchDriver<MatchState>(_player1Driver, [game.CreateBot(_player1Driver, 0, player1Seed)]);
+        _player2 = new TestMatchDriver<MatchState>(_player2Driver, [game.CreateBot(_player2Driver, 1, player2Seed)]);
     }
 
     /// <summary>Backdash's view of the connection from P1's side.</summary>
