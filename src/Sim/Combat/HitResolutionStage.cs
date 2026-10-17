@@ -113,7 +113,11 @@ public sealed class HitResolutionStage : ITickStage
         CounterHitKind counter =
             isBlocked ? CounterHitKind.None : CounterHits.KindAgainst(in defender, defenderCharacter);
         HitData landed = _shortcutDamage.Apply(_counterHits.Apply(in hit, counter), in attackerState);
-        if (!isBlocked && !_modules.AdjustHit(ref state, new FighterContact(attacker, defenderIndex), ref landed))
+        if (isBlocked)
+        {
+            _modules.AdjustBlock(ref state, new FighterContact(attacker, defenderIndex), ref landed);
+        }
+        else if (!_modules.AdjustHit(ref state, new FighterContact(attacker, defenderIndex), ref landed))
         {
             return Connection.None;
         }

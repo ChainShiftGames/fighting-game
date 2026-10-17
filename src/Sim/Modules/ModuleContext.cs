@@ -100,9 +100,6 @@ public readonly ref struct ModuleContext
     public void RequestStunOverride(int fighter, in StunOverrideRequest request) =>
         _requests.StunOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
-    public void RequestPushbackScale(int fighter, in PushbackScaleRequest request) =>
-        _requests.PushbackScales.Set(CoreRequests.FighterKey(_slot, fighter), request);
-
     /// <summary>Tells presentation something happened, as a module event belonging to <paramref name="fighter"/>.</summary>
     public void RequestEvent(int fighter, in ModuleEventRequest request) =>
         _requests.Events.Set(CoreRequests.FighterKey(_slot, fighter), request);

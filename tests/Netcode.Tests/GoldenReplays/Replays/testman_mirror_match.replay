@@ -2,7 +2,7 @@
 # round-over pauses and the end of the match. Checksums only change intentionally: re-record with
 # GOLDEN_REPLAYS_RECORD=1 and say why in the PR (tests/Netcode.Tests/GoldenReplays/GoldenReplayTests.cs).
 characters testman testman
-data_hash e5b3498e820ea0ab146414cb85407fd5618925acbd07a7df4015b3cf90f53aa1
+data_hash 44575ecef67a4e0c589d89a6d9af3c321965113b11e7e1ba2b225cedf0a720f4
 seed 2 frames 10800
 input 2 0048 0026
 input 4 0008 0006

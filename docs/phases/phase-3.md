@@ -38,7 +38,7 @@ Done when:
 
 ## B. Mechanic modules
 
-Done: P3-10, P3-12, P3-15 (after core pushback; pushback scale request awaits approval in ADR-0011), P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-21.
+Done: P3-10, P3-12, P3-15 (after core pushback; the block adjustment question awaits approval in ADR-0011), P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-21.
 **P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
 `tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
 covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
@@ -53,7 +53,7 @@ Counter hits and throws with tech are core, not modules (ADR-0017): P1-22 and P1
 | P3-10 | Gatlings & cancels | Per-character chain routes, jump cancels, normal → special → super cancels (from data) |
 | P3-12 | Combo limits | Damage proration, hitstun decay, gravity scaling, OTG rules |
 | P3-13 | Meter & supers | Tension-style 0–100 meter, gain from attacking/moving forward, supers cost 50 % |
-| P3-15 | Pushback guard | Meter-costing block with extra pushback: back + guard buttons (attacks locked meanwhile), cost per block + drain in blockstun; chip still taken (TODO) |
+| P3-15 | Pushback guard | Meter-costing block with extra pushback: back + guard buttons (attacks locked meanwhile), cost per block + drain in blockstun, no chip (switchable) |
 | P3-16 | Instant block | Just-in-time block reward |
 | P3-17 | Burst | Combo breaker on its own gauge |
 | P3-18 | Roman Cancel v1 | Guilty Gear style: buttons together spend meter, cancel into neutral (own hitstop ends), freeze + opponent slowdown; red/purple/blue/yellow switchable |

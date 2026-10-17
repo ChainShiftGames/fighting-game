@@ -157,9 +157,12 @@ public sealed class EntityHitResolutionStage : ITickStage
         isBlocked = Blocking.Stops(stance, hit.Guard);
         if (isBlocked)
         {
-            HitReactions.Block(ref defenderState, in hit, stance, character);
-            Hitstop.Extend(ref defenderState.Timing, hit.Hitstop);
-            _pushback.Start(ref defenderState, hit.Pushback, facing, pushesAttacker: false);
+            HitData blocked = hit;
+            _modules.AdjustBlock(ref state, new FighterContact(owner, defender), ref blocked);
+            defenderState = ref state.Fighters[defender];
+            HitReactions.Block(ref defenderState, in blocked, stance, character);
+            Hitstop.Extend(ref defenderState.Timing, blocked.Hitstop);
+            _pushback.Start(ref defenderState, blocked.Pushback, facing, pushesAttacker: false);
             return CounterHitKind.None;
         }
 

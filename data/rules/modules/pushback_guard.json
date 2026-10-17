@@ -6,5 +6,6 @@
   "buttonCount": 2,
   "pushbackPermille": 2000,
   "meterCost": 200,
-  "drainPerFrame": 5
+  "drainPerFrame": 5,
+  "noChip": 1
 }
