@@ -4,8 +4,8 @@ namespace Sim.Modules.InstantBlock;
 /// <remarks>
 /// TODO(P3-13): an instant block gives meter in the reference games. Once the meter module defines a core way to
 /// grant meter, add a <c>meterGain</c> field here; until then instant block gives none, so the modules stay apart.
-/// TODO: core pushback on block isn't applied yet (HitData.Pushback is read but unused); when it is, add a pushback
-/// reward field here alongside the blockstun one.
+/// TODO: core pushback is applied now (Sim.Collision.PushbackStage); a pushback reward needs a pushback request in
+/// ADR-0011 first (P3-15 adds one).
 /// </remarks>
 public struct InstantBlockConfig : IModuleConfig
 {

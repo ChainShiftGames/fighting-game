@@ -21,5 +21,6 @@
   "landingThrowInvulnerableFrames": 3,
   "throwVsStrike": "throw",
   "shortcutDamagePercent": 80,
-  "shortcutCooldownFrames": 0
+  "shortcutCooldownFrames": 0,
+  "pushbackFrames": 8
 }

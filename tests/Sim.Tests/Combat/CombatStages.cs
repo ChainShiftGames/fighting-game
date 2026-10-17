@@ -39,7 +39,8 @@ internal sealed class CombatStages
             tradeRule,
             new CounterHits(in rules),
             new ShortcutDamage(in rules),
-            new Guarding(lineup));
+            new Guarding(lineup),
+            new Pushback(rules.PushbackFrames));
     }
 
     public HitContacts Contacts { get; }

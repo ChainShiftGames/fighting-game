@@ -31,6 +31,7 @@ public sealed class HitResolutionStage : ITickStage
     private readonly TradeRule _tradeRule;
     private readonly CounterHits _counterHits;
     private readonly ShortcutDamage _shortcutDamage;
+    private readonly Pushback _pushback;
     private readonly Guarding _guarding;
 
     public HitResolutionStage(
@@ -41,7 +42,8 @@ public sealed class HitResolutionStage : ITickStage
         TradeRule tradeRule,
         CounterHits counterHits,
         ShortcutDamage shortcutDamage,
-        Guarding guarding)
+        Guarding guarding,
+        Pushback pushback)
     {
         _player1 = player1;
         _player2 = player2;
@@ -51,6 +53,7 @@ public sealed class HitResolutionStage : ITickStage
         _counterHits = counterHits;
         _shortcutDamage = shortcutDamage;
         _guarding = guarding;
+        _pushback = pushback;
     }
 
     public void Run(ref MatchState state, in FrameActivity activity)
@@ -72,8 +75,8 @@ public sealed class HitResolutionStage : ITickStage
 
         MarkAttacker(ref player1, in byPlayer1);
         MarkAttacker(ref player2, in byPlayer2);
-        React(ref player2, in byPlayer1, _player2);
-        React(ref player1, in byPlayer2, _player1);
+        React(ref player2, in byPlayer1, _player2, player1.Facing);
+        React(ref player1, in byPlayer2, _player1, player2.Facing);
         int hitstop = Longer(HitstopOf(in byPlayer1), HitstopOf(in byPlayer2));
         Hitstop.Extend(ref player1.Timing, hitstop);
         Hitstop.Extend(ref player2.Timing, hitstop);
@@ -150,7 +153,7 @@ public sealed class HitResolutionStage : ITickStage
         }
     }
 
-    private static void React(ref FighterState defender, in Connection connection, CharacterData character)
+    private void React(ref FighterState defender, in Connection connection, CharacterData character, int attackFacing)
     {
         if (connection.Outcome == HitOutcome.Hit)
         {
@@ -159,6 +162,11 @@ public sealed class HitResolutionStage : ITickStage
         else if (connection.Outcome == HitOutcome.Block)
         {
             HitReactions.Block(ref defender, connection.Hit, connection.Stance, character);
+        }
+
+        if (connection.IsMade)
+        {
+            _pushback.Start(ref defender, connection.Hit.Pushback, attackFacing, pushesAttacker: true);
         }
     }
 

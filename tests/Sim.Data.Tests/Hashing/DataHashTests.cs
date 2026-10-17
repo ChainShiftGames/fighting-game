@@ -17,8 +17,8 @@ namespace Sim.Data.Tests.Hashing;
 public sealed class DataHashTests
 {
     // Change only on purpose: a new value means every online player and replay sees different game data.
-    // Last change (P3-19): moves hash their special button shortcut, match rules the shortcut trade-off.
-    private const string FixtureHash = "97df8ee82482644f18790cad2652279fd094d306122a179f8d4ce5ce2460ff83";
+    // Last change (core pushback): match rules hash pushbackFrames.
+    private const string FixtureHash = "1699811a4954b3e21665db11a70e5aa574b61682fa96319add413a17bcdc8bd2";
 
     private static readonly DataHash _fixtureHash = Fixture.Load(Fixture.InMemory()).Hash;
 

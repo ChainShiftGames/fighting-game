@@ -33,6 +33,9 @@ public static class MatchRulesSchema
     /// <summary>Ten seconds: far beyond any cooldown tuning, it only catches typos.</summary>
     public const int MaxShortcutCooldownFrames = 600;
 
+    /// <summary>A second: longer than any pushback slide would be tuned.</summary>
+    public const int MaxPushbackFrames = 60;
+
     /// <summary>JSON spellings of <see cref="ThrowPriority"/>; match.schema.json lists the same names.</summary>
     public static readonly JsonNames<ThrowPriority> ThrowPriorities = new(
         ("throw", ThrowPriority.Throw),
