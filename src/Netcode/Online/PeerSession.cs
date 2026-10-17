@@ -6,6 +6,7 @@ using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Transport;
 using Sim.Input;
+using Sim.State;
 
 namespace Netcode.Online;
 
@@ -30,6 +31,27 @@ public static class PeerSession
         where TState : unmanaged =>
         new RollbackMatchDriver<TState>(simulation, Build<TState>(settings, transport, handshake));
 
+    /// <summary>
+    /// A match driver for an online match of the real game logic whose input delay follows the averaged ping between
+    /// rounds, or stays at the player's choice (ADR-0005 §4).
+    /// </summary>
+    /// <param name="delay">Replaces <see cref="PeerMatchSettings.InputDelayFrames"/>.</param>
+    /// <param name="handshake">As for the fixed-delay overload.</param>
+    public static InputDelayMatchDriver CreateDriver(
+        IMatchSimulation<MatchState> simulation,
+        PeerMatchSettings settings,
+        InputDelaySettings delay,
+        PeerTransport transport,
+        VersionHandshake handshake)
+    {
+        delay.Automatic.Validate();
+        INetcodeSession<InputWord> session =
+            Build<MatchState>(settings with { InputDelayFrames = delay.StartingFrames }, transport, handshake);
+        var driver = new RollbackMatchDriver<MatchState>(simulation, session);
+        var controller = new InputDelayController(delay, driver, new SessionInputDelay(session), settings.RollbackFrames);
+        return new InputDelayMatchDriver(driver, driver, controller);
+    }
+
     public static INetcodeSession<InputWord> Build<TState>(
         PeerMatchSettings settings, PeerTransport transport, VersionHandshake handshake)
         where TState : unmanaged
@@ -45,7 +67,6 @@ public static class PeerSession
             .WithPlayers(playersInPortOrder)
             .WithPort(settings.LocalPort > 0 ? settings.LocalPort : PortForTransportsWithoutPorts)
             .WithFrameRate(FramesPerSecond)
-            .WithInputDelayFrames(settings.InputDelayFrames)
             .WithStateSizeHint(Unsafe.SizeOf<TState>())
             .WithConsistencyCheck(true)
             .WithSocketFactory(sockets)
@@ -53,6 +74,9 @@ public static class PeerSession
             .Configure(options =>
             {
                 options.PredictionFrames = settings.RollbackFrames;
+
+                // Set here: Backdash's builder rejects 0, a delay players may choose (ADR-0005 §4).
+                options.InputDelayFrames = settings.InputDelayFrames;
 
                 // A consistency check is one request and one reply, never resent, so losing them isn't a broken
                 // connection; Backdash's default would disconnect after 10 s of failed checks. The checks still run,

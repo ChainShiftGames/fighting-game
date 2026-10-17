@@ -5,10 +5,23 @@
   "description": "data/netcode/online.json: how online matches run (developer settings). They don't change game results, so they are not part of the data hash or the match rules. Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Online).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "rollbackFrames"],
+  "required": ["schemaVersion", "rollbackFrames", "automaticInputDelay"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
-    "rollbackFrames": { "type": "integer", "minimum": 1, "maximum": 12, "description": "Rollback window (ADR-0003): the most frames predicted ahead of the other player's last confirmed input, and so the most frames one rollback re-runs. When the other player's inputs are older than this, the game waits for them instead. Default 8." }
+    "rollbackFrames": { "type": "integer", "minimum": 1, "maximum": 12, "description": "Rollback window (ADR-0003): the most frames predicted ahead of the other player's last confirmed input, and so the most frames one rollback re-runs. When the other player's inputs are older than this, the game waits for them instead. Default 8." },
+    "automaticInputDelay": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the automatic input delay follows Backdash's ping (ADR-0005 §4). The delay is recalculated only between rounds, from the median of the newest readings. A player's override (options menu) replaces it.",
+      "required": ["minimumFrames", "maximumFrames", "pingStepMilliseconds", "pingSampleIntervalFrames", "pingSamples"],
+      "properties": {
+        "minimumFrames": { "type": "integer", "minimum": 0, "maximum": 4, "description": "Delay at the lowest ping. Default 1." },
+        "maximumFrames": { "type": "integer", "minimum": 0, "maximum": 4, "description": "Highest automatic delay, at least minimumFrames; also the first round's delay, before any ping is known. Default 2." },
+        "pingStepMilliseconds": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "Each full step of this much median ping (Backdash's, ~20 ms above Steam's: ADR-0014 problem 4) adds one frame above minimumFrames. Default 50." },
+        "pingSampleIntervalFrames": { "type": "integer", "minimum": 1, "maximum": 3600, "description": "Logic frames between two ping readings. Default 60 (one a second)." },
+        "pingSamples": { "type": "integer", "minimum": 1, "maximum": 600, "description": "Newest readings the median covers, so one spike or one too-low reading never sets the delay. Default 15." }
+      }
+    }
   }
 }

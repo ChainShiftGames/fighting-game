@@ -1,5 +1,12 @@
 {
   "$schema": "../schema/online.schema.json",
   "schemaVersion": 1,
-  "rollbackFrames": 8
+  "rollbackFrames": 8,
+  "automaticInputDelay": {
+    "minimumFrames": 1,
+    "maximumFrames": 2,
+    "pingStepMilliseconds": 50,
+    "pingSampleIntervalFrames": 60,
+    "pingSamples": 15
+  }
 }
