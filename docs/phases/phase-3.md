@@ -120,7 +120,7 @@ Done when (editor as a whole):
 ## E. CPU bot
 
 ### P3-50 CPU bot v1
-Status: in progress (p3-50-cpu-bot) · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
+Status: done (soak with bots: run the manual 1-hour job) · Needs: P3-01 · Parallel: yes · Where: `src/Netcode/Bots/`
 Read: ADR-0006
 - Input provider that presses buttons like a player; never reads internals it couldn't "see".
 - Simple state machine (approach, attack, block, punish); difficulty = reaction delay (**player setting** in
