@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace FightingGame.Addons.CharacterEditor.Documents;
+namespace Sim.Data.Json;
 
 /// <summary>
 /// Which names in a file's top-level lists of names started a line when the file was read, so saving keeps lists

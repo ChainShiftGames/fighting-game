@@ -177,7 +177,7 @@ public sealed class EntityHitResolutionStage : ITickStage
             return CounterHitKind.None;
         }
 
-        HitReactions.TakeHit(ref defenderState, in landed, character);
+        HitReactions.TakeHit(ref defenderState, in landed, character, facing);
         Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
         _pushback.Start(ref defenderState, landed.Pushback, facing, pushesAttacker: false);
         return counter;

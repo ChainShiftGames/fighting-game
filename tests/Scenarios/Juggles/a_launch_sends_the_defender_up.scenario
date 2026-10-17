@@ -1,0 +1,13 @@
+# 2a launches (x 500, y 20000): the defender is airborne in air hitstun with the launch velocity, x away from the
+# attacker, and is knocked down when it lands (air recovery off).
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 2a
+
+frame 5: expect p2 state = air_hitstun
+frame 5: expect p2 vx = 500
+frame 5: expect p2 vy = 20000
+frame 6: expect p2 y > 0
+frames 6-40: expect p2 state = air_hitstun

@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Sim.Data.Json;
 
 namespace FightingGame.Addons.CharacterEditor.Documents;
 

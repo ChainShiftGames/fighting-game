@@ -92,12 +92,12 @@ public sealed class ThrowHoldStage : ITickStage
         int throwMove = defender.ThrownByMove;
         MoveData move = throwerCharacter.Moves[throwMove];
 
-        // Validated data gives every move with a throw box exactly one hit (schema v1).
+        // A throw's move has its throw boxes on its first hit's frames; that hit lands.
         HitData hit = throwerCharacter.HitsOf(in move)[0];
         ThrowHolds.Clear(ref defender);
         int releaseX = throwerState.Position.X + (throwerState.Facing * move.ThrowReleaseX);
         defender.Position = new IntVector2(releaseX, defender.Position.Y);
-        HitReactions.TakeHit(ref defender, in hit, defenderCharacter);
+        HitReactions.TakeHit(ref defender, in hit, defenderCharacter, throwerState.Facing);
         Hitstop.Extend(ref throwerState.Timing, hit.Hitstop);
         Hitstop.Extend(ref defender.Timing, hit.Hitstop);
         state.Events.Emit(state.Frame, FrameEventKind.ThrowHit, thrower, defender.Position, throwMove);

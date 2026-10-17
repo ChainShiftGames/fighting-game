@@ -22,7 +22,7 @@ public sealed class InvalidDataTests
     {
         _data.Replace(_move5A, "\"damage\": 300", "\"damage\": 300.5");
 
-        AssertSingleError(_move5A, "hit.damage", "must be a whole number from 0 to 1000000, got 300.5");
+        AssertSingleError(_move5A, "hits[0].damage", "must be a whole number from 0 to 1000000, got 300.5");
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public sealed class InvalidDataTests
     {
         _data.Replace(_move5A, "\"hitstun\": 12,", "");
 
-        AssertSingleError(_move5A, "hit.hitstun", "required field is missing");
+        AssertSingleError(_move5A, "hits[0].hitstun", "required field is missing");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class InvalidDataTests
     {
         _data.Replace(_move5A, "\"hitstop\": 8", "\"hitstop\": 8, \"hitstpo\": 8");
 
-        AssertSingleError(_move5A, "hit.hitstpo", "unknown field");
+        AssertSingleError(_move5A, "hits[0].hitstpo", "unknown field");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class InvalidDataTests
     {
         _data.Replace(_move5A, "\"hitstop\": 8", "\"hitstop\": 8, \"hitstop\": 9");
 
-        AssertSingleError(_move5A, "hit.hitstop", "field appears more than once");
+        AssertSingleError(_move5A, "hits[0].hitstop", "field appears more than once");
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class InvalidDataTests
     {
         _data.Replace(_move5A, "\"guard\": \"mid\"", "\"guard\": \"middle\"");
 
-        AssertSingleError(_move5A, "hit.guard", "must be one of \"mid\", \"low\", \"overhead\", \"unblockable\"");
+        AssertSingleError(_move5A, "hits[0].guard", "must be one of \"mid\", \"low\", \"overhead\", \"unblockable\"");
     }
 
     [Fact]
@@ -86,9 +86,9 @@ public sealed class InvalidDataTests
     [Fact]
     public void UnsupportedSchemaVersion()
     {
-        _data.Replace(_move5A, "\"schemaVersion\": 1", "\"schemaVersion\": 2");
+        _data.Replace(_move5A, "\"schemaVersion\": 2", "\"schemaVersion\": 3");
 
-        AssertSingleError(_move5A, "schemaVersion", "this build reads schema version 1, the file has 2");
+        AssertSingleError(_move5A, "schemaVersion", "this build reads schema version 2, the file has 3");
     }
 
     [Fact]
@@ -169,9 +169,9 @@ public sealed class InvalidDataTests
     public void HitboxWithoutHitProperties()
     {
         string text = _data.GetText(_move5A);
-        _data.SetText(_move5A, text[..text.IndexOf(",\n  \"hit\"", StringComparison.Ordinal)] + "\n}\n");
+        _data.SetText(_move5A, text[..text.IndexOf(",\n  \"hits\"", StringComparison.Ordinal)] + "\n}\n");
 
-        AssertSingleError(_move5A, "hit", "required because the move has hit or throw boxes");
+        AssertSingleError(_move5A, "hits", "required because the move has hit or throw boxes");
     }
 
     [Fact]
@@ -224,8 +224,8 @@ public sealed class InvalidDataTests
         DataValidationException exception = LoadFails();
 
         Assert.Equal(3, exception.Errors.Count);
-        Assert.Contains($"{_move5A}: hit.guard: must be one of", exception.Message, StringComparison.Ordinal);
-        Assert.Contains($"{Fixture.MoveFile("2b")}: hit.damage: must be", exception.Message, StringComparison.Ordinal);
+        Assert.Contains($"{_move5A}: hits[0].guard: must be one of", exception.Message, StringComparison.Ordinal);
+        Assert.Contains($"{Fixture.MoveFile("2b")}: hits[0].damage: must be", exception.Message, StringComparison.Ordinal);
         Assert.Contains($"{Character}: stats.health: must be", exception.Message, StringComparison.Ordinal);
     }
 

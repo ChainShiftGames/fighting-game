@@ -1,0 +1,15 @@
+# 5c launches with a ground bounce and knockdownFrames 60: the first landing (frame 26) bounces back up instead of
+# knocking down, the second (frame 57) knocks down, and the knockdown lasts 60 frames instead of the move's 40.
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5c
+
+frame 26: expect p2 y = 0
+frame 27: expect p2 state = air_hitstun
+frame 27: expect p2 y > 0
+frames 27-56: expect p2 y > 0
+frame 58: expect p2 state = knockdown
+frames 58-117: expect p2 state = knockdown
+frame 118: expect p2 state = wake_up

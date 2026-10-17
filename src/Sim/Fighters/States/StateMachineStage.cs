@@ -34,17 +34,19 @@ public sealed class StateMachineStage : ITickStage
     /// <param name="player2">P2's character.</param>
     /// <param name="modules">The match's modules, which decide on data cancels; none lets every window cancel.</param>
     /// <param name="shortcutCooldownFrames">The special button shortcut's cooldown (ADR-0020).</param>
+    /// <param name="airRecovery">Hitstun ending in the air lets the fighter recover there (ADR-0022).</param>
     public StateMachineStage(
         IMoveInput player1Input,
         IMoveInput player2Input,
         CharacterData player1,
         CharacterData player2,
         ModuleLineup? modules = null,
-        int shortcutCooldownFrames = 0)
+        int shortcutCooldownFrames = 0,
+        bool airRecovery = false)
     {
         _modules = modules;
-        _player1Machine = new FighterStateMachine(player1Input, shortcutCooldownFrames);
-        _player2Machine = new FighterStateMachine(player2Input, shortcutCooldownFrames);
+        _player1Machine = new FighterStateMachine(player1Input, shortcutCooldownFrames, airRecovery);
+        _player2Machine = new FighterStateMachine(player2Input, shortcutCooldownFrames, airRecovery);
         _player1 = player1;
         _player2 = player2;
     }

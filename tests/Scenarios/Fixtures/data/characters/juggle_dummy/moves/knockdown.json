@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 2,
+  "id": "knockdown",
+  "category": "basic",
+  "duration": 40,
+  "boxes": [
+    { "kind": "push", "firstFrame": 1, "lastFrame": 40, "x": -30000, "y": 0, "width": 60000, "height": 30000 }
+  ]
+}

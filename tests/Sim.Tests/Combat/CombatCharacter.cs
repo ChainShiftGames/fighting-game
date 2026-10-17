@@ -115,7 +115,7 @@ internal static class CombatCharacter
         int boxStart = boxes.Count;
         boxes.Add(Box(BoxKind.Hurt, 1, 10, _standingHurtbox));
         boxes.Add(Box(BoxKind.Hit, ActiveFrame, ActiveFrame + 1, hitbox));
-        hits.Add(hit);
+        hits.Add(hit with { FirstFrame = ActiveFrame, LastFrame = ActiveFrame + 1 });
         return new MoveData
         {
             Category = MoveCategory.Normal,

@@ -45,13 +45,11 @@ public sealed class HitDetectionStageTests
         Assert.False(_stages.Contacts.Touches(0));
     }
 
-    [Theory]
-    [InlineData(CancelOn.Hit)]
-    [InlineData(CancelOn.Block)]
-    [InlineData(CancelOn.Clash)]
-    public void AMoveThatAlreadyConnectedDoesNotTouchAgain(CancelOn outcome)
+    [Fact]
+    public void AHitThatAlreadyConnectedDoesNotTouchAgain()
     {
-        MatchState state = Exchange(Attacking(-30_000, 1, Mid) with { MoveOutcome = outcome }, At(30_000, -1));
+        MatchState state = Exchange(
+            Attacking(-30_000, 1, Mid) with { MoveOutcome = CancelOn.Hit, HitsConnected = 1 }, At(30_000, -1));
 
         _stages.Detect(ref state);
 

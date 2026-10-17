@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../../../data/schema/character.schema.json",
+  "schemaVersion": 1,
+  "id": "juggle_dummy",
+  "displayName": "Juggle Dummy",
+  "stats": {
+    "health": 10000,
+    "walkForwardSpeed": 4000,
+    "walkBackSpeed": 3200,
+    "dashStyle": "run",
+    "prejumpFrames": 4,
+    "jumpVelocity": 20000,
+    "highJumpVelocity": 25000,
+    "jumpForwardSpeed": 4500,
+    "jumpBackSpeed": 4000,
+    "gravity": 1000,
+    "airActions": 2
+  },
+  "moves": [
+    "5a", "2a", "5b", "5c", "idle", "crouch", "dash", "jump", "landing", "hitstun", "crouch_hitstun", "air_hitstun",
+    "blockstun", "crouch_blockstun", "knockdown"
+  ],
+  "states": {
+    "idle": "idle",
+    "crouch": "crouch",
+    "dash": "dash",
+    "jump": "jump",
+    "landing": "landing",
+    "hitstun": "hitstun",
+    "crouchHitstun": "crouch_hitstun",
+    "airHitstun": "air_hitstun",
+    "blockstun": "blockstun",
+    "crouchBlockstun": "crouch_blockstun",
+    "knockdown": "knockdown"
+  }
+}

@@ -1,0 +1,15 @@
+# Sparring dummy's 2a is an OTG hit and its 5a isn't: once 2a knocks p2 down, 5a passes over the knocked-down
+# fighter's hurtbox, and a second 2a still hits it.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 2a
+frame 10: p1 5a
+frame 19: p1 2a
+
+frame 3: expect p2 state = knockdown
+frames 12-13: expect p1 event hit = 0
+frame 13: expect p2 damage = 1000
+frame 21: expect p1 event hit
+frame 21: expect p2 damage = 2000

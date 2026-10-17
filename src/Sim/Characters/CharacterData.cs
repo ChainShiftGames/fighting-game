@@ -94,6 +94,21 @@ public sealed class CharacterData
 
     public ReadOnlySpan<HitData> HitsOf(in MoveData move) => _hits.AsSpan(move.HitStart, move.HitCount);
 
+    /// <summary>Index in <see cref="HitsOf"/> of the hit covering <paramref name="frame"/>; -1 when none does.</summary>
+    public int HitIndexAt(in MoveData move, int frame)
+    {
+        ReadOnlySpan<HitData> hits = HitsOf(in move);
+        for (int hit = 0; hit < hits.Length; hit++)
+        {
+            if (hits[hit].Covers(frame))
+            {
+                return hit;
+            }
+        }
+
+        return -1;
+    }
+
     /// <summary>The move's velocity ranges, in frame order and never overlapping.</summary>
     public ReadOnlySpan<VelocityData> VelocitiesOf(in MoveData move) =>
         _velocities.AsSpan(move.VelocityStart, move.VelocityCount);

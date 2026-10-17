@@ -110,6 +110,10 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>pushbackFrames</c>). 0 (rules built in code) = no pushback.</remarks>
     public int PushbackFrames;
 
+    /// <summary>1: a fighter whose hitstun ends in the air recovers into a free jump; 0: it falls until it lands (ADR-0022).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>airRecovery</c>).</remarks>
+    public int AirRecovery;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

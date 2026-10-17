@@ -8,7 +8,7 @@
   "required": ["schemaVersion", "id", "category", "boxes"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": { "$ref": "#/$defs/id", "description": "Must equal the file name without .json." },
     "category": {
       "enum": ["basic", "normal", "special", "super", "throw"],
@@ -98,7 +98,13 @@
         "lastFrame": { "$ref": "#/$defs/frames" }
       }
     },
-    "hit": { "$ref": "#/$defs/hit", "description": "Required exactly when the move has a hit or throw box. A throw uses damage, hitstop and reaction when it lands." },
+    "hits": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "description": "Required exactly when the move has a hit or throw box (ADR-0022). Each hit connects once. One hit without frames covers the whole active range; with several, each names its frames, in order, not overlapping, inside the active frames, and every hit or throw box frame belongs to one hit. A throw uses its hit's damage, hitstop and reaction when it lands.",
+      "items": { "$ref": "#/$defs/hit" }
+    },
     "throw": {
       "description": "Required exactly when the move has throw boxes (a move hits or throws, not both; ground moves only). Category throw marks normal throws, whose buttons are also the throw tech input.",
       "type": "object",
@@ -166,6 +172,8 @@
       "additionalProperties": false,
       "required": ["damage", "guard", "hitstun", "blockstun", "hitstop", "pushback"],
       "properties": {
+        "firstFrame": { "$ref": "#/$defs/frames", "description": "Move hits only: first move frame this hit's boxes deal it on." },
+        "lastFrame": { "$ref": "#/$defs/frames", "description": "Move hits only." },
         "damage": { "type": "integer", "minimum": 0, "maximum": 1000000 },
         "chipDamage": { "type": "integer", "minimum": 0, "description": "Default 0; at most damage." },
         "guard": { "enum": ["mid", "low", "overhead", "unblockable"] },
@@ -175,8 +183,20 @@
         "pushback": { "type": "integer", "minimum": 0, "maximum": 1000000 },
         "reaction": { "enum": ["hitstun", "knockdown"], "description": "Default hitstun." },
         "counterHit": { "$ref": "#/$defs/counterBonus", "description": "This hit's own counter hit bonus (defender in an attack's startup or active frames); default: the counterHit* values in rules/match.json." },
-        "punishCounter": { "$ref": "#/$defs/counterBonus", "description": "This hit's own punish counter bonus (defender in an attack's recovery); default: the punishCounter* values in rules/match.json." }
+        "punishCounter": { "$ref": "#/$defs/counterBonus", "description": "This hit's own punish counter bonus (defender in an attack's recovery); default: the punishCounter* values in rules/match.json." },
+        "launch": { "$ref": "#/$defs/velocity", "description": "On hit the defender takes this velocity (x away from the attacker, y up) and is airborne in air hitstun (a launcher or juggle hit)." },
+        "airLaunch": { "$ref": "#/$defs/velocity", "description": "Instead of launch when the defender was already airborne. Without either, an airborne defender keeps its momentum." },
+        "groundBounce": { "type": "object", "additionalProperties": false, "required": ["y"], "properties": { "y": { "type": "integer", "minimum": 1, "maximum": 1000000 } }, "description": "The juggle's first landing bounces the defender up at y instead of knocking it down." },
+        "wallBounce": { "type": "object", "additionalProperties": false, "required": ["x", "y"], "properties": { "x": { "type": "integer", "minimum": 1, "maximum": 1000000 }, "y": { "$ref": "#/$defs/coordinate" } }, "description": "The juggle's first wall touch sends the defender back off the wall at this velocity (x away from the wall)." },
+        "knockdownFrames": { "$ref": "#/$defs/frames", "description": "How long the knockdown this hit causes lasts; default the knockdown move's length (soft vs hard knockdown)." },
+        "otg": { "type": "boolean", "description": "Can hit a knocked-down defender (whose knockdown move needs hurtboxes); default false." }
       }
+    },
+    "velocity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": { "x": { "$ref": "#/$defs/coordinate" }, "y": { "$ref": "#/$defs/coordinate" } }
     },
     "counterBonus": {
       "type": "object",

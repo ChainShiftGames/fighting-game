@@ -1,33 +1,50 @@
 using Sim.Characters;
 using Sim.Fighters.States;
+using Sim.Math;
 using Sim.State;
 
 namespace Sim.Combat;
 
-/// <summary>What a hit or a block does to the defender: damage or chip, then hitstun, knockdown or blockstun.</summary>
+/// <summary>What a hit or a block does to the defender: damage or chip, then hitstun, a launch, knockdown or blockstun.</summary>
 /// <remarks>
 /// Health stops at 0; ending the round on a KO is round logic (P1-13). Chip damage can therefore finish a round. A
-/// hit or block that KOs a grounded defender knocks it down at once, whatever the hit's reaction; an airborne one
-/// falls in air hitstun and is knocked down on landing. Either way it stays down until the next round (the state
-/// machine doesn't wake a KO'd fighter up). Hitstop is not applied here: it freezes both fighters, so
+/// hit with launch data (ADR-0022) sends the defender up into air hitstun (a juggle); otherwise a hit or block that
+/// KOs a grounded defender knocks it down at once, whatever the hit's reaction, and an airborne one keeps falling in
+/// air hitstun and is knocked down on landing. Either way a KO'd fighter stays down until the next round (the state
+/// machine doesn't wake it up). Every hit also sets the knockdown length and the bounces of the juggle it starts or
+/// continues, so the last hit taken decides them. Hitstop is not applied here: it freezes both fighters, so
 /// <see cref="HitResolutionStage"/> applies it.
 /// </remarks>
 public static class HitReactions
 {
     /// <summary>
-    /// Air hits go to air hitstun (which ends in a knockdown on landing), knockdown and KO hits on the ground knock
-    /// down straight away, and other hits go to standing or crouching hitstun after the defender's posture.
+    /// A launch goes to air hitstun with the launch velocity; without one, air hits keep the defender's momentum in
+    /// air hitstun (a knockdown on landing), knockdown, KO and OTG hits on the ground knock down straight away, and
+    /// other hits go to standing or crouching hitstun after the defender's posture.
     /// </summary>
-    public static void TakeHit(ref FighterState defender, in HitData hit, CharacterData character)
+    /// <param name="attackFacing">The attacker's (or projectile's) facing: launches send the defender that way.</param>
+    public static void TakeHit(ref FighterState defender, in HitData hit, CharacterData character, int attackFacing)
     {
         defender.Health = LoseHealth(defender.Health, hit.Damage);
-        if (defender.IsAirborne != 0)
+        defender.KnockdownFrames = hit.KnockdownFrames;
+        defender.GroundBounce = hit.GroundBounce;
+        defender.WallBounce = hit.WallBounce;
+        bool isAirborne = defender.IsAirborne != 0;
+        if (isAirborne ? hit.HasAirLaunch != 0 || hit.HasLaunch != 0 : hit.HasLaunch != 0)
+        {
+            IntVector2 launch = isAirborne && hit.HasAirLaunch != 0 ? hit.AirLaunch : hit.Launch;
+            defender.Velocity = new IntVector2(launch.X * attackFacing, launch.Y);
+            defender.IsAirborne = 1;
+            MoveEntry.EnterStun(ref defender, FighterAction.AirHitstun, hit.Hitstun, character);
+        }
+        else if (isAirborne)
         {
             MoveEntry.EnterStun(ref defender, FighterAction.AirHitstun, hit.Hitstun, character);
         }
-        else if (hit.Reaction == HitReaction.Knockdown || KnockOut.IsKnockedOut(in defender))
+        else if (hit.Reaction == HitReaction.Knockdown || KnockOut.IsKnockedOut(in defender) ||
+            defender.Action == FighterAction.Knockdown)
         {
-            MoveEntry.EnterBasic(ref defender, FighterAction.Knockdown, character);
+            MoveEntry.EnterKnockdown(ref defender, character);
         }
         else
         {
@@ -39,9 +56,10 @@ public static class HitReactions
     public static void Block(ref FighterState defender, in HitData hit, BlockStance stance, CharacterData character)
     {
         defender.Health = LoseHealth(defender.Health, hit.ChipDamage);
+        defender.KnockdownFrames = 0;
         if (KnockOut.IsKnockedOut(in defender))
         {
-            MoveEntry.EnterBasic(ref defender, FighterAction.Knockdown, character);
+            MoveEntry.EnterKnockdown(ref defender, character);
             return;
         }
 

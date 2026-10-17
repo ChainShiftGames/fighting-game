@@ -81,4 +81,18 @@ public struct FighterState
 
     /// <summary>The pushback slide in progress after a hit or block (<c>Sim.Collision.PushbackStage</c>).</summary>
     public PushbackSlide Pushback;
+
+    /// <summary>One bit per hit of the current move that hit, was blocked or clashed (ADR-0022): each connects once.</summary>
+    public int HitsConnected;
+
+    /// <summary>
+    /// Length of the next knockdown, from the last hit taken (ADR-0022); 0 = the knockdown move's own length.
+    /// </summary>
+    public int KnockdownFrames;
+
+    /// <summary>Upward speed of the bounce on this juggle's next landing, from the last hit taken; 0 = none.</summary>
+    public int GroundBounce;
+
+    /// <summary>Speed off the wall on this juggle's next wall touch (x away from it); x 0 = none.</summary>
+    public IntVector2 WallBounce;
 }

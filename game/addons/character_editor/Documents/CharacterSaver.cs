@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using FightingGame.Debug;
 using Sim.Data;
+using Sim.Data.Json;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 

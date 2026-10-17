@@ -43,7 +43,7 @@ public sealed class CounterBonusReaderTests
             Fixture.MoveFile("5a"), Pushback, $"{Pushback}, \"counterHit\": {{ \"extraHitstun\": 6, \"extraHitstop\": 3 }}");
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => HitOf5a()).Errors);
-        Assert.Equal((Fixture.MoveFile("5a"), "hit.counterHit.extraDamagePercent"), (error.File, error.Field));
+        Assert.Equal((Fixture.MoveFile("5a"), "hits[0].counterHit.extraDamagePercent"), (error.File, error.Field));
     }
 
     private HitData HitOf5a()

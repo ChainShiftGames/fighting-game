@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Upgrades data/ files to the current schema versions, one step per format change (ADR-0021). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sim.Data\Sim.Data.csproj" />
+  </ItemGroup>
+</Project>

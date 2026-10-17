@@ -25,5 +25,6 @@ public static class MatchRulesDataHash
         hash.Add(file.Shortcuts.DamagePercent);
         hash.Add(file.Shortcuts.CooldownFrames);
         hash.Add(file.PushbackFrames);
+        hash.Add(file.AirRecovery ? 1 : 0);
     }
 }

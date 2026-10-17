@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "623c",
   "category": "special",
   "usableIn": "ground",
@@ -24,14 +24,16 @@
       "intoCategories": ["super"]
     }
   ],
-  "hit": {
-    "damage": 1400,
-    "chipDamage": 140,
-    "guard": "mid",
-    "hitstun": 30,
-    "blockstun": 18,
-    "hitstop": 14,
-    "pushback": 20000,
-    "reaction": "knockdown"
-  }
+  "hits": [
+    {
+      "damage": 1400,
+      "chipDamage": 140,
+      "guard": "mid",
+      "hitstun": 30,
+      "blockstun": 18,
+      "hitstop": 14,
+      "pushback": 20000,
+      "reaction": "knockdown"
+    }
+  ]
 }

@@ -21,5 +21,8 @@ public readonly record struct Connection
     /// <summary>The attacker's move, by index in its character's move list.</summary>
     public int Move { get; init; }
 
+    /// <summary>Which of the move's hits connected (ADR-0022), by index in its hit list.</summary>
+    public int HitIndex { get; init; }
+
     public bool IsMade => Outcome != HitOutcome.None;
 }

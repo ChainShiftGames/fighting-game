@@ -27,7 +27,7 @@ public static class MoveFields
     public const string IntoCategories = "intoCategories";
     public const string Velocity = "velocity";
     public const string Invulnerable = "invulnerable";
-    public const string Hit = "hit";
+    public const string Hits = "hits";
     public const string Throw = "throw";
     public const string Projectiles = "projectiles";
     public const string SpawnFrame = "spawnFrame";

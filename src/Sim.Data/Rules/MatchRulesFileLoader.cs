@@ -43,6 +43,7 @@ public static class MatchRulesFileLoader
             file.RequiredInt("shortcutDamagePercent", 1, MatchRulesSchema.MaxShortcutDamagePercent),
             file.RequiredInt("shortcutCooldownFrames", 0, MatchRulesSchema.MaxShortcutCooldownFrames));
         int pushbackFrames = file.RequiredInt("pushbackFrames", 1, MatchRulesSchema.MaxPushbackFrames);
+        bool airRecovery = file.RequiredBool("airRecovery");
         file.Finish();
         return errors.Count > errorsBefore
             ? null
@@ -57,7 +58,8 @@ public static class MatchRulesFileLoader
                 punishCounter,
                 throws,
                 shortcuts,
-                pushbackFrames);
+                pushbackFrames,
+                airRecovery);
     }
 
     private static ThrowFormat ReadThrows(FieldReader file)

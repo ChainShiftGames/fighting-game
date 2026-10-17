@@ -242,3 +242,5 @@ These rules apply to all code, and agents must follow them even when one big cla
 - **Match rules:** the gameplay-affecting developer settings for a match (enabled mechanics, input windows…).
 - **Frame data:** startup, active and recovery frames of a move.
 - **Hitstun / blockstun / hitstop:** frames a character can't act after being hit / blocking / the brief freeze on impact.
+- **Juggle / launch / OTG:** hitting an airborne opponent again / a hit that sends the opponent up / "off the ground",
+  a hit that connects with a knocked-down opponent.
