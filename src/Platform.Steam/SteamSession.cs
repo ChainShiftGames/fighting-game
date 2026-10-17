@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Platform.Steam.Friends;
 using Platform.Steam.Lobbies;
 using Steamworks;
 
@@ -90,11 +88,8 @@ public sealed class SteamSession : IDisposable
             : IntPtr.Zero;
     }
 
-    /// <summary>Opens a friends-only lobby to find an online opponent through invites.</summary>
-    public SteamLobby OpenLobby() => SteamLobby.Open();
-
-    /// <summary>Friends running this game right now: the ones a lobby invite can reach.</summary>
-    public IReadOnlyList<SteamFriend> FriendsPlayingThisGame() => FriendsInGame.List();
+    /// <summary>The lobby flow over Steam's lobbies, not in a lobby yet: host one or accept a friend's invite.</summary>
+    public LobbyFlow OpenLobby() => new(new SteamLobby());
 
     /// <summary>Delivers Steam's pending callbacks. Call once per displayed frame.</summary>
     public void RunCallbacks() => SteamAPI.RunCallbacks();
