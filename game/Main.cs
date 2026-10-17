@@ -14,6 +14,7 @@ using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
 using Netcode.Replays;
+using Netcode.Transport;
 using Sim.Data.Validation;
 using Sim.Input;
 
@@ -59,6 +60,9 @@ public partial class Main : Node2D
     private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
     private readonly List<DeveloperToggle> _toggles = [];
 
+    // Developer settings: this PC's simulated network conditions, changed from the debug panel mid-match (P2-11).
+    private readonly LiveNetworkSimulation _networkSimulation = new();
+
     private JoypadWatcher? _joypadWatcher;
     private InputReadout? _inputReadout;
     private PlayerSettings _settings = new();
@@ -75,6 +79,8 @@ public partial class Main : Node2D
     private MatchStatusLabel? _status;
     private MatchmakingMenu? _matchmakingMenu;
     private OptionsMenu? _optionsMenu;
+    private PingIndicator? _pingIndicator;
+    private NetworkReadout? _networkReadout;
     private IPlatformServices? _platform;
     private string _matchError = string.Empty;
     private bool _stopped;
@@ -97,7 +103,14 @@ public partial class Main : Node2D
         _debugPanel.Build(
             _toggles, DataSettingList.Numbers(), DataSettingList.Choices(), _data.Folder, DeveloperKeys);
         _debugPanel.DataSaved += RestartLocalMatch;
+        var networkSimulator = new NetworkSimulatorControls();
+        networkSimulator.Build(_networkSimulation);
+        _debugPanel.AddSection("Network simulator (developer settings, act at once)", networkSimulator);
         AddChild(_debugPanel);
+        _networkReadout = new NetworkReadout(_networkSimulation);
+
+        _pingIndicator = new PingIndicator();
+        AddChild(_pingIndicator);
 
         var playerName = new PlayerNameLabel();
         AddChild(playerName);
@@ -140,6 +153,7 @@ public partial class Main : Node2D
         if (_match is null)
         {
             _status!.Show(_matchError);
+            _pingIndicator!.Show(null);
             return;
         }
 
@@ -147,6 +161,7 @@ public partial class Main : Node2D
         int framesRun = RunDueFrames(now);
         _logicRate.Count(framesRun, now);
         SampleConnection(now);
+        _pingIndicator!.Show(_match.Connection?.PingMilliseconds);
         if (_match.Recording is { } recording && _saveReplays.Enabled)
         {
             SaveReplay(recording.TakeFinishedReplay(), recording.Kind);
@@ -159,6 +174,7 @@ public partial class Main : Node2D
         {
             _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
             _overlay.ShowInputs(_inputReadout!.Describe(_match.Loop.LastInputs));
+            _overlay.ShowNetwork(_match.IsOnline ? _networkReadout!.Describe() : string.Empty);
             _overlay.ShowMatch(_match.Description, _match.Loop.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
         }
     }
@@ -263,14 +279,18 @@ public partial class Main : Node2D
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
         _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
         _onlineStartup = new OnlineMatchStartup(
-            bindings, devices, _joypads, loops, _hitboxOverlay, _effectToggles, args);
+            bindings, devices, _joypads, loops, _hitboxOverlay, _effectToggles, _networkSimulation, args);
         _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
     }
 
     private StartedMatch? CreateLocalMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
 
-    private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent) => TryCreateMatch(
-        "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), _settings, opponent));
+    private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent)
+    {
+        _networkReadout!.Watch(opponent.Transport.Dropped);
+        return TryCreateMatch(
+            "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), _settings, opponent));
+    }
 
     private StartedMatch? CreateReplayMatch(string path) =>
         TryCreateMatch("replay", () => _replayStartup!.Create(_data!.Load(), path));

@@ -13,6 +13,7 @@ using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Online;
 using Netcode.Replays;
+using Netcode.Transport;
 using Sim.Data;
 using Sim.Data.Online;
 using Sim.State;
@@ -28,11 +29,16 @@ public sealed class OnlineMatchStartup
     private readonly MatchLoopFactory _loops;
     private readonly DeveloperToggle _hitboxOverlay;
     private readonly EffectToggles _effectToggles;
+    private readonly LiveNetworkSimulation _networkSimulation;
     private readonly string[] _args;
 
     /// <param name="bindings">One per player on this PC (player settings).</param>
     /// <param name="hitboxOverlay">Draws every box on top of the fighters (developer setting).</param>
     /// <param name="effectToggles">Switches each kind of event effect (developer settings).</param>
+    /// <param name="networkSimulation">
+    /// This PC's simulated network conditions, changed from the debug panel mid-match (developer settings). Starts at
+    /// the command line's conditions; from then on the panel's values carry over to every later match (rematches).
+    /// </param>
     /// <param name="args">Command line, for the online tuning options of <see cref="OnlineLaunchOptions"/>.</param>
     public OnlineMatchStartup(
         PlayerBindings[] bindings,
@@ -41,6 +47,7 @@ public sealed class OnlineMatchStartup
         MatchLoopFactory loops,
         DeveloperToggle hitboxOverlay,
         EffectToggles effectToggles,
+        LiveNetworkSimulation networkSimulation,
         string[] args)
     {
         _bindings = bindings;
@@ -49,7 +56,16 @@ public sealed class OnlineMatchStartup
         _loops = loops;
         _hitboxOverlay = hitboxOverlay;
         _effectToggles = effectToggles;
+        _networkSimulation = networkSimulation;
         _args = args;
+        try
+        {
+            networkSimulation.Current = OnlineLaunchOptions.Simulation(args);
+        }
+        catch (FormatException exception)
+        {
+            GD.PushError($"Ignoring invalid network simulation options: {exception.Message}");
+        }
     }
 
     /// <param name="online">The rollback window and other online developer settings from data.</param>
@@ -104,6 +120,9 @@ public sealed class OnlineMatchStartup
             RemoteEndPoint = opponent.Address,
             LocalIsPlayer1 = opponent.LocalIsPlayer1,
             RollbackFrames = online.RollbackFrames,
+
+            // Only the packets this PC sends change; the game logic never sees the simulation (ARCHITECTURE.md §6).
+            NetworkSimulation = NetworkSimulation.Following(_networkSimulation),
         };
         try
         {

@@ -1,6 +1,7 @@
 using System;
 using FightingGame.Online;
 using Netcode.Online;
+using Netcode.Transport;
 using Sim.Data.Online;
 using Xunit;
 
@@ -56,4 +57,19 @@ public sealed class OnlineLaunchOptionsTests
     {
         Assert.Throws<FormatException>(() => OnlineLaunchOptions.InputDelay(_automatic, null, ["--delay", frames]));
     }
+
+    [Fact]
+    public void NoOptionsMeanNoSimulation() => Assert.Equal(NetworkSimulation.None, OnlineLaunchOptions.Simulation([]));
+
+    [Fact]
+    public void SingleOptionsChangeTheTestConditions()
+    {
+        NetworkSimulation simulation = OnlineLaunchOptions.Simulation(["--lag", "--loss", "5"]);
+
+        Assert.Equal(NetworkSimulation.TestConditions with { PacketLossPercent = 5 }, simulation);
+    }
+
+    [Fact]
+    public void ALossOverAHundredPercentIsInvalid() =>
+        Assert.Throws<FormatException>(() => OnlineLaunchOptions.Simulation(["--loss", "101"]));
 }
