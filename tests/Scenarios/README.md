@@ -77,6 +77,10 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
   same-frame hits: `trade` (both land) or `clash` (neither lands).
+- **Roman Cancel** (P3-18): `setup: module roman_cancel <buttonMask> <buttonCount> <pressWindow> <meterCost>
+  <variants> <freezeFrames> <slowdownFrames> <slowdownNumerator> <slowdownDenominator>`
+  (`Sim.Modules.RomanCancel.RomanCancelConfig`; button bits a 16, b 32, c 64, d 128: `112` = a+b+c; variants 1 red,
+  2 purple, 4 blue, 8 yellow). A Roman Cancel shows as `p<n> event module`; with a cost it needs `module meter`.
 - **Special button shortcut** (match rules, ADR-0020): `setup: shortcut_damage <percent>` and
   `setup: shortcut_cooldown <frames>` override `shortcutDamagePercent` and `shortcutCooldownFrames` from
   `data/rules/match.json` (80, 0). The scenario dummy's `236b` and Testman's `236c` have the shortcut `6`, Testman's

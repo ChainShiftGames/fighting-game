@@ -1,0 +1,14 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "buttonMask": 112,
+  "buttonCount": 3,
+  "pressWindow": 3,
+  "meterCost": 5000,
+  "variants": 15,
+  "freezeFrames": 6,
+  "slowdownFrames": 40,
+  "slowdownNumerator": 1,
+  "slowdownDenominator": 2
+}

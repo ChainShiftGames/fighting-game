@@ -1,0 +1,10 @@
+# a held, then b, then c, two frames apart each: by c's press a has been held 5 frames, past the 3-frame press
+# window, so only two buttons count together. Free (cost 0).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: module roman_cancel 112 3 3 0 15 6 40 1 2
+frames 1-2: p1 5a
+frames 3-4: p1 5a+b
+frames 5-6: p1 5a+b+c
+
+frames 1-10: expect p1 event module = 0

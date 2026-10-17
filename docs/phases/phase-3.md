@@ -38,11 +38,10 @@ Done when:
 
 ## B. Mechanic modules
 
-Done: P3-10, P3-12, P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-19 (core, ADR-0020), P3-21. Partly merged: P3-17.
+Done: P3-10, P3-12, P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-21. Partly merged: P3-17.
 **Blocked (devs decide):**
 - **P3-15** needs core pushback first: `HitData.Pushback` is read but never applied (Phase 1 follow-up), and a
   module has no way to change it. Options: core pushback on hit/block plus a pushback-scale request in ADR-0011.
-- **P3-18** waits on the Roman Cancel design (ROADMAP §8 Q4).
 **P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
 `tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
 covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
@@ -60,7 +59,7 @@ Counter hits and throws with tech are core, not modules (ADR-0017): P1-22 and P1
 | P3-15 | Pushback guard | Meter-costing block with extra pushback |
 | P3-16 | Instant block | Just-in-time block reward |
 | P3-17 | Burst | Combo breaker on its own gauge |
-| P3-18 | Roman Cancel v1 | Per the agreed design, with switchable variants |
+| P3-18 | Roman Cancel v1 | Guilty Gear style: buttons together spend meter, cancel into neutral (own hitstop ends), freeze + opponent slowdown; red/purple/blue/yellow switchable |
 | P3-19 | Special button | GBVS-style shortcut specials with a tunable trade-off (damage or cooldown); core, not a module (ADR-0020) |
 | P3-20 | Dash button | Dedicated dash input behaviour |
 | P3-21 | Negative penalty | Penalty for running away: retreat frames (own walk back, backdash, jump back) build to a meter loss + module event; forward movement wins them back |

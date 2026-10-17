@@ -6,6 +6,7 @@ using Sim.Modules.Gatlings;
 using Sim.Modules.InstantBlock;
 using Sim.Modules.Meter;
 using Sim.Modules.NegativePenalty;
+using Sim.Modules.RomanCancel;
 
 namespace Sim.Modules;
 
@@ -30,5 +31,6 @@ public static class RegisteredModules
         new InstantBlockModule(),
         new MeterModule(),
         new NegativePenaltyModule(),
+        new RomanCancelModule(),
     ]);
 }
