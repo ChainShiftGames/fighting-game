@@ -1,3 +1,4 @@
+using System;
 using Sim.Characters;
 using Sim.State;
 
@@ -8,7 +9,7 @@ namespace Netcode.Drivers.Training;
 /// The delay leaves the damage on the health bar long enough to read. Only while the round is on: a combo that KOs
 /// still ends the round, and the next one starts with full health anyway.
 /// </remarks>
-public sealed class HealthRefill : ITrainingAdjustment<MatchState>
+public sealed class HealthRefill : ITrainingAdjustment<MatchState>, ITrainingReset
 {
     private readonly int[] _fullHealth;
     private readonly int[] _freeFrames = new int[MatchState.PlayerCount];
@@ -34,4 +35,7 @@ public sealed class HealthRefill : ITrainingAdjustment<MatchState>
             }
         }
     }
+
+    /// <summary>Waits the whole delay again before the next refill.</summary>
+    public void Reset() => Array.Clear(_freeFrames);
 }

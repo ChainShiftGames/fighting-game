@@ -36,6 +36,7 @@ public sealed class DummyModeEntry : ITrainingMenuEntry
         DummyMode.BlockAfterFirstHit => "Block after first hit",
         DummyMode.Jump => "Jump",
         DummyMode.Record => "Record (you control the dummy)",
+        DummyMode.Playback => "Playback",
         _ => mode.ToString(),
     };
 }

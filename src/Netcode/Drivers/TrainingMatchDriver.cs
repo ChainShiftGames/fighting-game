@@ -8,9 +8,9 @@ namespace Netcode.Drivers;
 /// fighters' inputs come from <see cref="ITrainingInputs{TState}"/> and training conveniences apply after the frame.
 /// </summary>
 /// <remarks>
-/// Extension points: the frame meter (P3-31) observes the simulation passed in, as the event effects do; record and
-/// playback (P3-32) are <see cref="ITrainingInputs{TState}"/>; savestates (P3-33) use
-/// <see cref="ITrainingMatchDriver{TState}.Restore"/>.
+/// Extension points: the frame meter observes the simulation passed in, as the event effects do; record and playback
+/// are <see cref="ITrainingInputs{TState}"/>; savestates use <see cref="ITrainingMatchDriver{TState}.Restore"/>.
+/// Restarting or restoring also resets the inputs' and adjustments' own progress (<see cref="ITrainingReset"/>).
 /// </remarks>
 public sealed class TrainingMatchDriver<TState> : ITrainingMatchDriver<TState>
     where TState : unmanaged
@@ -56,9 +56,27 @@ public sealed class TrainingMatchDriver<TState> : ITrainingMatchDriver<TState>
         return true;
     }
 
-    public void Restart() => _state = _simulation.CreateInitialState();
+    public void Restart()
+    {
+        _state = _simulation.CreateInitialState();
+        ResetProgress();
+    }
 
-    public void Restore(in TState state) => _state = state;
+    public void Restore(in TState state)
+    {
+        _state = state;
+        ResetProgress();
+    }
+
+    // The dummy and the adjustments start over with the state they now act on.
+    private void ResetProgress()
+    {
+        (_inputs as ITrainingReset)?.Reset();
+        foreach (ITrainingAdjustment<TState> adjustment in _adjustments)
+        {
+            (adjustment as ITrainingReset)?.Reset();
+        }
+    }
 
     // Owns no session or socket.
     public void Dispose()
