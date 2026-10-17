@@ -17,7 +17,9 @@ public sealed class StartedMatch : IDisposable
     private readonly IDisposable _driver;
     private readonly VersionHandshake? _handshake;
     private readonly Func<bool>? _isOver;
+    private readonly Func<string> _describe;
 
+    /// <param name="describe">The one-line description; read again each time, as some of it (the input delay) changes.</param>
     /// <param name="recording">Records the match for a replay; null when the match is a replay itself.</param>
     /// <param name="handshake">An online match's version handshake, whose refusal is shown while it waits.</param>
     /// <param name="isOver">Whether the match logic has finished the match; null when nothing asks.</param>
@@ -25,7 +27,7 @@ public sealed class StartedMatch : IDisposable
         IMatchLoop loop,
         IDisposable driver,
         Node2D view,
-        string description,
+        Func<string> describe,
         ConnectionMeter? connection,
         MatchRecording? recording = null,
         VersionHandshake? handshake = null,
@@ -37,7 +39,7 @@ public sealed class StartedMatch : IDisposable
         _handshake = handshake;
         _isOver = isOver;
         View = view;
-        Description = description;
+        _describe = describe;
         Connection = connection;
     }
 
@@ -46,7 +48,7 @@ public sealed class StartedMatch : IDisposable
     /// <summary>Draws the match from the driver's state; the host adds it to the scene and redraws it each frame.</summary>
     public Node2D View { get; }
 
-    public string Description { get; }
+    public string Description => _describe();
 
     public ConnectionMeter? Connection { get; }
 

@@ -7,6 +7,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
+using FightingGame.Settings;
 using Godot;
 using Netcode.Drivers;
 using Netcode.Handshake;
@@ -52,9 +53,11 @@ public sealed class OnlineMatchStartup
     }
 
     /// <param name="online">The rollback window and other online developer settings from data.</param>
-    public StartedMatch Create(GameData data, OnlineSettings online, OnlineOpponent opponent)
+    /// <param name="playerSettings">The player's settings, for their input delay choice.</param>
+    public StartedMatch Create(GameData data, OnlineSettings online, PlayerSettings playerSettings, OnlineOpponent opponent)
     {
         PeerMatchSettings settings = Settings(online, opponent);
+        InputDelaySettings delay = InputDelay(online, playerSettings);
         MatchLineup lineup = MatchLineup.From(data);
 
         // One player on this PC, on either player's keyboard bindings or the first joypad.
@@ -71,8 +74,8 @@ public sealed class OnlineMatchStartup
         var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, RumbleSlots(settings)));
 
         // The effects observe the recorded logic: both wrappers see every resimulated frame (ADR-0018 §4).
-        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(
-            effects.Observe(lineup.RecordedSimulation(recorder)), settings, opponent.Transport, handshake);
+        InputDelayMatchDriver driver = PeerSession.CreateDriver(
+            effects.Observe(lineup.RecordedSimulation(recorder)), settings, delay, opponent.Transport, handshake);
         var connection = new ConnectionMeter(driver, opponent.Transport.Link, Stopwatch.Frequency);
         var view = new MatchView();
         view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay, effects);
@@ -83,7 +86,7 @@ public sealed class OnlineMatchStartup
         var recording = new MatchRecording(
             recorder, driver, settings.RollbackFrames, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
         return new StartedMatch(
-            loop, driver, view, Describe(settings, opponent, lineup), connection, recording, handshake,
+            loop, driver, view, () => Describe(settings, delay, driver, opponent, lineup), connection, recording, handshake,
             isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
@@ -113,10 +116,30 @@ public sealed class OnlineMatchStartup
         }
     }
 
-    private static string Describe(PeerMatchSettings settings, OnlineOpponent opponent, MatchLineup lineup) => string.Create(
+    // The player's input delay choice, or --delay standing in for it; an invalid --delay leaves the player's choice.
+    private InputDelaySettings InputDelay(OnlineSettings online, PlayerSettings player)
+    {
+        try
+        {
+            return OnlineLaunchOptions.InputDelay(online.AutomaticInputDelay, player.InputDelayOverrideFrames, _args);
+        }
+        catch (FormatException exception)
+        {
+            GD.PushError($"Ignoring the delay option: {exception.Message}");
+            return OnlineLaunchOptions.InputDelay(online.AutomaticInputDelay, player.InputDelayOverrideFrames, []);
+        }
+    }
+
+    private static string Describe(
+        PeerMatchSettings settings,
+        InputDelaySettings delay,
+        InputDelayMatchDriver driver,
+        OnlineOpponent opponent,
+        MatchLineup lineup) => string.Create(
         CultureInfo.InvariantCulture,
         $"online P{(settings.LocalIsPlayer1 ? 1 : 2)} vs {opponent.Name}, {lineup.Description}, " +
-        $"rollback {settings.RollbackFrames} f, delay {settings.InputDelayFrames} f, " +
+        $"rollback {settings.RollbackFrames} f, delay {driver.InputDelayFrames} f " +
+        $"{(delay.PlayerOverrideFrames is null ? "auto" : "fixed")}, " +
         $"sim {settings.NetworkSimulation.PingMilliseconds} ms ±{settings.NetworkSimulation.JitterMilliseconds} ms " +
         $"{settings.NetworkSimulation.PacketLossPercent} % loss");
 }

@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.Json;
 using Godot;
 
 namespace FightingGame.Settings;
@@ -7,12 +6,6 @@ namespace FightingGame.Settings;
 /// <summary>Loads and saves <see cref="PlayerSettings"/> as JSON under <c>user://</c>.</summary>
 public sealed class PlayerSettingsStore
 {
-    private static readonly JsonSerializerOptions _json = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-    };
-
     private readonly string _path;
 
     public PlayerSettingsStore(string userPath)
@@ -20,7 +13,7 @@ public sealed class PlayerSettingsStore
         _path = ProjectSettings.GlobalizePath(userPath);
     }
 
-    /// <summary>The saved settings, or the defaults when nothing is saved yet or the file can't be read.</summary>
+    /// <summary>The saved settings, or the defaults when nothing is saved yet; invalid values fall back with a warning.</summary>
     public PlayerSettings Load()
     {
         if (!File.Exists(_path))
@@ -28,16 +21,14 @@ public sealed class PlayerSettingsStore
             return new PlayerSettings();
         }
 
-        try
+        PlayerSettings settings = PlayerSettingsJson.Read(File.ReadAllText(_path), out string warning);
+        if (warning.Length > 0)
         {
-            return JsonSerializer.Deserialize<PlayerSettings>(File.ReadAllText(_path), _json) ?? new PlayerSettings();
+            GD.PushWarning($"Player settings at {_path}: {warning}.");
         }
-        catch (JsonException exception)
-        {
-            GD.PushWarning($"Ignoring unreadable player settings at {_path}: {exception.Message}");
-            return new PlayerSettings();
-        }
+
+        return settings;
     }
 
-    public void Save(PlayerSettings settings) => File.WriteAllText(_path, JsonSerializer.Serialize(settings, _json));
+    public void Save(PlayerSettings settings) => File.WriteAllText(_path, PlayerSettingsJson.Write(settings));
 }

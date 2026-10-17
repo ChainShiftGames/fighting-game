@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using Netcode.Online;
 using Netcode.Transport;
+using Sim.Data.Online;
 
 namespace FightingGame.Online;
 
@@ -13,6 +14,7 @@ namespace FightingGame.Online;
 /// <item><c>--online --port 7000 --remote 127.0.0.1:7001 --player 1</c>: direct UDP (development only).</item>
 /// <item>Either one: <c>[--lag | --ping ms --jitter ms --loss %] [--rollback frames] [--delay frames]</c>.</item>
 /// </list>
+/// <c>--delay</c> stands in for the player's input delay choice (0–4) for one run; the rest are developer settings.
 /// </summary>
 public static class OnlineLaunchOptions
 {
@@ -23,7 +25,7 @@ public static class OnlineLaunchOptions
     public static bool WantsSteam(string[] args) => Array.IndexOf(args, "--steam") >= 0;
 
     /// <summary>The opponent of a direct UDP match; null with no error when the arguments don't ask for one.</summary>
-    /// <remarks>The tuning options are read when the match starts (<see cref="WithTuning"/>).</remarks>
+    /// <remarks>The tuning options are read when the match starts (<see cref="WithTuning"/>, <see cref="InputDelay"/>).</remarks>
     public static OnlineOpponent? ParseDirect(string[] args, out string error)
     {
         error = string.Empty;
@@ -46,8 +48,8 @@ public static class OnlineLaunchOptions
     }
 
     /// <summary>
-    /// Applies the rollback, delay and network-simulation options to any online match. Developer settings: they
-    /// override the data's values for one run, as exported test builds can't edit data.
+    /// Applies the rollback and network-simulation options to any online match. Developer settings: they override the
+    /// data's values for one run, as exported test builds can't edit data.
     /// </summary>
     /// <exception cref="FormatException">An option has an invalid value.</exception>
     public static PeerMatchSettings WithTuning(PeerMatchSettings settings, string[] args)
@@ -58,13 +60,42 @@ public static class OnlineLaunchOptions
         return settings with
         {
             RollbackFrames = IntOption(args, "--rollback", settings.RollbackFrames),
-            InputDelayFrames = IntOption(args, "--delay", settings.InputDelayFrames),
             NetworkSimulation = simulation with
             {
                 PingMilliseconds = IntOption(args, "--ping", simulation.PingMilliseconds),
                 JitterMilliseconds = IntOption(args, "--jitter", simulation.JitterMilliseconds),
                 PacketLossPercent = IntOption(args, "--loss", simulation.PacketLossPercent),
             },
+        };
+    }
+
+    /// <summary>
+    /// How this PC picks its input delay: <c>--delay</c> fixes it for this run, else the player's own choice
+    /// (<paramref name="playerOverrideFrames"/>, null for automatic) stands.
+    /// </summary>
+    /// <param name="automatic">How the automatic delay follows the ping (developer settings, from data).</param>
+    /// <exception cref="FormatException"><c>--delay</c> isn't a delay a player may choose.</exception>
+    public static InputDelaySettings InputDelay(AutomaticInputDelaySettings automatic, int? playerOverrideFrames, string[] args)
+    {
+        int? overrideFrames = OptionOrNull(args, "--delay") is null ? playerOverrideFrames : IntOption(args, "--delay", null);
+        if (overrideFrames is < InputDelaySettings.MinOverrideFrames or > InputDelaySettings.MaxOverrideFrames)
+        {
+            throw new FormatException(
+                $"--delay must be {InputDelaySettings.MinOverrideFrames} to {InputDelaySettings.MaxOverrideFrames}, " +
+                $"got {overrideFrames}.");
+        }
+
+        return new InputDelaySettings
+        {
+            Automatic = new InputDelayTuning
+            {
+                MinimumFrames = automatic.MinimumFrames,
+                MaximumFrames = automatic.MaximumFrames,
+                PingStepMilliseconds = automatic.PingStepMilliseconds,
+                PingSampleIntervalFrames = automatic.PingSampleIntervalFrames,
+                PingSamples = automatic.PingSamples,
+            },
+            PlayerOverrideFrames = overrideFrames,
         };
     }
 
