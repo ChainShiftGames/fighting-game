@@ -1,0 +1,13 @@
+# usableInBlockstun 1: p2 bursts out of blocking p1's 5a.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module burst 10000 10000 0 0 10000 0 1 0 240 34 100
+frame 1: p1 5a
+frames 5-6: p2 4
+frame 7: p2 a+b+c+d
+
+frame 7: expect p2 state = blockstun
+frame 7: expect module burst[3] = 1
+frame 40: expect p2 move = burst

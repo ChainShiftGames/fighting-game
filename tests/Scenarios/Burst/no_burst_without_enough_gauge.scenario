@@ -1,0 +1,13 @@
+# Half a gauge (5000) is less than the cost (10000): the press does nothing and p2 stays in hitstun.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module burst 10000 5000 0 0 10000 1 0 0 240 34 100
+frame 1: p1 5a
+frame 6: p2 a+b+c+d
+
+frame 6: expect module burst[2] = 5000
+frame 6: expect module burst[3] = 0
+frame 14: expect p2 state = hitstun
+frames 1-40: expect p2 move != burst

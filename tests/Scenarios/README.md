@@ -70,6 +70,10 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
 - **Meter** (P3-13): `setup: module meter <superCost> <hitGain> <blockGain> <forwardGain> <roundStartMeter>
   <carryOverRounds>` (hundredths of a percent); read with `module meter[0]` (P1) / `[1]` (P2).
+- **Burst** (P3-17): `setup: module burst <maxGauge> <startGauge> <gainPerFrame> <gainWhenHit> <burstCost>
+  <usableInHitstun> <usableInBlockstun> <usableInNeutral> <triggerButtons> <burstMove> <cancelPriority>`
+  (`Sim.Modules.Burst.BurstConfig`; triggers `240` = a+b+c+d, Testman's burst move is index 34). Slice:
+  `module burst[0]` P1 gauge, `[1]` P1 bursts used, `[2]` P2 gauge, `[3]` P2 bursts used.
 - **Negative penalty** (P3-21): `setup: module negative_penalty <penaltyFrames> <forwardRecovery> <meterLoss>`
   (`Sim.Modules.NegativePenalty.NegativePenaltyConfig`); the retreat counters are `module negative_penalty[0]` /
   `[1]`, a penalty shows as `p<n> event module`.
