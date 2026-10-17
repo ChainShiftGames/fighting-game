@@ -1,0 +1,10 @@
+# Burst off: pressing a+b+c+d in hitstun does nothing; p2 stays in hitstun.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 6: p2 a+b+c+d
+
+frames 6-12: expect p2 state = hitstun
+frames 6-12: expect p2 move != burst
