@@ -1,0 +1,7 @@
+# The same fireball from the motion deals its full 600.
+setup: p1 character testman
+setup: p2 character testman
+setup: shortcut_damage 80
+frame 1: p1 2, 3, 6c
+
+frame 60: expect p2 damage = 600
