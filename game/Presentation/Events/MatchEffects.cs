@@ -9,8 +9,8 @@ namespace FightingGame.Presentation.Events;
 /// plays once and effects a rollback removes are cancelled (ADR-0005 §3).
 /// </summary>
 /// <remarks>
-/// The match startup wraps the driver's simulation with <see cref="Observe"/>, adds <see cref="Sounds"/> to the
-/// scene, and the view draws <see cref="Sparks"/> and offsets its camera by <see cref="Shake"/>.
+/// The match startup wraps the driver's simulation with <see cref="Observe"/>; the view adds <see cref="Sounds"/> to
+/// the scene as its child, draws <see cref="Sparks"/> and offsets its camera by <see cref="Shake"/>.
 /// </remarks>
 public sealed class MatchEffects
 {
