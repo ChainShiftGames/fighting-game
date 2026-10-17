@@ -57,15 +57,23 @@ public sealed class TrainingMatchStartup
         var timings = new TrainingTimings(GuardResetFrames, HealthRefillDelayFrames);
         var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, [0, JoypadRumbleMotor.NoSlot]));
 
-        // P3-31 (frame meter) observes the simulation here, next to the effects.
-        IMatchSimulation<MatchState> simulation = effects.Observe(new ComposedMatchSimulation(lineup.Simulation));
+        var meter = new FrameMeter();
+        IMatchSimulation<MatchState> simulation = new FrameMeterSimulation(
+            effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), lineup.Characters, meter);
         var inputs = DummyModeInputs.Create(lineup.Characters[TrainingSides.Player], timings, () => _settings.Value.Dummy);
         var driver = new TrainingMatchDriver<MatchState>(
             simulation, inputs, TrainingAdjustments.Create(lineup.Simulation, timings));
 
         var view = new MatchView();
         view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay, effects);
-        _menu.Use(TrainingMenuEntries.Create(_settings, driver));
+        var meterBar = new FrameMeterBar();
+        meterBar.Show(meter, () => _settings.Value.ShowFrameMeter);
+        view.AddChild(meterBar);
+        _menu.Use(TrainingMenuEntries.Create(_settings, () =>
+        {
+            driver.Restart();
+            meter.Clear();
+        }));
 
         PlayerInputReader player = new(
             new KeyboardDevice(_bindings.Keyboard, _devices),

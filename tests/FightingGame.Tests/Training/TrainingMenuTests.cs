@@ -46,4 +46,17 @@ public sealed class TrainingMenuTests
 
         Assert.Equal("Training — Dummy: Crouch — Tab menu", TrainingMenuText.Summary(entries, Key.Tab));
     }
+
+    [Fact]
+    public void FrameMeterEntryShowsAndHidesTheMeter()
+    {
+        var settings = new CurrentTrainingSettings(new TrainingSettings(), _ => { });
+        var entry = new FrameMeterEntry(Key.Key3, settings);
+        Assert.Equal("Frame meter: On", entry.Describe());
+
+        entry.Press();
+
+        Assert.False(settings.Value.ShowFrameMeter);
+        Assert.Equal("Frame meter: Off", entry.Describe());
+    }
 }
