@@ -108,8 +108,14 @@ public partial class Main : Node2D
         AddChild(_overlay);
 
         _debugPanel = new DebugPanel { Visible = false };
+        (DataFileFlag[] moduleSwitches, DataFileSetting[] moduleValues) = ModuleSettingList.For(_data.Folder);
         _debugPanel.Build(
-            _toggles, DataSettingList.Numbers(), DataSettingList.Choices(), _data.Folder, DeveloperKeys);
+            _toggles,
+            moduleSwitches,
+            [.. DataSettingList.Numbers(), .. moduleValues],
+            DataSettingList.Choices(),
+            _data.Folder,
+            DeveloperKeys);
         _debugPanel.DataSaved += RestartLocalMatch;
         var networkSimulator = new NetworkSimulatorControls();
         networkSimulator.Build(_networkSimulation);

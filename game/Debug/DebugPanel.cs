@@ -10,8 +10,9 @@ namespace FightingGame.Debug;
 /// <c>data/</c> are written back to their files on Save, and the host then restarts the local match with them.
 /// </summary>
 /// <remarks>
-/// A new developer setting is one more <see cref="DeveloperToggle"/>, <see cref="DataFileSetting"/> or
-/// <see cref="DataFileChoice"/> in the lists the host passes in, or a section (<see cref="AddSection"/>); the panel needs no change. Its controls never take keyboard focus by themselves, so the
+/// A new developer setting is one more <see cref="DeveloperToggle"/>, <see cref="DataFileFlag"/>,
+/// <see cref="DataFileSetting"/> or <see cref="DataFileChoice"/> in the lists the host passes in, or a section
+/// (<see cref="AddSection"/>); the panel needs no change. Its controls never take keyboard focus by themselves, so the
 /// players' keys keep reaching the match while it is open.
 /// </remarks>
 public partial class DebugPanel : CanvasLayer
@@ -23,6 +24,7 @@ public partial class DebugPanel : CanvasLayer
     private readonly VBoxContainer _rows = new() { CustomMinimumSize = new Vector2(320f, 0f) };
     private readonly Label _status = new() { AutowrapMode = TextServer.AutowrapMode.WordSmart };
     private readonly List<(DeveloperToggle Toggle, CheckBox Box)> _toggleRows = [];
+    private readonly List<(DataFileFlag Setting, CheckBox Box)> _flagRows = [];
     private readonly List<(DataFileSetting Setting, SpinBox Box)> _dataRows = [];
     private readonly List<(DataFileChoice Setting, OptionButton Box)> _choiceRows = [];
     private string? _dataRoot;
@@ -35,6 +37,7 @@ public partial class DebugPanel : CanvasLayer
     /// <param name="keys">One line listing the developer keys.</param>
     public void Build(
         IReadOnlyList<DeveloperToggle> toggles,
+        IReadOnlyList<DataFileFlag> dataFlags,
         IReadOnlyList<DataFileSetting> dataSettings,
         IReadOnlyList<DataFileChoice> dataChoices,
         string? dataRoot,
@@ -52,6 +55,11 @@ public partial class DebugPanel : CanvasLayer
         _sectionsEnd = _rows.GetChildCount();
         _rows.AddChild(new HSeparator());
         _rows.AddChild(new Label { Text = dataRoot is null ? "data/ (embedded in this build: read-only)" : "data/ (saved to the files)" });
+        foreach (DataFileFlag setting in dataFlags)
+        {
+            AddFlagRow(setting);
+        }
+
         foreach (DataFileSetting setting in dataSettings)
         {
             AddDataRow(setting);
@@ -124,6 +132,18 @@ public partial class DebugPanel : CanvasLayer
         _rows.AddChild(box);
     }
 
+    private void AddFlagRow(DataFileFlag setting)
+    {
+        var box = new CheckBox
+        {
+            Text = $"{setting.Name} ({setting.File})",
+            FocusMode = Control.FocusModeEnum.None,
+            Disabled = _dataRoot is null,
+        };
+        _flagRows.Add((setting, box));
+        _rows.AddChild(box);
+    }
+
     // Step 1 with a custom arrow step: Godot snaps a value to min + n * step, so a coarse step would move values
     // the loader accepts (wallDistance's min is 1, its arrows move a pixel).
     private void AddDataRow(DataFileSetting setting)
@@ -170,6 +190,11 @@ public partial class DebugPanel : CanvasLayer
 
         try
         {
+            foreach ((DataFileFlag setting, CheckBox box) in _flagRows)
+            {
+                box.SetPressedNoSignal(setting.Read(_dataRoot));
+            }
+
             foreach ((DataFileSetting setting, SpinBox box) in _dataRows)
             {
                 box.SetValueNoSignal(setting.Read(_dataRoot));
@@ -199,6 +224,15 @@ public partial class DebugPanel : CanvasLayer
         try
         {
             int written = 0;
+            foreach ((DataFileFlag setting, CheckBox box) in _flagRows)
+            {
+                if (box.ButtonPressed != setting.Read(_dataRoot))
+                {
+                    setting.Write(_dataRoot, box.ButtonPressed);
+                    written++;
+                }
+            }
+
             foreach ((DataFileSetting setting, SpinBox box) in _dataRows)
             {
                 int value = (int)box.Value;

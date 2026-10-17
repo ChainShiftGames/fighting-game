@@ -90,7 +90,7 @@ Read: ADR-0007
 - Reuse rollback snapshots; kept in memory while training is open, no time limit, not saved to disk (ADR-0007).
 
 ### P3-34 Developer control panel
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
+Status: done (Godot check pending) · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
 Read: ADR-0005
 - Toggle modules and edit their configs (restarts the round). **Developer settings**; not present in release builds.
 
