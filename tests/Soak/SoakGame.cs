@@ -78,6 +78,6 @@ internal sealed class SoakGame
     {
         MatchRules rules = _data.CreateMatchRules();
         return new ComposedMatchSimulation(new MatchSimulation(
-            _character, _character, _data.Buttons, _data.Motions.Motions, _data.Motions.Movement, in rules));
+            _character, _character, _data.Buttons, _data.Motions.Motions, _data.Motions.Movement, in rules, _data.Flags.Names));
     }
 }

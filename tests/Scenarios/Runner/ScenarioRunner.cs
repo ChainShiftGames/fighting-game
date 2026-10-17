@@ -33,7 +33,8 @@ public static class ScenarioRunner
             setup.Buttons,
             setup.Motions.Motions,
             setup.Motions.Movement,
-            in rules);
+            in rules,
+            setup.Flags);
         MatchState state = match.StartState();
         foreach (SetupValue value in setup.Values)
         {

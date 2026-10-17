@@ -73,6 +73,11 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   (`Sim.Modules.ComboLimits.ComboLimitsConfig`). Its scenarios use `sparring_dummy`
   (`Fixtures/data/characters/sparring_dummy/`): `5a` and `2a` (1000 damage, 20 hitstun, startup 3; `2a` knocks
   down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
+- **Move conditions** (ADR-0023): `mechanics_dummy` (`Fixtures/data/characters/mechanics_dummy/`) has a rekka on
+  236a (`rekka_1` → `rekka_2` → `rekka_3`, follow-up windows on frames 8-21), a stance (214b `stance_enter` sets
+  it; in it 5c is `stance_c`, which leaves it; outside it the plain `5c`), and an install: 214d `install` costs 5000
+  of the main meter (needs `module meter`) and starts its `install` mechanic (30 frames, slice `[0]` = frames left),
+  during which 6c is `install_c`.
 - **Character mechanics** (ADR-0023): a character's data switches its mechanic on, so no setup line; read its slice
   with `p1 mechanic <i>`. `gauge_dummy` (`Fixtures/data/characters/gauge_dummy/`) runs `character_gauge` on channel
   1: starts at 100, +1 per frame, +50 per hit and +20 per block of its own `5a` (scenario_dummy's).
@@ -147,6 +152,7 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `match_event <kind>` | match | events of no fighter this frame (`time_out`, `round_start`, `match_end`), as `event` | no |
 | `module <name>[i]` | match | integer i of an enabled module's state slice | no |
 | `mechanic <i>` | fighter | integer i of the state slice of the fighter's character mechanic (ADR-0023) | no |
+| `flags` | fighter | the fighter's flags, bit i = flag i of `data/rules/flags.json` (1 stance, 2 install) | yes |
 
 A failing scenario reports only the **first** failing expectation, as
 `file:line: frame N: expected <expectation>, but it was <actual>`, followed by every value above for both fighters

@@ -8,7 +8,7 @@ namespace Sim.Data.Characters.Reading;
 public static class CharacterSchema
 {
     public const int CharacterVersion = 2;
-    public const int MoveVersion = 2;
+    public const int MoveVersion = 3;
 
     public const string CharactersDirectory = "characters";
 
@@ -20,6 +20,9 @@ public static class CharacterSchema
 
     /// <summary>Upper bound for a counter hit's extra damage: 1000 % more, ten times beyond any real tuning.</summary>
     public const int MaxExtraDamagePercent = 1000;
+
+    /// <summary>Upper bound for a move's cost: any gauge's units, far beyond a full one.</summary>
+    public const int MaxCost = 1_000_000;
 
     /// <summary>Upper bound for a projectile's clash durability.</summary>
     public const int MaxDurability = 99;

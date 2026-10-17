@@ -10,11 +10,13 @@ namespace Sim.Fighters.States;
 /// </remarks>
 public static class MoveEntry
 {
-    /// <summary>Enters an attack (any non-basic move) and reports its category as started this frame.</summary>
+    /// <summary>Enters an attack (any non-basic move), applies its flags and reports its category as started this frame.</summary>
     public static void EnterAttack(ref FighterState fighter, int move, CharacterData character)
     {
         Enter(ref fighter, FighterAction.Attack, move);
-        fighter.StartedMoveCategory = character.Moves[move].Category;
+        ref readonly MoveData data = ref character.Moves[move];
+        fighter.Flags = (fighter.Flags & ~data.ClearsFlags) | data.SetsFlags;
+        fighter.StartedMoveCategory = data.Category;
         // The state machine marks a move it started from a shortcut; any other entry (a module's cancel) isn't one.
         fighter.IsShortcutMove = 0;
     }

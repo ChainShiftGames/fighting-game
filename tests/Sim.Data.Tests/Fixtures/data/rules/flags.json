@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../data/schema/flags.schema.json",
+  "schemaVersion": 1,
+  "flags": [
+    { "name": "stance", "clearedWhenHit": true },
+    { "name": "install", "clearedWhenHit": false }
+  ]
+}

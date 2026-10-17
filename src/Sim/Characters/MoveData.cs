@@ -56,6 +56,28 @@ public readonly record struct MoveData
     /// </summary>
     public int ThrowReleaseX { get; init; }
 
+    /// <summary>Fighter flags that must all be set for the move to start (ADR-0023), e.g. a stance; 0 = none.</summary>
+    public int RequiredFlags { get; init; }
+
+    /// <summary>Fighter flags that must all be clear for the move to start, e.g. a burnout lock; 0 = none.</summary>
+    public int ForbiddenFlags { get; init; }
+
+    /// <summary>Fighter flags the move sets as it starts (after <see cref="ClearsFlags"/>), e.g. entering a stance.</summary>
+    public int SetsFlags { get; init; }
+
+    /// <summary>Fighter flags the move clears as it starts, e.g. leaving a stance.</summary>
+    public int ClearsFlags { get; init; }
+
+    /// <summary>The meter channel <see cref="CostAmount"/> is paid from (ADR-0023); 0 is the main meter.</summary>
+    public int CostChannel { get; init; }
+
+    /// <summary>What starting the move costs; a fighter without that much can't start it. 0 = free.</summary>
+    public int CostAmount { get; init; }
+
+    /// <summary>1: the move never starts from neutral or by category, only from a cancel window naming it (a rekka).</summary>
+    /// <remarks>An int, not a bool: hashed character structs hold only four-byte fields.</remarks>
+    public int IsFollowUpOnly { get; init; }
+
     /// <summary>The fighter can't be hit or thrown on <paramref name="frame"/> of this move.</summary>
     public bool IsInvulnerableOn(int frame) =>
         InvulnerableFirstFrame != 0 && frame >= InvulnerableFirstFrame && frame <= InvulnerableLastFrame;

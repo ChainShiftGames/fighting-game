@@ -18,9 +18,11 @@ public sealed class GameData
         MotionFile motions,
         MatchRulesFile rules,
         ModuleLineupFile modules,
+        FighterFlagsFile flags,
         IReadOnlyList<CharacterData> characters,
         DataHash hash)
     {
+        Flags = flags;
         Buttons = buttons;
         Motions = motions;
         Rules = rules;
@@ -41,6 +43,9 @@ public sealed class GameData
     /// <summary>Every module data knows, in hook order, switched on or off (rules/modules.json and rules/modules/).</summary>
     public ModuleLineupFile Modules { get; }
 
+    /// <summary>The fighter flags (rules/flags.json, ADR-0023); a match needs their names.</summary>
+    public FighterFlagsFile Flags { get; }
+
     /// <summary>Sorted by id (ordinal), the same on every platform.</summary>
     public IReadOnlyList<CharacterData> Characters { get; }
 
@@ -57,6 +62,7 @@ public sealed class GameData
         Motions.ApplyTo(ref rules);
         Rules.ApplyTo(ref rules);
         Modules.ApplyTo(ref rules);
+        Flags.ApplyTo(ref rules);
         return rules;
     }
 

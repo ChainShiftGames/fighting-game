@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "knockdown",
   "category": "basic",
   "duration": 40,

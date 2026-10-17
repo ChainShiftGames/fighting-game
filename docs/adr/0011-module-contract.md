@@ -38,6 +38,7 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Entity spawning:** projectiles and module objects through the entity pool (P1-21).
 - **Per-fighter gravity scale** (P3-12): extra gravity in thousandths, kept until the next request (combo limits).
 - **Per-fighter stun override** (P3-16): replace remaining hitstun/blockstun (e.g. instant block).
+- **Fighter flags** (ADR-0023): set and clear a fighter's flags (`FlagsRequest`), e.g. an install running out.
 - **Module events** (P3-16): a module asks the core to emit a `FrameEventKind.Module` event for presentation; its
   detail packs the module id and the module's own code.
 - **Move lock** (P3-13): a request that stops a fighter starting moves of given categories for one state

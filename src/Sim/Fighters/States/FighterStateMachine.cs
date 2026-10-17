@@ -45,8 +45,18 @@ public sealed class FighterStateMachine
         Advance(ref fighter, in history, character, CancelPermission.EveryWindow);
 
     public void Advance(
-        ref FighterState fighter, in InputHistory history, CharacterData character, CancelPermission cancels)
+        ref FighterState fighter, in InputHistory history, CharacterData character, CancelPermission cancels) =>
+        Advance(ref fighter, in history, character, cancels, AvailableMeter.Unlimited);
+
+    /// <param name="meter">The fighter's meter per channel as the step starts, for move costs (ADR-0023).</param>
+    public void Advance(
+        ref FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        CancelPermission cancels,
+        in AvailableMeter meter)
     {
+        _moves.Meter = meter;
         // A takeoff is only this frame's request to movement.
         fighter.Takeoff = Takeoff.None;
         if (fighter.ShortcutCooldownLeft > 0)

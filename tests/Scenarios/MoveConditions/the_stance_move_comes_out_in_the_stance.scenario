@@ -1,0 +1,12 @@
+# 214b enters the stance (flag 1); in it 5c is stance_c, which leaves the stance as it starts.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 2, 1, 4b
+frame 25: p1 5c
+
+frame 3: expect p1 move = stance_enter
+frames 3-24: expect p1 flags = 1
+frame 25: expect p1 move = stance_c
+frame 25: expect p1 flags = 0

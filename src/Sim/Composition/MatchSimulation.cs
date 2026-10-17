@@ -3,6 +3,7 @@ using Sim.Characters;
 using Sim.Collision;
 using Sim.Combat;
 using Sim.Entities;
+using Sim.Fighters;
 using Sim.Fighters.Movement;
 using Sim.Fighters.States;
 using Sim.Input;
@@ -34,19 +35,22 @@ public sealed class MatchSimulation
     /// <param name="motions">The motion set, in priority order.</param>
     /// <param name="movement">Which motions dash, backdash and high jump.</param>
     /// <param name="rules">The match rules, with the values from data applied.</param>
+    /// <param name="flags">The fighter flag names (data/rules/flags.json); none when left out.</param>
     public MatchSimulation(
         CharacterData player1,
         CharacterData player2,
         ButtonSet buttons,
         MotionSet motions,
         MovementInputs movement,
-        in MatchRules rules)
+        in MatchRules rules,
+        FighterFlagNames? flags = null)
     {
         Player1 = player1;
         Player2 = player2;
         Rules = rules;
         CoreRequests requests = new();
-        ModuleLineup modules = new(RegisteredModules.Create(), in rules.Modules, requests, player1, player2);
+        ModuleLineup modules = new(
+            RegisteredModules.Create(), in rules.Modules, requests, player1, player2, flags ?? FighterFlagNames.None);
         MotionParser parser = new(motions, in rules);
         _roundStart = new RoundStart(player1, player2, in rules);
         StateMachineStage stateMachines = new(
@@ -92,7 +96,8 @@ public sealed class MatchSimulation
                     player2,
                     new ThrowTechInput(player1, rules.ButtonBuffer),
                     new ThrowTechInput(player2, rules.ButtonBuffer),
-                    modules),
+                    modules,
+                    rules.FlagsClearedWhenHit),
                 new ThrowResolutionStage(player1, player2, throwContacts, contacts, in rules),
                 new HitResolutionStage(
                     player1,
@@ -103,7 +108,8 @@ public sealed class MatchSimulation
                     counterHits,
                     new ShortcutDamage(in rules),
                     guarding,
-                    pushback),
+                    pushback,
+                    rules.FlagsClearedWhenHit),
                 new EntityHitResolutionStage(
                     owners,
                     entityContacts,
@@ -113,7 +119,8 @@ public sealed class MatchSimulation
                     counterHits,
                     guarding,
                     pushback,
-                    new ShortcutDamage(in rules))),
+                    new ShortcutDamage(in rules),
+                    rules.FlagsClearedWhenHit)),
             RoundTimer = new StageSequence(
                 new SpawnRequestStage(owners, spawner, requests),
                 new RoundStage(_roundStart, new RoundJudge(player1, player2), new MatchScore(in rules), in rules)),

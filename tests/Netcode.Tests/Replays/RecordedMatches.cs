@@ -34,7 +34,8 @@ internal static class RecordedMatches
         TestmanMirror.Data.Buttons,
         TestmanMirror.Data.Motions.Motions,
         TestmanMirror.Data.Motions.Movement,
-        in header.Rules);
+        in header.Rules,
+        TestmanMirror.Data.Flags.Names);
 
     public static byte[] Save(Replay replay)
     {

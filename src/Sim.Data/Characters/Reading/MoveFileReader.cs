@@ -4,6 +4,8 @@ using Sim.Characters;
 using Sim.Data.Input;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Fighters;
+using Sim.Rules;
 
 namespace Sim.Data.Characters.Reading;
 
@@ -13,14 +15,22 @@ public sealed class MoveFileReader
     private readonly IDataSource _source;
     private readonly IReadOnlyList<string> _moveIds;
     private readonly IButtonLookup _buttons;
+    private readonly FighterFlagNames _flags;
     private readonly DataErrors _errors;
 
     /// <param name="moveIds">The character's move list; cancels may only target these.</param>
-    public MoveFileReader(IDataSource source, IReadOnlyList<string> moveIds, IButtonLookup buttons, DataErrors errors)
+    /// <param name="flags">The fighter flags moves may require, set and clear (ADR-0023).</param>
+    public MoveFileReader(
+        IDataSource source,
+        IReadOnlyList<string> moveIds,
+        IButtonLookup buttons,
+        FighterFlagNames flags,
+        DataErrors errors)
     {
         _source = source;
         _moveIds = moveIds;
         _buttons = buttons;
+        _flags = flags;
         _errors = errors;
     }
 
@@ -56,6 +66,7 @@ public sealed class MoveFileReader
         IReadOnlyList<VelocityData> velocities = MoveVelocityReader.Read(file, frames);
         move = MoveInvulnerabilityReader.Read(file, frames, move);
         move = MoveThrowReader.Read(file, boxes, move);
+        move = MoveConditionReader.Read(file, category, _flags, move);
         IReadOnlyList<ProjectileRecord> projectiles = MoveProjectileReader.Read(file, category, frames);
         file.Finish();
 

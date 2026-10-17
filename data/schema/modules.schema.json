@@ -13,7 +13,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$" },
-      "description": "Registered module names (snake_case), in the order their hooks run. Enabled modules take lineup slots in this order; at most 16 may be enabled. Every file in rules/modules/ must be listed; a registered module that isn't listed is never enabled."
+      "description": "Registered module names (snake_case), in the order their hooks run. Enabled modules take lineup slots in this order; at most 24 may be enabled. Every file in rules/modules/ must be listed; a registered module that isn't listed is never enabled."
     }
   }
 }

@@ -16,6 +16,9 @@ Example to copy: `AirBlock/`.
    - Needs a character's move (e.g. burst)? List role names in `MoveRoles` and find the move with
      `context.RoleMove(fighter, roleIndex)`; characters name it in `character.json` `moveRoles` (ADR-0023). Never
      store a move index in config. `context.CharacterOf(fighter)` reads the rest of the character.
+   - Sets or reads fighter flags (stance, install)? List their names in `Flags` (they must be in
+     `data/rules/flags.json`), get each bit with `context.FlagMask(i)` and change them with
+     `context.RequestFlags(fighter, …)` (ADR-0023). Example: `Install/`.
    - Keeps a resource? Implement `IMeterGauge` and take the channel from config (`ChannelOf`); others reach it with
      `context.MeterOf(fighter, channel)` (Meter/README.md).
 2. **Register** with one line in `RegisteredModules.cs`, kept alphabetical.

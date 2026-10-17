@@ -26,6 +26,7 @@ public readonly ref struct ModuleContext
     private readonly ref MatchState _meterState;
     private readonly MeterAccess? _meters;
     private readonly ModuleCharacters? _characters;
+    private readonly ModuleFlags? _flags;
 
     /// <summary>A context without meter or character access: <see cref="MeterOf"/> is 0 and spending fails.</summary>
     public ModuleContext(
@@ -43,6 +44,7 @@ public readonly ref struct ModuleContext
         _meterState = ref Unsafe.NullRef<MatchState>();
         _meters = null;
         _characters = null;
+        _flags = null;
     }
 
     internal ModuleContext(
@@ -52,7 +54,8 @@ public readonly ref struct ModuleContext
         CoreRequests requests,
         int slot,
         MeterAccess meters,
-        ModuleCharacters? characters)
+        ModuleCharacters? characters,
+        ModuleFlags? flags)
     {
         _state = ref state;
         _slice = ref slice;
@@ -62,6 +65,7 @@ public readonly ref struct ModuleContext
         _meterState = ref state;
         _meters = meters;
         _characters = characters;
+        _flags = flags;
     }
 
     /// <summary><see cref="Owner"/> of a match-wide module.</summary>
@@ -100,6 +104,15 @@ public readonly ref struct ModuleContext
     /// <summary>The move the fighter's character names for this module's role at <paramref name="role"/> (<see cref="IMechanicModule.MoveRoles"/>).</summary>
     /// <exception cref="InvalidOperationException">The lineup was built without characters (unit tests only).</exception>
     public int RoleMove(int fighter, int role) => Characters.RoleMove(_slot, fighter, role);
+
+    /// <summary>The bit of this module's flag at <paramref name="flag"/> (<see cref="IMechanicModule.Flags"/>).</summary>
+    /// <exception cref="InvalidOperationException">The lineup was built without flags (unit tests only).</exception>
+    public int FlagMask(int flag) =>
+        (_flags ?? throw new InvalidOperationException("This module lineup was built without flags.")).MaskOf(_slot, flag);
+
+    /// <summary>Sets and clears some of the fighter's flags (<see cref="FlagsRequest"/>).</summary>
+    public void RequestFlags(int fighter, in FlagsRequest request) =>
+        _requests.Flags.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
     private ModuleCharacters Characters =>
         _characters ?? throw new InvalidOperationException("This module lineup was built without characters.");

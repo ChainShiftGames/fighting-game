@@ -28,7 +28,7 @@ internal static class TestmanMirror
         CharacterData first = Data.Character(player1);
         CharacterData second = Data.Character(player2);
         MatchRules rules = Data.CreateMatchRules();
-        return new MatchSimulation(first, second, Data.Buttons, Data.Motions.Motions, Data.Motions.Movement, in rules);
+        return new MatchSimulation(first, second, Data.Buttons, Data.Motions.Motions, Data.Motions.Movement, in rules, Data.Flags.Names);
     }
 
     private static string DataRoot() => Path.Combine(RepositoryRoot(), "data");

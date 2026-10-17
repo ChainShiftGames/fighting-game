@@ -1,0 +1,8 @@
+# install_c needs the install flag, and 6c starts no other move.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 6c
+
+frame 1: expect p1 move = idle

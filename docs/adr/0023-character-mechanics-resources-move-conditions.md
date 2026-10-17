@@ -1,8 +1,8 @@
 # ADR-0023: Character mechanics, resource channels and move conditions
 
 - **Status:** Proposed (Oct 2026). Lukas asked for all of it (see Context); details below are the implementer's
-  proposal, to confirm while building. **Built:** 1–3 (without move `cost`, which comes with move schema 3).
-  Not built yet: 4–6.
+  proposal, to confirm while building. **Built:** all of it, with the details below (Oct 2026); waiting for both
+  devs to accept.
 - **Gaps:** foundation review before Phase 4 (no character-unique mechanics, one meter, no rekkas/stances/installs)
 
 ## Context
@@ -34,14 +34,21 @@ ground/air, move locks are by category, and cancel windows only work when the ga
 4. **Fighter flags:** game-wide flag names in `data/rules/flags.json` (bit index = order, at most 32; per flag
    `clearedWhenHit`). `FighterState.Flags`. Set/cleared by a move on start (`setsFlags`, `clearsFlags`), by being
    hit (when marked), and by a module request (`FlagsRequest`). Modules resolve their own flag names at creation.
+   Built as: a module lists its flags in `IMechanicModule.Flags` and reads their bits with `ModuleContext.FlagMask`,
+   resolved at match start like roles; the cleared-when-hit bits are `MatchRules.FlagsClearedWhenHit`, applied to
+   strikes, projectiles and throws.
 5. **Move conditions:** `requires: { "flags": [...], "notFlags": [...] }` checked in `MoveSelection.CanStart`
    (stance-only, install-only, burnout locks). Stances = a flag a stance-entry move sets; installs = a flag a
-   mechanic sets and times.
+   mechanic sets and times (`install` module). A move's `cost` is checked against the fighter's meter as the state
+   machine step starts (`AvailableMeter`) and paid right after it; with no gauge on the channel the move can't
+   start.
 6. **Follow-ups:** a cancel window with `followUp: true` is always allowed by the core (no module question), so
    rekkas and target combos work with gatlings off; a move with `followUpOnly: true` never starts from neutral.
+   A follow-up window names its moves in `into` only, and a follow-up-only move is never reached by category.
 
 ## Consequences
 
 - Move schema 3 (requires, cost, setsFlags…) and character schema 2 (mechanic, moveRoles) with
   `tools/DataMigrate` steps (ADR-0021); burst's config moves from an index to the `burst` role.
-- A test character with a rekka chain, a stance and an install mechanic proves it, with scenarios.
+- A test character with a rekka chain, a stance and an install mechanic proves it, with scenarios:
+  `mechanics_dummy` (`tests/Scenarios/MoveConditions/`, `tests/Scenarios/Install/`).

@@ -1,0 +1,9 @@
+# stance_c needs the stance flag, so outside the stance the same 5c falls through to the plain 5c.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 5c
+
+frame 1: expect p1 move = 5c
+frame 1: expect p1 flags = 0

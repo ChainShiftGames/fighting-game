@@ -27,8 +27,8 @@ public sealed class ScenarioRunnerTests
 
         Assert.Contains("State after frame 1:", result.Report);
         Assert.Contains("p1: damage = 0, entities = 0, entity_durability = none, entity_x = none, facing = right, " +
-            "health = 10000, hitstop = 0, input = 5, move = idle, move_frame = 2, state = idle, stun = 0, vx = 0, " +
-            "vy = 0, wins = 0, x = -1234, y = 0", result.Report);
+            "flags = 0, health = 10000, hitstop = 0, input = 5, move = idle, move_frame = 2, state = idle, stun = 0, " +
+            "vx = 0, vy = 0, wins = 0, x = -1234, y = 0", result.Report);
         Assert.Contains("p2: ", result.Report);
         Assert.Contains("match: camera = ", result.Report);
         Assert.Contains(

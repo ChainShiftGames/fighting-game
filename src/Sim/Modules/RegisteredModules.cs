@@ -4,6 +4,7 @@ using Sim.Modules.CharacterGauge;
 using Sim.Modules.ComboLimits;
 using Sim.Modules.ContractProbe;
 using Sim.Modules.Gatlings;
+using Sim.Modules.Install;
 using Sim.Modules.InstantBlock;
 using Sim.Modules.Meter;
 using Sim.Modules.NegativePenalty;
@@ -31,6 +32,7 @@ public static class RegisteredModules
         new ComboLimitsModule(),
         new ContractProbeModule(),
         new GatlingsModule(),
+        new InstallModule(),
         new InstantBlockModule(),
         new MeterModule(),
         new NegativePenaltyModule(),

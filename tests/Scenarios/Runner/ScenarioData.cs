@@ -5,6 +5,7 @@ using Sim.Characters;
 using Sim.Data;
 using Sim.Data.Motions;
 using Sim.Data.Sources;
+using Sim.Fighters;
 using Sim.Input;
 using Sim.Rules;
 
@@ -26,6 +27,9 @@ public sealed class ScenarioData
 
     /// <summary>The button set from data/input/buttons.json; input notation uses its ids.</summary>
     public ButtonSet Buttons => _data.Buttons;
+
+    /// <summary>The fighter flag names from data/rules/flags.json (ADR-0023).</summary>
+    public FighterFlagNames Flags => _data.Flags.Names;
 
     /// <summary>The motions and input timing from data/input/motions.json.</summary>
     public MotionFile Motions => _data.Motions;

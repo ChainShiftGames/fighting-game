@@ -37,7 +37,7 @@ public sealed class DataMigratorTests
     {
         string migrated = _migrator.Migrate("characters/man/moves/5a.json", Encoding.UTF8.GetBytes(MoveV1))!;
 
-        Assert.Contains("\"schemaVersion\": 2", migrated, StringComparison.Ordinal);
+        Assert.Contains("\"schemaVersion\": 3", migrated, StringComparison.Ordinal);
         Assert.Contains("""
               "hits": [
                 { "damage": 300, "guard": "mid" }
@@ -50,7 +50,7 @@ public sealed class DataMigratorTests
     [Fact]
     public void ACurrentFileIsLeftAlone()
     {
-        string current = MoveV1.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal);
+        string current = MoveV1.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 3", StringComparison.Ordinal);
 
         Assert.Null(_migrator.Migrate("characters/man/moves/5a.json", Encoding.UTF8.GetBytes(current)));
     }

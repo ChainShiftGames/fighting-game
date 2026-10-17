@@ -1,5 +1,6 @@
 using System;
 using Sim.Characters;
+using Sim.Fighters;
 using Sim.Rules;
 using Sim.State;
 
@@ -28,21 +29,28 @@ public sealed class ModuleLineup
     private readonly HookList<IBlockAdjustmentHook> _blockAdjustment;
     private readonly HookList<ICancelWindowHook> _cancelWindows;
     private readonly ModuleCharacters? _characters;
+    private readonly ModuleFlags? _flags;
 
     /// <summary>A lineup without characters, for unit tests: a module asking for one throws.</summary>
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
     public ModuleLineup(ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests)
-        : this(catalog, in slots, requests, null, null)
+        : this(catalog, in slots, requests, null, null, null)
     {
     }
 
     /// <exception cref="ArgumentException">
     /// The lineup names an unregistered module, one module twice or a character mechanic; a character names a module
     /// that isn't a character mechanic; two meter gauges serve one channel for a fighter; or a character doesn't name a
-    /// move role a module needs.
+    /// move role a module needs, or a module needs a flag <paramref name="flags"/> doesn't name.
     /// </exception>
+    /// <param name="flags">The fighter flag names; null for a lineup without flags (unit tests).</param>
     public ModuleLineup(
-        ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests, CharacterData? player1, CharacterData? player2)
+        ModuleCatalog catalog,
+        in ModuleSlots slots,
+        CoreRequests requests,
+        CharacterData? player1,
+        CharacterData? player2,
+        FighterFlagNames? flags = null)
     {
         _requests = requests;
         IMechanicModule?[] modulesBySlot = ResolveModules(catalog, in slots);
@@ -57,6 +65,8 @@ public sealed class ModuleLineup
             AddMechanic(catalog, modulesBySlot, 1, player2);
             _characters = new(modulesBySlot, player1, player2);
         }
+
+        _flags = flags is null ? null : new ModuleFlags(modulesBySlot, flags);
 
         _afterInput = new(modulesBySlot);
         _beforeStateMachines = new(modulesBySlot);
@@ -198,8 +208,15 @@ public sealed class ModuleLineup
         return false;
     }
 
+    /// <summary>The fighter's meter on a channel, for the core's move costs (ADR-0023); 0 without a gauge.</summary>
+    public int MeterOf(ref MatchState state, int fighter, int channel) => _meters.MeterOf(ref state, fighter, channel);
+
+    /// <summary>Spends the fighter's meter on a channel for a move's cost; false without enough or a gauge.</summary>
+    public bool TrySpendMeter(ref MatchState state, int fighter, int amount, int channel) =>
+        _meters.TrySpend(ref state, fighter, amount, channel);
+
     private ModuleContext ContextFor(ref MatchState state, int slot) =>
-        new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, _meters, _characters);
+        new(ref state, ref state.Modules[slot], in _configs[slot], _requests, slot, _meters, _characters, _flags);
 
     private void AddMechanic(ModuleCatalog catalog, IMechanicModule?[] modulesBySlot, int fighter, CharacterData character)
     {

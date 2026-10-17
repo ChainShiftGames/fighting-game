@@ -8,7 +8,8 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, move locks, freezes, module events;
+/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, move locks, flags, freezes, module
+/// events;
 /// within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier
 /// slot); for time scale, hitstop, gravity and stun the latest slot wins; move locks combine; the longest freeze wins
 /// (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
@@ -34,11 +35,24 @@ public sealed class CoreRequestApplier
             ApplyGravityScales(ref fighterState, fighter);
             ApplyStunOverrides(ref fighterState, fighter);
             ApplyMoveLocks(ref fighterState.LockedMoveCategories, fighter);
+            ApplyFlags(ref fighterState.Flags, fighter);
         }
 
         ApplyFreezes(ref state.Freeze);
         EmitEvents(ref state);
         _requests.Clear();
+    }
+
+    // Clears before sets, slot by slot, so a later module's set wins over an earlier one's clear.
+    private void ApplyFlags(ref int flags, int fighter)
+    {
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            if (_requests.Flags.TryGet(CoreRequests.FighterKey(slot, fighter), out FlagsRequest request))
+            {
+                flags = (flags & ~request.Clear) | request.Set;
+            }
+        }
     }
 
     private void ApplyStunOverrides(ref FighterState fighter, int fighterIndex)

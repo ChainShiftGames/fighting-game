@@ -8,7 +8,7 @@
   "required": ["schemaVersion", "id", "category", "boxes"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "id": { "$ref": "#/$defs/id", "description": "Must equal the file name without .json." },
     "category": {
       "enum": ["basic", "normal", "special", "super", "throw"],
@@ -27,6 +27,28 @@
       }
     },
     "usableIn": { "enum": ["ground", "air"], "description": "Not for basic moves." },
+    "requires": {
+      "description": "Fighter flags (data/rules/flags.json) the move needs to start (ADR-0023): all of flags set, all of notFlags clear. Not for basic moves.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "flags": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "notFlags": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "setsFlags": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Fighter flags the move sets as it starts, e.g. entering a stance. Not for basic moves." },
+    "clearsFlags": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Fighter flags the move clears as it starts (before setsFlags). Not for basic moves." },
+    "cost": {
+      "description": "What starting the move costs from a meter channel (ADR-0023; 0 = main meter). Without that much the input falls through to the next move; with no gauge on the channel the move can't start. Not for basic moves.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel", "amount"],
+      "properties": {
+        "channel": { "type": "integer", "minimum": 0, "maximum": 7 },
+        "amount": { "type": "integer", "minimum": 1, "maximum": 1000000 }
+      }
+    },
+    "followUpOnly": { "type": "boolean", "description": "The move starts only from a cancel window naming it (a rekka), never from neutral or by category. Default false." },
     "input": {
       "description": "Not for basic moves.",
       "type": "object",
@@ -69,7 +91,8 @@
           "on": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["hit", "block", "whiff"] } },
           "into": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Move ids from the character's move list." },
           "intoCategories": { "type": "array", "uniqueItems": true, "items": { "enum": ["normal", "special", "super", "throw"] } },
-          "intoJump": { "type": "boolean", "description": "Jump cancel: holding up starts a prejump (a double jump in the air, from the air action budget). Default false." }
+          "intoJump": { "type": "boolean", "description": "Jump cancel: holding up starts a prejump (a double jump in the air, from the air action budget). Default false." },
+          "followUp": { "type": "boolean", "description": "A follow-up window (rekka, target combo, ADR-0023): always allowed, with no module asked. Names its moves in into only. Default false." }
         }
       }
     },

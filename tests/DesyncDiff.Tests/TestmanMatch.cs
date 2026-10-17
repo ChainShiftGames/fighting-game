@@ -21,7 +21,7 @@ internal static class TestmanMatch
     {
         CharacterData testman = _data.Character("testman");
         MatchRules rules = _data.CreateMatchRules();
-        return new MatchSimulation(testman, testman, _data.Buttons, _data.Motions.Motions, _data.Motions.Movement, in rules);
+        return new MatchSimulation(testman, testman, _data.Buttons, _data.Motions.Motions, _data.Motions.Movement, in rules, _data.Flags.Names);
     }
 
     private static string DataRoot() => Path.Combine(

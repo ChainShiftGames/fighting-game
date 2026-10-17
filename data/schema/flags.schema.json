@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flags.schema.json",
+  "title": "Fighter flags",
+  "description": "data/rules/flags.json: the game-wide fighter flags (ADR-0023), such as stances and installs. A flag's bit is its place in the list, so add new flags at the end. Moves require, set and clear them by name; modules name the ones they use. Developer settings. Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "flags"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "flags": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "clearedWhenHit"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$" },
+          "clearedWhenHit": { "type": "boolean", "description": "A fighter loses the flag when it is hit or thrown (e.g. knocked out of a stance)." }
+        }
+      }
+    }
+  }
+}

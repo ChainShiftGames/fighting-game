@@ -9,15 +9,17 @@ using Sim.Data.Motions;
 using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
+using Sim.Fighters;
 using Sim.Input;
 using Sim.Modules;
+using Sim.Rules;
 
 namespace Sim.Data;
 
 /// <summary>Loads and validates every data file under the data root and computes the data hash.</summary>
 /// <remarks>
 /// New kinds of data (match rules…) add their loader here and append to the same hash, in a fixed order:
-/// buttons, motions, match rules, module lineup, characters.
+/// buttons, motions, match rules, module lineup, fighter flags, characters.
 /// </remarks>
 public sealed class GameDataLoader
 {
@@ -48,11 +50,15 @@ public sealed class GameDataLoader
         MotionFile? motions = MotionSetLoader.Load(_source, buttonLookup, errors);
         MatchRulesFile? rules = MatchRulesFileLoader.Load(_source, errors);
         ModuleLineupFile? modules = ModuleLineupLoader.Load(_source, _modules, errors);
-        List<CharacterData> characters = LoadCharacters(buttonLookup, errors);
+        // Moves name flags, so without a valid flag list every move naming one would report an error too.
+        FighterFlagsFile? flags = FighterFlagsLoader.Load(_source, errors);
+        errors.ThrowIfAny();
+        List<CharacterData> characters = LoadCharacters(buttonLookup, flags!.Names, errors);
         errors.ThrowIfAny();
         CheckMoveMotions(characters, motions!, errors);
         MoveRoleCheck.Check(characters, _modules, modules!, errors);
         MechanicChannelCheck.Check(characters, _modules, modules!, errors);
+        ModuleFlagCheck.Check(characters, _modules, modules!, flags.Names, errors);
         errors.ThrowIfAny();
 
         using DataHashBuilder hash = new();
@@ -60,13 +66,14 @@ public sealed class GameDataLoader
         MotionSetDataHash.Append(hash, motions!);
         MatchRulesDataHash.Append(hash, rules!);
         ModuleLineupDataHash.Append(hash, modules!);
+        FighterFlagsDataHash.Append(hash, flags);
         hash.Add(characters.Count);
         foreach (CharacterData character in characters)
         {
             CharacterDataHash.Append(hash, character);
         }
 
-        return new GameData(buttons!, motions!, rules!, modules!, characters, hash.Finish());
+        return new GameData(buttons!, motions!, rules!, modules!, flags, characters, hash.Finish());
     }
 
     // A move whose motion the motion set doesn't define could never be input.
@@ -89,9 +96,9 @@ public sealed class GameDataLoader
     }
 
     // The data source lists folders in ordinal order, so characters (and the hash) never depend on the file system.
-    private List<CharacterData> LoadCharacters(IButtonLookup buttons, DataErrors errors)
+    private List<CharacterData> LoadCharacters(IButtonLookup buttons, FighterFlagNames flags, DataErrors errors)
     {
-        CharacterLoader loader = new(_source, buttons, _modules);
+        CharacterLoader loader = new(_source, buttons, _modules, flags);
         List<CharacterData> characters = [];
         foreach (string folder in _source.ListDirectories(CharacterSchema.CharactersDirectory))
         {

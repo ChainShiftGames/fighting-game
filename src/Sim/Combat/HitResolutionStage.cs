@@ -25,6 +25,7 @@ namespace Sim.Combat;
 public sealed class HitResolutionStage : ITickStage
 {
     private readonly CharacterData _player1;
+    private readonly int _flagsClearedWhenHit;
     private readonly CharacterData _player2;
     private readonly HitContacts _contacts;
     private readonly ModuleLineup _modules;
@@ -34,6 +35,7 @@ public sealed class HitResolutionStage : ITickStage
     private readonly Pushback _pushback;
     private readonly Guarding _guarding;
 
+    /// <param name="flagsClearedWhenHit">Fighter flags a landed hit takes away (<c>MatchRules.FlagsClearedWhenHit</c>).</param>
     public HitResolutionStage(
         CharacterData player1,
         CharacterData player2,
@@ -43,8 +45,10 @@ public sealed class HitResolutionStage : ITickStage
         CounterHits counterHits,
         ShortcutDamage shortcutDamage,
         Guarding guarding,
-        Pushback pushback)
+        Pushback pushback,
+        int flagsClearedWhenHit = 0)
     {
+        _flagsClearedWhenHit = flagsClearedWhenHit;
         _player1 = player1;
         _player2 = player2;
         _contacts = contacts;
@@ -167,7 +171,7 @@ public sealed class HitResolutionStage : ITickStage
     {
         if (connection.Outcome == HitOutcome.Hit)
         {
-            HitReactions.TakeHit(ref defender, connection.Hit, character, attackFacing);
+            HitReactions.TakeHit(ref defender, connection.Hit, character, attackFacing, _flagsClearedWhenHit);
         }
         else if (connection.Outcome == HitOutcome.Block)
         {

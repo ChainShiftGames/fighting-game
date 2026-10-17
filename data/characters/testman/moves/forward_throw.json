@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": "forward_throw",
   "category": "throw",
   "usableIn": "ground",

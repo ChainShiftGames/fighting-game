@@ -1,0 +1,12 @@
+# rekka_1 -> rekka_2 -> rekka_3, all on 236a, through follow-up windows (frames 8-21) with no module enabled.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -100000
+setup: p2 x = 100000
+frame 1: p1 2, 3, 6a
+frame 9: p1 2, 3, 6a
+frame 17: p1 2, 3, 6a
+
+frame 3: expect p1 move = rekka_1
+frame 11: expect p1 move = rekka_2
+frame 19: expect p1 move = rekka_3
