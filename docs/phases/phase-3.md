@@ -25,7 +25,7 @@ graph LR
 ## A. Module system
 
 ### P3-01 Module toggling for development
-Status: in progress (p3-01-module-toggling) · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
+Status: done · Needs: — · Parallel: no · Where: `src/Sim/Modules/`, `src/Sim.Data/`
 Read: ADR-0005, ADR-0011
 - The module contract and `MatchRules` already exist (P1-20). This task adds switching modules and their configs
   during development: changes apply by restarting the round.
@@ -38,6 +38,7 @@ Done when:
 
 ## B. Mechanic modules
 
+In progress: P3-10, P3-12, P3-13, P3-16, P3-17, P3-20 (branches `p3-<id>-<name>`).
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
 **Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
 (Offense: P3-10, P3-12 · Meter: P3-13, P3-18 · Defense: P3-15–17 · Controls: P3-19–20 · Movement: P3-21).
@@ -64,7 +65,7 @@ Done when (each):
 ## C. Training mode
 
 ### P3-30 Training mode shell
-Status: todo · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
+Status: in progress (p3-30-training-shell) · Needs: P3-01 · Parallel: no · Where: `src/Netcode/Drivers/`, `game/Training/`
 Read: ADR-0007
 - Training match driver; dummy options (stand, crouch, block all, block after first hit, jump, record).
   Dummy options are **player settings** in the training menu.
