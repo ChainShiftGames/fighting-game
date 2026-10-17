@@ -42,6 +42,9 @@ public partial class Main : Node2D
     private const Key ToggleOverlayKey = Key.F3;
     private const Key StepFrameKey = Key.F6;
     private const int ConnectionLogIntervalSeconds = 30;
+
+    // Developer setting: how often editor runs look for data saved from outside the game (character editor, P3-43).
+    private const double DataCheckSeconds = 0.5;
     private const string DeveloperKeys =
         "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
         "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one | --training: Tab menu";
@@ -73,6 +76,7 @@ public partial class Main : Node2D
     private InputReadout? _inputReadout;
     private PlayerSettings _settings = new();
     private GameDataLocation? _data;
+    private DataChangeWatch? _dataWatch;
     private LocalMatchStartup? _localStartup;
     private OnlineMatchStartup? _onlineStartup;
     private ReplayMatchStartup? _replayStartup;
@@ -100,6 +104,11 @@ public partial class Main : Node2D
         _settings = _settingsStore.Load();
         ApplyVsync();
         _data = GameDataLocation.Choose();
+        if (_data.Folder is string folder)
+        {
+            _dataWatch = new DataChangeWatch(
+                () => DataFolderFingerprint.Of(folder), (long)(Stopwatch.Frequency * DataCheckSeconds), Stopwatch.GetTimestamp());
+        }
         _stepping = new FrameStepping(_pause);
         _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All, _saveReplays]);
         _replays = new ReplayFolder(ProjectSettings.GlobalizePath(ReplaysPath));
@@ -155,6 +164,11 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         _platform!.Update();
+        if (_dataWatch?.HasSettledChange(Stopwatch.GetTimestamp()) == true)
+        {
+            GD.Print("Data changed on disk.");
+            RestartLocalMatch();
+        }
         if (_launcher!.EndsMatch(_match))
         {
             EndMatch();
@@ -370,9 +384,12 @@ public partial class Main : Node2D
         }
     }
 
-    // After the debug panel saved data: a local match starts over with the new data, an online one keeps running.
+    // After data was saved (debug panel, character editor): a local or training match starts over with the new data,
+    // an online one keeps running.
     private void RestartLocalMatch()
     {
+        // The data as it is now is what the next match loads, so the same save never restarts it twice.
+        _dataWatch?.Accept(Stopwatch.GetTimestamp());
         if (_match is { IsOnline: true } || _launcher!.Matchmaking is not null)
         {
             GD.Print("Saved data applies to the next local match.");

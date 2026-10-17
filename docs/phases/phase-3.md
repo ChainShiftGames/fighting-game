@@ -117,9 +117,12 @@ Read: ADR-0007
   Projectile boxes are still edited in the file.
 
 ### P3-43 Live reload into training
-Status: todo · Needs: P3-41, P3-30 · Parallel: yes · Where: `game/`, `src/Sim.Data/`
+Status: done (Godot playtest pending) · Needs: P3-41, P3-30 · Parallel: yes · Where: `game/`, `src/Sim.Data/`
 Read: ADR-0007
 - Saving in the editor reloads data into a running training match (round restarts).
+- Editor runs poll `data/**/*.json` (`game/Debug/DataChangeWatch`); once a save settles, a local or training match
+  is rebuilt with the new data, the same path as the debug panel's saves. Savestates go, recordings stay; online
+  matches keep running.
 
 Done when (editor as a whole):
 - [ ] a dev creates a new Testman move with boxes and cancels and uses it in training, without writing code
