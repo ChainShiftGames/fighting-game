@@ -61,6 +61,12 @@ public readonly ref struct ModuleContext
 
     public void RequestGravityScale(int fighter, in GravityScaleRequest request) =>
         _requests.GravityScales.Set(CoreRequests.FighterKey(_slot, fighter), request);
+    public void RequestStunOverride(int fighter, in StunOverrideRequest request) =>
+        _requests.StunOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
+
+    /// <summary>Tells presentation something happened, as a module event belonging to <paramref name="fighter"/>.</summary>
+    public void RequestEvent(int fighter, in ModuleEventRequest request) =>
+        _requests.Events.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
     public void RequestFreeze(in FreezeRequest request) => _requests.Freezes.Set(_slot, request);
 

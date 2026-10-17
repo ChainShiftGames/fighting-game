@@ -23,6 +23,7 @@ public sealed class ModuleLineup
     private readonly HookList<IEndOfFrameHook> _endOfFrame;
     private readonly HookList<IAirGuardHook> _airGuard;
     private readonly HookList<IHitAdjustmentHook> _hitAdjustment;
+    private readonly HookList<ICancelWindowHook> _cancelWindows;
 
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
     public ModuleLineup(ModuleCatalog catalog, in ModuleSlots slots, CoreRequests requests)
@@ -39,6 +40,7 @@ public sealed class ModuleLineup
         _endOfFrame = new(modulesBySlot);
         _airGuard = new(modulesBySlot);
         _hitAdjustment = new(modulesBySlot);
+        _cancelWindows = new(modulesBySlot);
     }
 
     public void RunAfterInput(ref MatchState state)
@@ -111,7 +113,9 @@ public sealed class ModuleLineup
         return false;
     }
 
-    /// <summary>Lets the enabled modules adjust a hit about to land; false when one makes it whiff (<see cref="IHitAdjustmentHook"/>).</summary>
+    /// <summary>
+    /// Lets the enabled modules adjust a hit about to land; false when one makes it whiff (<see cref="IHitAdjustmentHook"/>).
+    /// </summary>
     /// <exception cref="InvalidOperationException">A module set a negative damage, hitstun or hitstop.</exception>
     public bool AdjustHit(ref MatchState state, in FighterContact contact, ref HitData hit)
     {
@@ -132,6 +136,20 @@ public sealed class ModuleLineup
         }
 
         return true;
+    }
+
+    /// <summary>True when any enabled module lets the fighter take a data cancel (<see cref="ICancelWindowHook"/>).</summary>
+    public bool AllowsCancel(ref MatchState state, in CancelCheck check)
+    {
+        for (int i = 0; i < _cancelWindows.Count; i++)
+        {
+            if (_cancelWindows.HookAt(i).CanCancel(ContextFor(ref state, _cancelWindows.SlotAt(i)), in check))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ModuleContext ContextFor(ref MatchState state, int slot) =>

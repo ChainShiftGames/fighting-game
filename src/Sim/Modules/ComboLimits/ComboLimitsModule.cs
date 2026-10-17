@@ -91,8 +91,8 @@ public sealed class ComboLimitsModule
         combo.Hits++;
         combo.IsDown = context.State.Fighters[defender].Action == FighterAction.Knockdown ? 1 : 0;
         ref readonly ComboLimitsConfig config = ref context.GetConfig<ComboLimitsConfig>();
-        context.RequestGravityScale(
-            defender, new GravityScaleRequest { ExtraPermille = ComboScaling.ExtraGravityPermille(combo.Hits, in config) });
+        int extraGravity = ComboScaling.ExtraGravityPermille(combo.Hits, in config);
+        context.RequestGravityScale(defender, new GravityScaleRequest { ExtraPermille = extraGravity });
     }
 
     private static bool IsInCombo(FighterAction action) => action is FighterAction.Hitstun

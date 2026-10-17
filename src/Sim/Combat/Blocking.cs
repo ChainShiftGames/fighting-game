@@ -54,8 +54,11 @@ public static class Blocking
         or FighterAction.WalkForward or FighterAction.WalkBack or FighterAction.Blockstun
         or FighterAction.CrouchBlockstun;
 
-    // +1 when the attacker is to the right; the input word reads "back" as away from it.
-    private static int TowardAttacker(in FighterState defender, in FighterState attacker)
+    /// <summary>
+    /// +1 when the attacker is to the right, -1 when left (at the same x, the defender's facing): the facing to read
+    /// the defender's input with, so that back (<see cref="NumpadDirection.IsBack"/>) is away from the attacker.
+    /// </summary>
+    public static int TowardAttacker(in FighterState defender, in FighterState attacker)
     {
         int side = FighterSides.Of(in defender, in attacker);
         return side == 0 ? defender.Facing : -side;

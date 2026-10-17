@@ -14,7 +14,7 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0008](0008-presentation-direction.md) | Placeholders first, visual toggles, target look, Godot audio, accessibility incl. directional audio |
 | [0009](0009-architecture-tests.md) | ArchUnitNET tests enforcing dependency and module rules |
 | [0010](0010-attack-button-layout.md) | A B C D + Special + Dash, button set in data, 16-bit input word with spare bits |
-| [0011](0011-module-contract.md) | Module contract, reserved core capabilities (time scale, freeze, cancel, hitstop, entities), air guard question, `MatchRules` struct + hash test, module lineup + toggles in data |
+| [0011](0011-module-contract.md) | Module contract, reserved core capabilities (time scale, freeze, cancel, hitstop, entities, gravity, stun, module events), air guard, cancel window and hit adjustment questions, `MatchRules` struct + hash test, module lineup + toggles in data |
 | [0012](0012-dev-and-test-dependencies.md) | xUnit v3 on Microsoft.Testing.Platform; Godot AI editor addon vendored dev-only, excluded from exports, telemetry off |
 | [0013](0013-spike-a-backdash-go.md) | Spike A: Backdash stays (no fork) on 0.7.8-preview through Phase 1; measurements, problems found, follow-ups |
 | [0014](0014-spike-c-steam-p2p-go.md) | Spike C: Steam Networking Messages stays; Steam picks direct (friends) or relay; measurements, problems, follow-ups |
