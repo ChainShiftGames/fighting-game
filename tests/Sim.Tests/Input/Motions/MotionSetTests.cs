@@ -37,6 +37,30 @@ public sealed class MotionSetTests
     }
 
     [Fact]
+    public void StoresTheShortcut()
+    {
+        MotionSet motions = new([TestMotions.Motion(236, "2 3 6", shortcut: 5), TestMotions.Motion(22, "2 5 2")]);
+
+        Assert.Equal(5, motions.ShortcutOf(0));
+        Assert.Equal(MotionDefinition.NoShortcut, motions.ShortcutOf(1));
+    }
+
+    [Fact]
+    public void RejectsAShortcutTwoMotionsShare()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new MotionSet([TestMotions.Motion(236, "2 3 6", shortcut: 5), TestMotions.Motion(214, "2 1 4", shortcut: 5)]));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(10)]
+    public void RejectsAShortcutThatIsNotADirection(int shortcut)
+    {
+        Assert.Throws<ArgumentException>(() => new MotionSet([TestMotions.Motion(236, "2 3 6", shortcut: shortcut)]));
+    }
+
+    [Fact]
     public void RejectsAnEmptySet()
     {
         Assert.Throws<ArgumentException>(() => new MotionSet([]));

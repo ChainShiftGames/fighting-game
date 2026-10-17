@@ -38,7 +38,7 @@ Done when:
 
 ## B. Mechanic modules
 
-Done: P3-10, P3-12, P3-15 (after core pushback; the block adjustment question awaits approval in ADR-0011), P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-20 (closed as core, Lukas's call), P3-21.
+Done: P3-10, P3-12, P3-15 (after core pushback), P3-13, P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-20 (closed as core, Lukas's call), P3-21.
 **P3-20:** the dash button is just a button any game with dashes has, not a module: the core (P1-09) already does
 dash, backdash and air dash from it; scenarios in `tests/Scenarios/DashButton/`. Still to check: dash with no
 direction stops after 1 frame for run-style characters (core bug?).
@@ -141,5 +141,6 @@ Read: ADR-0006
 - [x] All modules work with Testman and pass their removal tests (each module folder has a `testman_*` scenario;
   removal of the P3-15/18/21 modules checked by hand: build and tests pass, golden replays re-record for the data hash)
 - [ ] A new move is made in the editor without code
-- [ ] Mechanic variants switch between rounds
+- [x] Mechanic variants switch between rounds: every mechanic is a module switched on or off (and configured) in
+  data, without touching the core (ADR-0011 §9–11, Lukas's reading); per-round switching is not a goal
 - [ ] Soak test passes with CPU bots

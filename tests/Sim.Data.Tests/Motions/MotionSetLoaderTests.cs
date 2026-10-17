@@ -86,6 +86,7 @@ public sealed class MotionSetLoaderTests
     [InlineData("{ \"motion\": \"623\"", "{ \"window\": 20, \"motion\": \"623\"")]
     [InlineData("\"motionWindow\": 12", "\"motionWindow\": 13")]
     [InlineData("\"buttonBuffer\": 2", "\"buttonBuffer\": 3")]
+    [InlineData("\"shortcut\": \"5\"", "\"shortcut\": \"2\"")]
     public void EveryRuleIsInTheDataHash(string oldText, string newText)
     {
         DataHash before = HashOf(Load(_data));
@@ -98,11 +99,42 @@ public sealed class MotionSetLoaderTests
     public void PriorityOrderIsInTheDataHash()
     {
         DataHash before = HashOf(Load(_data));
-        _data.Replace(File, "{ \"motion\": \"623\", \"steps\": \"6 2 3\" },\n", "");
-        _data.Replace(File, "{ \"motion\": \"236\", \"steps\": \"2 3 6\" },\n",
-            "{ \"motion\": \"236\", \"steps\": \"2 3 6\" },\n    { \"motion\": \"623\", \"steps\": \"6 2 3\" },\n");
+        const string DragonPunch = "{ \"motion\": \"623\", \"steps\": \"6 2 3\", \"shortcut\": \"6\" },\n";
+        const string Fireball = "{ \"motion\": \"236\", \"steps\": \"2 3 6\", \"shortcut\": \"5\" },\n";
+        _data.Replace(File, DragonPunch, "");
+        _data.Replace(File, Fireball, Fireball + "    " + DragonPunch);
 
         Assert.NotEqual(before, HashOf(Load(_data)));
+    }
+
+    [Fact]
+    public void RepositoryShortcutsAreGbvsStyle()
+    {
+        MotionSet motions = Load(_data).Motions;
+
+        Assert.Equal(5, motions.ShortcutOf(IndexOf(motions, 236)));
+        Assert.Equal(6, motions.ShortcutOf(IndexOf(motions, 623)));
+        Assert.Equal(4, motions.ShortcutOf(IndexOf(motions, 214)));
+        Assert.Equal(MotionDefinition.NoShortcut, motions.ShortcutOf(IndexOf(motions, 41236)));
+    }
+
+    [Theory]
+    [InlineData("\"0\"")]
+    [InlineData("\"56\"")]
+    [InlineData("\"x\"")]
+    public void ShortcutThatIsNotOneDirection(string shortcut)
+    {
+        _data.Replace(File, "\"shortcut\": \"5\"", $"\"shortcut\": {shortcut}");
+
+        AssertSingleError("motions[6].shortcut", "must be one numpad direction from 1 to 9");
+    }
+
+    [Fact]
+    public void ShortcutUsedByTwoMotions()
+    {
+        _data.Replace(File, "\"shortcut\": \"5\"", "\"shortcut\": \"6\"");
+
+        AssertSingleError("motions[6].shortcut", "direction 6 is already the shortcut of motion 623");
     }
 
     [Fact]

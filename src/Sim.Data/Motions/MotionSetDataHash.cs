@@ -3,7 +3,7 @@ using Sim.Input.Motions;
 
 namespace Sim.Data.Motions;
 
-/// <summary>Adds the motion file to the data hash: order, steps, windows and timing all decide what counts as input.</summary>
+/// <summary>Adds the motion file to the data hash: order, steps, windows, shortcuts and timing all decide what counts as input.</summary>
 public static class MotionSetDataHash
 {
     public static void Append(DataHashBuilder hash, MotionFile file)
@@ -21,6 +21,7 @@ public static class MotionSetDataHash
         {
             hash.Add(motions.NotationOf(motion));
             hash.Add(motions.WindowOf(motion));
+            hash.Add(motions.ShortcutOf(motion));
             hash.Add(motions.StepsOf(motion).Length);
             foreach (MotionStep step in motions.StepsOf(motion))
             {

@@ -1,6 +1,7 @@
 # ADR-0011: Module contract, core capabilities and match rules
 
-- **Status:** Accepted (Oct 2026)
+- **Status:** Accepted (Oct 2026); P3 additions (block adjustment question, cancel into neutral, move lock, meter
+  gauge) approved by Lukas, Oct 2026
 - **Gaps:** ROADMAP GAP-24 (contract part; the lock policy is ADR-0005 §8)
 
 ## Context
@@ -20,7 +21,7 @@ in before it's built, and it must already support what Roman Cancel and the open
      move's data window offers (into a move or a jump). With no module saying yes, data windows never cancel.
    - **Hit adjustment question** (P3-12): `IHitAdjustmentHook` adjusts a hit's damage, hitstun and hitstop before
      it lands, or makes it whiff; modules answer in slot order, each adjusting the previous result.
-   - **Block adjustment question** (P3-15, proposed): `IBlockAdjustmentHook` adjusts a block's chip, blockstun,
+   - **Block adjustment question** (P3-15): `IBlockAdjustmentHook` adjusts a block's chip, blockstun,
      hitstop and pushback before the defender takes it (pushback guard); a block stays a block.
 2. Each module owns a **fixed-size state slice** in `MatchState` (declared at compile time, part of snapshots and
    the checksum). Modules never touch another module's slice.
@@ -39,9 +40,9 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Per-fighter stun override** (P3-16): replace remaining hitstun/blockstun (e.g. instant block).
 - **Module events** (P3-16): a module asks the core to emit a `FrameEventKind.Module` event for presentation; its
   detail packs the module id and the module's own code.
-- **Move lock** (P3-13, proposed): a request that stops a fighter starting moves of given categories for one state
+- **Move lock** (P3-13): a request that stops a fighter starting moves of given categories for one state
   machine step; the state machine reports the category of an attack it started (`FighterState.StartedMoveCategory`).
-- **Meter gauge** (P3-13, proposed): `IMeterGauge` module role; any module reads/spends meter via
+- **Meter gauge** (P3-13): `IMeterGauge` module role; any module reads/spends meter via
   `ModuleContext.MeterOf` / `TrySpendMeter`, routed by the core to the enabled gauge.
 
 **Match rules**

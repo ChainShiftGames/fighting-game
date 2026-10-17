@@ -12,6 +12,9 @@ public interface IMoveInput
     /// <summary>The move's special button shortcut was input for this frame (ADR-0020); false without one.</summary>
     bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing);
 
+    /// <summary>The move's motion has more than one step (236, not 5 or 2), so its input beats a shortcut.</summary>
+    bool HasMultiStepMotion(in MoveData move);
+
     /// <summary>A forward dash was input: a dash on the ground, an air dash in the air.</summary>
     bool IsDashTriggered(in InputHistory history, int facing);
 

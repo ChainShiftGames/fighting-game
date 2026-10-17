@@ -1,7 +1,7 @@
-# Testman's 236c from 6 + special: its fireball carries the shortcut trade-off too (80 % of 600 = 480).
+# Testman's 236c from 5 + special + c: its fireball carries the shortcut trade-off too (80 % of 600 = 480).
 setup: p1 character testman
 setup: p2 character testman
 setup: shortcut_damage 80
-frame 1: p1 6special
+frame 1: p1 5special+c
 
 frame 60: expect p2 damage = 480

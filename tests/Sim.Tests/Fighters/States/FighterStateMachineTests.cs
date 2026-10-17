@@ -402,6 +402,8 @@ public sealed class FighterStateMachineTests
 
         public bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing) => false;
 
+        public bool HasMultiStepMotion(in MoveData move) => _moves.HasMultiStepMotion(in move);
+
         public bool IsDashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Dash);
 
         public bool IsBackdashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Backdash);

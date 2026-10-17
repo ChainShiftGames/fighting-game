@@ -1,8 +1,8 @@
-# Testman's 236c has the shortcut 6: forward + special starts it on frame 1 and the fireball spawns on frame 13.
+# Testman's 236c by shortcut: neutral + special + c starts it on frame 1 and the fireball spawns on frame 13.
 setup: p1 character testman
 setup: p2 character testman
 
-frame 1: p1 6special
+frame 1: p1 5special+c
 
 frame 1: expect p1 move = 236c
 frame 13: expect p1 event projectile_spawn

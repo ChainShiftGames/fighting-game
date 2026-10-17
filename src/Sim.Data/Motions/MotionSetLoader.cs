@@ -108,6 +108,7 @@ public static class MotionSetLoader
             MotionStep[]? steps = MotionTextReader.ReadSteps(entry, "steps");
             int window = entry.OptionalInt("window", MotionDefinition.UsesMatchWindow, 1, InputHistory.Capacity);
             CheckFitsHistory(entry, "window", window, buttonBuffer);
+            int shortcut = ReadShortcut(entry, motions);
             entry.Finish();
             if (notation == 0 || steps is null)
             {
@@ -122,10 +123,38 @@ public static class MotionSetLoader
                 }
             }
 
-            motions.Add(new MotionDefinition(notation, steps, window));
+            motions.Add(new MotionDefinition(notation, steps, window, shortcut));
         }
 
         return motions;
+    }
+
+    // The special button shortcut (ADR-0020): one numpad direction, used by one motion at most.
+    private static int ReadShortcut(FieldReader entry, List<MotionDefinition> earlier)
+    {
+        if (!entry.Has("shortcut"))
+        {
+            return MotionDefinition.NoShortcut;
+        }
+
+        string shortcut = entry.RequiredText("shortcut");
+        if (shortcut.Length != 1 || shortcut[0] is < '1' or > '9')
+        {
+            entry.Error("shortcut", $"must be one numpad direction from 1 to 9 (e.g. \"5\"), got \"{shortcut}\"");
+            return MotionDefinition.NoShortcut;
+        }
+
+        int direction = shortcut[0] - '0';
+        foreach (MotionDefinition motion in earlier)
+        {
+            if (motion.Shortcut == direction)
+            {
+                entry.Error("shortcut", $"direction {direction} is already the shortcut of motion {motion.Notation}");
+                return MotionDefinition.NoShortcut;
+            }
+        }
+
+        return direction;
     }
 
     // The parser looks back a window plus the buffer, and the input history only holds so many frames.

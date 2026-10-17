@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "motions.schema.json",
   "title": "Motion set",
-  "description": "data/input/motions.json: motion inputs, their priority and the input timing (ADR-0002; matching rules in data/README.md). Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Motions). Motions must be unique; consecutive steps must not share a direction; every window plus buttonBuffer must fit the 64-frame input history.",
+  "description": "data/input/motions.json: motion inputs, their priority and the input timing (ADR-0002; matching rules in data/README.md). Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Motions). Motions and shortcut directions must be unique; consecutive steps must not share a direction; every window plus buttonBuffer must fit the 64-frame input history.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "motionWindow", "buttonBuffer", "movementInputs", "motions"],
@@ -21,7 +21,7 @@
         "backdash": { "type": "string", "pattern": "^[1-9]{1,8}$" },
         "highJump": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Checked on the frame a prejump starts." },
         "dashButton": { "type": "string", "description": "A button id from input/buttons.json." },
-        "specialButton": { "type": "string", "description": "A button id from input/buttons.json: with a move's input.shortcut direction it starts that move (ADR-0020)." }
+        "specialButton": { "type": "string", "description": "A button id from input/buttons.json: with a motion's shortcut direction and a move's button it starts that move (ADR-0020)." }
       }
     },
     "motions": {
@@ -36,7 +36,8 @@
         "properties": {
           "motion": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Numpad notation, as moves refer to it in input.motion." },
           "steps": { "type": "string", "pattern": "^[1-9]+( [1-9]+)*$", "description": "Steps oldest first, separated by spaces; each step lists the directions that count for it (\"123\" = any down)." },
-          "window": { "type": "integer", "minimum": 1, "maximum": 64, "description": "This motion's own window in frames, instead of motionWindow." }
+          "window": { "type": "integer", "minimum": 1, "maximum": 64, "description": "This motion's own window in frames, instead of motionWindow." },
+          "shortcut": { "type": "string", "pattern": "^[1-9]$", "description": "Special button shortcut (ADR-0020): this numpad direction held as the special button and a move's button are pressed together starts that move instead of this motion, with the match rules' trade-off. Each direction belongs to one motion at most." }
         }
       }
     }

@@ -20,7 +20,7 @@
   "wakeUpThrowInvulnerableFrames": 3,
   "landingThrowInvulnerableFrames": 3,
   "throwVsStrike": "throw",
-  "shortcutDamagePercent": 80,
+  "shortcutDamagePercent": 100,
   "shortcutCooldownFrames": 0,
   "pushbackFrames": 8
 }

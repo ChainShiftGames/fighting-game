@@ -1,0 +1,9 @@
+# 2, 3, 6 + special + c: the press frame holds 6, the shortcut of 623, but the 236 motion was input, so 236c comes
+# out (not 623c) and keeps its full damage (600).
+setup: p1 character testman
+setup: p2 character testman
+setup: shortcut_damage 80
+frame 1: p1 2, 3, 6special+c
+
+frame 3: expect p1 move = 236c
+frame 60: expect p2 damage = 600

@@ -18,13 +18,15 @@ public sealed class MotionSet
 
     private readonly int[] _notations;
     private readonly int[] _windows;
+    private readonly int[] _shortcuts;
     private readonly int[] _stepStarts;
     private readonly int[] _stepCounts;
     private readonly MotionStep[] _steps;
 
     /// <exception cref="ArgumentException">
     /// The set is empty or too large, a notation is repeated or not positive, a motion has no steps or an invalid
-    /// one, two consecutive steps share a direction, or a window is outside the input history.
+    /// one, two consecutive steps share a direction, a window is outside the input history, or a shortcut direction
+    /// isn't 1–9 or is used by two motions.
     /// </exception>
     public MotionSet(ReadOnlySpan<MotionDefinition> motions)
     {
@@ -35,6 +37,7 @@ public sealed class MotionSet
 
         _notations = new int[motions.Length];
         _windows = new int[motions.Length];
+        _shortcuts = new int[motions.Length];
         _stepStarts = new int[motions.Length];
         _stepCounts = new int[motions.Length];
         int stepTotal = 0;
@@ -43,6 +46,7 @@ public sealed class MotionSet
             Check(motions[motion], motions[..motion]);
             _notations[motion] = motions[motion].Notation;
             _windows[motion] = motions[motion].Window;
+            _shortcuts[motion] = motions[motion].Shortcut;
             _stepStarts[motion] = stepTotal;
             _stepCounts[motion] = motions[motion].Steps.Length;
             stepTotal += motions[motion].Steps.Length;
@@ -61,6 +65,9 @@ public sealed class MotionSet
 
     /// <summary>The motion's own window, or <see cref="MotionDefinition.UsesMatchWindow"/>.</summary>
     public int WindowOf(int motion) => _windows[motion];
+
+    /// <summary>The motion's special button shortcut direction, or <see cref="MotionDefinition.NoShortcut"/>.</summary>
+    public int ShortcutOf(int motion) => _shortcuts[motion];
 
     /// <summary>Oldest step first.</summary>
     public ReadOnlySpan<MotionStep> StepsOf(int motion) => _steps.AsSpan(_stepStarts[motion], _stepCounts[motion]);
@@ -93,6 +100,21 @@ public sealed class MotionSet
             {
                 throw new ArgumentException($"Motion {motion.Notation} is defined twice.", nameof(motion));
             }
+
+            // One press must name one motion, or the shortcut would be ambiguous.
+            if (motion.Shortcut != MotionDefinition.NoShortcut && other.Shortcut == motion.Shortcut)
+            {
+                throw new ArgumentException(
+                    $"Motions {other.Notation} and {motion.Notation} share shortcut direction {motion.Shortcut}.",
+                    nameof(motion));
+            }
+        }
+
+        if (motion.Shortcut is < MotionDefinition.NoShortcut or > 9)
+        {
+            throw new ArgumentException(
+                $"Motion {motion.Notation} has shortcut {motion.Shortcut}; it must be a numpad direction 1 to 9.",
+                nameof(motion));
         }
 
         if (motion.Window < MotionDefinition.UsesMatchWindow || motion.Window > InputHistory.Capacity)

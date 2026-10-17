@@ -18,9 +18,9 @@ internal static class TestMotions
         Motion(236236, "2 3 6 2 3 6"),
         Motion(63214, "6 3 2 1 4"),
         Motion(41236, "4 1 2 3 6"),
-        Motion(623, "6 2 3"),
-        Motion(214, "2 1 4"),
-        Motion(236, "2 3 6"),
+        Motion(623, "6 2 3", shortcut: 6),
+        Motion(214, "2 1 4", shortcut: 4),
+        Motion(236, "2 3 6", shortcut: 5),
         Motion(22, "2 5 2"),
         Motion(66, "6 5 6"),
         Motion(44, "4 5 4"),
@@ -46,7 +46,11 @@ internal static class TestMotions
     public static MotionParser Parser() => new(Default(), Rules());
 
     /// <param name="steps">Steps separated by spaces, each listing its directions, as in the data file.</param>
-    public static MotionDefinition Motion(int notation, string steps, int window = MotionDefinition.UsesMatchWindow)
+    public static MotionDefinition Motion(
+        int notation,
+        string steps,
+        int window = MotionDefinition.UsesMatchWindow,
+        int shortcut = MotionDefinition.NoShortcut)
     {
         string[] groups = steps.Split(' ');
         MotionStep[] parsed = new MotionStep[groups.Length];
@@ -56,7 +60,7 @@ internal static class TestMotions
             parsed[step] = MotionStep.Of(directions);
         }
 
-        return new MotionDefinition(notation, parsed, window);
+        return new MotionDefinition(notation, parsed, window, shortcut);
     }
 
     public static int IndexOf(MotionSet motions, int notation)

@@ -4,7 +4,7 @@
   "id": "623c",
   "category": "special",
   "usableIn": "ground",
-  "input": { "motion": "623", "button": "c", "shortcut": "3" },
+  "input": { "motion": "623", "button": "c" },
   "frameData": { "startup": 6, "active": 8, "recovery": 30 },
   "invulnerable": { "firstFrame": 1, "lastFrame": 8 },
   "velocity": [
