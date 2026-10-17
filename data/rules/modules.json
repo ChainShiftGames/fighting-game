@@ -4,6 +4,7 @@
   "order": [
     "air_block",
     "meter",
+    "negative_penalty",
     "instant_block",
     "burst",
     "gatlings",

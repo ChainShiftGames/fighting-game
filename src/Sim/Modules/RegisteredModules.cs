@@ -5,6 +5,7 @@ using Sim.Modules.ContractProbe;
 using Sim.Modules.Gatlings;
 using Sim.Modules.InstantBlock;
 using Sim.Modules.Meter;
+using Sim.Modules.NegativePenalty;
 
 namespace Sim.Modules;
 
@@ -28,5 +29,6 @@ public static class RegisteredModules
         new GatlingsModule(),
         new InstantBlockModule(),
         new MeterModule(),
+        new NegativePenaltyModule(),
     ]);
 }
