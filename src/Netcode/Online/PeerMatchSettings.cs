@@ -24,7 +24,10 @@ public sealed record PeerMatchSettings
     /// </summary>
     public required int RollbackFrames { get; init; }
 
-    /// <summary>Fixed input delay until the automatic 1–2 frame delay of ADR-0005 exists.</summary>
+    /// <summary>
+    /// Input delay the session starts with and keeps. Developer setting for tests and tools; players' matches use the
+    /// <see cref="InputDelaySettings"/> overload of <c>PeerSession.CreateDriver</c>, which replaces it.
+    /// </summary>
     public int InputDelayFrames { get; init; } = 2;
 
     public NetworkSimulation NetworkSimulation { get; init; } = NetworkSimulation.None;

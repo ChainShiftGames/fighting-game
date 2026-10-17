@@ -67,7 +67,7 @@ Done when:
 - [x] a peer with one changed rule value (dev build) is refused
 
 ### P2-06 Input delay
-Status: todo · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Online/`
+Status: in progress (p2-06-input-delay) · Needs: P2-02 · Parallel: yes · Where: `src/Netcode/Online/`
 Read: ADR-0005
 - Automatic delay 1–2 frames from measured ping; recalculated between rounds only.
 - Override 0–4: **player setting**.
