@@ -9,7 +9,7 @@
 Content model (this order; ADR-0021–0023):
 - [x] Data format changes through `tools/DataMigrate`; external tools read an export (ADR-0021; export: todo)
 - [x] Multi-hit moves, launches, juggles, ground/wall bounce, knockdown length, OTG; air recovery rule (ADR-0022)
-- [ ] Character-unique mechanics and several meter types (ADR-0023)
+- [ ] Character-unique mechanics and several meter types (ADR-0023, proposed design; next up)
 - [ ] Move conditions: rekkas/follow-ups, stance-only and install moves (ADR-0023)
 - [ ] `tools/DataExport` for external character tools (ADR-0021)
 Netcode hardening (ADR-0024–0025) and presentation hardening (ADR-0026) run in their own branches.
