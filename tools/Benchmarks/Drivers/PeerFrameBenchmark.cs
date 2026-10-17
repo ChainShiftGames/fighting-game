@@ -1,5 +1,7 @@
+using System.IO;
 using System.Net;
 using System.Threading;
+using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Online;
@@ -24,6 +26,9 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
     private const int Player1Port = 47111;
     private const int Player2Port = 47112;
 
+    // The desync-check run gets its own pair of ports (47113/47114).
+    private const int DesyncCheckPortOffset = 2;
+
     private const int PacingMilliseconds = 1;
 
     // Both peers are this build; the handshake only has to agree.
@@ -35,14 +40,22 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
     private readonly InputWord[] _player1Input = new InputWord[1];
     private readonly InputWord[] _player2Input = new InputWord[1];
 
-    public PeerFrameBenchmark(MatchSimulation simulation, InputSequence inputs, int rollbackFrames)
+    /// <param name="desyncHistoryFrames">
+    /// With a value, both peers run the online desync check as the game does (ADR-0019), keeping this many frames.
+    /// </param>
+    public PeerFrameBenchmark(MatchSimulation simulation, InputSequence inputs, int rollbackFrames, int? desyncHistoryFrames)
     {
-        _player1 = CreateDriver(simulation, Player1Port, Player2Port, localIsPlayer1: true, rollbackFrames);
-        _player2 = CreateDriver(simulation, Player2Port, Player1Port, localIsPlayer1: false, rollbackFrames);
+        DesyncDumpSettings? dumps = desyncHistoryFrames is int history
+            ? new DesyncDumpSettings { Folder = Path.Combine(Path.GetTempPath(), "fg-benchmark-desyncs"), HistoryFrames = history }
+            : null;
+        int offset = dumps is null ? 0 : DesyncCheckPortOffset;
+        _player1 = CreateDriver(simulation, Player1Port + offset, Player2Port + offset, localIsPlayer1: true, rollbackFrames, dumps);
+        _player2 = CreateDriver(simulation, Player2Port + offset, Player1Port + offset, localIsPlayer1: false, rollbackFrames, dumps);
         _inputs = inputs;
+        Name = dumps is null ? "Peer frame (loopback UDP)" : "Peer frame + desync check (loopback UDP)";
     }
 
-    public string Name => "Peer frame (loopback UDP)";
+    public string Name { get; }
 
     public int DriversInProcess => 2;
 
@@ -65,12 +78,22 @@ internal sealed class PeerFrameBenchmark : IDriverBenchmark
     }
 
     private static RollbackMatchDriver<MatchState> CreateDriver(
-        MatchSimulation simulation, int localPort, int remotePort, bool localIsPlayer1, int rollbackFrames) =>
-        new(new ComposedMatchSimulation(simulation), PeerSession.Build<MatchState>(new PeerMatchSettings
-        {
-            LocalPort = localPort,
-            RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
-            LocalIsPlayer1 = localIsPlayer1,
-            RollbackFrames = rollbackFrames,
-        }, PeerTransport.DirectUdp(), new VersionHandshake(new MatchIdentity(BuildName, [], simulation.Rules))));
+        MatchSimulation simulation,
+        int localPort,
+        int remotePort,
+        bool localIsPlayer1,
+        int rollbackFrames,
+        DesyncDumpSettings? dumps) =>
+        PeerSession.CreateDriver(
+            new ComposedMatchSimulation(simulation),
+            new PeerMatchSettings
+            {
+                LocalPort = localPort,
+                RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, remotePort),
+                LocalIsPlayer1 = localIsPlayer1,
+                RollbackFrames = rollbackFrames,
+                DesyncDumps = dumps,
+            },
+            PeerTransport.DirectUdp(),
+            new VersionHandshake(new MatchIdentity(BuildName, [], simulation.Rules)));
 }

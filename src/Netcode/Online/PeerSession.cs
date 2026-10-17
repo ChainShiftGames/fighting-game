@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Backdash;
 using Backdash.Core;
+using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Transport;
@@ -12,7 +13,8 @@ namespace Netcode.Online;
 
 /// <summary>
 /// Builds a Backdash peer-to-peer session between two PCs, behind the version handshake, checking every few frames
-/// that both game states still match, and the rollback match driver that runs it.
+/// that both game states still match, and the rollback match driver that runs it. With desync dumps set, the driver
+/// also compares every final frame with the other PC over the same transport (ADR-0019).
 /// </summary>
 public static class PeerSession
 {
@@ -29,7 +31,7 @@ public static class PeerSession
     public static RollbackMatchDriver<TState> CreateDriver<TState>(
         IMatchSimulation<TState> simulation, PeerMatchSettings settings, PeerTransport transport, VersionHandshake handshake)
         where TState : unmanaged =>
-        new RollbackMatchDriver<TState>(simulation, Build<TState>(settings, transport, handshake));
+        CreateRollbackDriver(simulation, settings, transport, handshake, out _);
 
     /// <summary>
     /// A match driver for an online match of the real game logic whose input delay follows the averaged ping between
@@ -45,25 +47,70 @@ public static class PeerSession
         VersionHandshake handshake)
     {
         delay.Automatic.Validate();
-        INetcodeSession<InputWord> session =
-            Build<MatchState>(settings with { InputDelayFrames = delay.StartingFrames }, transport, handshake);
-        var driver = new RollbackMatchDriver<MatchState>(simulation, session);
+        RollbackMatchDriver<MatchState> driver = CreateRollbackDriver(
+            simulation,
+            settings with { InputDelayFrames = delay.StartingFrames },
+            transport,
+            handshake,
+            out INetcodeSession<InputWord> session);
         var controller = new InputDelayController(delay, driver, new SessionInputDelay(session), settings.RollbackFrames);
-        return new InputDelayMatchDriver(driver, driver, driver, controller);
+        return new InputDelayMatchDriver(driver, driver, driver, driver, controller);
     }
 
+    /// <summary>A session without the per-frame desync check, for tests and tools that drive it themselves.</summary>
+    /// <param name="confirmedInputs">Follows the session's confirmed frames, for its driver; none when null.</param>
     public static INetcodeSession<InputWord> Build<TState>(
-        PeerMatchSettings settings, PeerTransport transport, VersionHandshake handshake)
+        PeerMatchSettings settings,
+        PeerTransport transport,
+        VersionHandshake handshake,
+        ConfirmedInputFrames? confirmedInputs = null)
+        where TState : unmanaged =>
+        Build<TState>(settings, transport, handshake, confirmedInputs, checksums: null);
+
+    private static RollbackMatchDriver<TState> CreateRollbackDriver<TState>(
+        IMatchSimulation<TState> simulation,
+        PeerMatchSettings settings,
+        PeerTransport transport,
+        VersionHandshake handshake,
+        out INetcodeSession<InputWord> session)
+        where TState : unmanaged
+    {
+        var confirmedInputs = new ConfirmedInputFrames();
+        DesyncDumpSettings? dumps = settings.DesyncDumps;
+        TransportChecksumLink? checksums = dumps is null ? null : new TransportChecksumLink(dumps.HistoryFrames);
+        session = Build<TState>(settings, transport, handshake, confirmedInputs, checksums);
+        DesyncMonitor<TState>? monitor = dumps is null
+            ? null
+            : new DesyncMonitor<TState>(dumps, DumpHeader(settings, handshake), checksums!, TimeProvider.System);
+        return new RollbackMatchDriver<TState>(simulation, session, clock: null, confirmedInputs, monitor);
+    }
+
+    // The same build and data the handshake compares, so a dump says exactly what the two PCs agreed to run.
+    private static DesyncDumpHeader DumpHeader(PeerMatchSettings settings, VersionHandshake handshake) => new(
+        handshake.Local.GameVersion, Convert.ToHexString(handshake.Local.DataHash), settings.LocalIsPlayer1);
+
+    private static INetcodeSession<InputWord> Build<TState>(
+        PeerMatchSettings settings,
+        PeerTransport transport,
+        VersionHandshake handshake,
+        ConfirmedInputFrames? confirmedInputs,
+        TransportChecksumLink? checksums)
         where TState : unmanaged
     {
         NetcodePlayer local = NetcodePlayer.CreateLocal();
         NetcodePlayer remote = NetcodePlayer.CreateRemote(settings.RemoteEndPoint);
         NetcodePlayer[] playersInPortOrder = settings.LocalIsPlayer1 ? [local, remote] : [remote, local];
         var sockets = new TransportSocketFactory(
-            () => handshake.Guard(Open(transport, settings)), settings.RemoteEndPoint, transport.Dropped);
+            () => handshake.Guard(Open(transport, settings)), settings.RemoteEndPoint, transport.Dropped, checksums);
 
-        return RollbackNetcode
-            .WithInputType(type => type.Struct<InputWord>())
+        NetcodeSessionBuilder<InputWord> builder = RollbackNetcode
+            .WithInputType(type => type.Struct<InputWord>());
+        if (confirmedInputs is not null)
+        {
+            builder = builder.WithInputListener(confirmedInputs);
+        }
+
+        return builder
             .WithPlayers(playersInPortOrder)
             .WithPort(settings.LocalPort > 0 ? settings.LocalPort : PortForTransportsWithoutPorts)
             .WithFrameRate(FramesPerSecond)

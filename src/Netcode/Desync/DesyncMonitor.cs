@@ -78,12 +78,36 @@ public sealed class DesyncMonitor<TState>
         }
     }
 
+    /// <summary>
+    /// Another check (Backdash's own consistency check) found the PCs disagree at <paramref name="frame"/>: writes
+    /// this PC's dump for that frame and throws. When the checksums already here show the first mismatch, that one
+    /// is reported instead, with both checksums.
+    /// </summary>
+    /// <param name="foundBy">What found it and what it saw, for the message.</param>
+    /// <exception cref="DesyncDetectedException">Always; this PC's dump is at its <c>DumpPath</c>.</exception>
+    public void ReportMismatch(int frame, string foundBy)
+    {
+        ReceiveRemoteChecksums();
+
+        // The other PC's checksum of this frame isn't here (Backdash compares its own hash), so the dump shows 0.
+        ulong local = _history.Contains(frame) ? StateChecksum.Compute(in _history.Get(frame).State) : 0;
+        Fail(new ChecksumMismatch(frame, local, RemoteChecksum: 0, _comparer.LastAgreedFrame), foundBy);
+    }
+
     private void Fail(ChecksumMismatch mismatch)
     {
-        DesyncDump dump = DesyncDumpBuilder.Build(_header, mismatch, _history, _clock.GetUtcNow());
-        string message = $"Checksums differ at frame {mismatch.Frame} (last agreed frame {mismatch.LastAgreedFrame}): " +
+        Fail(
+            mismatch,
+            $"Checksums differ at frame {mismatch.Frame} (last agreed frame {mismatch.LastAgreedFrame}): " +
             $"this PC {DesyncDumpBuilder.Hex(mismatch.LocalChecksum)}, " +
-            $"other PC {DesyncDumpBuilder.Hex(mismatch.RemoteChecksum)}.";
+            $"other PC {DesyncDumpBuilder.Hex(mismatch.RemoteChecksum)}.");
+    }
+
+    private void Fail(ChecksumMismatch mismatch, string message)
+    {
+        // First, so the other PC gets this PC's checksums while the dump is written, and finds the desync too.
+        _link.FinishAfterDesync();
+        DesyncDump dump = DesyncDumpBuilder.Build(_header, mismatch, _history, _clock.GetUtcNow());
         string path;
         try
         {

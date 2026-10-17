@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Netcode.Desync;
 using Netcode.Transport;
 using Sim.State;
 using Xunit;
@@ -113,6 +114,53 @@ public sealed class TransportSocketTests
         Assert.Equal(StateChecksum.Compute(in match.Player1.State), StateChecksum.Compute(in match.Player2.State));
         Assert.True(match.Player1Peer.Dropped.Malformed > 0 && match.Player2Peer.Dropped.Malformed > 0);
         Assert.True(match.Player1Peer.Dropped.Oversized > 0 && match.Player2Peer.Dropped.Oversized > 0);
+    }
+
+    [Fact]
+    public async Task ChecksumPacketsGoToTheirLinkNotToBackdash()
+    {
+        using var transport = new InMemoryTransport();
+        var dropped = new DroppedPackets();
+        var checksums = new TransportChecksumLink(capacity: 16);
+        using var socket = new TransportSocket(transport, _opponent, 1, dropped, checksums);
+        transport.Deliver(ChecksumPacket(firstFrame: 1, 0xAA, 0xBB));
+        transport.Deliver(_keepAlive);
+
+        int length = await ReceiveAsync(socket, new SocketAddress(AddressFamily.InterNetwork));
+
+        Assert.Equal(_keepAlive.Length, length);
+        Assert.Equal(0, dropped.Malformed);
+        Assert.True(checksums.TryReceive(out FrameChecksum first));
+        Assert.Equal(new FrameChecksum(1, 0xAA), first);
+    }
+
+    [Fact]
+    public async Task AMalformedChecksumPacketOrOneWithoutALinkIsCountedAsMalformed()
+    {
+        using var transport = new InMemoryTransport();
+        var dropped = new DroppedPackets();
+        using var socket = new TransportSocket(transport, _opponent, 1, dropped, new TransportChecksumLink(capacity: 16));
+        using var withoutLinkTransport = new InMemoryTransport();
+        var withoutLinkDropped = new DroppedPackets();
+        using var withoutLink = new TransportSocket(withoutLinkTransport, _opponent, 1, withoutLinkDropped);
+        byte[] cutOff = ChecksumPacket(firstFrame: 1, 0xAA)[..^1];
+        transport.Deliver(cutOff);
+        transport.Deliver(_keepAlive);
+        withoutLinkTransport.Deliver(ChecksumPacket(firstFrame: 1, 0xAA));
+        withoutLinkTransport.Deliver(_keepAlive);
+
+        await ReceiveAsync(socket, new SocketAddress(AddressFamily.InterNetwork));
+        await ReceiveAsync(withoutLink, new SocketAddress(AddressFamily.InterNetwork));
+
+        Assert.Equal(1, dropped.Malformed);
+        Assert.Equal(1, withoutLinkDropped.Malformed);
+    }
+
+    private static byte[] ChecksumPacket(int firstFrame, params ulong[] checksums)
+    {
+        byte[] packet = new byte[ChecksumMessage.MaxSize];
+        int length = ChecksumMessage.Write(acknowledged: 0, firstFrame, checksums, packet);
+        return packet[..length];
     }
 
     private static async Task<int> ReceiveAsync(TransportSocket socket, SocketAddress address)

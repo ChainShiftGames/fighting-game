@@ -1,4 +1,5 @@
 using System.Net;
+using Netcode.Desync;
 using Netcode.Transport;
 
 namespace Netcode.Online;
@@ -37,4 +38,11 @@ public sealed record PeerMatchSettings
     /// <c>data/netcode/online.json</c>; null keeps Backdash's own timeouts (tests and tools).
     /// </summary>
     public DisconnectTimeouts? Disconnect { get; init; }
+
+    /// <summary>
+    /// Compare every final frame's checksum with the other PC and write a dump on the first mismatch (ADR-0005 §5,
+    /// ADR-0019). Developer settings, from <c>data/netcode/online.json</c> and the game's user folder; null leaves only
+    /// Backdash's periodic consistency check, without dumps (tests and tools).
+    /// </summary>
+    public DesyncDumpSettings? DesyncDumps { get; init; }
 }

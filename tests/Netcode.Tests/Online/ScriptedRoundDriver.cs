@@ -6,7 +6,7 @@ using Sim.State;
 namespace Netcode.Tests.Online;
 
 /// <summary>A match driver whose round phase and readiness the test sets.</summary>
-internal sealed class ScriptedRoundDriver : IMatchDriver<MatchState>
+internal sealed class ScriptedRoundDriver : IMatchDriver<MatchState>, IConfirmedFrameReadout
 {
     private MatchState _state;
 
@@ -24,6 +24,9 @@ internal sealed class ScriptedRoundDriver : IMatchDriver<MatchState>
     public int LocalPlayerCount => 1;
 
     public int CurrentFrame { get; private set; }
+
+    /// <summary>Frames the test has made final; it sets them.</summary>
+    public int ConfirmedFrame { get; set; }
 
     public ref readonly MatchState State => ref _state;
 

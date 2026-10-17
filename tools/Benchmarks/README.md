@@ -2,12 +2,14 @@
 
 Speed and allocation benchmark for the game logic (ADR-0003, P0-14). Measures one tick of the real match, a
 resimulation of the rollback window (restore a snapshot + 8 ticks, the rollback worst case), snapshot save and load,
-and the checksum. The match is composed from the game data embedded in Sim.Data, as the game composes it (the first
-character in a mirror). Inputs are a fixed seeded sequence of directions and button presses, so every run measures
-the same frames; snapshots start from a state 600 frames in. The tick starts the match over once it is decided.
+the checksum, and the online desync check's work per frame (ADR-0019). The match is composed from the game data
+embedded in Sim.Data, as the game composes it (the first character in a mirror). Inputs are a fixed seeded sequence
+of directions and button presses, so every run measures the same frames; snapshots start from a state 600 frames in.
+The tick starts the match over once it is decided.
 
 With `--backdash` it also times whole frames through `RollbackMatchDriver` and Backdash (ADR-0013): a SyncTest
-session and two peer sessions over loopback UDP. Those are recorded only, never gated.
+session and two peer sessions over loopback UDP, without and with the desync check. Those are recorded only, never
+gated.
 
 Hand-rolled on `Stopwatch` and `GC.GetAllocatedBytesForCurrentThread()`; no benchmark package has an ADR.
 
@@ -92,6 +94,8 @@ simulation and an idle pipeline; since then every row is the real Testman match.
 | | Snapshot save (MatchState) | 0.0991 | 0.0990 | 0.1192 | 0 |
 | | Snapshot load (MatchState) | 0.0557 | 0.0391 | 0.1376 | 0 |
 | | Checksum (MatchState) | 8.0826 | 7.2091 | 16.4182 | 0 |
+| Windows dev PC (same), 2026-10-17, online desync check (P2-09) | Tick (Testman mirror) | 0.6625 | 0.6327 | 1.3265 | 0 |
+| | Desync monitor (record + confirm a frame) | 8.9417 | 7.5182 | 20.8000 | 0 |
 | Steam Deck (deferred: no Deck available) | all rows | | | | |
 
 - The real tick with every Phase 1 system is ~0.7 µs on the dev PC: under 0.1 % of the 1 ms budget, so even a Deck
@@ -100,6 +104,8 @@ simulation and an idle pipeline; since then every row is the real Testman match.
 - The checksum (~8 µs) now costs more than a tick: FNV-1a goes byte by byte over the whole state. It runs once per
   frame at most, so it is still under 1 % of the budget. If it ever matters, hashing 8 bytes per step is a drop-in
   speed-up (it changes every checksum value, so golden replays would need re-recording).
+- The online desync check (ADR-0019) costs ~8 µs per frame on the frame thread, almost all of it that checksum, once
+  per final frame; copying each frame run into its history is ~0.1 µs (a snapshot save). No allocation.
 
 ### Backdash frames
 
@@ -112,8 +118,11 @@ driver, whole process. The 2026-10-16 (first) rows ran the toy simulation; the l
 | | Peer frame (loopback UDP) | 34.4 | 29.2 | 111.8 | 4.5 |
 | Windows dev PC (same), 2026-10-16, real match | SyncTest frame (8-frame check) | 8.0 | 4.0 | 45.1 | 0 |
 | | Peer frame (loopback UDP) | 82.8 | 54.1 | 338.6 | 4.5 |
+| Windows dev PC (same), 2026-10-17, online desync check (P2-09) | Peer frame (loopback UDP) | 54.3 | 49.6 | 145.9 | 617.7 |
+| | Peer frame + desync check (loopback UDP) | 65.4 | 59.0 | 171.6 | 630.5 |
 | Steam Deck | SyncTest frame (8-frame check) | | | | |
 | | Peer frame (loopback UDP) | | | | |
+| | Peer frame + desync check (loopback UDP) | | | | |
 
 - **SyncTest (real match):** ~4 µs for a plain frame (tick, save, Backdash's checksum of the state) and ~45 µs at
   p99 for a rollback frame. No allocation.
@@ -124,3 +133,7 @@ driver, whole process. The 2026-10-16 (first) rows ran the toy simulation; the l
 - **Allocation note:** the peer sessions allocate ~4.5 bytes per frame per driver at this pace, **all on
   Backdash's background network threads; 0 bytes on the frame thread.** That is at most a few KB per second, so
   gen-0 collections stay rare; not a per-frame cost of ours. Recheck it on 0.8.x and with the Steam relay transport.
+- **Desync check (2026-10-17):** +~11 µs mean per peer frame, 0 bytes on the frame thread. Its packet goes out from
+  the thread pool: sent on the frame thread, the socket call alone took the peer frame from ~55 to ~170 µs
+  (ADR-0019 §3). Both 2026-10-17 rows show ~620 bytes per frame on Backdash's threads, up from 4.5 on 2026-10-16;
+  main before the check measures the same 618, so it came with an earlier change. Not looked into yet.

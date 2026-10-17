@@ -20,4 +20,9 @@ public sealed class InMemoryChecksumLink : IChecksumLink
     public void Send(FrameChecksum checksum) => _other?._inbox.Enqueue(checksum);
 
     public bool TryReceive(out FrameChecksum checksum) => _inbox.TryDequeue(out checksum);
+
+    // Every checksum sent is already in the other peer's inbox: nothing is left to deliver.
+    public void FinishAfterDesync()
+    {
+    }
 }

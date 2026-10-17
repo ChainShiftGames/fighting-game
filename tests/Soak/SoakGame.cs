@@ -1,3 +1,5 @@
+using System;
+using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Transport;
@@ -28,11 +30,16 @@ internal sealed class SoakGame
         var source = new EmbeddedDataSource();
         _data = new GameDataLoader(source).Load();
         _character = _data.Characters[0];
-        RollbackFrames = OnlineSettingsLoader.Load(source).RollbackFrames;
+        OnlineSettings online = OnlineSettingsLoader.Load(source);
+        RollbackFrames = online.RollbackFrames;
+        DesyncHistoryFrames = online.Desync.HistoryFrames;
     }
 
     /// <summary>The rollback window (developer setting, <c>data/netcode/online.json</c>).</summary>
     public int RollbackFrames { get; }
+
+    /// <summary>Frames a desync dump holds (developer setting, <c>data/netcode/online.json</c>).</summary>
+    public int DesyncHistoryFrames { get; }
 
     /// <summary>Lag, jitter and loss each peer adds to what it sends: the ADR-0005 test conditions.</summary>
     public NetworkSimulation Network { get; } = NetworkSimulation.TestConditions;
@@ -41,6 +48,10 @@ internal sealed class SoakGame
         $"{_character.Id} mirror, data hash {_data.Hash}, rollback window {RollbackFrames} frames, " +
         $"{Network.PingMilliseconds} ms ping ±{Network.JitterMilliseconds} ms, {Network.PacketLossPercent} % loss, " +
         "in-memory transport";
+
+    /// <summary>What a dump says about this build, as the online driver writes it from the handshake.</summary>
+    public DesyncDumpHeader DumpHeader(bool localIsPlayer1) =>
+        new(GameVersion, Convert.ToHexString(_data.Hash.ToBytes()), localIsPlayer1);
 
     /// <summary>A fresh version handshake for one peer (ADR-0005 §6): each PC runs its own.</summary>
     public VersionHandshake CreateHandshake() =>

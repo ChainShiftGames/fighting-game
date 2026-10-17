@@ -5,5 +5,9 @@ namespace Sim.Data.Online;
 /// <param name="RollbackFrames">Rollback window (ADR-0003): most frames predicted ahead, and so rolled back.</param>
 /// <param name="AutomaticInputDelay">How the input delay follows the ping (ADR-0005 §4).</param>
 /// <param name="Disconnect">When a silent connection is warned about and ends the match (ADR-0005 §4).</param>
+/// <param name="Desync">How much a desync dump holds (ADR-0005 §5).</param>
 public sealed record OnlineSettings(
-    int RollbackFrames, AutomaticInputDelaySettings AutomaticInputDelay, DisconnectSettings Disconnect);
+    int RollbackFrames,
+    AutomaticInputDelaySettings AutomaticInputDelay,
+    DisconnectSettings Disconnect,
+    DesyncSettings Desync);

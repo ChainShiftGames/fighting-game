@@ -33,4 +33,13 @@ public static class OnlineSchema
 
     /// <summary>Upper bound for both disconnect timeouts: a minute of silence is a lost connection.</summary>
     public const int MaxDisconnectMilliseconds = 60_000;
+
+    /// <summary>
+    /// Lower bound for the desync history: one second, past the largest rollback window plus the time the other PC's
+    /// checksums take to arrive.
+    /// </summary>
+    public const int MinDesyncHistoryFrames = 60;
+
+    /// <summary>Upper bound for the desync history: a minute of frames (each keeps a whole state).</summary>
+    public const int MaxDesyncHistoryFrames = 3600;
 }

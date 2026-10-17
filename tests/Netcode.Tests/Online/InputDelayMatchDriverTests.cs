@@ -31,7 +31,7 @@ public sealed class InputDelayMatchDriverTests
             },
         };
         _driver = new InputDelayMatchDriver(
-            _inner, _connection, _connection, new InputDelayController(settings, _connection, _control, RollbackFrames));
+            _inner, _inner, _connection, _connection, new InputDelayController(settings, _connection, _control, RollbackFrames));
     }
 
     [Fact]
