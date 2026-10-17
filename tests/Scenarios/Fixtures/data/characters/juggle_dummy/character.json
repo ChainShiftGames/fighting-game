@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../data/schema/character.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "juggle_dummy",
   "displayName": "Juggle Dummy",
   "stats": {
@@ -32,5 +32,6 @@
     "blockstun": "blockstun",
     "crouchBlockstun": "crouch_blockstun",
     "knockdown": "knockdown"
-  }
+  },
+  "moveRoles": {}
 }

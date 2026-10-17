@@ -5,10 +5,10 @@
   "description": "data/characters/<id>/character.json. Editor aid only: Sim.Data's validator is authoritative and repeats these rules (src/Sim.Data/Characters/Reading). Distances in subpixels (1 px = 1000), speeds in subpixels per frame, times in frames.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "displayName", "stats", "moves", "states"],
+  "required": ["schemaVersion", "id", "displayName", "stats", "moves", "states", "moveRoles"],
   "properties": {
     "$schema": { "type": "string" },
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": { "$ref": "#/$defs/id", "description": "Must equal the folder name." },
     "displayName": { "type": "string", "minLength": 1 },
     "stats": {
@@ -67,6 +67,12 @@
         "throwTech": { "$ref": "#/$defs/id", "description": "A teched throw; its velocity data separates the fighters." },
         "airBlockstun": { "$ref": "#/$defs/id", "description": "Blocked in the air (air block module); landing ends it." }
       }
+    },
+    "moveRoles": {
+      "description": "Moves this character names for jobs modules need (ADR-0023), role name to move id, e.g. { \"burst\": \"burst\" }. Every role must be one a registered module asks for, and every role an enabled module needs must be named.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/id" }
     }
   },
   "$defs": {

@@ -17,4 +17,7 @@ public enum SchemaFieldKind
 
     /// <summary>An object with its own fields.</summary>
     Object,
+
+    /// <summary>An object of free keys, each holding a value of one kind, such as a character's <c>moveRoles</c>.</summary>
+    Map,
 }

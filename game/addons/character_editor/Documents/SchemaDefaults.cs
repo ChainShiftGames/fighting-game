@@ -18,6 +18,7 @@ public static class SchemaDefaults
         SchemaFieldKind.Boolean => JsonValue.Create(false),
         SchemaFieldKind.Choice => JsonValue.Create(field.Choices.Count > 0 ? field.Choices[0] : ""),
         SchemaFieldKind.Object => ObjectFor(field.Object ?? SchemaObject.Empty),
+        SchemaFieldKind.Map => new JsonObject(),
         _ => new JsonArray(),
     };
 

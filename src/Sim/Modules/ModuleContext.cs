@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Sim.Characters;
 using Sim.Rules;
 using Sim.State;
 
@@ -10,7 +11,8 @@ namespace Sim.Modules;
 /// <remarks>
 /// The match state is read-only, so a module can't write core state. It must not read another module's slice either
 /// (ADR-0011); modules interact only through interfaces or events the core defines, such as the meter of the
-/// lineup's <see cref="IMeterGauge"/> (<see cref="MeterOf"/>, <see cref="TrySpendMeter"/>).
+/// lineup's <see cref="IMeterGauge"/>s (<see cref="MeterOf"/>, <see cref="TrySpendMeter"/>). Characters are read-only
+/// data (<see cref="CharacterOf"/>, <see cref="RoleMove"/>, ADR-0023).
 /// </remarks>
 public readonly ref struct ModuleContext
 {
@@ -23,8 +25,9 @@ public readonly ref struct ModuleContext
     // Writable only so the meter gauge can update its own slice when another module spends; null without one.
     private readonly ref MatchState _meterState;
     private readonly MeterAccess? _meters;
+    private readonly ModuleCharacters? _characters;
 
-    /// <summary>A context without meter access: <see cref="MeterOf"/> is 0 and spending fails.</summary>
+    /// <summary>A context without meter or character access: <see cref="MeterOf"/> is 0 and spending fails.</summary>
     public ModuleContext(
         ref readonly MatchState state,
         ref ModuleStateSlice slice,
@@ -39,6 +42,7 @@ public readonly ref struct ModuleContext
         _slot = slot;
         _meterState = ref Unsafe.NullRef<MatchState>();
         _meters = null;
+        _characters = null;
     }
 
     internal ModuleContext(
@@ -47,7 +51,8 @@ public readonly ref struct ModuleContext
         ref readonly ModuleConfig config,
         CoreRequests requests,
         int slot,
-        MeterAccess meters)
+        MeterAccess meters,
+        ModuleCharacters? characters)
     {
         _state = ref state;
         _slice = ref slice;
@@ -56,6 +61,7 @@ public readonly ref struct ModuleContext
         _slot = slot;
         _meterState = ref state;
         _meters = meters;
+        _characters = characters;
     }
 
     public ref readonly MatchState State => ref _state;
@@ -70,18 +76,26 @@ public readonly ref struct ModuleContext
 
     /// <summary>This module's settings from <see cref="MatchRules"/> viewed as its own config struct.</summary>
     public ref readonly TConfig GetConfig<TConfig>()
-        where TConfig : unmanaged, IModuleConfig
-    {
-        ReadOnlySpan<int> config = _config;
-        return ref MemoryMarshal.AsRef<TConfig>(MemoryMarshal.AsBytes(config));
-    }
+        where TConfig : unmanaged, IModuleConfig => ref ModuleConfigView.As<TConfig>(in _config);
 
-    /// <summary>The fighter's meter from the lineup's <see cref="IMeterGauge"/>; 0 without one.</summary>
-    public int MeterOf(int fighter) => _meters is null ? 0 : _meters.MeterOf(ref _meterState, fighter);
+    /// <summary>The fighter's meter on <paramref name="channel"/> from the gauge serving it; 0 without one.</summary>
+    public int MeterOf(int fighter, int channel = IMeterGauge.MainChannel) =>
+        _meters is null ? 0 : _meters.MeterOf(ref _meterState, fighter, channel);
 
-    /// <summary>Spends the fighter's meter now if it has <paramref name="amount"/>; false without enough or a gauge.</summary>
-    public bool TrySpendMeter(int fighter, int amount) =>
-        _meters is not null && _meters.TrySpend(ref _meterState, fighter, amount);
+    /// <summary>Spends the fighter's meter on <paramref name="channel"/> now if it has <paramref name="amount"/>; false without enough or a gauge.</summary>
+    public bool TrySpendMeter(int fighter, int amount, int channel = IMeterGauge.MainChannel) =>
+        _meters is not null && _meters.TrySpend(ref _meterState, fighter, amount, channel);
+
+    /// <summary>The fighter's character, read-only (ADR-0023).</summary>
+    /// <exception cref="InvalidOperationException">The lineup was built without characters (unit tests only).</exception>
+    public CharacterData CharacterOf(int fighter) => Characters.CharacterOf(fighter);
+
+    /// <summary>The move the fighter's character names for this module's role at <paramref name="role"/> (<see cref="IMechanicModule.MoveRoles"/>).</summary>
+    /// <exception cref="InvalidOperationException">The lineup was built without characters (unit tests only).</exception>
+    public int RoleMove(int fighter, int role) => Characters.RoleMove(_slot, fighter, role);
+
+    private ModuleCharacters Characters =>
+        _characters ?? throw new InvalidOperationException("This module lineup was built without characters.");
 
     public void RequestCancel(int fighter, in CancelRequest request) =>
         _requests.Cancels.Set(CoreRequests.FighterKey(_slot, fighter), request);

@@ -6,7 +6,7 @@ Character, move and rules JSON (ARCHITECTURE.md §7, ADR-0007). Loaded and valid
 
 ```
 data/schema/<kind>.schema.json                    JSON Schema per file kind (editor aid)
-data/characters/<id>/character.json               stats, move list, basic states
+data/characters/<id>/character.json               stats, move list, basic states, move roles
 data/characters/<id>/moves/<move_id>.json         one move: frame data, boxes, cancels, hits
 data/input/buttons.json                           button set: button ids and input word bits (ADR-0010)
 data/input/motions.json                           motions, their priority, motion window and button buffer (ADR-0002)
@@ -40,6 +40,8 @@ character, P1-17); a minimal example is in `tests/Sim.Data.Tests/Fixtures/data/`
   a generated file in the shared style.
 - `moves` order in `character.json` is input priority. Every listed move file must exist and every move file must be
   listed.
+- `moveRoles` in `character.json` names moves for jobs modules need, e.g. `{ "burst": "burst" }` (ADR-0023). A role no
+  registered module asks for, or one an enabled module needs but the character doesn't name, fails loading.
 - `data/schema/*.schema.json` documents the format; the validator in `src/Sim.Data` is authoritative and also checks
   cross-file rules. Change both in the same PR.
 - All values here are **developer settings** (ARCHITECTURE.md §6); the data hash covers them (compared before online

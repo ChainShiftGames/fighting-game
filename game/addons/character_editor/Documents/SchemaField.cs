@@ -10,6 +10,7 @@ namespace FightingGame.Addons.CharacterEditor.Documents;
 /// <param name="Choices">The allowed strings, for choices and choice lists; else empty.</param>
 /// <param name="Object">The nested object's fields, for <see cref="SchemaFieldKind.Object"/>.</param>
 /// <param name="Items">The fields of each item, for a list of objects (shown as <see cref="SchemaFieldKind.Other"/>).</param>
+/// <param name="Value">What each entry holds, for <see cref="SchemaFieldKind.Map"/>; its name is "".</param>
 public sealed record SchemaField(
     string Name,
     SchemaFieldKind Kind,
@@ -19,4 +20,5 @@ public sealed record SchemaField(
     long? Maximum,
     IReadOnlyList<string> Choices,
     SchemaObject? Object,
-    SchemaObject? Items);
+    SchemaObject? Items,
+    SchemaField? Value = null);

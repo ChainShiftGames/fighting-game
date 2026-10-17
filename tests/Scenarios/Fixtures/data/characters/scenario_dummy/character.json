@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../data/schema/character.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "scenario_dummy",
   "displayName": "Scenario Dummy",
   "stats": {
@@ -35,5 +35,6 @@
     "thrown": "thrown",
     "throwTech": "throw_tech",
     "airBlockstun": "air_blockstun"
-  }
+  },
+  "moveRoles": {}
 }

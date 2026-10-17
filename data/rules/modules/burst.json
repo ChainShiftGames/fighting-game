@@ -11,6 +11,5 @@
   "usableInBlockstun": 0,
   "usableInNeutral": 0,
   "triggerButtons": 240,
-  "burstMove": 34,
   "cancelPriority": 100
 }

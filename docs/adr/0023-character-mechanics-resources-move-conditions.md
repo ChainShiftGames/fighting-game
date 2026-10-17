@@ -1,7 +1,8 @@
 # ADR-0023: Character mechanics, resource channels and move conditions
 
-- **Status:** Proposed (Oct 2026): design sketch, not built yet. Lukas asked for all of it (see Context); details
-  below are the implementer's proposal, to confirm while building.
+- **Status:** Proposed (Oct 2026). Lukas asked for all of it (see Context); details below are the implementer's
+  proposal, to confirm while building. **Built:** 2 and 3 (without move `cost`, which comes with move schema 3).
+  Not built yet: 1, 4–6.
 - **Gaps:** foundation review before Phase 4 (no character-unique mechanics, one meter, no rekkas/stances/installs)
 
 ## Context
@@ -20,10 +21,12 @@ ground/air, move locks are by category, and cancel windows only work when the ga
    reserved slot after the systemic modules; `ModuleContext.Owner` says which fighter it serves (-1 = match-wide).
    Same hooks, requests, events and removal test as other modules. Raise `ModuleStates.MaxModules` (e.g. 24 + 2).
 2. **Modules see characters read-only:** `ModuleContext.CharacterOf(fighter)`. Moves are found by role, not index:
-   `character.json` `moveRoles: { "burst": "burst" }`, resolved once at match start (fixes `burstMove: 34`).
-3. **Resource channels:** an `IMeterGauge` serves one channel (int 0–7 from its config); `MeterOf(fighter,
+   `character.json` `moveRoles: { "burst": "burst" }`, resolved once at match start (fixes `burstMove: 34`). A module
+   lists the roles it needs (`IMechanicModule.MoveRoles`) and reads them with `ModuleContext.RoleMove(fighter, i)`.
+   Loading rejects a role no registered module asks for, and a character missing a role an enabled module needs.
+3. **Resource channels:** an `IMeterGauge` serves one channel (int 0–7 from its config, `ChannelOf`); `MeterOf(fighter,
    channel)` / `TrySpendMeter(fighter, amount, channel)` route to the gauge of that channel; channel 0 = the main
-   meter (today's behaviour). Optional move `cost: { "channel", "amount" }`: the state machine skips a move that
+   meter (today's behaviour). Two enabled gauges on one channel fail loading and match start. Optional move `cost: { "channel", "amount" }`: the state machine skips a move that
    can't be paid (input falls through, like move lock) and spends on start.
 4. **Fighter flags:** game-wide flag names in `data/rules/flags.json` (bit index = order, at most 32; per flag
    `clearedWhenHit`). `FighterState.Flags`. Set/cleared by a move on start (`setsFlags`, `clearsFlags`), by being

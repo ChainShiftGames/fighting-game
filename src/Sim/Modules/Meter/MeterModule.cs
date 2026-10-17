@@ -37,7 +37,8 @@ public sealed class MeterModule :
         new ModuleConfigField("blockGain", 0, IMeterGauge.FullMeter),
         new ModuleConfigField("forwardGain", 0, IMeterGauge.FullMeter),
         new ModuleConfigField("roundStartMeter", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("carryOverRounds", 0, 1));
+        new ModuleConfigField("carryOverRounds", 0, 1),
+        new ModuleConfigField("channel", 0, IMeterGauge.ChannelCount - 1));
 
     public void AfterInput(ModuleContext context)
     {
@@ -99,6 +100,8 @@ public sealed class MeterModule :
             }
         }
     }
+
+    public int ChannelOf(ref readonly ModuleConfig config) => ModuleConfigView.As<MeterConfig>(in config).Channel;
 
     public int MeterOf(ModuleContext context, int fighter) => MeterOf(ref context.GetState<MeterState>(), fighter);
 

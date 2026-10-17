@@ -74,10 +74,12 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   (`Fixtures/data/characters/sparring_dummy/`): `5a` and `2a` (1000 damage, 20 hitstun, startup 3; `2a` knocks
   down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
 - **Meter** (P3-13): `setup: module meter <superCost> <hitGain> <blockGain> <forwardGain> <roundStartMeter>
-  <carryOverRounds>` (hundredths of a percent); read with `module meter[0]` (P1) / `[1]` (P2).
+  <carryOverRounds> [channel]` (hundredths of a percent; channel 0 when left out); read with `module meter[0]` (P1) /
+  `[1]` (P2).
 - **Burst** (P3-17): `setup: module burst <maxGauge> <startGauge> <gainPerFrame> <gainWhenHit> <burstCost>
-  <usableInHitstun> <usableInBlockstun> <usableInNeutral> <triggerButtons> <burstMove> <cancelPriority>`
-  (`Sim.Modules.Burst.BurstConfig`; triggers `240` = a+b+c+d, Testman's burst move is index 34). Slice:
+  <usableInHitstun> <usableInBlockstun> <usableInNeutral> <triggerButtons> <cancelPriority>`
+  (`Sim.Modules.Burst.BurstConfig`; triggers `240` = a+b+c+d). The burst cancels into the character's `burst` move
+  role (`moveRoles` in its `character.json`), so a character without one can't play with the module on. Slice:
   `module burst[0]` P1 gauge, `[1]` P1 bursts used, `[2]` P2 gauge, `[3]` P2 bursts used.
 - **Negative penalty** (P3-21): `setup: module negative_penalty <penaltyFrames> <forwardRecovery> <meterLoss>`
   (`Sim.Modules.NegativePenalty.NegativePenaltyConfig`); the retreat counters are `module negative_penalty[0]` /

@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../data/schema/character.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "sparring_dummy",
   "displayName": "Sparring Dummy",
   "stats": {
@@ -35,5 +35,6 @@
     "airHitstun": "air_hitstun",
     "blockstun": "blockstun",
     "knockdown": "knockdown"
-  }
+  },
+  "moveRoles": {}
 }

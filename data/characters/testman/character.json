@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/character.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "testman",
   "displayName": "Testman",
   "stats": {
@@ -44,5 +44,6 @@
     "thrown": "thrown",
     "throwTech": "throw_tech",
     "airBlockstun": "air_blockstun"
-  }
+  },
+  "moveRoles": { "burst": "burst" }
 }

@@ -34,12 +34,6 @@ public struct BurstConfig : IModuleConfig
     /// </summary>
     public int TriggerButtons;
 
-    /// <summary>
-    /// Index of the burst move in each character's move list: the move a burst cancels into. Every character lists
-    /// its burst move at this index (Testman: last); a character without a move there fails loudly on a burst.
-    /// </summary>
-    public int BurstMove;
-
     /// <summary>The burst's cancel priority against other modules' cancels for the same fighter and frame.</summary>
     public int CancelPriority;
 }
