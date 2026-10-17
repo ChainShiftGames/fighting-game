@@ -10,7 +10,8 @@ namespace FightingGame.Addons.CharacterEditor.Documents;
 
 /// <summary>
 /// One character open in the editor: its <c>character.json</c> and every move file its move list names, as
-/// editable JSON trees. The move list is read from the character file each time, so it can't go out of sync.
+/// editable JSON trees, plus the move files to delete on saving. The move list is read from the character file each
+/// time, and adding or removing a move changes list and files together, so they can't go out of sync.
 /// </summary>
 public sealed class CharacterDocument
 {
@@ -18,6 +19,9 @@ public sealed class CharacterDocument
 
     private readonly Dictionary<string, EditedFile> _moves = new(StringComparer.Ordinal);
     private readonly List<EditedFile> _moveFiles = [];
+    // Paths of new files not yet on disk, and of files on disk to delete when saving.
+    private readonly HashSet<string> _created = new(StringComparer.Ordinal);
+    private readonly SortedSet<string> _removed = new(StringComparer.Ordinal);
 
     private CharacterDocument(string id, EditedFile character)
     {
@@ -45,7 +49,7 @@ public sealed class CharacterDocument
         }
     }
 
-    /// <summary>The character file followed by the move files, in the order they were opened.</summary>
+    /// <summary>The character file followed by the move files, in the order they were opened or added.</summary>
     public IEnumerable<EditedFile> Files
     {
         get
@@ -57,6 +61,9 @@ public sealed class CharacterDocument
             }
         }
     }
+
+    /// <summary>Data-relative paths of the move files that saving deletes.</summary>
+    public IReadOnlyCollection<string> RemovedFiles => _removed;
 
     public bool HasChanges
     {
@@ -70,7 +77,7 @@ public sealed class CharacterDocument
                 }
             }
 
-            return false;
+            return _removed.Count > 0;
         }
     }
 
@@ -80,15 +87,15 @@ public sealed class CharacterDocument
     {
         DataErrors errors = new();
         string characterPath = CharacterSchema.CharacterFile(characterId);
-        if (!IsFileName(characterId) || !source.FileExists(characterPath))
+        if (!MoveIdCheck.IsFileName(characterId) || !source.FileExists(characterPath))
         {
             errors.Add(characterPath, "", "file not found");
             errors.ThrowIfAny();
         }
 
-        JsonObject? characterRoot = JsonDataReader.Read(source, characterPath, errors);
+        EditedFile? character = JsonDataReader.Open(source, characterPath, errors);
         errors.ThrowIfAny();
-        CharacterDocument document = new(characterId, new EditedFile(characterPath, characterRoot!));
+        CharacterDocument document = new(characterId, character!);
         document.ReadMoves(source, errors);
         errors.ThrowIfAny();
         return document;
@@ -102,8 +109,7 @@ public sealed class CharacterDocument
     /// <exception cref="InvalidOperationException">The character file has no move list.</exception>
     public void SwapMoves(int index, int otherIndex)
     {
-        JsonArray list = MoveList()
-            ?? throw new InvalidOperationException($"{Character.Path} has no \"{MovesField}\" list.");
+        JsonArray list = RequiredMoveList();
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual((uint)index, (uint)list.Count, nameof(index));
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual((uint)otherIndex, (uint)list.Count, nameof(otherIndex));
         if (index == otherIndex)
@@ -121,46 +127,94 @@ public sealed class CharacterDocument
         Character.MarkChanged();
     }
 
+    /// <summary>Adds a move file and lists it at <paramref name="listIndex"/> (its input priority).</summary>
+    /// <exception cref="ArgumentException">The id can't name a new move (<see cref="MoveIdCheck.Problem"/>).</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The index is past the end of the move list.</exception>
+    /// <exception cref="InvalidOperationException">The character file has no move list.</exception>
+    public EditedFile AddMove(string moveId, JsonObject root, int listIndex)
+    {
+        JsonArray list = RequiredMoveList();
+        if (MoveIdCheck.Problem(moveId, MoveIds) is string problem)
+        {
+            throw new ArgumentException(problem, nameof(moveId));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfGreaterThan((uint)listIndex, (uint)list.Count, nameof(listIndex));
+        string path = CharacterSchema.MoveFile(Id, moveId);
+        // A file deleted earlier in this session is still on disk: saving overwrites it instead.
+        if (!_removed.Remove(path))
+        {
+            _created.Add(path);
+        }
+
+        EditedFile move = new(path, root);
+        move.MarkChanged();
+        _moves.Add(moveId, move);
+        _moveFiles.Add(move);
+        list.Insert(listIndex, moveId);
+        Character.MarkChanged();
+        return move;
+    }
+
+    /// <summary>Removes every entry of the move from the move list; saving deletes its file.</summary>
+    /// <exception cref="InvalidOperationException">The character file has no move list.</exception>
+    public void RemoveMove(string moveId)
+    {
+        JsonArray list = RequiredMoveList();
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            if (list[i]?.GetValueKind() == JsonValueKind.String && list[i]!.GetValue<string>() == moveId)
+            {
+                list.RemoveAt(i);
+            }
+        }
+
+        if (_moves.Remove(moveId, out EditedFile? move))
+        {
+            _moveFiles.Remove(move);
+            if (!_created.Remove(move.Path))
+            {
+                _removed.Add(move.Path);
+            }
+        }
+
+        Character.MarkChanged();
+    }
+
+    /// <summary>The files on disk now match the document: changed files written, removed files deleted.</summary>
+    public void MarkSaved()
+    {
+        foreach (EditedFile file in Files)
+        {
+            file.MarkSaved();
+        }
+
+        _created.Clear();
+        _removed.Clear();
+    }
+
     private JsonArray? MoveList() => Character.Root[MovesField] as JsonArray;
+
+    private JsonArray RequiredMoveList() => MoveList()
+        ?? throw new InvalidOperationException($"{Character.Path} has no \"{MovesField}\" list.");
 
     private void ReadMoves(IDataSource source, DataErrors errors)
     {
         foreach (string moveId in MoveIds)
         {
             // Validation reports bad ids, duplicates and missing files; here they're just not opened.
-            if (!IsFileName(moveId) || _moves.ContainsKey(moveId)
+            if (!MoveIdCheck.IsFileName(moveId) || _moves.ContainsKey(moveId)
                 || !source.FileExists(CharacterSchema.MoveFile(Id, moveId)))
             {
                 continue;
             }
 
-            string path = CharacterSchema.MoveFile(Id, moveId);
-            JsonObject? root = JsonDataReader.Read(source, path, errors);
-            if (root is not null)
+            EditedFile? move = JsonDataReader.Open(source, CharacterSchema.MoveFile(Id, moveId), errors);
+            if (move is not null)
             {
-                EditedFile move = new(path, root);
                 _moves.Add(moveId, move);
                 _moveFiles.Add(move);
             }
         }
-    }
-
-    // Keeps an id like "../x" from reaching the data source as a path.
-    private static bool IsFileName(string id)
-    {
-        if (id.Length == 0)
-        {
-            return false;
-        }
-
-        foreach (char c in id)
-        {
-            if (!char.IsAsciiLetterOrDigit(c) && c != '_')
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

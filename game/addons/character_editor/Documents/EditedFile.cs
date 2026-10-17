@@ -9,15 +9,20 @@ namespace FightingGame.Addons.CharacterEditor.Documents;
 public sealed class EditedFile
 {
     /// <param name="path">Data-relative path with '/' separators, e.g. <c>characters/testman/moves/5a.json</c>.</param>
-    public EditedFile(string path, JsonObject root)
+    /// <param name="layout">How the file's lists were wrapped when it was read; none for a new file.</param>
+    public EditedFile(string path, JsonObject root, ListLineStarts? layout = null)
     {
         Path = path;
         Root = root;
+        Layout = layout ?? ListLineStarts.None;
     }
 
     public string Path { get; }
 
     public JsonObject Root { get; }
+
+    /// <summary>Kept when saving, so hand-wrapped lists stay wrapped the same way.</summary>
+    public ListLineStarts Layout { get; }
 
     public bool IsChanged { get; private set; }
 

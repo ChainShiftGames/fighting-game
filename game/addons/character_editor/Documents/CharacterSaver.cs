@@ -26,38 +26,43 @@ public sealed class CharacterSaver
     }
 
     /// <summary>What the game would report loading the data with the document's changes; empty when valid.</summary>
-    public IReadOnlyList<DataError> Validate(CharacterDocument document) => Validate(ChangedFiles(document));
+    public IReadOnlyList<DataError> Validate(CharacterDocument document) =>
+        Validate(ChangedFiles(document), document.RemovedFiles);
 
     /// <summary>
-    /// Writes the changed files when the data is valid with them; otherwise writes nothing.
+    /// Writes the changed files and deletes the removed move files when the data is valid that way; otherwise
+    /// changes nothing on disk.
     /// </summary>
     /// <returns>The validation errors; empty when the files were saved.</returns>
     public IReadOnlyList<DataError> Save(CharacterDocument document)
     {
         Dictionary<string, byte[]> changed = ChangedFiles(document);
-        IReadOnlyList<DataError> errors = Validate(changed);
+        IReadOnlyList<DataError> errors = Validate(changed, document.RemovedFiles);
         if (errors.Count > 0)
         {
             return errors;
         }
 
-        foreach (EditedFile file in document.Files)
+        // Deletes first: on a file system that ignores case, a new "5A.json" and a deleted "5a.json" are one file.
+        foreach (string path in document.RemovedFiles)
         {
-            if (file.IsChanged)
-            {
-                File.WriteAllBytes(DataFilePath.In(_dataRoot, file.Path), changed[file.Path]);
-                file.MarkSaved();
-            }
+            File.Delete(DataFilePath.In(_dataRoot, path));
         }
 
+        foreach ((string path, byte[] bytes) in changed)
+        {
+            File.WriteAllBytes(DataFilePath.In(_dataRoot, path), bytes);
+        }
+
+        document.MarkSaved();
         return errors;
     }
 
-    private IReadOnlyList<DataError> Validate(IReadOnlyDictionary<string, byte[]> changed)
+    private IReadOnlyList<DataError> Validate(IReadOnlyDictionary<string, byte[]> changed, IEnumerable<string> removed)
     {
         try
         {
-            new GameDataLoader(new OverlayDataSource(new DirectoryDataSource(_dataRoot), changed)).Load();
+            new GameDataLoader(new OverlayDataSource(new DirectoryDataSource(_dataRoot), changed, removed)).Load();
             return [];
         }
         catch (DataValidationException exception)
@@ -74,7 +79,7 @@ public sealed class CharacterSaver
         {
             if (file.IsChanged)
             {
-                files[file.Path] = _utf8WithoutBom.GetBytes(JsonDataWriter.Write(file.Root));
+                files[file.Path] = _utf8WithoutBom.GetBytes(JsonDataWriter.Write(file.Root, file.Layout));
             }
         }
 
