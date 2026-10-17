@@ -5,7 +5,7 @@ namespace FightingGame.Debug;
 
 /// <summary>
 /// Developer overlay (developer setting, F3): logic rate, frame rate, vsync, input latency, the match and, online,
-/// its connection, then the local input words and joypads.
+/// its connection (ping, rollbacks, simulated network, dropped packets), then the local input words and joypads.
 /// </summary>
 public partial class DeveloperOverlay : CanvasLayer
 {
@@ -17,6 +17,7 @@ public partial class DeveloperOverlay : CanvasLayer
     private readonly Label _label = new() { Position = new Vector2(Margin, TopOffset) };
     private string _timing = string.Empty;
     private string _inputs = string.Empty;
+    private string _network = string.Empty;
 
     public override void _Ready() => AddChild(_label);
 
@@ -32,11 +33,15 @@ public partial class DeveloperOverlay : CanvasLayer
     /// <summary>Shown below the match readings from the next <see cref="ShowMatch"/> on.</summary>
     public void ShowInputs(string inputs) => _inputs = inputs;
 
+    /// <summary>Shown below the connection readings from the next <see cref="ShowMatch"/> on; empty shows nothing.</summary>
+    public void ShowNetwork(string network) => _network = network;
+
     /// <param name="connection">Online connection readings, one per line; empty for local matches.</param>
     public void ShowMatch(string description, int frame, string connection)
     {
         string match = string.Create(CultureInfo.InvariantCulture, $"{_timing}\n{description} | frame {frame}");
         string withConnection = connection.Length == 0 ? match : $"{match}\n{connection}";
-        _label.Text = _inputs.Length == 0 ? withConnection : $"{withConnection}\n{_inputs}";
+        string withNetwork = _network.Length == 0 ? withConnection : $"{withConnection}\n{_network}";
+        _label.Text = _inputs.Length == 0 ? withNetwork : $"{withNetwork}\n{_inputs}";
     }
 }

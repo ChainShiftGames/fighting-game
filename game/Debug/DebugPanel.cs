@@ -11,7 +11,7 @@ namespace FightingGame.Debug;
 /// </summary>
 /// <remarks>
 /// A new developer setting is one more <see cref="DeveloperToggle"/>, <see cref="DataFileSetting"/> or
-/// <see cref="DataFileChoice"/> in the lists the host passes in; the panel needs no change. Its controls never take keyboard focus by themselves, so the
+/// <see cref="DataFileChoice"/> in the lists the host passes in, or a section (<see cref="AddSection"/>); the panel needs no change. Its controls never take keyboard focus by themselves, so the
 /// players' keys keep reaching the match while it is open.
 /// </remarks>
 public partial class DebugPanel : CanvasLayer
@@ -26,6 +26,7 @@ public partial class DebugPanel : CanvasLayer
     private readonly List<(DataFileSetting Setting, SpinBox Box)> _dataRows = [];
     private readonly List<(DataFileChoice Setting, OptionButton Box)> _choiceRows = [];
     private string? _dataRoot;
+    private int _sectionsEnd;
 
     /// <summary>Raised after Save wrote the data files, so the host can restart the match with them.</summary>
     public event Action? DataSaved;
@@ -48,6 +49,7 @@ public partial class DebugPanel : CanvasLayer
             AddToggleRow(toggle);
         }
 
+        _sectionsEnd = _rows.GetChildCount();
         _rows.AddChild(new HSeparator());
         _rows.AddChild(new Label { Text = dataRoot is null ? "data/ (embedded in this build: read-only)" : "data/ (saved to the files)" });
         foreach (DataFileSetting setting in dataSettings)
@@ -65,6 +67,19 @@ public partial class DebugPanel : CanvasLayer
         save.Pressed += Save;
         _rows.AddChild(save);
         _rows.AddChild(_status);
+    }
+
+    /// <summary>
+    /// Adds a titled group of developer controls that act at once (e.g. the network simulator), below the toggles
+    /// and above the data files, which only apply on Save.
+    /// </summary>
+    public void AddSection(string title, Control section)
+    {
+        foreach (Control row in new Control[] { new HSeparator(), new Label { Text = title }, section })
+        {
+            _rows.AddChild(row);
+            _rows.MoveChild(row, _sectionsEnd++);
+        }
     }
 
     public override void _Ready()
