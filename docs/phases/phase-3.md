@@ -38,10 +38,10 @@ Done when:
 
 ## B. Mechanic modules
 
-Done: P3-10, P3-12, P3-15 (after core pushback; the block adjustment question awaits approval in ADR-0011), P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-21.
-**P3-20 blocked (devs decide):** the core (P1-09) already does dash button, backdash and air dash; scenarios in
-`tests/Scenarios/DashButton/`. Options like hold-to-run need a new dash-input hook in ADR-0011, or close P3-20 as
-covered by the core. Also check: dash with no direction stops after 1 frame for run-style characters (core bug?).
+Done: P3-10, P3-12, P3-15 (after core pushback; the block adjustment question awaits approval in ADR-0011), P3-13 (move lock and meter gauge await approval in ADR-0011), P3-16, P3-18 (v1 as in Guilty Gear, Lukas's call), P3-19 (core, ADR-0020), P3-17, P3-20 (closed as core, Lukas's call), P3-21.
+**P3-20:** the dash button is just a button any game with dashes has, not a module: the core (P1-09) already does
+dash, backdash and air dash from it; scenarios in `tests/Scenarios/DashButton/`. Still to check: dash with no
+direction stops after 1 frame for run-style characters (core bug?).
 Each module task: **Needs: P3-01 · Parallel: yes · Where: `src/Sim/Modules/<Name>/`, `tests/Scenarios/<Name>/`**.
 **Read:** ADR-0011 (module contract), ADR-0005 §8 (rules locked for players), and the `CURRENT_STATE §3` subsection for the mechanic
 (Offense: P3-10, P3-12 · Meter: P3-13, P3-18 · Defense: P3-15–17 · Controls: P3-19–20 · Movement: P3-21).
@@ -58,7 +58,7 @@ Counter hits and throws with tech are core, not modules (ADR-0017): P1-22 and P1
 | P3-17 | Burst | Combo breaker on its own gauge |
 | P3-18 | Roman Cancel v1 | Guilty Gear style: buttons together spend meter, cancel into neutral (own hitstop ends), freeze + opponent slowdown; red/purple/blue/yellow switchable |
 | P3-19 | Special button | GBVS-style shortcut specials with a tunable trade-off (damage or cooldown); core, not a module (ADR-0020) |
-| P3-20 | Dash button | Dedicated dash input behaviour |
+| P3-20 | Dash button | Dedicated dash input behaviour: core, no module (closed) |
 | P3-21 | Negative penalty | Penalty for running away: retreat frames (own walk back, backdash, jump back) build to a meter loss + module event; forward movement wins them back |
 
 Done when (each):
