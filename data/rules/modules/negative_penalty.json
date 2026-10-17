@@ -1,0 +1,8 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "penaltyFrames": 180,
+  "forwardRecovery": 2,
+  "meterLoss": 2500
+}

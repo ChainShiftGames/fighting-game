@@ -1,0 +1,11 @@
+# p2 walks into p1 and pushes it back; p1 doesn't move by itself, so its counter stays at 0.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module negative_penalty 10 2 2500
+frames 1-60: p2 6
+
+frames 1-60: expect module negative_penalty[0] = 0
+frames 1-60: expect p1 event module = 0
+frame 60: expect p1 x < -30000

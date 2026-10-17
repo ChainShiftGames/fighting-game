@@ -70,6 +70,9 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   down), and a `knockdown` that keeps a low hurtbox so OTG hits can connect.
 - **Meter** (P3-13): `setup: module meter <superCost> <hitGain> <blockGain> <forwardGain> <roundStartMeter>
   <carryOverRounds>` (hundredths of a percent); read with `module meter[0]` (P1) / `[1]` (P2).
+- **Negative penalty** (P3-21): `setup: module negative_penalty <penaltyFrames> <forwardRecovery> <meterLoss>`
+  (`Sim.Modules.NegativePenalty.NegativePenaltyConfig`); the retreat counters are `module negative_penalty[0]` /
+  `[1]`, a penalty shows as `p<n> event module`.
 - **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
