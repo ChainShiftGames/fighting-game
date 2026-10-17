@@ -73,7 +73,7 @@ Read: ADR-0005
 - Override 0–4: **player setting**.
 
 ### P2-07 Disconnect handling
-Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Online/`, `game/UI/`
+Status: done · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Online/`, `game/UI/`
 Read: ADR-0005
 - Warning after 3 s without data; match ends without a result after 10 s. Timeouts are **developer settings**.
 

@@ -62,8 +62,11 @@ public partial class MatchmakingMenu : CanvasLayer
             _lobby.RefreshFriends();
         }
 
-        _label.Text = LobbyMenuText.Describe(_lobby, _lastAction);
+        _label.Text = LobbyMenuText.Describe(_lobby, _lastAction, MatchNote);
     }
+
+    /// <summary>What the match underneath says while the menu covers it (e.g. a desync); empty for nothing.</summary>
+    public string MatchNote { get; set; } = string.Empty;
 
     // No keys during a match: they belong to the fight.
     public override void _UnhandledKeyInput(InputEvent inputEvent)

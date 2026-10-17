@@ -5,7 +5,7 @@
   "description": "data/netcode/online.json: how online matches run (developer settings). They don't change game results, so they are not part of the data hash or the match rules. Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Online).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "rollbackFrames", "automaticInputDelay"],
+  "required": ["schemaVersion", "rollbackFrames", "automaticInputDelay", "disconnect"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
@@ -21,6 +21,16 @@
         "pingStepMilliseconds": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "Each full step of this much median ping (Backdash's, ~20 ms above Steam's: ADR-0014 problem 4) adds one frame above minimumFrames. Default 50." },
         "pingSampleIntervalFrames": { "type": "integer", "minimum": 1, "maximum": 3600, "description": "Logic frames between two ping readings. Default 60 (one a second)." },
         "pingSamples": { "type": "integer", "minimum": 1, "maximum": 600, "description": "Newest readings the median covers, so one spike or one too-low reading never sets the delay. Default 15." }
+      }
+    },
+    "disconnect": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "When a silent connection is warned about and ends the match (ADR-0005 §4). Silence means no packet at all from the other PC; a connection that comes back before the end resumes the match.",
+      "required": ["warningAfterMilliseconds", "endMatchAfterMilliseconds"],
+      "properties": {
+        "warningAfterMilliseconds": { "type": "integer", "minimum": 250, "maximum": 60000, "description": "Silence before the \"connection interrupted\" warning, with the seconds left. At least 250, above Backdash's 200 ms keep-alive. Default 3000." },
+        "endMatchAfterMilliseconds": { "type": "integer", "minimum": 250, "maximum": 60000, "description": "Silence before the match ends without a result; more than warningAfterMilliseconds. Default 10000." }
       }
     }
   }

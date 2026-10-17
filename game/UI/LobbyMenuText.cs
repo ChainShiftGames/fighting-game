@@ -10,7 +10,8 @@ public static class LobbyMenuText
     public const int MaxListedFriends = 9;
 
     /// <param name="lastAction">The menu's own note on the last key pressed (e.g. an invite sent); may be empty.</param>
-    public static string Describe(LobbyFlow lobby, string lastAction)
+    /// <param name="matchNote">What the finished match underneath says (e.g. a desync); may be empty.</param>
+    public static string Describe(LobbyFlow lobby, string lastAction, string matchNote = "")
     {
         var text = new StringBuilder();
         switch (lobby.Stage)
@@ -44,7 +45,7 @@ public static class LobbyMenuText
             text.Append("Esc   leave the lobby\n");
         }
 
-        return AppendNotes(text, lobby.Notice, lastAction).ToString();
+        return AppendNotes(text, matchNote, lobby.Notice, lastAction).ToString();
     }
 
     private static void AppendInvites(StringBuilder text, LobbyFlow lobby)
@@ -67,9 +68,9 @@ public static class LobbyMenuText
     private static string Players(LobbyFlow lobby) =>
         lobby.IsHost ? $"you (P1) vs {lobby.OpponentName} (P2)" : $"{lobby.OpponentName} (P1) vs you (P2)";
 
-    private static StringBuilder AppendNotes(StringBuilder text, string notice, string lastAction)
+    private static StringBuilder AppendNotes(StringBuilder text, params string[] notes)
     {
-        foreach (string note in new[] { notice, lastAction })
+        foreach (string note in notes)
         {
             if (note.Length > 0)
             {

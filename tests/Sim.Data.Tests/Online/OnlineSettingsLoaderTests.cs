@@ -20,6 +20,48 @@ public sealed class OnlineSettingsLoaderTests
         Assert.Equal(2, settings.AutomaticInputDelay.MaximumFrames);
     }
 
+    [Fact]
+    public void RepositorySettingsWarnAfterThreeSecondsAndEndAfterTen()
+    {
+        OnlineSettings settings = OnlineSettingsLoader.Load(new DirectoryDataSource(Fixture.RepositoryDataRoot));
+
+        Assert.Equal(new DisconnectSettings(3000, 10_000), settings.Disconnect);
+    }
+
+    [Fact]
+    public void ReadsTheDisconnectTimeouts()
+    {
+        _data.SetText(OnlineSchema.File, File(8, Delay(1, 2), Disconnect(500, 2000)));
+
+        Assert.Equal(new DisconnectSettings(500, 2000), OnlineSettingsLoader.Load(_data).Disconnect);
+    }
+
+    [Theory]
+    [InlineData(2000, 2000, "disconnect.endMatchAfterMilliseconds")]
+    [InlineData(3000, 2000, "disconnect.endMatchAfterMilliseconds")]
+    [InlineData(OnlineSchema.MinDisconnectWarningMilliseconds - 1, 2000, "disconnect.warningAfterMilliseconds")]
+    [InlineData(500, OnlineSchema.MaxDisconnectMilliseconds + 1, "disconnect.endMatchAfterMilliseconds")]
+    public void DisconnectTimeoutsOutOfOrderOrRangeAreReported(int warningAfter, int endMatchAfter, string field)
+    {
+        _data.SetText(OnlineSchema.File, File(8, Delay(1, 2), Disconnect(warningAfter, endMatchAfter)));
+
+        DataError error = Assert.Single(
+            Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
+        Assert.Equal(field, error.Field);
+    }
+
+    [Fact]
+    public void MissingDisconnectTimeoutsAreReported()
+    {
+        _data.SetText(
+            OnlineSchema.File,
+            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"automaticInputDelay\": {Delay(1, 2)} }}");
+
+        DataError error = Assert.Single(
+            Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
+        Assert.Equal("disconnect", error.Field);
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(OnlineSchema.MaxRollbackFrames)]
@@ -75,7 +117,9 @@ public sealed class OnlineSettingsLoaderTests
     [Fact]
     public void AMissingAutomaticDelayIsReported()
     {
-        _data.SetText(OnlineSchema.File, "{ \"schemaVersion\": 1, \"rollbackFrames\": 8 }");
+        _data.SetText(
+            OnlineSchema.File,
+            $"{{ \"schemaVersion\": 1, \"rollbackFrames\": 8, \"disconnect\": {Disconnect(3000, 10_000)} }}");
 
         DataError error = Assert.Single(
             Assert.Throws<DataValidationException>(() => OnlineSettingsLoader.Load(_data)).Errors);
@@ -103,7 +147,15 @@ public sealed class OnlineSettingsLoaderTests
     private static string File(int rollbackFrames) => File(rollbackFrames, Delay(1, 2));
 
     private static string File(int rollbackFrames, string automaticDelay) =>
-        $"{{ \"schemaVersion\": 1, \"rollbackFrames\": {rollbackFrames}, \"automaticInputDelay\": {automaticDelay} }}";
+        File(rollbackFrames, automaticDelay, Disconnect(3000, 10_000));
+
+    private static string File(int rollbackFrames, string automaticDelay, string disconnect) =>
+        $"{{ \"schemaVersion\": 1, \"rollbackFrames\": {rollbackFrames}, \"automaticInputDelay\": {automaticDelay}, " +
+        $"\"disconnect\": {disconnect} }}";
+
+    private static string Disconnect(int warningAfterMilliseconds, int endMatchAfterMilliseconds) =>
+        $"{{ \"warningAfterMilliseconds\": {warningAfterMilliseconds}, " +
+        $"\"endMatchAfterMilliseconds\": {endMatchAfterMilliseconds} }}";
 
     private static string Delay(int minimumFrames, int maximumFrames) =>
         $"{{ \"minimumFrames\": {minimumFrames}, \"maximumFrames\": {maximumFrames}, \"pingStepMilliseconds\": 40, " +

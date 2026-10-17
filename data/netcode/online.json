@@ -8,5 +8,9 @@
     "pingStepMilliseconds": 50,
     "pingSampleIntervalFrames": 60,
     "pingSamples": 15
+  },
+  "disconnect": {
+    "warningAfterMilliseconds": 3000,
+    "endMatchAfterMilliseconds": 10000
   }
 }

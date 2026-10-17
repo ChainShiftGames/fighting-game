@@ -49,7 +49,7 @@ public static class PeerSession
             Build<MatchState>(settings with { InputDelayFrames = delay.StartingFrames }, transport, handshake);
         var driver = new RollbackMatchDriver<MatchState>(simulation, session);
         var controller = new InputDelayController(delay, driver, new SessionInputDelay(session), settings.RollbackFrames);
-        return new InputDelayMatchDriver(driver, driver, controller);
+        return new InputDelayMatchDriver(driver, driver, driver, controller);
     }
 
     public static INetcodeSession<InputWord> Build<TState>(
@@ -82,6 +82,13 @@ public static class PeerSession
                 // connection; Backdash's default would disconnect after 10 s of failed checks. The checks still run,
                 // and real silence still disconnects (DisconnectTimeout).
                 options.Protocol.ConsistencyCheckTimeout = TimeSpan.Zero;
+
+                // Silence from the other PC: a warning (ConnectionInterrupted), then the end (Disconnected).
+                if (settings.Disconnect is { } disconnect)
+                {
+                    options.Protocol.DisconnectNotifyStart = disconnect.WarningAfter;
+                    options.Protocol.DisconnectTimeout = disconnect.EndMatchAfter;
+                }
             })
             .ForRemote()
             .Build();

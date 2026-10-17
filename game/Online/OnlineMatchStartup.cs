@@ -103,6 +103,7 @@ public sealed class OnlineMatchStartup
             recorder, driver, settings.RollbackFrames, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
         return new StartedMatch(
             loop, driver, view, () => Describe(settings, delay, driver, opponent, lineup), connection, recording, handshake,
+            connectionStatus: driver,
             isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
@@ -120,6 +121,9 @@ public sealed class OnlineMatchStartup
             RemoteEndPoint = opponent.Address,
             LocalIsPlayer1 = opponent.LocalIsPlayer1,
             RollbackFrames = online.RollbackFrames,
+            Disconnect = new DisconnectTimeouts(
+                TimeSpan.FromMilliseconds(online.Disconnect.WarningAfterMilliseconds),
+                TimeSpan.FromMilliseconds(online.Disconnect.EndMatchAfterMilliseconds)),
 
             // Only the packets this PC sends change; the game logic never sees the simulation (ARCHITECTURE.md §6).
             NetworkSimulation = NetworkSimulation.Following(_networkSimulation),

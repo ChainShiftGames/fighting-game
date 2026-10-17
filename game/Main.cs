@@ -13,6 +13,7 @@ using FightingGame.Settings;
 using FightingGame.UI;
 using Godot;
 using Netcode.Desync;
+using Netcode.Online;
 using Netcode.Replays;
 using Netcode.Transport;
 using Sim.Data.Validation;
@@ -83,8 +84,8 @@ public partial class Main : Node2D
     private NetworkReadout? _networkReadout;
     private IPlatformServices? _platform;
     private string _matchError = string.Empty;
-    private bool _stopped;
     private bool _wasWaiting = true;
+    private ConnectionState _shownConnection = ConnectionState.Connected;
 
     public override void _Ready()
     {
@@ -153,12 +154,14 @@ public partial class Main : Node2D
         if (_match is null)
         {
             _status!.Show(_matchError);
+            _matchmakingMenu!.MatchNote = string.Empty;
             _pingIndicator!.Show(null);
             return;
         }
 
         long now = Stopwatch.GetTimestamp();
         int framesRun = RunDueFrames(now);
+        ShowMatchStatus();
         _logicRate.Count(framesRun, now);
         SampleConnection(now);
         _pingIndicator!.Show(_match.Connection?.PingMilliseconds);
@@ -236,17 +239,17 @@ public partial class Main : Node2D
         }
     }
 
-    // A desync stops the match and stays on screen: it is never hidden or corrected (ARCHITECTURE.md §8).
+    // A desync stops the match for good and stays on screen: it is never hidden or corrected (ARCHITECTURE.md §8).
     private int RunDueFrames(long now)
     {
-        if (_stopped)
+        if (_match!.Desync.Length > 0)
         {
             return 0;
         }
 
         try
         {
-            int framesRun = _match!.Loop.Advance(now);
+            int framesRun = _match.Loop.Advance(now);
             bool waiting = _match.IsOnline && _match.Loop.CurrentFrame == 0;
             if (_wasWaiting && !waiting)
             {
@@ -254,16 +257,31 @@ public partial class Main : Node2D
             }
 
             _wasWaiting = waiting;
-            _status!.Show(waiting ? _match.WaitingMessage : PausedText());
             return framesRun;
         }
         catch (DesyncDetectedException desync)
         {
-            _stopped = true;
             GD.PushError($"Desync: {desync.Message}");
-            _status!.Show($"DESYNC — match stopped\n{desync.Message}");
+            _match.StopForDesync(desync.Message);
             return 0;
         }
+    }
+
+    // Over a finished match the lobby menu is up: its text carries the message then, so the two never overlap.
+    private void ShowMatchStatus()
+    {
+        ConnectionStatus connection = _match!.ConnectionStatus;
+        if (connection.State != _shownConnection)
+        {
+            GD.Print($"Connection {_shownConnection} → {connection.State} at frame {_match.Loop.CurrentFrame}.");
+            _shownConnection = connection.State;
+        }
+
+        string waiting = _match.IsOnline && _match.Loop.CurrentFrame == 0 ? _match.WaitingMessage : string.Empty;
+        string status = MatchStatusText.Choose(_match.Desync, connection, waiting, PausedText());
+        bool menuShown = _matchmakingMenu!.Visible;
+        _status!.Show(menuShown ? string.Empty : status);
+        _matchmakingMenu.MatchNote = menuShown ? status : string.Empty;
     }
 
     private string PausedText() =>
@@ -356,8 +374,8 @@ public partial class Main : Node2D
 
         _match.Dispose();
         _match = null;
-        _stopped = false;
         _wasWaiting = true;
+        _shownConnection = ConnectionState.Connected;
     }
 
     private void SaveReplay(Replay? replay, string kind)
