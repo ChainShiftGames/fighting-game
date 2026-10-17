@@ -1,0 +1,12 @@
+# Testman, shipped instant block (window 8, lockout 10, -2 blockstun): back pressed on frame 4, right before 5a
+# connects on frame 5, cuts its 11 blockstun to 9.
+setup: module instant_block 8 10 2
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frames 4-20: p2 4
+
+frame 5: expect p2 event module
+frame 5: expect p2 stun = 9

@@ -1,0 +1,12 @@
+# Testman, shipped air block (ground normals air-unblockable, mask 1): p2 jumps back holding back (airborne from
+# frame 44) and blocks p1's 236c fireball in the air on frame 80, taking only its chip (60).
+setup: module air_block 1
+setup: p1 character testman
+setup: p2 character testman
+frame 1: p1 2, 3, 6c
+frames 40-90: p2 7
+
+frame 80: expect p2 state = air_blockstun
+frame 80: expect p2 y > 0
+frame 80: expect p2 damage = 60
+frames 1-79: expect p2 damage = 0

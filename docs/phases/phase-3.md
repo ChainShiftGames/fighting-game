@@ -138,7 +138,8 @@ Read: ADR-0006
 - Replaces the random inputs in the soak test (P2-12).
 
 ## Phase exit checklist
-- [ ] All modules work with Testman and pass their removal tests
+- [x] All modules work with Testman and pass their removal tests (each module folder has a `testman_*` scenario;
+  removal of the P3-15/18/21 modules checked by hand: build and tests pass, golden replays re-record for the data hash)
 - [ ] A new move is made in the editor without code
 - [ ] Mechanic variants switch between rounds
 - [ ] Soak test passes with CPU bots
