@@ -7,6 +7,7 @@
     "negative_penalty",
     "roman_cancel",
     "instant_block",
+    "pushback_guard",
     "burst",
     "gatlings",
     "combo_limits"

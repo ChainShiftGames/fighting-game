@@ -1,0 +1,10 @@
+# Module off: the same block pushes 12000 as always.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module meter 5000 0 0 0 5000 0
+frame 1: p1 5a
+frames 5-21: p2 4
+
+frame 21: expect p2 x = 45200

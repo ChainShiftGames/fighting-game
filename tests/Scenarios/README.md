@@ -77,6 +77,9 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for
   same-frame hits: `trade` (both land) or `clash` (neither lands).
+- **Pushback guard** (P3-15): `setup: module pushback_guard <buttonMask> <buttonCount> <pushbackPermille> <meterCost>
+  <drainPerFrame>` (`Sim.Modules.PushbackGuard.PushbackGuardConfig`; `48` = a+b). Hold back + the buttons (`4a+b`):
+  a guarded block shows as `p<n> event module` on the defender; with a cost it needs `module meter`.
 - **Roman Cancel** (P3-18): `setup: module roman_cancel <buttonMask> <buttonCount> <pressWindow> <meterCost>
   <variants> <freezeFrames> <slowdownFrames> <slowdownNumerator> <slowdownDenominator>`
   (`Sim.Modules.RomanCancel.RomanCancelConfig`; button bits a 16, b 32, c 64, d 128: `112` = a+b+c; variants 1 red,
