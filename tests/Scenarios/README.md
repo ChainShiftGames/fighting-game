@@ -44,6 +44,11 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `crouch_hitstun`, `blockstun`, `crouch_blockstun`, `knockdown` (40 frames, no hurtbox), `thrown`, `throw_tech`;
   throws (P1-23) `forward_throw` (5 or 6 + `a+b`) and `back_throw` (4 + `a+b`), active on frames 5-7, reaching 70000
   apart, landing 75000 in front or behind. Frame and hit data are in its move files.
+  `juggle_dummy` (hit data of ADR-0022, all hits without hitstop or pushback, tall hit boxes 20000-70000 in front):
+  `5a` two hits (frames 5-6: 300, 9-10: 400), `2a` launcher (startup 5, launch x 500 y 20000, 30 hitstun), `5b`
+  air juggle hit (startup 3, airLaunch x 1000 y 12000), `5c` (startup 5, launch x 6000 y 10000, ground bounce
+  y 15000, wall bounce x 8000 y 8000, knockdownFrames 60); its `air_hitstun` move has a hurtbox.
+  `sparring_dummy`'s `2a` is an OTG hit (its knockdown has a hurtbox), its `5a` isn't.
 - **Start state**: round 1 as `Sim.Match.RoundStart` sets it up: fighters at x = ∓`roundStartDistance` from
   `data/rules/match.json` (150000), y = 0, facing each other, full health, in idle, timer `roundTimerFrames` (5940).
   Settable values below override it; a later round starts from data again (full health), not from setup.
@@ -93,6 +98,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   a multi-step motion wins over it; it wins over single-direction moves (5c). `setup: shortcut_damage <percent>` and
   `setup: shortcut_cooldown <frames>` override `shortcutDamagePercent` and `shortcutCooldownFrames` from
   `data/rules/match.json` (100, 0: off).
+- **Air recovery** (match rule, ADR-0022): `setup: air_recovery <0|1>` overrides `airRecovery` from
+  `data/rules/match.json` (off): on, hitstun ending in the air frees the fighter into a jump.
 - **Pushback**: a hit or block slides the defender its hit's `pushback` over `pushbackFrames` (8, from
   `data/rules/match.json`) once its hitstop ends, in equal shares; against a wall the rest pushes the attacker back
   (never for projectiles). Scenarios that check x after a hit see the slide.

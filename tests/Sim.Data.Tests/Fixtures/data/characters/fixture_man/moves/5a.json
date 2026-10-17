@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "5a",
   "category": "normal",
   "usableIn": "ground",
@@ -16,13 +16,15 @@
     { "firstFrame": 5, "lastFrame": 12, "on": ["hit", "block"], "into": ["2b"], "intoCategories": ["special", "super"] },
     { "firstFrame": 8, "lastFrame": 15, "on": ["whiff"], "into": ["5a"] }
   ],
-  "hit": {
-    "damage": 300,
-    "chipDamage": 0,
-    "guard": "mid",
-    "hitstun": 12,
-    "blockstun": 9,
-    "hitstop": 8,
-    "pushback": 12000
-  }
+  "hits": [
+    {
+      "damage": 300,
+      "chipDamage": 0,
+      "guard": "mid",
+      "hitstun": 12,
+      "blockstun": 9,
+      "hitstop": 8,
+      "pushback": 12000
+    }
+  ]
 }

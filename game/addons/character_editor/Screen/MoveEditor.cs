@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
 using Godot;
+using Sim.Data.Json;
 
 namespace FightingGame.Addons.CharacterEditor.Screen;
 
@@ -23,7 +24,7 @@ public partial class MoveEditor : VBoxContainer
 
     // Not for basic moves; shown for one only when the file has them, so they can be removed.
     private static readonly HashSet<string> _attackOnlyFields =
-        [MoveFields.UsableIn, MoveFields.Hit, MoveFields.Throw, MoveFields.Projectiles];
+        [MoveFields.UsableIn, MoveFields.Hits, MoveFields.Throw, MoveFields.Projectiles];
 
     private readonly Label _path = new();
     private readonly OptionButton _category = new();

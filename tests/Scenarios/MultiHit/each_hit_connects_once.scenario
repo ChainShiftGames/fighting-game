@@ -1,0 +1,14 @@
+# Juggle dummy's 5a has two hits (ADR-0022): frames 5-6 deal 300, frames 9-10 deal 400. Each connects once, so
+# the second hit lands although the first already did, and neither hits again on its second active frame.
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+
+frame 5: expect p1 event hit
+frame 5: expect p2 damage = 300
+frames 6-8: expect p1 event hit = 0
+frame 9: expect p1 event hit
+frame 9: expect p2 damage = 700
+frame 10: expect p1 event hit = 0

@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "2a",
   "category": "normal",
   "usableIn": "ground",
@@ -11,13 +11,7 @@
     { "kind": "push", "firstFrame": 1, "lastFrame": 17, "x": -20000, "y": 0, "width": 40000, "height": 65000 },
     { "kind": "hit", "firstFrame": 5, "lastFrame": 7, "x": 20000, "y": 0, "width": 50000, "height": 20000 }
   ],
-  "hit": {
-    "damage": 200,
-    "chipDamage": 0,
-    "guard": "low",
-    "hitstun": 11,
-    "blockstun": 8,
-    "hitstop": 7,
-    "pushback": 10000
-  }
+  "hits": [
+    { "damage": 200, "chipDamage": 0, "guard": "low", "hitstun": 11, "blockstun": 8, "hitstop": 7, "pushback": 10000 }
+  ]
 }

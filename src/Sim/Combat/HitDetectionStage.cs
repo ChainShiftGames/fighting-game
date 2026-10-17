@@ -1,4 +1,5 @@
 using Sim.Characters;
+using Sim.Fighters.States;
 using Sim.Math;
 using Sim.Pipeline;
 using Sim.State;
@@ -9,15 +10,12 @@ namespace Sim.Combat;
 /// <remarks>
 /// Runs after collision, on the final positions of the frame, for every fighter whether it advances or not (a
 /// fighter in hitstop keeps its boxes). An attack touches when its hitboxes on the current move frame overlap the
-/// opponent's hurtboxes, the move hasn't connected yet (one hit per move in schema v1) and the opponent isn't
-/// invulnerable on its move frame. Both fighters are checked against the state as the step started; it only records
+/// opponent's hurtboxes, the move's hit for that frame hasn't connected yet (each hit connects once, ADR-0022), the
+/// opponent isn't invulnerable on its move frame, and a knocked-down opponent is only touched by an OTG hit. Both fighters are checked against the state as the step started; it only records
 /// contacts in <see cref="HitContacts"/>, so what they do is up to <see cref="HitResolutionStage"/>.
 /// </remarks>
 public sealed class HitDetectionStage : ITickStage
 {
-    // A move that already hit, was blocked or clashed is spent.
-    private const CancelOn Connected = CancelOn.Hit | CancelOn.Block | CancelOn.Clash;
-
     private readonly CharacterData _player1;
     private readonly CharacterData _player2;
     private readonly HitContacts _contacts;
@@ -43,8 +41,11 @@ public sealed class HitDetectionStage : ITickStage
         CharacterData defenderCharacter,
         in FighterState defender)
     {
-        bool canTouch = (attackerState.MoveOutcome & Connected) == 0 &&
-            !defenderCharacter.Moves[defender.Move].IsInvulnerableOn(defender.MoveFrame);
+        MoveData move = attackerCharacter.Moves[attackerState.Move];
+        int hit = attackerCharacter.HitIndexAt(in move, attackerState.MoveFrame);
+        bool canTouch = hit >= 0 && (attackerState.HitsConnected & (1 << hit)) == 0 &&
+            !defenderCharacter.Moves[defender.Move].IsInvulnerableOn(defender.MoveFrame) &&
+            (defender.Action != FighterAction.Knockdown || attackerCharacter.HitsOf(in move)[hit].Otg != 0);
         if (canTouch && HitboxOverlap.TryFind(
             attackerCharacter, in attackerState, defenderCharacter, in defender, out IntVector2 point))
         {

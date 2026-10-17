@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
 using Sim.Data;
+using Sim.Data.Json;
 using Sim.Data.Sources;
 using Xunit;
 

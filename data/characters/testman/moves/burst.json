@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "burst",
   "category": "normal",
   "usableIn": "ground",
@@ -13,13 +13,15 @@
     { "kind": "push", "firstFrame": 9, "lastFrame": 11, "x": 0, "y": 0, "width": 100000, "height": 110000 },
     { "kind": "hit", "firstFrame": 8, "lastFrame": 11, "x": -60000, "y": 0, "width": 120000, "height": 140000 }
   ],
-  "hit": {
-    "damage": 0,
-    "guard": "mid",
-    "hitstun": 30,
-    "blockstun": 20,
-    "hitstop": 12,
-    "pushback": 0,
-    "reaction": "knockdown"
-  }
+  "hits": [
+    {
+      "damage": 0,
+      "guard": "mid",
+      "hitstun": 30,
+      "blockstun": 20,
+      "hitstop": 12,
+      "pushback": 0,
+      "reaction": "knockdown"
+    }
+  ]
 }

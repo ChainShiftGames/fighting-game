@@ -1,53 +1,17 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "5a",
   "category": "normal",
   "usableIn": "ground",
-  "input": {
-    "motion": "5",
-    "button": "a"
-  },
-  "frameData": {
-    "startup": 3,
-    "active": 2,
-    "recovery": 4
-  },
+  "input": { "motion": "5", "button": "a" },
+  "frameData": { "startup": 3, "active": 2, "recovery": 4 },
   "boxes": [
-    {
-      "kind": "hurt",
-      "firstFrame": 1,
-      "lastFrame": 8,
-      "x": -25000,
-      "y": 0,
-      "width": 50000,
-      "height": 120000
-    },
-    {
-      "kind": "push",
-      "firstFrame": 1,
-      "lastFrame": 8,
-      "x": -20000,
-      "y": 0,
-      "width": 40000,
-      "height": 110000
-    },
-    {
-      "kind": "hit",
-      "firstFrame": 3,
-      "lastFrame": 4,
-      "x": 25000,
-      "y": 0,
-      "width": 40000,
-      "height": 200000
-    }
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 8, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 8, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 3, "lastFrame": 4, "x": 25000, "y": 0, "width": 40000, "height": 200000 }
   ],
-  "hit": {
-    "damage": 1000,
-    "guard": "mid",
-    "hitstun": 20,
-    "blockstun": 10,
-    "hitstop": 0,
-    "pushback": 0
-  }
+  "hits": [
+    { "damage": 1000, "guard": "mid", "hitstun": 20, "blockstun": 10, "hitstop": 0, "pushback": 0 }
+  ]
 }

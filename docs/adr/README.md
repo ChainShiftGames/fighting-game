@@ -24,5 +24,7 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0018](0018-replay-format.md) | Replay file layout, same-build-only playback, full `MatchRules` in the header, recording around the game logic |
 | [0019](0019-desync-checksum-link.md) | Desync checksums ride the match transport as a second message kind; unreliable, repeated until acknowledged |
 | [0020](0020-special-button-shortcuts.md) | Special button shortcuts: motion set maps motions to a direction (236 → 5, 623 → 6, 214 → 4), direction + special + the move's button; real motions win; damage and cooldown trade-off in `MatchRules` (off) |
+| [0021](0021-data-migration-and-export.md) | Game reads only current schema versions; format changes ship a `tools/DataMigrate` step; external tools read a `tools/DataExport` file |
+| [0022](0022-multi-hit-moves-and-juggles.md) | Moves list hits with own frames (each connects once); launch, air launch, ground/wall bounce, knockdown length, OTG per hit; air recovery a match rule |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

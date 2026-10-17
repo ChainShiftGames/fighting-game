@@ -70,7 +70,7 @@ public sealed class ScenarioParserTests
         var exception = Assert.Throws<ScenarioSyntaxException>(() => InlineScenario.ParseRaw(
             "setup: p1 character nobody"));
 
-        Assert.Contains("no character 'nobody'; known: scenario_dummy", exception.Message);
+        Assert.Contains("no character 'nobody'; known: juggle_dummy, scenario_dummy", exception.Message);
     }
 
     [Fact]

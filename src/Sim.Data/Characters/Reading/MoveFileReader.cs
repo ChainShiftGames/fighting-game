@@ -52,7 +52,7 @@ public sealed class MoveFileReader
 
         IReadOnlyList<BoxData> boxes = MoveBoxReader.Read(file, category, frames);
         IReadOnlyList<CancelRecord> cancels = new MoveCancelReader(_moveIds).Read(file, frames);
-        IReadOnlyList<HitData> hits = MoveHitReader.Read(file, boxes);
+        IReadOnlyList<HitData> hits = MoveHitReader.Read(file, boxes, frames);
         IReadOnlyList<VelocityData> velocities = MoveVelocityReader.Read(file, frames);
         move = MoveInvulnerabilityReader.Read(file, frames, move);
         move = MoveThrowReader.Read(file, boxes, move);

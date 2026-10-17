@@ -102,9 +102,10 @@ public sealed class HitResolutionStage : ITickStage
             return Connection.None;
         }
 
-        // Validated data gives every move with a hitbox exactly one hit (schema v1).
+        // Detection only reports a touch on a frame one of the move's hits covers.
         MoveData move = attackerCharacter.Moves[attackerState.Move];
-        HitData hit = attackerCharacter.HitsOf(in move)[0];
+        int hitIndex = attackerCharacter.HitIndexAt(in move, attackerState.MoveFrame);
+        HitData hit = attackerCharacter.HitsOf(in move)[hitIndex];
         int defenderIndex = MatchState.PlayerCount - 1 - attacker;
         AirGuardCheck check = new(attacker, defenderIndex, move.Category, move.Stance, isProjectile: false);
         BlockStance stance = _guarding.StanceOf(
@@ -129,6 +130,7 @@ public sealed class HitResolutionStage : ITickStage
             Hit = landed,
             Counter = counter,
             Move = attackerState.Move,
+            HitIndex = hitIndex,
         };
     }
 
@@ -144,7 +146,10 @@ public sealed class HitResolutionStage : ITickStage
             }
 
             ref FighterState attacker = ref state.Fighters[fighter];
+            CharacterData character = fighter == 0 ? _player1 : _player2;
+            int hit = character.HitIndexAt(in character.Moves[attacker.Move], attacker.MoveFrame);
             attacker.MoveOutcome |= CancelOn.Clash;
+            attacker.HitsConnected |= hit >= 0 ? 1 << hit : 0;
             state.Events.Emit(state.Frame, FrameEventKind.Clash, fighter, _contacts.PointOf(fighter), attacker.Move);
         }
     }
@@ -154,6 +159,7 @@ public sealed class HitResolutionStage : ITickStage
         if (connection.IsMade)
         {
             attacker.MoveOutcome |= connection.Outcome == HitOutcome.Hit ? CancelOn.Hit : CancelOn.Block;
+            attacker.HitsConnected |= 1 << connection.HitIndex;
         }
     }
 
@@ -161,7 +167,7 @@ public sealed class HitResolutionStage : ITickStage
     {
         if (connection.Outcome == HitOutcome.Hit)
         {
-            HitReactions.TakeHit(ref defender, connection.Hit, character);
+            HitReactions.TakeHit(ref defender, connection.Hit, character, attackFacing);
         }
         else if (connection.Outcome == HitOutcome.Block)
         {

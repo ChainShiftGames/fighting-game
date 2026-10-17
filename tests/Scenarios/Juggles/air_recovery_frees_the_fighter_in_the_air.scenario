@@ -1,0 +1,12 @@
+# With the air recovery rule on, 2a's 30 frames of hitstun run out while the defender is still in the air
+# (frame 36): it recovers into a free jump instead of falling into a knockdown.
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: air_recovery 1
+frame 1: p1 2a
+
+frames 5-35: expect p2 state = air_hitstun
+frame 36: expect p2 state = jump
+frame 36: expect p2 y > 0

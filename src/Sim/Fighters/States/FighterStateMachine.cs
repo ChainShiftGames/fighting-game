@@ -2,6 +2,7 @@ using System;
 using Sim.Characters;
 using Sim.Fighters.Movement;
 using Sim.Input;
+using Sim.Math;
 using Sim.Modules;
 using Sim.State;
 
@@ -24,12 +25,15 @@ public sealed class FighterStateMachine
     private readonly IMoveInput _input;
     private readonly JumpActions _jumps;
     private readonly int _shortcutCooldownFrames;
+    private readonly bool _airRecovery;
 
     /// <param name="shortcutCooldownFrames">
     /// Fighter frames after a shortcut move starts before the next one can (<c>MatchRules.ShortcutCooldownFrames</c>).
     /// </param>
-    public FighterStateMachine(IMoveInput input, int shortcutCooldownFrames = 0)
+    /// <param name="airRecovery">Hitstun ending in the air lets the fighter recover there (<c>MatchRules.AirRecovery</c>).</param>
+    public FighterStateMachine(IMoveInput input, int shortcutCooldownFrames = 0, bool airRecovery = false)
     {
+        _airRecovery = airRecovery;
         _input = input;
         _moves = new MoveSelection(input);
         _jumps = new JumpActions(input);
@@ -79,7 +83,7 @@ public sealed class FighterStateMachine
                 AdvanceKnockdown(ref fighter, character, in move);
                 break;
             case FighterAction.AirHitstun:
-                EndOnLanding(ref fighter, FighterAction.Knockdown, character);
+                AdvanceAirHitstun(ref fighter, in history, character);
                 break;
             case FighterAction.AirBlockstun:
                 AdvanceAirBlockstun(ref fighter, in history, character);
@@ -279,10 +283,44 @@ public sealed class FighterStateMachine
         AdvanceStun(ref fighter, in history, character);
     }
 
-    // A KO'd fighter stays down on the knockdown's last frame until the next round resets it; others wake up.
+    // A juggle's first landing bounces when the last hit armed a ground bounce, else it knocks down (ADR-0022). With
+    // air recovery on, hitstun running out in the air frees the fighter there instead.
+    private void AdvanceAirHitstun(ref FighterState fighter, in InputHistory history, CharacterData character)
+    {
+        if (HasLanded(in fighter) && fighter.GroundBounce > 0)
+        {
+            fighter.Velocity = new IntVector2(0, fighter.GroundBounce);
+            fighter.IsAirborne = 1;
+            fighter.GroundBounce = 0;
+            return;
+        }
+
+        if (HasLanded(in fighter))
+        {
+            MoveEntry.EnterKnockdown(ref fighter, character);
+            return;
+        }
+
+        if (_airRecovery && !KnockOut.IsKnockedOut(in fighter))
+        {
+            AdvanceStun(ref fighter, in history, character);
+        }
+    }
+
+    // A KO'd fighter stays down on the knockdown's last frame until the next round resets it; others wake up after
+    // the knockdown move, or after the last hit's own knockdown length (ADR-0022), counted in stun frames while the
+    // move holds its last frame.
     private static void AdvanceKnockdown(ref FighterState fighter, CharacterData character, in MoveData move)
     {
-        if (!KnockOut.IsKnockedOut(in fighter))
+        if (fighter.StunFramesLeft > 0 && !KnockOut.IsKnockedOut(in fighter))
+        {
+            fighter.MoveFrame = fighter.MoveFrame > move.TotalFrames ? move.TotalFrames : fighter.MoveFrame;
+            if (--fighter.StunFramesLeft == 0)
+            {
+                MoveEntry.EnterBasic(ref fighter, FighterAction.WakeUp, character);
+            }
+        }
+        else if (!KnockOut.IsKnockedOut(in fighter))
         {
             EndAfter(ref fighter, move.TotalFrames, FighterAction.WakeUp, character);
         }

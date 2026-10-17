@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "landing",
   "category": "basic",
   "duration": 3,

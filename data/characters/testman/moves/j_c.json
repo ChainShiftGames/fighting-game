@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "j_c",
   "category": "normal",
   "usableIn": "air",
@@ -11,13 +11,15 @@
     { "kind": "push", "firstFrame": 1, "lastFrame": 24, "x": -20000, "y": 10000, "width": 40000, "height": 90000 },
     { "kind": "hit", "firstFrame": 8, "lastFrame": 12, "x": 10000, "y": -15000, "width": 50000, "height": 45000 }
   ],
-  "hit": {
-    "damage": 700,
-    "chipDamage": 0,
-    "guard": "overhead",
-    "hitstun": 18,
-    "blockstun": 15,
-    "hitstop": 11,
-    "pushback": 10000
-  }
+  "hits": [
+    {
+      "damage": 700,
+      "chipDamage": 0,
+      "guard": "overhead",
+      "hitstun": 18,
+      "blockstun": 15,
+      "hitstop": 11,
+      "pushback": 10000
+    }
+  ]
 }

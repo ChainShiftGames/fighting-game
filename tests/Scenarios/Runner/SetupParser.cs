@@ -14,7 +14,7 @@ namespace Scenarios.Tests.Runner;
 /// <remarks>
 /// Forms: <c>p1 character &lt;id&gt;</c>, <c>module &lt;name&gt; [config integers…]</c>, <c>trade &lt;rule&gt;</c>,
 /// <c>entities_per_player &lt;n&gt;</c>, <c>throw_vs_strike &lt;rule&gt;</c>, <c>shortcut_damage &lt;percent&gt;</c>,
-/// <c>shortcut_cooldown &lt;frames&gt;</c> and
+/// <c>shortcut_cooldown &lt;frames&gt;</c>, <c>air_recovery &lt;0|1&gt;</c> and
 /// <c>[p1|p2] &lt;keyword&gt; = &lt;value&gt;</c> for any expectation kind that is also an <see cref="ISettableKind"/>.
 /// </remarks>
 public sealed class SetupParser
@@ -65,6 +65,10 @@ public sealed class SetupParser
             case "shortcut_cooldown":
                 RequireNoPlayer(hasPlayer, "the shortcut trade-off is a match rule", location);
                 setup.SetShortcutCooldownFrames(ReadNumber(rest, 0, MatchRulesSchema.MaxShortcutCooldownFrames, location));
+                break;
+            case "air_recovery":
+                RequireNoPlayer(hasPlayer, "air recovery is a match rule", location);
+                setup.SetAirRecovery(ReadNumber(rest, 0, 1, location) == 1);
                 break;
             default:
                 AddValue(rest, player, setup, location);
@@ -189,7 +193,7 @@ public sealed class SetupParser
             throw new ScenarioSyntaxException(
                 location,
                 $"can't set '{words[0]}' in setup; settable: character, module, trade, throw_vs_strike, " +
-                "entities_per_player, shortcut_damage, shortcut_cooldown, " +
+                "entities_per_player, shortcut_damage, shortcut_cooldown, air_recovery, " +
                 settableKinds);
         }
 

@@ -8,7 +8,7 @@ namespace Sim.Data.Characters.Reading;
 public static class CharacterSchema
 {
     public const int CharacterVersion = 1;
-    public const int MoveVersion = 1;
+    public const int MoveVersion = 2;
 
     public const string CharactersDirectory = "characters";
 

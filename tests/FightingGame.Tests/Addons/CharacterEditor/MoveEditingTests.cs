@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
+using Sim.Data.Json;
 using Sim.Data.Sources;
 using Xunit;
 
@@ -99,7 +100,7 @@ public sealed class MoveEditingTests
     {
         DataSchema schema = DataSchema.Read(_disk, "move")!;
 
-        SchemaObject hit = schema.Root.ObjectOf("hit");
+        SchemaObject hit = schema.Root.Field("hits")!.Items!;
 
         Assert.Equal(SchemaFieldKind.Integer, hit.Field("damage")!.Kind);
         Assert.Equal(["mid", "low", "overhead", "unblockable"], hit.Field("guard")!.Choices);

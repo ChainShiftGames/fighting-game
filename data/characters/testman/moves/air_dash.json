@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "air_dash",
   "category": "basic",
   "duration": 16,

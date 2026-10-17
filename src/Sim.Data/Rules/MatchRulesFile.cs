@@ -18,7 +18,8 @@ public sealed class MatchRulesFile
         CounterBonus punishCounter,
         ThrowFormat throws,
         ShortcutFormat shortcuts,
-        int pushbackFrames)
+        int pushbackFrames,
+        bool airRecovery)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
@@ -31,6 +32,7 @@ public sealed class MatchRulesFile
         Throws = throws;
         Shortcuts = shortcuts;
         PushbackFrames = pushbackFrames;
+        AirRecovery = airRecovery;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -66,6 +68,9 @@ public sealed class MatchRulesFile
     /// <summary>Frames a hit's or block's pushback slide takes.</summary>
     public int PushbackFrames { get; }
 
+    /// <summary>Whether hitstun ending in the air lets the fighter recover there (ADR-0022).</summary>
+    public bool AirRecovery { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -87,5 +92,6 @@ public sealed class MatchRulesFile
         rules.ShortcutDamagePercent = Shortcuts.DamagePercent;
         rules.ShortcutCooldownFrames = Shortcuts.CooldownFrames;
         rules.PushbackFrames = PushbackFrames;
+        rules.AirRecovery = AirRecovery ? 1 : 0;
     }
 }

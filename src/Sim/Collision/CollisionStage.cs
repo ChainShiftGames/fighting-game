@@ -4,7 +4,10 @@ using Sim.State;
 
 namespace Sim.Collision;
 
-/// <summary>The pushbox and wall part of the collision step: fighters pushed apart, kept between the walls, turned.</summary>
+/// <summary>
+/// The pushbox and wall part of the collision step: fighters pushed apart, kept between the walls, wall bounces,
+/// turned.
+/// </summary>
 /// <remarks>
 /// Runs after movement, so it corrects where movement put the fighters. Pushing applies to every fighter, frozen or
 /// not, so boxes never stay overlapped; only fighters that advance this frame turn around. Both fighters are read
@@ -29,6 +32,9 @@ public sealed class CollisionStage : ITickStage
         FighterState player2 = state.Fighters[1];
         PushResolver.Resolve(
             ref player1, Pushbox.Of(_player1, in player1), ref player2, Pushbox.Of(_player2, in player2), in _walls);
+
+        WallBounces.Apply(ref player1, _player1, in _walls);
+        WallBounces.Apply(ref player2, _player2, in _walls);
 
         FighterState pushed1 = player1;
         if (activity.Advances(0))

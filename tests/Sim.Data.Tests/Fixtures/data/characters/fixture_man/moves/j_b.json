@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "j_b",
   "category": "normal",
   "usableIn": "air",
@@ -10,13 +10,15 @@
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 21, "x": -25000, "y": 20000, "width": 50000, "height": 90000 },
     { "kind": "hit", "firstFrame": 8, "lastFrame": 11, "x": 10000, "y": -10000, "width": 45000, "height": 40000 }
   ],
-  "hit": {
-    "damage": 500,
-    "chipDamage": 25,
-    "guard": "overhead",
-    "hitstun": 16,
-    "blockstun": 12,
-    "hitstop": 11,
-    "pushback": 10000
-  }
+  "hits": [
+    {
+      "damage": 500,
+      "chipDamage": 25,
+      "guard": "overhead",
+      "hitstun": 16,
+      "blockstun": 12,
+      "hitstop": 11,
+      "pushback": 10000
+    }
+  ]
 }

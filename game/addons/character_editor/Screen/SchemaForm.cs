@@ -9,8 +9,9 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
 /// Edits a JSON object through the fields its schema lists: a spin box, text box, check box or choice per field,
-/// nested objects indented, and Add/Remove for optional fields. Anything the form can't edit (lists of objects,
-/// hand-edited values of the wrong type, fields the schema doesn't know) is shown read-only, never hidden.
+/// nested objects indented, lists of objects as one nested form per item (hits, velocity ranges, projectiles) with
+/// Add item/Remove item, and Add/Remove for optional fields. Anything the form can't edit (hand-edited values of the
+/// wrong type, fields the schema doesn't know) is shown read-only, never hidden.
 /// </summary>
 /// <remarks>Changes are made to the object in place; <see cref="Changed"/> tells the owner to mark its file.</remarks>
 [Tool]
@@ -93,7 +94,66 @@ public partial class SchemaForm : VBoxContainer
             return;
         }
 
+        if (field.Items is { } itemSchema && value is JsonArray list && IsObjectList(list))
+        {
+            AddList(field, itemSchema, list);
+            return;
+        }
+
         AddRow(field.Name, field.Description, Input(field, value) ?? ReadOnly(value), removable: !field.IsRequired);
+    }
+
+    private static bool IsObjectList(JsonArray list)
+    {
+        foreach (JsonNode? item in list)
+        {
+            if (item is not JsonObject)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void AddList(SchemaField field, SchemaObject itemSchema, JsonArray list)
+    {
+        var add = new Button { Text = "Add item", TooltipText = $"Add a {field.Name} item with its required fields" };
+        add.Pressed += () =>
+        {
+            list.Add(SchemaDefaults.ObjectFor(itemSchema));
+            Changed?.Invoke();
+            RebuildLater();
+        };
+        AddRow(field.Name, field.Description, add, removable: !field.IsRequired);
+        for (int index = 0; index < list.Count; index++)
+        {
+            AddListItem(field.Name, itemSchema, list, index);
+        }
+    }
+
+    private void AddListItem(string name, SchemaObject itemSchema, JsonArray list, int index)
+    {
+        var item = new VBoxContainer();
+        var header = new HBoxContainer();
+        header.AddChild(new Label { Text = $"{name}[{index}]", SizeFlagsHorizontal = SizeFlags.ExpandFill });
+        var remove = new Button { Text = "Remove item" };
+        remove.Pressed += () =>
+        {
+            list.RemoveAt(index);
+            Changed?.Invoke();
+            RebuildLater();
+        };
+        header.AddChild(remove);
+        item.AddChild(header);
+        var form = new SchemaForm();
+        form.Show((JsonObject)list[index]!, itemSchema);
+        form.Changed += () => Changed?.Invoke();
+        item.AddChild(form);
+        var indent = new MarginContainer();
+        indent.AddThemeConstantOverride("margin_left", (int)NestedIndent);
+        indent.AddChild(item);
+        AddChild(indent);
     }
 
     // Null when the value isn't of the field's kind (a hand edit): it is shown read-only instead.

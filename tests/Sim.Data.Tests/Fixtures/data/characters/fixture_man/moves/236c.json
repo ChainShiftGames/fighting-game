@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../../data/schema/move.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "236c",
   "category": "special",
   "usableIn": "ground",
@@ -14,16 +14,18 @@
   "cancels": [
     { "firstFrame": 12, "lastFrame": 20, "on": ["hit"], "intoCategories": ["super"] }
   ],
-  "hit": {
-    "damage": 1200,
-    "chipDamage": 150,
-    "guard": "mid",
-    "hitstun": 0,
-    "blockstun": 18,
-    "hitstop": 14,
-    "pushback": 25000,
-    "reaction": "knockdown"
-  },
+  "hits": [
+    {
+      "damage": 1200,
+      "chipDamage": 150,
+      "guard": "mid",
+      "hitstun": 0,
+      "blockstun": 18,
+      "hitstop": 14,
+      "pushback": 25000,
+      "reaction": "knockdown"
+    }
+  ],
   "projectiles": [
     {
       "spawnFrame": 14,

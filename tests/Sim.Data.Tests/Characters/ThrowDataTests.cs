@@ -41,7 +41,7 @@ public sealed class ThrowDataTests
     public void AThrowMoveReadsWhereItReleasesTheOpponent()
     {
         _data.Replace(_5a, HitBox, ThrowBox);
-        _data.Replace(_5a, "\"hit\": {", Release + "\"hit\": {");
+        _data.Replace(_5a, "\"hits\": [", Release + "\"hits\": [");
 
         Assert.Equal(-60000, Move("5a").ThrowReleaseX);
     }
@@ -58,7 +58,7 @@ public sealed class ThrowDataTests
     [Fact]
     public void ThrowDataWithoutThrowBoxesIsReported()
     {
-        _data.Replace(_5a, "\"hit\": {", Release + "\"hit\": {");
+        _data.Replace(_5a, "\"hits\": [", Release + "\"hits\": [");
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
         Assert.Equal((_5a, "throw"), (error.File, error.Field));
@@ -69,7 +69,7 @@ public sealed class ThrowDataTests
     {
         string extraThrowBox = $"{ThrowBox}, \"lastFrame\": 7, \"x\": 0, \"y\": 0, \"width\": 1, \"height\": 1 }}";
         _data.Replace(_5a, HitBox, $"{extraThrowBox}, {HitBox}");
-        _data.Replace(_5a, "\"hit\": {", Release + "\"hit\": {");
+        _data.Replace(_5a, "\"hits\": [", Release + "\"hits\": [");
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
         Assert.Equal((_5a, "boxes"), (error.File, error.Field));
@@ -89,7 +89,7 @@ public sealed class ThrowDataTests
     {
         string jumpB = Fixture.MoveFile("j_b");
         _data.Replace(jumpB, "{ \"kind\": \"hit\", \"firstFrame\": 8", "{ \"kind\": \"throw\", \"firstFrame\": 8");
-        _data.Replace(jumpB, "\"hit\": {", Release + "\"hit\": {");
+        _data.Replace(jumpB, "\"hits\": [", Release + "\"hits\": [");
 
         DataError error = Assert.Single(Assert.Throws<DataValidationException>(() => Fixture.Load(_data)).Errors);
         Assert.Equal((jumpB, "usableIn"), (error.File, error.Field));

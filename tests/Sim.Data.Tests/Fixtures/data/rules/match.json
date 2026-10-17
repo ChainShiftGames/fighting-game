@@ -22,5 +22,6 @@
   "throwVsStrike": "throw",
   "shortcutDamagePercent": 80,
   "shortcutCooldownFrames": 0,
-  "pushbackFrames": 8
+  "pushbackFrames": 8,
+  "airRecovery": false
 }

@@ -26,6 +26,16 @@ public static class MoveEntry
         Enter(ref fighter, action, move == CharacterData.NoMove ? character.BasicStateMove(BasicState.Idle) : move);
     }
 
+    /// <summary>
+    /// Enters a knockdown; with <see cref="FighterState.KnockdownFrames"/> set by the last hit, it lasts that long
+    /// (counted in stun frames) instead of the knockdown move's length.
+    /// </summary>
+    public static void EnterKnockdown(ref FighterState fighter, CharacterData character)
+    {
+        EnterBasic(ref fighter, FighterAction.Knockdown, character);
+        fighter.StunFramesLeft = fighter.KnockdownFrames;
+    }
+
     /// <summary>Enters a hitstun or blockstun action lasting <paramref name="stunFrames"/> of the fighter's frames.</summary>
     public static void EnterStun(
         ref FighterState fighter, FighterAction action, int stunFrames, CharacterData character)
@@ -42,5 +52,6 @@ public static class MoveEntry
         fighter.MoveOutcome = CancelOn.None;
         fighter.StunFramesLeft = 0;
         fighter.IsShortcutMove = 0;
+        fighter.HitsConnected = 0;
     }
 }

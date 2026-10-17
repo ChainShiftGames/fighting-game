@@ -19,6 +19,7 @@ public sealed class ScenarioSetup
     private ThrowPriority? _throwVsStrike;
     private int? _shortcutDamagePercent;
     private int? _shortcutCooldownFrames;
+    private bool? _airRecovery;
 
     public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules)
     {
@@ -62,6 +63,7 @@ public sealed class ScenarioSetup
         rules.ThrowVsStrike = _throwVsStrike ?? rules.ThrowVsStrike;
         rules.ShortcutDamagePercent = _shortcutDamagePercent ?? rules.ShortcutDamagePercent;
         rules.ShortcutCooldownFrames = _shortcutCooldownFrames ?? rules.ShortcutCooldownFrames;
+        rules.AirRecovery = _airRecovery is bool airRecovery ? (airRecovery ? 1 : 0) : rules.AirRecovery;
         rules.Modules = default;
         for (int slot = 0; slot < _modules.Count; slot++)
         {
@@ -116,6 +118,8 @@ public sealed class ScenarioSetup
 
     /// <summary>Overrides <c>shortcutCooldownFrames</c> from data; a later line wins.</summary>
     internal void SetShortcutCooldownFrames(int frames) => _shortcutCooldownFrames = frames;
+
+    internal void SetAirRecovery(bool on) => _airRecovery = on;
 
     internal void RequireCharacters(string file)
     {

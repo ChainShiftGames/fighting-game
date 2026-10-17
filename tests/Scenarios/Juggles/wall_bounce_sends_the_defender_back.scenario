@@ -1,0 +1,13 @@
+# Near the right wall, 5c sends the defender into it (vx 6000); touching the wall bounces it back at x -8000,
+# y 8000, once.
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = 480000
+setup: p2 x = 540000
+frame 1: p1 5c
+
+frames 5-11: expect p2 vx = 6000
+frame 12: expect p2 x = 580000
+frame 12: expect p2 vx = -8000
+frame 12: expect p2 vy = 8000
+frames 13-20: expect p2 vx = -8000

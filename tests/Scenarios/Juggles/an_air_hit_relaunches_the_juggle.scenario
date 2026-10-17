@@ -1,0 +1,14 @@
+# A juggle: 2a launches, then 5b (airLaunch x 1000, y 12000) hits the airborne defender on frame 30 and sends it up
+# again; its damage adds to the launcher's.
+setup: p1 character juggle_dummy
+setup: p2 character juggle_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 2a
+frame 28: p1 5b
+
+frame 30: expect p1 event hit
+frame 30: expect p2 damage = 700
+frame 30: expect p2 vx = 1000
+frame 30: expect p2 vy = 12000
+frame 30: expect p2 state = air_hitstun

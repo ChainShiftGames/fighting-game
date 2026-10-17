@@ -55,7 +55,8 @@ public sealed class MatchSimulation
             player1,
             player2,
             modules,
-            rules.ShortcutCooldownFrames);
+            rules.ShortcutCooldownFrames,
+            rules.AirRecovery != 0);
         HitContacts contacts = new();
         EntityContacts entityContacts = new();
         OwnerCharacters owners = new(player1, player2);

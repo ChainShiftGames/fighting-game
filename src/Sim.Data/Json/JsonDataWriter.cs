@@ -5,7 +5,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace FightingGame.Addons.CharacterEditor.Documents;
+namespace Sim.Data.Json;
 
 /// <summary>
 /// Writes a data file's JSON tree in the hand-written style of <c>data/</c> (2-space indent, short objects and lists

@@ -5,6 +5,15 @@
 
 > Outline only. Expand into full tasks (phase-0 format) when Phase 3 is nearly done.
 
+## Foundation pass (before Phase 4, Lukas's call after the Oct 2026 review)
+Content model (this order; ADR-0021–0023):
+- [x] Data format changes through `tools/DataMigrate`; external tools read an export (ADR-0021; export: todo)
+- [x] Multi-hit moves, launches, juggles, ground/wall bounce, knockdown length, OTG; air recovery rule (ADR-0022)
+- [ ] Character-unique mechanics and several meter types (ADR-0023)
+- [ ] Move conditions: rekkas/follow-ups, stance-only and install moves (ADR-0023)
+- [ ] `tools/DataExport` for external character tools (ADR-0021)
+Netcode hardening (ADR-0024–0025) and presentation hardening (ADR-0026) run in their own branches.
+
 ## Decisions to make at phase start
 - Spike B pass criteria (GAP-7 proposals: ≤ ~1 day per animation, VRoid commercial-use terms checked).
 - Hit-effect implementation (GAP-32).
