@@ -114,13 +114,13 @@ Read: ADR-0005
 - A simple ping indicator for players: **player-facing**, no settings.
 
 ### P2-12 Bot soak test
-Status: in progress (p2-12-soak-test) · Needs: P2-02 · Parallel: yes · Where: `tests/Soak/`, `.github/workflows/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `tests/Soak/`, `.github/workflows/`
 Read: ADR-0006
 - Two in-process peers, simulated lag/loss, seeded random inputs (CPU bot replaces these in Phase 3), 1 hour.
 - Manual CI trigger only (ADR-0006).
 
 Done when:
-- [ ] one full hour without desync, run from the manual CI job
+- [x] one full hour without desync, run from the manual CI job (run 38974405498)
 
 ## Phase exit checklist
 - [ ] Devs play over Steam from different networks; feels good at ~100 ms
