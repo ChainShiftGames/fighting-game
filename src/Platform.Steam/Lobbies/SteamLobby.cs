@@ -1,106 +1,135 @@
-using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Platform.Steam.Friends;
 using Steamworks;
 
 namespace Platform.Steam.Lobbies;
 
 /// <summary>
-/// A friends-only two-player Steam lobby. Each player opens one; inviting a friend lets them join it, and accepting
-/// a friend's invite (in the Steam client) leaves this lobby for theirs. The lobby owner plays P1.
+/// <see cref="ILobby"/> over Steamworks.NET: a friends-only two-player Steam lobby, ready marks as lobby member data.
 /// </summary>
 /// <remarks>Steam delivers the callbacks below from <see cref="SteamSession.RunCallbacks"/>.</remarks>
-public sealed class SteamLobby : IDisposable
+public sealed class SteamLobby : ILobby
 {
     private const int MaxMembers = 2;
+    private const string ReadyForKey = "ready_for";
+    private const int NotReady = 0;
 
     private readonly Callback<LobbyCreated_t> _created;
     private readonly Callback<LobbyEnter_t> _entered;
-    private readonly Callback<LobbyChatUpdate_t> _membersChanged;
     private readonly Callback<GameLobbyJoinRequested_t> _inviteAccepted;
     private CSteamID _lobby = CSteamID.Nil;
-    private bool _joiningFriendsLobby;
+    private CSteamID _joining = CSteamID.Nil;
+    private bool _creating;
+    private ulong? _acceptedInvite;
+    private string _failure = string.Empty;
 
-    private SteamLobby()
+    internal SteamLobby()
     {
         _created = Callback<LobbyCreated_t>.Create(OnCreated);
         _entered = Callback<LobbyEnter_t>.Create(OnEntered);
-        _membersChanged = Callback<LobbyChatUpdate_t>.Create(OnMembersChanged);
         _inviteAccepted = Callback<GameLobbyJoinRequested_t>.Create(OnInviteAccepted);
     }
 
-    public bool IsOpen => _lobby.IsValid();
+    public LobbyPresence Presence =>
+        _lobby.IsValid() ? LobbyPresence.Inside
+        : _creating || _joining.IsValid() ? LobbyPresence.Entering
+        : LobbyPresence.Outside;
 
-    public bool IsOwner => IsOpen && SteamMatchmaking.GetLobbyOwner(_lobby) == SteamUser.GetSteamID();
+    public bool IsOwner => _lobby.IsValid() && SteamMatchmaking.GetLobbyOwner(_lobby) == SteamUser.GetSteamID();
 
-    /// <summary>The other player in the lobby, once there is one.</summary>
-    public ulong? OpponentSteamId { get; private set; }
+    public SteamFriend? Opponent => OpponentId() is { } opponent
+        ? new SteamFriend(opponent.m_SteamID, SteamFriends.GetFriendPersonaName(opponent))
+        : null;
 
-    public string OpponentName =>
-        OpponentSteamId is { } opponent ? SteamFriends.GetFriendPersonaName(new CSteamID(opponent)) : string.Empty;
+    public int OpponentReadyFor =>
+        OpponentId() is { } opponent &&
+        int.TryParse(
+            SteamMatchmaking.GetLobbyMemberData(_lobby, opponent, ReadyForKey),
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out int matchNumber)
+            ? matchNumber
+            : NotReady;
 
-    /// <summary>Sends a Steam invite to this lobby. False until the lobby is open.</summary>
-    public bool Invite(ulong friendSteamId) =>
-        IsOpen && SteamMatchmaking.InviteUserToLobby(_lobby, new CSteamID(friendSteamId));
-
-    public void Dispose()
+    public ulong? TakeAcceptedInvite()
     {
-        if (IsOpen)
-        {
-            SteamMatchmaking.LeaveLobby(_lobby);
-        }
-
-        _created.Dispose();
-        _entered.Dispose();
-        _membersChanged.Dispose();
-        _inviteAccepted.Dispose();
+        ulong? invite = _acceptedInvite;
+        _acceptedInvite = null;
+        return invite;
     }
 
-    internal static SteamLobby Open()
+    public string TakeFailure()
     {
-        var lobby = new SteamLobby();
+        string failure = _failure;
+        _failure = string.Empty;
+        return failure;
+    }
+
+    public void Create()
+    {
+        _creating = true;
         SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, MaxMembers);
-        return lobby;
     }
 
-    private void OnCreated(LobbyCreated_t created)
+    public void Join(ulong lobbyId)
     {
-        // An invite was accepted while this lobby was still being created: the friend's lobby wins.
-        if (created.m_eResult == EResult.k_EResultOK && _joiningFriendsLobby)
-        {
-            SteamMatchmaking.LeaveLobby(new CSteamID(created.m_ulSteamIDLobby));
-        }
+        _joining = new CSteamID(lobbyId);
+        SteamMatchmaking.JoinLobby(_joining);
     }
 
-    private void OnEntered(LobbyEnter_t entered)
+    public void Leave()
     {
-        _joiningFriendsLobby = false;
-        _lobby = new CSteamID(entered.m_ulSteamIDLobby);
-        FindOpponent();
-    }
-
-    private void OnMembersChanged(LobbyChatUpdate_t update)
-    {
-        if (update.m_ulSteamIDLobby == _lobby.m_SteamID)
-        {
-            FindOpponent();
-        }
-    }
-
-    private void OnInviteAccepted(GameLobbyJoinRequested_t invite)
-    {
-        if (IsOpen)
+        if (_lobby.IsValid())
         {
             SteamMatchmaking.LeaveLobby(_lobby);
         }
 
         _lobby = CSteamID.Nil;
-        OpponentSteamId = null;
-        _joiningFriendsLobby = true;
-        SteamMatchmaking.JoinLobby(invite.m_steamIDLobby);
+        _joining = CSteamID.Nil;
+        _creating = false;
     }
 
-    private void FindOpponent()
+    public void MarkReadyFor(int matchNumber)
     {
-        OpponentSteamId = null;
+        if (_lobby.IsValid())
+        {
+            SteamMatchmaking.SetLobbyMemberData(_lobby, ReadyForKey, matchNumber.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    public bool Invite(ulong friendSteamId) =>
+        _lobby.IsValid() && SteamMatchmaking.InviteUserToLobby(_lobby, new CSteamID(friendSteamId));
+
+    // The overlay only exists when Steam injected it at launch (games started from the Steam client).
+    public bool OpenInviteOverlay()
+    {
+        if (!_lobby.IsValid() || !SteamUtils.IsOverlayEnabled())
+        {
+            return false;
+        }
+
+        SteamFriends.ActivateGameOverlayInviteDialog(_lobby);
+        return true;
+    }
+
+    public IReadOnlyList<SteamFriend> FriendsPlayingThisGame() => FriendsInGame.List();
+
+    public void Dispose()
+    {
+        Leave();
+        _created.Dispose();
+        _entered.Dispose();
+        _inviteAccepted.Dispose();
+    }
+
+    private CSteamID? OpponentId()
+    {
+        if (!_lobby.IsValid())
+        {
+            return null;
+        }
+
         CSteamID self = SteamUser.GetSteamID();
         int members = SteamMatchmaking.GetNumLobbyMembers(_lobby);
         for (int i = 0; i < members; i++)
@@ -108,8 +137,67 @@ public sealed class SteamLobby : IDisposable
             CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(_lobby, i);
             if (member != self)
             {
-                OpponentSteamId = member.m_SteamID;
+                return member;
             }
+        }
+
+        return null;
+    }
+
+    private void OnCreated(LobbyCreated_t created)
+    {
+        if (created.m_eResult == EResult.k_EResultOK)
+        {
+            // Steam enters a created lobby by itself (LobbyEnter_t follows); one no longer wanted is left again.
+            if (!_creating)
+            {
+                SteamMatchmaking.LeaveLobby(new CSteamID(created.m_ulSteamIDLobby));
+            }
+
+            return;
+        }
+
+        if (_creating)
+        {
+            _creating = false;
+            _failure = $"Couldn't create a lobby ({created.m_eResult}).";
+        }
+    }
+
+    private void OnEntered(LobbyEnter_t entered)
+    {
+        var lobby = new CSteamID(entered.m_ulSteamIDLobby);
+        bool wanted = lobby == _joining || (_creating && !_joining.IsValid());
+        var response = (EChatRoomEnterResponse)entered.m_EChatRoomEnterResponse;
+        if (response != EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess)
+        {
+            if (wanted)
+            {
+                _failure = $"Couldn't join the lobby ({response}).";
+                _joining = CSteamID.Nil;
+                _creating = false;
+            }
+
+            return;
+        }
+
+        if (!wanted)
+        {
+            SteamMatchmaking.LeaveLobby(lobby);
+            return;
+        }
+
+        _lobby = lobby;
+        _joining = CSteamID.Nil;
+        _creating = false;
+    }
+
+    // An invite to the lobby this PC is already in changes nothing.
+    private void OnInviteAccepted(GameLobbyJoinRequested_t invite)
+    {
+        if (invite.m_steamIDLobby != _lobby)
+        {
+            _acceptedInvite = invite.m_steamIDLobby.m_SteamID;
         }
     }
 }

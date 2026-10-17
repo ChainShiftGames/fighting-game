@@ -1,18 +1,18 @@
 using System;
 using FightingGame.Platform;
 using Godot;
+using Platform.Steam.Lobbies;
 
 namespace FightingGame.Online;
 
 /// <summary>
 /// Picks the match from the command line and hands it over once it can start: at once for local, replay and direct
-/// UDP matches, after matchmaking found an opponent for Steam ones.
+/// UDP matches, whenever the lobby has both players ready for Steam ones (the first match and every rematch).
 /// </summary>
 public sealed class MatchLauncher : IDisposable
 {
     private readonly Func<OnlineOpponent, StartedMatch?> _createOnline;
     private StartedMatch? _readyMatch;
-    private bool _matchmakingMatchStarted;
 
     /// <param name="createLocal">Builds the local match; null when it can't (the host shows why).</param>
     /// <param name="createOnline">Builds an online match against the opponent; null when it can't.</param>
@@ -70,14 +70,41 @@ public sealed class MatchLauncher : IDisposable
             return ready;
         }
 
-        if (_matchmakingMatchStarted || Matchmaking?.Result is not { } found)
+        if (Matchmaking?.TakeMatchToStart() is not { } found)
         {
             return null;
         }
 
-        _matchmakingMatchStarted = true;
-        return _createOnline(
+        StartedMatch? match = _createOnline(
             new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0));
+        if (match is null)
+        {
+            // The host shows why; the lobby offers to try again.
+            Matchmaking.Lobby.MatchEnded();
+        }
+
+        return match;
+    }
+
+    /// <summary>
+    /// Brings the lobby up to date, once per displayed frame before <see cref="TakeReadyMatch"/>. Returns true when the
+    /// running match must end because the lobby moved on: a rematch is starting, the opponent left, or so did we.
+    /// </summary>
+    public bool EndsMatch(StartedMatch? current)
+    {
+        if (Matchmaking is null)
+        {
+            return false;
+        }
+
+        LobbyFlow lobby = Matchmaking.Lobby;
+        lobby.Update();
+        if (current is { IsOver: true } && lobby.Stage == LobbyStage.InMatch)
+        {
+            lobby.MatchEnded();
+        }
+
+        return current is not null && lobby.Stage is not (LobbyStage.InMatch or LobbyStage.Rematch);
     }
 
     public void Dispose() => Matchmaking?.Dispose();

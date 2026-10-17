@@ -51,7 +51,7 @@ Done when:
 - [x] the packet check accepts exactly a real session's traffic (`BackdashPacketFormatTests.cs`)
 
 ### P2-04 Minimal Steam lobby
-Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Platform.Steam/`, `game/UI/`
+Status: done (two-PC Steam check pending) · Needs: P2-03 · Parallel: yes · Where: `src/Platform.Steam/`, `game/UI/`
 Read: ADR-0005
 - Create lobby, invite a friend, both ready → match. Rematch button.
 

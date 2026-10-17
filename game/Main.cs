@@ -122,7 +122,12 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         _platform!.Update();
-        if (_match is null && _launcher!.TakeReadyMatch() is { } ready)
+        if (_launcher!.EndsMatch(_match))
+        {
+            EndMatch();
+        }
+
+        if (_match is null && _launcher.TakeReadyMatch() is { } ready)
         {
             StartMatch(ready);
         }
@@ -188,13 +193,7 @@ public partial class Main : Node2D
     public override void _ExitTree()
     {
         RenderingServer.FramePostDraw -= OnFramePostDraw;
-        if (_match is not null)
-        {
-            GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
-            LogConnection();
-            EndMatch();
-        }
-
+        EndMatch();
         _launcher?.Dispose();
         _joypadWatcher?.Dispose();
         _platform?.Dispose();
@@ -318,6 +317,8 @@ public partial class Main : Node2D
             return;
         }
 
+        GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
+        LogConnection();
         if (_match.Recording is { } recording && _saveReplays.Enabled)
         {
             SaveReplay(recording.TakeOnEnd(), recording.Kind);
@@ -325,6 +326,8 @@ public partial class Main : Node2D
 
         _match.Dispose();
         _match = null;
+        _stopped = false;
+        _wasWaiting = true;
     }
 
     private void SaveReplay(Replay? replay, string kind)

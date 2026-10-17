@@ -83,7 +83,8 @@ public sealed class OnlineMatchStartup
         var recording = new MatchRecording(
             recorder, driver, settings.RollbackFrames, kind: settings.LocalIsPlayer1 ? "online-p1" : "online-p2");
         return new StartedMatch(
-            loop, driver, view, Describe(settings, opponent, lineup), connection, recording, handshake);
+            loop, driver, view, Describe(settings, opponent, lineup), connection, recording, handshake,
+            isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
     // Only this PC's player rumbles, on the first joypad their input reads; the opponent's pad is on the other PC.

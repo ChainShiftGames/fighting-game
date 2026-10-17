@@ -16,9 +16,11 @@ public sealed class StartedMatch : IDisposable
 
     private readonly IDisposable _driver;
     private readonly VersionHandshake? _handshake;
+    private readonly Func<bool>? _isOver;
 
     /// <param name="recording">Records the match for a replay; null when the match is a replay itself.</param>
     /// <param name="handshake">An online match's version handshake, whose refusal is shown while it waits.</param>
+    /// <param name="isOver">Whether the match logic has finished the match; null when nothing asks.</param>
     public StartedMatch(
         IMatchLoop loop,
         IDisposable driver,
@@ -26,12 +28,14 @@ public sealed class StartedMatch : IDisposable
         string description,
         ConnectionMeter? connection,
         MatchRecording? recording = null,
-        VersionHandshake? handshake = null)
+        VersionHandshake? handshake = null,
+        Func<bool>? isOver = null)
     {
         Loop = loop;
         Recording = recording;
         _driver = driver;
         _handshake = handshake;
+        _isOver = isOver;
         View = view;
         Description = description;
         Connection = connection;
@@ -53,6 +57,9 @@ public sealed class StartedMatch : IDisposable
     /// <summary>What an online match shows before its first frame: waiting, or why it will never start.</summary>
     public string WaitingMessage =>
         _handshake is { Outcome: HandshakeOutcome.Refused } refused ? refused.Refusal : WaitingForOpponent;
+
+    /// <summary>The match is finished, or the handshake refused it so it never starts: the lobby offers a rematch.</summary>
+    public bool IsOver => _handshake is { Outcome: HandshakeOutcome.Refused } || (_isOver?.Invoke() ?? false);
 
     public void Dispose()
     {
