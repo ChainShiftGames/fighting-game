@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Netcode.Drivers;
 using Netcode.Replays;
 using Netcode.Tests.Drivers;
@@ -132,13 +133,37 @@ public sealed class ReplayReaderTests
     [Fact]
     public void RejectsEveryCorruptedByteWithoutCrashing()
     {
-        byte[] file = RecordedMatches.Save(RandomReplay(frames: 120));
+        Replay written = RandomReplay(frames: 120);
+        byte[] file = RecordedMatches.Save(written);
+        byte[] writtenRules = RulesBytes(written.Header.Rules);
 
         for (int position = FormatBytes; position < file.Length; position++)
         {
             byte[] corrupted = (byte[])file.Clone();
             corrupted[position] ^= 0x5a;
-            Assert.Throws<ReplayRejectedException>(() => RecordedMatches.Load(corrupted));
+            Replay? read = LoadOrReject(corrupted);
+
+            // Some deflate bits don't change the output (e.g. unused code lengths); a flip there still decodes to the
+            // same replay and passes the checksum. Any flip that changes what is read must be rejected.
+            Assert.True(
+                read is null ||
+                (read.Inputs.SequenceEqual(written.Inputs) && RulesBytes(read.Header.Rules).SequenceEqual(writtenRules)),
+                $"Byte {position} flipped, it read wrong.");
+        }
+    }
+
+    private static byte[] RulesBytes(in MatchRules rules) =>
+        MemoryMarshal.AsBytes(new ReadOnlySpan<MatchRules>(in rules)).ToArray();
+
+    private static Replay? LoadOrReject(byte[] file)
+    {
+        try
+        {
+            return RecordedMatches.Load(file);
+        }
+        catch (ReplayRejectedException)
+        {
+            return null;
         }
     }
 

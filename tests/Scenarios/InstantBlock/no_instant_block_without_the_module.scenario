@@ -1,0 +1,15 @@
+# Module off: the same well-timed block as instant_block_shortens_blockstun is a normal one (blockstun 9, no
+# module event, acts on frame 23).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frames 4-30: p2 4
+
+frame 5: expect p1 event block
+frames 1-30: expect p2 event module = 0
+frame 5: expect p2 stun = 9
+frame 22: expect p2 state = blockstun
+frame 23: expect p2 state = walk_back

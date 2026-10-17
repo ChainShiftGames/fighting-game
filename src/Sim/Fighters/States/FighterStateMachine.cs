@@ -12,11 +12,11 @@ namespace Sim.Fighters.States;
 /// Per frame, at most one transition: a pending cancel (core request, honoured from any state) first; otherwise the
 /// move frame advances and the current action decides. Free actions start moves in input priority, then dashes, then
 /// follow the held direction; in the air, air actions (double jump, air dash) come after moves. Attacks cancel
-/// through their data windows where the <see cref="CancelPermission"/> allow it (into moves first, then a jump) and end
-/// into a free action. Jumps go through <see cref="JumpActions"/>. A thrown
-/// fighter is held until the throw stages let it go (<c>Sim.Throws</c>); a throw tech ends into a free action. A
-/// KO'd fighter (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own
-/// state, input and character data, so both fighters are treated alike.
+/// through their data windows where the <see cref="CancelPermission"/> allows it (into moves first, then a jump)
+/// and end into a free action. Jumps go through <see cref="JumpActions"/>. A thrown fighter is held until the throw
+/// stages let it go (<c>Sim.Throws</c>); a throw tech ends into a free action. A KO'd fighter
+/// (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own state, input
+/// and character data, so both fighters are treated alike.
 /// </remarks>
 public sealed class FighterStateMachine
 {
@@ -35,7 +35,8 @@ public sealed class FighterStateMachine
     public void Advance(ref FighterState fighter, in InputHistory history, CharacterData character) =>
         Advance(ref fighter, in history, character, CancelPermission.EveryWindow);
 
-    public void Advance(ref FighterState fighter, in InputHistory history, CharacterData character, CancelPermission cancels)
+    public void Advance(
+        ref FighterState fighter, in InputHistory history, CharacterData character, CancelPermission cancels)
     {
         // A takeoff is only this frame's request to movement.
         fighter.Takeoff = Takeoff.None;
@@ -153,7 +154,11 @@ public sealed class FighterStateMachine
     }
 
     private void AdvanceAttack(
-        ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move, CancelPermission cancels)
+        ref FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        in MoveData move,
+        CancelPermission cancels)
     {
         int cancel = _moves.FindCancel(in fighter, in history, character, cancels);
         if (cancel != CharacterData.NoMove)
@@ -176,7 +181,11 @@ public sealed class FighterStateMachine
 
     // A jump cancel needs an open window allowing it and the jump input; the rules are asked only then.
     private bool TryJumpCancel(
-        ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move, CancelPermission cancels)
+        ref FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        in MoveData move,
+        CancelPermission cancels)
     {
         if (!MoveSelection.HasOpenJumpCancel(in fighter, character) ||
             !_jumps.IsJumpCancelInput(in fighter, in history, character))

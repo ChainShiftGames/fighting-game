@@ -34,7 +34,8 @@ public sealed class MoveSelection
     /// <remarks>
     /// Only a move that was input is offered to <paramref name="rules"/>; a refused one doesn't stop the search.
     /// </remarks>
-    public int FindCancel(in FighterState fighter, in InputHistory history, CharacterData character, CancelPermission rules)
+    public int FindCancel(
+        in FighterState fighter, in InputHistory history, CharacterData character, CancelPermission rules)
     {
         MoveData current = character.Moves[fighter.Move];
         foreach (CancelData cancel in character.CancelsOf(in current))

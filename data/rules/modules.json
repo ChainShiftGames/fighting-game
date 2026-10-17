@@ -3,6 +3,8 @@
   "schemaVersion": 1,
   "order": [
     "air_block",
+    "instant_block",
+    "burst",
     "gatlings"
   ]
 }
