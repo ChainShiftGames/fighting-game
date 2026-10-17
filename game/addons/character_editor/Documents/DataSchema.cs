@@ -107,6 +107,12 @@ public sealed class DataSchema
                 return Choices(items) is { Count: > 0 } itemChoices
                     ? field with { Kind = SchemaFieldKind.ChoiceList, Choices = itemChoices }
                     : field with { Items = items["properties"] is null ? null : ReadObject(items, depth + 1) };
+            case "object" when resolved["properties"] is null && resolved["additionalProperties"] is JsonObject entry:
+                return field with
+                {
+                    Kind = SchemaFieldKind.Map,
+                    Value = depth < MaxDepth ? ReadField("", entry, isRequired: true, depth + 1) : null,
+                };
             case "object":
             case null when resolved["properties"] is not null:
                 return field with { Kind = SchemaFieldKind.Object, Object = ReadObject(resolved, depth + 1) };
