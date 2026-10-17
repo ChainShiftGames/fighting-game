@@ -31,4 +31,10 @@ public sealed record PeerMatchSettings
     public int InputDelayFrames { get; init; } = 2;
 
     public NetworkSimulation NetworkSimulation { get; init; } = NetworkSimulation.None;
+
+    /// <summary>
+    /// When a silent connection is warned about and ends the match. Developer settings, from
+    /// <c>data/netcode/online.json</c>; null keeps Backdash's own timeouts (tests and tools).
+    /// </summary>
+    public DisconnectTimeouts? Disconnect { get; init; }
 }

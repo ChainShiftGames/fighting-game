@@ -150,6 +150,22 @@ public sealed class LobbyFlow : IDisposable
         Settle();
     }
 
+    /// <summary>
+    /// The game says the opponent's PC stopped answering during the match or after it: no result, and no rematch with
+    /// an opponent who is gone, so the lobby is left with a notice saying why.
+    /// </summary>
+    public void OpponentDisconnected()
+    {
+        if (Stage is not (LobbyStage.InMatch or LobbyStage.Rematch))
+        {
+            return;
+        }
+
+        string opponent = _opponentName;
+        Leave();
+        Notice = $"Lost the connection to {opponent}: the match ended without a result.";
+    }
+
     public void Dispose() => _lobby.Dispose();
 
     private void JoinInvited(ulong lobbyId)

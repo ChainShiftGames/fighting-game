@@ -3,12 +3,14 @@ using FightingGame.Diagnostics;
 using FightingGame.Loop;
 using Godot;
 using Netcode.Handshake;
+using Netcode.Online;
 
 namespace FightingGame.Online;
 
 /// <summary>
 /// A match ready to play: its loop, the node that draws it, a one-line description for the overlay, its replay
-/// recording (none when playing a replay) and, for online matches, the connection meter and version handshake.
+/// recording (none when playing a replay) and, for online matches, the connection meter, connection status and version
+/// handshake.
 /// </summary>
 public sealed class StartedMatch : IDisposable
 {
@@ -16,12 +18,14 @@ public sealed class StartedMatch : IDisposable
 
     private readonly IDisposable _driver;
     private readonly VersionHandshake? _handshake;
+    private readonly IConnectionStatusReadout? _connectionStatus;
     private readonly Func<bool>? _isOver;
     private readonly Func<string> _describe;
 
     /// <param name="describe">The one-line description; read again each time, as some of it (the input delay) changes.</param>
     /// <param name="recording">Records the match for a replay; null when the match is a replay itself.</param>
     /// <param name="handshake">An online match's version handshake, whose refusal is shown while it waits.</param>
+    /// <param name="connectionStatus">An online match's connection to the other PC: interrupted or gone.</param>
     /// <param name="isOver">Whether the match logic has finished the match; null when nothing asks.</param>
     public StartedMatch(
         IMatchLoop loop,
@@ -31,12 +35,14 @@ public sealed class StartedMatch : IDisposable
         ConnectionMeter? connection,
         MatchRecording? recording = null,
         VersionHandshake? handshake = null,
+        IConnectionStatusReadout? connectionStatus = null,
         Func<bool>? isOver = null)
     {
         Loop = loop;
         Recording = recording;
         _driver = driver;
         _handshake = handshake;
+        _connectionStatus = connectionStatus;
         _isOver = isOver;
         View = view;
         _describe = describe;
@@ -60,8 +66,25 @@ public sealed class StartedMatch : IDisposable
     public string WaitingMessage =>
         _handshake is { Outcome: HandshakeOutcome.Refused } refused ? refused.Refusal : WaitingForOpponent;
 
-    /// <summary>The match is finished, or the handshake refused it so it never starts: the lobby offers a rematch.</summary>
-    public bool IsOver => _handshake is { Outcome: HandshakeOutcome.Refused } || (_isOver?.Invoke() ?? false);
+    /// <summary>Whether the other PC is still heard from; always connected for matches on this PC.</summary>
+    public ConnectionStatus ConnectionStatus => _connectionStatus?.ReadConnectionStatus() ?? ConnectionStatus.Connected;
+
+    /// <summary>The other PC stopped answering for good: the match is over without a result.</summary>
+    public bool OpponentDisconnected => ConnectionStatus.State == ConnectionState.Disconnected;
+
+    /// <summary>Why the match stopped on a desync; empty while it hasn't. Shown, never hidden (ARCHITECTURE.md §8).</summary>
+    public string Desync { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// The match is finished, stopped (desync, disconnect), or the handshake refused it so it never starts: the lobby
+    /// moves on (a rematch, or leaving when the opponent is gone).
+    /// </summary>
+    public bool IsOver =>
+        Desync.Length > 0 || OpponentDisconnected || _handshake is { Outcome: HandshakeOutcome.Refused } ||
+        (_isOver?.Invoke() ?? false);
+
+    /// <summary>The match found a desync: it stops for good and counts as over.</summary>
+    public void StopForDesync(string message) => Desync = message;
 
     public void Dispose()
     {

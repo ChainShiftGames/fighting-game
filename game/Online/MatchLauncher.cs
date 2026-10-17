@@ -88,7 +88,8 @@ public sealed class MatchLauncher : IDisposable
 
     /// <summary>
     /// Brings the lobby up to date, once per displayed frame before <see cref="TakeReadyMatch"/>. Returns true when the
-    /// running match must end because the lobby moved on: a rematch is starting, the opponent left, or so did we.
+    /// running match must end because the lobby moved on: a rematch is starting, the opponent left or disconnected, or
+    /// so did we.
     /// </summary>
     public bool EndsMatch(StartedMatch? current)
     {
@@ -99,7 +100,12 @@ public sealed class MatchLauncher : IDisposable
 
         LobbyFlow lobby = Matchmaking.Lobby;
         lobby.Update();
-        if (current is { IsOver: true } && lobby.Stage == LobbyStage.InMatch)
+        if (current is { OpponentDisconnected: true })
+        {
+            // No rematch with an opponent whose PC is gone: back to the menu, which says why.
+            lobby.OpponentDisconnected();
+        }
+        else if (current is { IsOver: true } && lobby.Stage == LobbyStage.InMatch)
         {
             lobby.MatchEnded();
         }

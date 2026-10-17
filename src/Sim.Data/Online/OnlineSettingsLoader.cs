@@ -28,8 +28,10 @@ public static class OnlineSettingsLoader
         int rollbackFrames = file.RequiredInt("rollbackFrames", 1, OnlineSchema.MaxRollbackFrames);
         FieldReader? delay = file.RequiredObject("automaticInputDelay");
         AutomaticInputDelaySettings? automaticDelay = delay is null ? null : ReadAutomaticDelay(delay, errors);
+        FieldReader? disconnect = file.RequiredObject("disconnect");
+        DisconnectSettings? disconnectSettings = disconnect is null ? null : ReadDisconnect(disconnect, errors);
         file.Finish();
-        return errors.Count > 0 ? null : new OnlineSettings(rollbackFrames, automaticDelay!);
+        return errors.Count > 0 ? null : new OnlineSettings(rollbackFrames, automaticDelay!, disconnectSettings!);
     }
 
     private static AutomaticInputDelaySettings ReadAutomaticDelay(FieldReader delay, DataErrors errors)
@@ -52,5 +54,23 @@ public static class OnlineSettingsLoader
             delay.RequiredInt("pingSamples", 1, OnlineSchema.MaxPingSamples));
         delay.Finish();
         return settings;
+    }
+
+    private static DisconnectSettings ReadDisconnect(FieldReader disconnect, DataErrors errors)
+    {
+        int errorsBefore = errors.Count;
+        int warningAfter = disconnect.RequiredInt(
+            "warningAfterMilliseconds", OnlineSchema.MinDisconnectWarningMilliseconds, OnlineSchema.MaxDisconnectMilliseconds);
+        int endMatchAfter = disconnect.RequiredInt(
+            "endMatchAfterMilliseconds", OnlineSchema.MinDisconnectWarningMilliseconds, OnlineSchema.MaxDisconnectMilliseconds);
+
+        // Only compare values that were read: an invalid one is already reported.
+        if (errors.Count == errorsBefore && endMatchAfter <= warningAfter)
+        {
+            disconnect.Error("endMatchAfterMilliseconds", "must be more than warningAfterMilliseconds");
+        }
+
+        disconnect.Finish();
+        return new DisconnectSettings(warningAfter, endMatchAfter);
     }
 }

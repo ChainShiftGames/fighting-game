@@ -215,6 +215,47 @@ public sealed class LobbyFlowTests
     }
 
     [Fact]
+    public void ADisconnectedOpponentEndsTheMatchAndLeavesTheLobbyWithoutARematch()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = InMatch(lobby);
+
+        flow.OpponentDisconnected();
+        flow.Update();
+
+        Assert.Equal(LobbyStage.Idle, flow.Stage);
+        Assert.Equal(1, lobby.Leaves);
+        Assert.False(flow.HasOpponent);
+        Assert.Equal("Lost the connection to Rival: the match ended without a result.", flow.Notice);
+    }
+
+    [Fact]
+    public void ADisconnectAfterTheMatchCancelsTheRematch()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = InMatch(lobby);
+        flow.MatchEnded();
+
+        flow.OpponentDisconnected();
+
+        Assert.Equal(LobbyStage.Idle, flow.Stage);
+        Assert.Equal(1, lobby.Leaves);
+    }
+
+    [Fact]
+    public void ADisconnectBeforeAnyMatchChangesNothing()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = HostWithRival(lobby);
+
+        flow.OpponentDisconnected();
+
+        Assert.Equal(LobbyStage.InLobby, flow.Stage);
+        Assert.Equal(0, lobby.Leaves);
+        Assert.Empty(flow.Notice);
+    }
+
+    [Fact]
     public void LeavingFromAMatchReturnsToIdle()
     {
         var lobby = new FakeLobby();

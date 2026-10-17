@@ -13,26 +13,30 @@ namespace Netcode.Drivers;
 /// Works for every Backdash session type (SyncTest, peer-to-peer), so the session is built outside and passed in.
 /// Backdash calls back into this class to save, load and resimulate frames; the host never sees a rollback.
 /// </remarks>
-public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnectionReadout, INetcodeSessionHandler
+public sealed class RollbackMatchDriver<TState> :
+    IMatchDriver<TState>, IConnectionReadout, IConnectionStatusReadout, INetcodeSessionHandler
     where TState : unmanaged
 {
     private readonly IMatchSimulation<TState> _simulation;
     private readonly INetcodeSession<InputWord> _session;
     private readonly NetcodePlayer[] _localPlayers;
+    private readonly ConnectionWatch _connection;
     private TState _state;
     private int _currentFrame;
     private int _framesToWait;
     private string? _desync;
-    private bool _opponentDisconnected;
     private int _rollbacks;
     private long _rolledBackFrames;
     private int _longestRollbackFrames;
     private int _framesInThisRollback;
 
-    public RollbackMatchDriver(IMatchSimulation<TState> simulation, INetcodeSession<InputWord> session)
+    /// <param name="clock">Times the countdown while the connection is interrupted; the system clock when null.</param>
+    public RollbackMatchDriver(
+        IMatchSimulation<TState> simulation, INetcodeSession<InputWord> session, TimeProvider? clock = null)
     {
         _simulation = simulation;
         _session = session;
+        _connection = new ConnectionWatch(clock ?? TimeProvider.System);
         _state = simulation.CreateInitialState();
         _localPlayers = LocalPlayersInPortOrder(session);
         _session.SetHandler(this);
@@ -50,7 +54,7 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
         MatchPlayers.EnsureInputCount(localInputs, _localPlayers.Length);
         try
         {
-            if (!_opponentDisconnected)
+            if (!_connection.IsDisconnected)
             {
                 _session.BeginFrame();
             }
@@ -61,8 +65,8 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
             }
 
             // After a disconnect Backdash plays on alone, with default inputs for the other player, so the two PCs
-            // would drift apart unnoticed. The match holds instead; ending it with a message is P2-07.
-            if (_opponentDisconnected)
+            // would drift apart unnoticed. The match holds instead and is over (ReadConnectionStatus), without a result.
+            if (_connection.IsDisconnected)
             {
                 return false;
             }
@@ -113,6 +117,9 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
         return true;
     }
 
+    /// <summary>Whether the other PC is still heard from: connected, interrupted (with the seconds left) or gone.</summary>
+    public ConnectionStatus ReadConnectionStatus() => _connection.ReadConnectionStatus();
+
     public void Dispose() => _session.Dispose();
 
     void INetcodeSessionHandler.SaveState(Frame frame, ref readonly BinaryBufferWriter writer) =>
@@ -161,9 +168,17 @@ public sealed class RollbackMatchDriver<TState> : IMatchDriver<TState>, IConnect
             _desync = $"Checksums differ at frame {mismatch.MismatchFrame.Number}: " +
                 $"this PC {mismatch.LocalChecksum}, other PC {mismatch.RemoteChecksum}.";
         }
+        else if (evt.Type == PeerEvent.ConnectionInterrupted)
+        {
+            _connection.Interrupted(evt.ConnectionInterrupted.DisconnectTimeout);
+        }
+        else if (evt.Type == PeerEvent.ConnectionResumed)
+        {
+            _connection.Resumed();
+        }
         else if (evt.Type == PeerEvent.Disconnected)
         {
-            _opponentDisconnected = true;
+            _connection.Disconnected();
         }
     }
 

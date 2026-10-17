@@ -31,6 +31,9 @@ internal sealed class InMemoryTransport : ITransport
     /// <summary>Cuts the link from this end: what it sends from now on never arrives, as when a cable is pulled.</summary>
     public void Cut() => _cut = true;
 
+    /// <summary>Undoes <see cref="Cut"/>: what this end sends arrives again, as when the cable is plugged back in.</summary>
+    public void Restore() => _cut = false;
+
     public void Send(ReadOnlySpan<byte> packet)
     {
         byte[] copy = packet.ToArray();

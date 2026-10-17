@@ -24,4 +24,13 @@ public static class OnlineSchema
 
     /// <summary>Upper bound for the readings averaged.</summary>
     public const int MaxPingSamples = 600;
+
+    /// <summary>
+    /// Lower bound for the disconnect warning: above Backdash's 200 ms keep-alive, so a quiet but healthy connection
+    /// never warns.
+    /// </summary>
+    public const int MinDisconnectWarningMilliseconds = 250;
+
+    /// <summary>Upper bound for both disconnect timeouts: a minute of silence is a lost connection.</summary>
+    public const int MaxDisconnectMilliseconds = 60_000;
 }

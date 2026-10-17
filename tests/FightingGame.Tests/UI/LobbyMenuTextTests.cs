@@ -74,6 +74,43 @@ public sealed class LobbyMenuTextTests
         Assert.Contains("Rival: not yet", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AMatchStoppedByADesyncOffersARematchAndStillShowsTheDesync()
+    {
+        using LobbyFlow flow = InMatch(new StubLobby());
+        flow.MatchEnded();
+
+        string text = LobbyMenuText.Describe(flow, string.Empty, "DESYNC — match stopped\nChecksums differ.");
+
+        Assert.Contains("Enter   rematch", text, StringComparison.Ordinal);
+        Assert.Contains("Esc   leave the lobby", text, StringComparison.Ordinal);
+        Assert.Contains("DESYNC — match stopped\nChecksums differ.", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ADisconnectedMatchReturnsToTheMenuSayingWhy()
+    {
+        using LobbyFlow flow = InMatch(new StubLobby());
+
+        flow.OpponentDisconnected();
+        string text = LobbyMenuText.Describe(flow, string.Empty);
+
+        Assert.Contains("H   host a lobby", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("rematch", text, StringComparison.Ordinal);
+        Assert.Contains("Lost the connection to Rival: the match ended without a result.", text, StringComparison.Ordinal);
+    }
+
+    private static LobbyFlow InMatch(StubLobby lobby)
+    {
+        LobbyFlow flow = Hosting(lobby);
+        lobby.Opponent = _rival;
+        lobby.OpponentReadyFor = 1;
+        flow.Update();
+        flow.Ready();
+        flow.TakeMatchToStart();
+        return flow;
+    }
+
     private static LobbyFlow Hosting(StubLobby lobby)
     {
         var flow = new LobbyFlow(lobby);

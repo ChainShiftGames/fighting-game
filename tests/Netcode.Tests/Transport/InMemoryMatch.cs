@@ -30,32 +30,51 @@ internal sealed class InMemoryMatch : IDisposable
     private static readonly IPEndPoint _player2Address = new(IPAddress.Loopback, 2);
 
     private readonly NetworkSimulation _network;
+    private readonly DisconnectTimeouts? _disconnect;
 
     /// <param name="player2Simulation">P2's game logic; the same as P1's when null.</param>
     /// <param name="player2Identity">What P2 tells the handshake; the same build as P1 when null.</param>
     /// <param name="network">Simulated conditions both peers add to what they send; none when null.</param>
+    /// <param name="disconnect">When both peers warn about and give up on silence; Backdash's own when null.</param>
     public InMemoryMatch(
         int fightingFrames,
         IMatchSimulation<MatchState>? player2Simulation = null,
         MatchIdentity? player2Identity = null,
-        NetworkSimulation? network = null)
+        NetworkSimulation? network = null,
+        DisconnectTimeouts? disconnect = null)
     {
         _network = network ?? NetworkSimulation.None;
+        _disconnect = disconnect;
         (Player1Transport, Player2Transport) = InMemoryTransport.CreatePair();
         Player1Peer = new PeerTransport(new OpenedTransport(Player1Transport));
         Player2Peer = new PeerTransport(new OpenedTransport(Player2Transport));
         Player1Handshake = SameBuild.Handshake();
         Player2Handshake = player2Identity is null ? SameBuild.Handshake() : new VersionHandshake(player2Identity);
         Player1 = CreatePeer(
-            Player1Peer, Player1Handshake, _player2Address, true, new ComposedMatchSimulation(TestmanMirror.Create()), fightingFrames);
+            Player1Peer,
+            Player1Handshake,
+            _player2Address,
+            true,
+            new ComposedMatchSimulation(TestmanMirror.Create()),
+            fightingFrames,
+            out RollbackMatchDriver<MatchState> player1Driver);
         Player2 = CreatePeer(
             Player2Peer,
             Player2Handshake,
             _player1Address,
             false,
             player2Simulation ?? new ComposedMatchSimulation(TestmanMirror.Create()),
-            fightingFrames);
+            fightingFrames,
+            out RollbackMatchDriver<MatchState> player2Driver);
+        Player1Connection = player1Driver;
+        Player2Connection = player2Driver;
     }
+
+    /// <summary>Whether P1's PC still hears from P2's.</summary>
+    public IConnectionStatusReadout Player1Connection { get; }
+
+    /// <summary>Whether P2's PC still hears from P1's.</summary>
+    public IConnectionStatusReadout Player2Connection { get; }
 
     public InMemoryTransport Player1Transport { get; }
 
@@ -116,7 +135,8 @@ internal sealed class InMemoryMatch : IDisposable
         EndPoint opponent,
         bool localIsPlayer1,
         IMatchSimulation<MatchState> simulation,
-        int fightingFrames)
+        int fightingFrames,
+        out RollbackMatchDriver<MatchState> driver)
     {
         var settings = new PeerMatchSettings
         {
@@ -124,8 +144,9 @@ internal sealed class InMemoryMatch : IDisposable
             LocalIsPlayer1 = localIsPlayer1,
             RollbackFrames = RollbackFrames,
             NetworkSimulation = _network,
+            Disconnect = _disconnect,
         };
-        RollbackMatchDriver<MatchState> driver = PeerSession.CreateDriver(simulation, settings, transport, handshake);
+        driver = PeerSession.CreateDriver(simulation, settings, transport, handshake);
         var inputs = new FightingInputs(localIsPlayer1 ? Player1Seed : Player2Seed);
         return new TestMatchDriver<MatchState>(driver, [new NeutralAfter(inputs, fightingFrames)]);
     }
