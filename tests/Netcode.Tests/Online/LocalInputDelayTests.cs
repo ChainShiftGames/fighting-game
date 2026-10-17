@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using Backdash;
 using Backdash.Core;
+using Netcode.Desync;
 using Netcode.Drivers;
 using Netcode.Online;
 using Netcode.Tests.Handshake;
@@ -78,22 +79,47 @@ public sealed class LocalInputDelayTests
     }
 
     /// <summary>
-    /// Why a running match never raises its delay (IInputDelayControl). Rerun on a Backdash upgrade: when this fails,
-    /// raising works and the automatic delay could follow a rising ping within a match.
+    /// Why a running match never raises its delay (IInputDelayControl). Backdash 0.7.8 fills the frame a raise skips
+    /// with a copy of the input before it on this PC, but sends nothing for it, so the other PC reads each following
+    /// input one frame early until its acknowledgements catch up. Backdash only notices when an acknowledgement lands
+    /// on the skipped frame, which depends on timing; otherwise the raise goes through and the two PCs play
+    /// different inputs. Rerun on a Backdash upgrade: when this fails, raising works and the automatic delay could
+    /// follow a rising ping within a match.
     /// </summary>
     [Fact]
-    public void BackdashRejectsRaisingTheDelayOfARunningMatch()
+    public void RaisingTheDelayOfARunningMatchBreaksIt()
     {
         (InMemoryTransport player1Transport, InMemoryTransport player2Transport) = InMemoryTransport.CreatePair();
         INetcodeSession<InputWord> player1Session = BuildSession(player1Transport, _player2Address, true);
         INetcodeSession<InputWord> player2Session = BuildSession(player2Transport, _player1Address, false);
-        using TestMatchDriver<MatchState> player1 = Peer(player1Session, true);
-        using TestMatchDriver<MatchState> player2 = Peer(player2Session, false);
+        var player1Game = new InputRecordingSimulation(LastFrame);
+        var player2Game = new InputRecordingSimulation(LastFrame);
+
+        // Player 1's input changes every frame, so an input read one frame early always differs.
+        using TestMatchDriver<MatchState> player1 = new(
+            new RollbackMatchDriver<MatchState>(player1Game, player1Session), [new ChangingInputs()]);
+        using TestMatchDriver<MatchState> player2 = new(
+            new RollbackMatchDriver<MatchState>(player2Game, player2Session), [Inputs(false)]);
         RunUntilFrame(player1, player2, DelayChangeFrame, betweenFrames: null);
 
         player1Session.SetFrameDelay(StartingDelay + 1);
+        Exception? failure = Record.Exception(() => RunUntilFrame(player1, player2, LastFrame, betweenFrames: null));
 
-        Assert.Throws<NetcodeAssertionException>(() => RunUntilFrame(player1, player2, LastFrame, betweenFrames: null));
+        switch (failure)
+        {
+            case NetcodeAssertionException:
+                // An acknowledgement landed on the skipped frame: Backdash rejects the raise.
+                return;
+            case DesyncDetectedException:
+                // Backdash's consistency check caught the two PCs disagreeing: the raise desynced the match.
+                return;
+            default:
+                // The raise went through unnoticed. The skipped frame is where the PCs start to disagree about
+                // player 1's inputs: this PC repeats the input before it, the other PC already reads the next one.
+                Assert.Null(failure);
+                Assert.Equal(DelayChangeFrame + StartingDelay, FirstFrameWithDifferentPlayer1Input(player1Game, player2Game));
+                return;
+        }
     }
 
     private static InputDelayMatchDriver CreateDriver(
@@ -140,6 +166,20 @@ public sealed class LocalInputDelayTests
 
     private static NeutralAfter Inputs(bool player1) =>
         new(new FightingInputs(player1 ? Player1Seed : Player2Seed), FightingFrames);
+
+    // Only frames well before the end, whose inputs both PCs have confirmed.
+    private static int FirstFrameWithDifferentPlayer1Input(InputRecordingSimulation player1, InputRecordingSimulation player2)
+    {
+        for (int frame = 0; frame < LastFrame - RollbackFrames; frame++)
+        {
+            if (player1.Player1At(frame) != player2.Player1At(frame))
+            {
+                return frame;
+            }
+        }
+
+        return -1;
+    }
 
     // Each peer stops at exactly lastFrame, so the two states can be compared.
     private static void RunUntilFrame(

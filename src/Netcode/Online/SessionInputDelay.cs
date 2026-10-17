@@ -14,6 +14,7 @@ internal sealed class SessionInputDelay : IInputDelayControl
     }
 
     // Backdash drops the local inputs whose delayed frames were already sent, so the other PC still gets one input
-    // per frame. Raising instead would skip frames on the wire, which Backdash 0.7.8 rejects (P2-06).
+    // per frame. Raising instead skips a frame on the wire: Backdash 0.7.8 sometimes trips an assertion, otherwise
+    // the other PC silently reads the next inputs a frame early, a desync (LocalInputDelayTests, P2-06).
     public void LowerLocalInputDelay(int frames) => _session.SetFrameDelay(frames);
 }
