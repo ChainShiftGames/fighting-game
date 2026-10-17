@@ -54,6 +54,14 @@ public struct FighterState
 
     public PendingCancel Cancel;
 
+    /// <summary>Move categories the fighter can't start in this frame's state machine step (move lock request).</summary>
+    /// <remarks>Set by the core request applier; the state machines step clears it after each step.</remarks>
+    public MoveCategory LockedMoveCategories;
+
+    /// <summary>The category of the attack the state machine started this frame (e.g. a super), for modules.</summary>
+    /// <remarks>None on frames that start no attack; the state machines step clears it before each step.</remarks>
+    public MoveCategory StartedMoveCategory;
+
     /// <summary>Frames the fighter can't be thrown, counting this one: wake-up and landing protection.</summary>
     public int ThrowInvulnerableFramesLeft;
 

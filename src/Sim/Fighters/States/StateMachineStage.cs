@@ -7,7 +7,9 @@ namespace Sim.Fighters.States;
 /// <summary>The move state machines step of the tick: advances each fighter that advances this frame.</summary>
 /// <remarks>
 /// Each fighter is advanced from a copy of the state as the step started, and both results are written together
-/// (symmetry rule of <see cref="ITickStage"/>).
+/// (symmetry rule of <see cref="ITickStage"/>). Every fighter's started move category is cleared before the step and
+/// its move lock after it, whether or not it advanced (<see cref="FighterState.StartedMoveCategory"/>,
+/// <see cref="FighterState.LockedMoveCategories"/>).
 /// </remarks>
 public sealed class StateMachineStage : ITickStage
 {
@@ -36,6 +38,8 @@ public sealed class StateMachineStage : ITickStage
     {
         FighterState player1 = state.Fighters[0];
         FighterState player2 = state.Fighters[1];
+        player1.StartedMoveCategory = MoveCategory.None;
+        player2.StartedMoveCategory = MoveCategory.None;
         if (activity.Advances(0))
         {
             _player1Machine.Advance(ref player1, in state.Inputs[0], _player1);
@@ -46,6 +50,9 @@ public sealed class StateMachineStage : ITickStage
             _player2Machine.Advance(ref player2, in state.Inputs[1], _player2);
         }
 
+        // A move lock covers one step, whether or not the fighter advanced in it.
+        player1.LockedMoveCategories = MoveCategory.None;
+        player2.LockedMoveCategories = MoveCategory.None;
         state.Fighters[0] = player1;
         state.Fighters[1] = player2;
     }

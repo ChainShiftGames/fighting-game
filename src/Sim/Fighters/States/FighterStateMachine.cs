@@ -97,7 +97,7 @@ public sealed class FighterStateMachine
         }
 
         fighter.Cancel = default;
-        MoveEntry.EnterAttack(ref fighter, target);
+        MoveEntry.EnterAttack(ref fighter, target, character);
         return true;
     }
 
@@ -130,7 +130,7 @@ public sealed class FighterStateMachine
         int move = _moves.FindFreeMove(in fighter, in history, character);
         if (move != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, move);
+            MoveEntry.EnterAttack(ref fighter, move, character);
             return;
         }
 
@@ -152,7 +152,7 @@ public sealed class FighterStateMachine
         int cancel = _moves.FindCancel(in fighter, in history, character);
         if (cancel != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, cancel);
+            MoveEntry.EnterAttack(ref fighter, cancel, character);
         }
         else if (move.Stance == MoveStance.Air && HasLanded(in fighter))
         {
@@ -252,7 +252,7 @@ public sealed class FighterStateMachine
         int move = _moves.FindFreeMove(in fighter, in history, character);
         if (move != CharacterData.NoMove)
         {
-            MoveEntry.EnterAttack(ref fighter, move);
+            MoveEntry.EnterAttack(ref fighter, move, character);
         }
     }
 

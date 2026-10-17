@@ -61,6 +61,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   (`Sim.Modules.AirBlock.AirBlockAttacks`: 1 ground normals, 2 air normals, 4 specials, 8 supers, 16
   projectiles); none means everything blockable can be. Without the module airborne fighters never block.
   Scenario dummy basic move `air_blockstun`.
+- **Meter** (P3-13): `setup: module meter <superCost> <hitGain> <blockGain> <forwardGain> <roundStartMeter>
+  <carryOverRounds>` (hundredths of a percent); read with `module meter[0]` (P1) / `[1]` (P2).
 - **Throw against strike** (match rules): `setup: throw_vs_strike <rule>` overrides `throwVsStrike` from
   `data/rules/match.json`: `throw` (the throw grabs) or `strike` (the strike hits) when both connect on one frame.
 - **Trade rule** (match rules): `setup: trade <rule>` overrides `tradeRule` from `data/rules/match.json` for

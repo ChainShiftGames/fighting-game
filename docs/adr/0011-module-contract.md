@@ -28,6 +28,10 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Cancel from any state:** a cancel request with priority that the state machine honours.
 - **Per-fighter hitstop override.**
 - **Entity spawning:** projectiles and module objects through the entity pool (P1-21).
+- **Move lock** (P3-13, proposed): a request that stops a fighter starting moves of given categories for one state
+  machine step; the state machine reports the category of an attack it started (`FighterState.StartedMoveCategory`).
+- **Meter gauge** (P3-13, proposed): `IMeterGauge` module role; any module reads/spends meter via
+  `ModuleContext.MeterOf` / `TrySpendMeter`, routed by the core to the enabled gauge.
 
 **Match rules**
 5. `MatchRules` is **one blittable struct** holding every gameplay-affecting setting: input windows, timer, trade

@@ -1,0 +1,6 @@
+# Without the meter module (the default) supers cost nothing and always come out.
+setup: p1 character testman
+setup: p2 character testman
+frame 1: p1 2, 3, 6, 2, 3, 6d
+
+frame 6: expect p1 move = 236236d
