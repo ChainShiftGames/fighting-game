@@ -37,10 +37,10 @@ public partial class Main : Node2D
     private const Key StepFrameKey = Key.F6;
     private const int ConnectionLogIntervalSeconds = 30;
     private const string DeveloperKeys =
-        "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
+        "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
         "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one";
 
-    // Player setting, until the options menu.
+    // Player setting: a shortcut for the options menu's vsync entry.
     private const Key ToggleVsyncKey = Key.F2;
 
     // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
@@ -78,6 +78,7 @@ public partial class Main : Node2D
     private DebugPanel? _debugPanel;
     private MatchStatusLabel? _status;
     private MatchmakingMenu? _matchmakingMenu;
+    private OptionsMenu? _optionsMenu;
     private PingIndicator? _pingIndicator;
     private NetworkReadout? _networkReadout;
     private IPlatformServices? _platform;
@@ -120,6 +121,10 @@ public partial class Main : Node2D
 
         _matchmakingMenu = new MatchmakingMenu { Visible = false };
         AddChild(_matchmakingMenu);
+
+        _optionsMenu = new OptionsMenu();
+        AddChild(_optionsMenu);
+        _optionsMenu.Bind(() => _settings, ChangeSettings);
 
         string[] args = OS.GetCmdlineUserArgs();
         CreateStartups(args);
@@ -184,9 +189,7 @@ public partial class Main : Node2D
         Key pressed = key.PhysicalKeycode;
         if (pressed == ToggleVsyncKey)
         {
-            _settings = _settings with { Vsync = !_settings.Vsync };
-            _settingsStore.Save(_settings);
-            ApplyVsync();
+            ChangeSettings(_settings with { Vsync = !_settings.Vsync });
         }
         else if (pressed == ToggleOverlayKey)
         {
@@ -213,6 +216,13 @@ public partial class Main : Node2D
         _launcher?.Dispose();
         _joypadWatcher?.Dispose();
         _platform?.Dispose();
+    }
+
+    private void ChangeSettings(PlayerSettings settings)
+    {
+        _settings = settings;
+        _settingsStore.Save(settings);
+        ApplyVsync();
     }
 
     private void FlipTogglesOf(Key pressed)
@@ -278,7 +288,8 @@ public partial class Main : Node2D
     private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent)
     {
         _networkReadout!.Watch(opponent.Transport.Dropped);
-        return TryCreateMatch("online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), opponent));
+        return TryCreateMatch(
+            "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), _settings, opponent));
     }
 
     private StartedMatch? CreateReplayMatch(string path) =>
