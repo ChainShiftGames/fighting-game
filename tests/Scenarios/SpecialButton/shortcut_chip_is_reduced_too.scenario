@@ -4,7 +4,7 @@ setup: p2 character scenario_dummy
 setup: p1 x = -30000
 setup: p2 x = 30000
 setup: shortcut_damage 50
-frame 1: p1 6special
+frame 1: p1 5special+b
 frames 1-20: p2 4
 
 frame 12: expect p1 event block

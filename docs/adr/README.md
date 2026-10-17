@@ -23,6 +23,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0017](0017-core-throws-counter-hits.md) | Throws (with tech) and counter hits are core, always present; air block is a removable module |
 | [0018](0018-replay-format.md) | Replay file layout, same-build-only playback, full `MatchRules` in the header, recording around the game logic |
 | [0019](0019-desync-checksum-link.md) | Desync checksums ride the match transport as a second message kind; unreliable, repeated until acknowledged |
-| [0020](0020-special-button-shortcuts.md) | Special button shortcuts (direction + special) are core move input; damage and cooldown trade-off in `MatchRules` |
+| [0020](0020-special-button-shortcuts.md) | Special button shortcuts: motion set maps motions to a direction (236 → 5, 623 → 6, 214 → 4), direction + special + the move's button; real motions win; damage and cooldown trade-off in `MatchRules` (off) |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

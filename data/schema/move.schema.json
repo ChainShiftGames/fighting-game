@@ -36,8 +36,7 @@
       "properties": {
         "motion": { "type": "string", "pattern": "^[1-9]{1,8}$", "description": "Numpad notation: \"5\" none, \"2\" down, \"236\" quarter circle forward." },
         "button": { "$ref": "#/$defs/id", "description": "A button id from the button set (ADR-0010)." },
-        "buttons": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Buttons pressed together (e.g. a throw's two buttons); the press is the frame the last one goes down. Instead of button." },
-        "shortcut": { "type": "string", "pattern": "^[1-9]$", "description": "Special button shortcut (ADR-0020): this numpad direction held as the special button (movementInputs.specialButton) is pressed also starts the move, with the match rules' trade-off (shortcut damage, cooldown)." }
+        "buttons": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" }, "description": "Buttons pressed together (e.g. a throw's two buttons); the press is the frame the last one goes down. Instead of button." }
       }
     },
     "boxes": {

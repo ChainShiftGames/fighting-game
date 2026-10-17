@@ -36,6 +36,9 @@ public sealed class ButtonPressMoveInput : IMoveInput
     /// <summary>The stand-in has no special button.</summary>
     public bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing) => false;
 
+    /// <summary>The stand-in only knows single-direction motions.</summary>
+    public bool HasMultiStepMotion(in MoveData move) => false;
+
     public bool IsDashTriggered(in InputHistory history, int facing) =>
         IsPressed(in history, _dashButton) && !NumpadDirection.IsBack(NumpadDirection.Of(history.FramesAgo(0), facing));
 

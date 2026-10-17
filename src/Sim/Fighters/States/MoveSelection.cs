@@ -8,7 +8,9 @@ namespace Sim.Fighters.States;
 /// <summary>Picks the move a fighter starts this frame, if any, in the character's input priority order.</summary>
 /// <remarks>
 /// A move starts from its motion and button, or from its special button shortcut (ADR-0020) while the fighter's
-/// shortcut cooldown is over; <see cref="PickedByShortcut"/> tells which, for the move just returned.
+/// shortcut cooldown is over; <see cref="PickedByShortcut"/> tells which, for the move just returned. A move input by
+/// a multi-step motion (236C) beats a shortcut; a shortcut beats a single-direction move (5C) the same press matches.
+/// Without a shortcut input, the first move in the character's order wins.
 /// </remarks>
 public sealed class MoveSelection
 {
@@ -25,16 +27,14 @@ public sealed class MoveSelection
     /// <summary>Any non-basic move usable in the fighter's stance (from a free action).</summary>
     public int FindFreeMove(in FighterState fighter, in InputHistory history, CharacterData character)
     {
-        ReadOnlySpan<MoveData> moves = character.Moves;
-        for (int move = 0; move < moves.Length; move++)
+        int byMotion = FindFreeMove(in fighter, in history, character, byShortcut: false);
+        if (BeatsShortcuts(byMotion, character))
         {
-            if (moves[move].Category != MoveCategory.Basic && CanStart(in fighter, in history, in moves[move]))
-            {
-                return move;
-            }
+            return Picked(byMotion, byShortcut: false);
         }
 
-        return CharacterData.NoMove;
+        int byShortcut = FindFreeMove(in fighter, in history, character, byShortcut: true);
+        return byShortcut != CharacterData.NoMove ? Picked(byShortcut, byShortcut: true) : Picked(byMotion, byShortcut: false);
     }
 
     /// <summary>A move an open cancel window of the current move allows; windows are checked in data order.</summary>
@@ -44,22 +44,14 @@ public sealed class MoveSelection
     public int FindCancel(
         in FighterState fighter, in InputHistory history, CharacterData character, CancelPermission rules)
     {
-        MoveData current = character.Moves[fighter.Move];
-        foreach (CancelData cancel in character.CancelsOf(in current))
+        int byMotion = FindCancel(in fighter, in history, character, rules, byShortcut: false);
+        if (BeatsShortcuts(byMotion, character))
         {
-            if (!IsOpen(in fighter, in cancel))
-            {
-                continue;
-            }
-
-            int move = FindCancelTarget(in fighter, in history, character, in cancel, in current, rules);
-            if (move != CharacterData.NoMove)
-            {
-                return move;
-            }
+            return Picked(byMotion, byShortcut: false);
         }
 
-        return CharacterData.NoMove;
+        int byShortcut = FindCancel(in fighter, in history, character, rules, byShortcut: true);
+        return byShortcut != CharacterData.NoMove ? Picked(byShortcut, byShortcut: true) : Picked(byMotion, byShortcut: false);
     }
 
     /// <summary>An open cancel window of the current move allows a jump cancel.</summary>
@@ -80,13 +72,63 @@ public sealed class MoveSelection
         fighter.MoveFrame >= cancel.FirstFrame && fighter.MoveFrame <= cancel.LastFrame &&
         (cancel.On & fighter.MoveOutcome) != 0;
 
+    // A move from a multi-step motion keeps its motion even when a shortcut was input too, so it gets no trade-off.
+    private bool BeatsShortcuts(int move, CharacterData character) =>
+        move != CharacterData.NoMove && _input.HasMultiStepMotion(in character.Moves[move]);
+
+    private int Picked(int move, bool byShortcut)
+    {
+        PickedByShortcut = byShortcut;
+        return move;
+    }
+
+    private int FindFreeMove(in FighterState fighter, in InputHistory history, CharacterData character, bool byShortcut)
+    {
+        ReadOnlySpan<MoveData> moves = character.Moves;
+        for (int move = 0; move < moves.Length; move++)
+        {
+            if (moves[move].Category != MoveCategory.Basic && CanStart(in fighter, in history, in moves[move], byShortcut))
+            {
+                return move;
+            }
+        }
+
+        return CharacterData.NoMove;
+    }
+
+    private int FindCancel(
+        in FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        CancelPermission rules,
+        bool byShortcut)
+    {
+        MoveData current = character.Moves[fighter.Move];
+        foreach (CancelData cancel in character.CancelsOf(in current))
+        {
+            if (!IsOpen(in fighter, in cancel))
+            {
+                continue;
+            }
+
+            int move = FindCancelTarget(in fighter, in history, character, in cancel, in current, rules, byShortcut);
+            if (move != CharacterData.NoMove)
+            {
+                return move;
+            }
+        }
+
+        return CharacterData.NoMove;
+    }
+
     private int FindCancelTarget(
         in FighterState fighter,
         in InputHistory history,
         CharacterData character,
         in CancelData cancel,
         in MoveData current,
-        CancelPermission rules)
+        CancelPermission rules,
+        bool byShortcut)
     {
         ReadOnlySpan<MoveData> moves = character.Moves;
         ReadOnlySpan<int> targets = character.TargetsOf(in cancel);
@@ -95,7 +137,7 @@ public sealed class MoveSelection
             // Basic moves are entered by the state machine itself, never through a cancel.
             bool isAllowed = moves[move].Category != MoveCategory.Basic &&
                 ((moves[move].Category & cancel.IntoCategories) != 0 || targets.Contains(move));
-            if (!isAllowed || !CanStart(in fighter, in history, in moves[move]))
+            if (!isAllowed || !CanStart(in fighter, in history, in moves[move], byShortcut))
             {
                 continue;
             }
@@ -116,7 +158,7 @@ public sealed class MoveSelection
         return CharacterData.NoMove;
     }
 
-    private bool CanStart(in FighterState fighter, in InputHistory history, in MoveData move)
+    private bool CanStart(in FighterState fighter, in InputHistory history, in MoveData move, bool byShortcut)
     {
         MoveStance stance = fighter.IsAirborne != 0 ? MoveStance.Air : MoveStance.Ground;
         // A locked category (core request, e.g. a super without meter) is skipped, so the input falls through to the
@@ -126,14 +168,8 @@ public sealed class MoveSelection
             return false;
         }
 
-        // The motion wins when both were input, so the move gets no shortcut trade-off.
-        if (_input.IsTriggered(in history, in move, fighter.Facing))
-        {
-            PickedByShortcut = false;
-            return true;
-        }
-
-        PickedByShortcut = fighter.ShortcutCooldownLeft == 0 && _input.IsShortcutTriggered(in history, in move, fighter.Facing);
-        return PickedByShortcut;
+        return byShortcut
+            ? fighter.ShortcutCooldownLeft == 0 && _input.IsShortcutTriggered(in history, in move, fighter.Facing)
+            : _input.IsTriggered(in history, in move, fighter.Facing);
     }
 }

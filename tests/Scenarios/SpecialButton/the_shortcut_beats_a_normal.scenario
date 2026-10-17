@@ -1,0 +1,9 @@
+# 5 + special + c also matches 5c (motion 5, button c), but the shortcut wins: 236c. Crouching, 2 has no shortcut,
+# so 2 + special + c is still 2c.
+setup: p1 character testman
+setup: p2 character testman
+frame 1: p1 5special+c
+frame 80: p1 2special+c
+
+frame 1: expect p1 move = 236c
+frame 80: expect p1 move = 2c

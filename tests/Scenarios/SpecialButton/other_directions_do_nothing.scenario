@@ -1,6 +1,8 @@
-# Only the move's own direction counts: back + special starts nothing (the dummy has no other shortcut).
+# Only a motion's shortcut direction counts: no motion has 3, and the dummy has no 3b or 2b, so 3 + special + b
+# starts nothing. The special button alone starts nothing either.
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
-frame 1: p1 4special
+frame 1: p1 3special+b
+frame 10: p1 5special
 
-frames 1-5: expect p1 state != attack
+frames 1-15: expect p1 state != attack

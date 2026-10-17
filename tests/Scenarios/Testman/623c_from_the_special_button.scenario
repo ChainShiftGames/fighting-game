@@ -1,0 +1,8 @@
+# Testman's 623c by shortcut: forward + special + c starts it on frame 1, not the 5c the same press
+# also matches.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 6special+c
+
+frame 1: expect p1 move = 623c

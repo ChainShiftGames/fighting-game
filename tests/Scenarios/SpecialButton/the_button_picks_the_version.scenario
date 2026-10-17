@@ -1,0 +1,11 @@
+# The shortcut keeps the move's own button: 5 + special + b gives 236b, 5 + special + c gives 236c, and
+# 4 + special + c gives 214c.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+frame 1: p1 5special+b
+frame 60: p1 5special+c
+frame 120: p1 4special+c
+
+frame 1: expect p1 move = 236b
+frame 60: expect p1 move = 236c
+frame 120: expect p1 move = 214c

@@ -37,7 +37,7 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
 - **Characters**: any character in `data/characters/` or `Fixtures/data/characters/`, loaded together with the
   real button set. `testman` (`data/characters/testman/`, P1-17) is the game's character; its scenarios are in
   `Testman/` and follow its tuning. `scenario_dummy` is the stable fixture for rule scenarios: attacks `5a` (mid), `2a` (low), `6b`
-  (overhead), `236b` (mid with chip damage; shortcut 6 + special); projectile specials (P1-21; each spawns on move frame 13, 40000 in
+  (overhead), `236b` (mid with chip damage; `5special+b`); projectile specials (P1-21; each spawns on move frame 13, 40000 in
   front) `236c` (mid fireball, 8000 per frame, durability 1, projectile 0), `236d` (low fireball at the floor, same
   speed, projectile 1), `214c` (slow mid fireball, 2000 per frame, lifetime 200, durability 2, projectile 2); basic
   moves `idle`, `crouch`, `dash`, `jump`, `landing`, `hitstun`,
@@ -88,10 +88,11 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   <variants> <freezeFrames> <slowdownFrames> <slowdownNumerator> <slowdownDenominator>`
   (`Sim.Modules.RomanCancel.RomanCancelConfig`; button bits a 16, b 32, c 64, d 128: `112` = a+b+c; variants 1 red,
   2 purple, 4 blue, 8 yellow). A Roman Cancel shows as `p<n> event module`; with a cost it needs `module meter`.
-- **Special button shortcut** (match rules, ADR-0020): `setup: shortcut_damage <percent>` and
+- **Special button shortcut** (ADR-0020): `data/input/motions.json` maps 236 → `5`, 623 → `6`, 214 → `4`; that
+  direction + `special` + the move's button starts the move (`5special+c` gives 236c, `6special+c` 623c). A move from
+  a multi-step motion wins over it; it wins over single-direction moves (5c). `setup: shortcut_damage <percent>` and
   `setup: shortcut_cooldown <frames>` override `shortcutDamagePercent` and `shortcutCooldownFrames` from
-  `data/rules/match.json` (80, 0). The scenario dummy's `236b` and Testman's `236c` have the shortcut `6`, Testman's
-  `623c` the shortcut `3` (`6special`, `3special`).
+  `data/rules/match.json` (100, 0: off).
 - **Pushback**: a hit or block slides the defender its hit's `pushback` over `pushbackFrames` (8, from
   `data/rules/match.json`) once its hitstop ends, in equal shares; against a wall the rest pushes the attacker back
   (never for projectiles). Scenarios that check x after a hit see the slide.
