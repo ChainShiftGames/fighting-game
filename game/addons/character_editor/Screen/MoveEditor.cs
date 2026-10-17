@@ -8,8 +8,8 @@ using Godot;
 namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
-/// Edits the selected move: category, frame data with its timeline, input, hit and other properties, and cancel
-/// windows. Boxes, velocity and projectiles are shown in the file view below; the box editor (P3-42) adds them.
+/// Edits the selected move: category, frame data with its timeline, boxes frame by frame, input, hit and other
+/// properties, and cancel windows. Velocity and projectiles are shown in the file view below.
 /// </summary>
 [Tool]
 public partial class MoveEditor : VBoxContainer
@@ -29,6 +29,7 @@ public partial class MoveEditor : VBoxContainer
     private readonly OptionButton _category = new();
     private readonly FrameDataPanel _frames = new();
     private readonly FrameTimeline _timeline = new();
+    private readonly BoxPanel _boxes = new();
     private readonly Label _inputTitle = Section("Input");
     private readonly MoveInputPanel _input = new();
     private readonly SchemaForm _properties = new();
@@ -54,8 +55,8 @@ public partial class MoveEditor : VBoxContainer
         header.AddChild(_category);
         _moveControls.AddRange(
         [
-            header, Section("Frame data"), _frames, _timeline, _inputTitle, _input, Section("Properties"), _properties,
-            Section("Cancel windows"), _cancels, Section("File (boxes, velocity and projectiles: edit the file for now)"),
+            header, Section("Frame data"), _frames, _timeline, Section("Boxes"), _boxes, _inputTitle, _input, Section("Properties"), _properties,
+            Section("Cancel windows"), _cancels, Section("File (velocity and projectiles: edit the file for now)"),
             _json,
         ]);
         foreach (Control control in _moveControls)
@@ -66,11 +67,15 @@ public partial class MoveEditor : VBoxContainer
         _category.ItemSelected += index => ChangeCategory(_category.GetItemText((int)index));
         _frames.FramesChanged += () =>
         {
-            // Cancel windows may have moved with their phase.
-            _cancels.ShowMove(_move!.Root, _context!.MoveSchema, _cancelTargets);
+            // Boxes and cancel windows may have moved with their phase.
+            _boxes.ShowMove(_move!.Root, _context!.MoveSchema);
+            _cancels.ShowMove(_move.Root, _context.MoveSchema, _cancelTargets);
             OnChanged(listChanged: false);
         };
         _input.Changed += () => OnChanged(listChanged: false);
+        _boxes.Changed += () => OnChanged(listChanged: false);
+        _boxes.FrameShown += _timeline.MarkFrame;
+        _timeline.FrameClicked += _boxes.SelectFrame;
         _properties.Changed += () => OnChanged(listChanged: false);
         _cancels.Changed += () => OnChanged(listChanged: false);
         ShowMove(null, null, []);
@@ -101,6 +106,7 @@ public partial class MoveEditor : VBoxContainer
         bool isBasic = JsonNodeValue.Text(root[MoveFields.Category]) == MoveFields.BasicCategory;
         ShowCategory(root, context.MoveSchema);
         _frames.ShowMove(root, context.MoveSchema.FieldNames);
+        _boxes.ShowMove(root, context.MoveSchema);
         _inputTitle.Visible = _input.Visible = !isBasic;
         _input.ShowMove(root, context.ButtonIds, context.MoveSchema.FieldNames);
         _properties.Show(root, context.MoveSchema, field => !_ownPanelFields.Contains(field)

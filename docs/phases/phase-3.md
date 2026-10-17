@@ -110,9 +110,11 @@ Read: ADR-0007
   to `character.schema.json` (none does yet; meter gain is a match-rules config today).
 
 ### P3-42 Box editing
-Status: todo · Needs: P3-41 · Parallel: no · Where: `game/addons/character_editor/`
+Status: done (Godot editor check pending) · Needs: P3-41 · Parallel: no · Where: `game/addons/character_editor/`
 Read: ADR-0007
 - Draw and resize hit/hurt/push/throw boxes per frame over the placeholder model; copy boxes between frames.
+- Editing a frame of a multi-frame box splits that frame out (toggle); copies that match a neighbour join its range.
+  Projectile boxes are still edited in the file.
 
 ### P3-43 Live reload into training
 Status: todo · Needs: P3-41, P3-30 · Parallel: yes · Where: `game/`, `src/Sim.Data/`

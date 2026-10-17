@@ -26,7 +26,8 @@ public static class BoxOverlayArt
         }
     }
 
-    private static Color ColorOf(BoxKind kind) => kind switch
+    /// <summary>The colour of a box kind, also used by the character editor's box canvas.</summary>
+    public static Color ColorOf(BoxKind kind) => kind switch
     {
         BoxKind.Hurt => _hurtColor,
         BoxKind.Hit => _hitColor,
