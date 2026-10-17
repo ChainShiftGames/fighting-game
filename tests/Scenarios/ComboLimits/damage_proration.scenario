@@ -1,7 +1,7 @@
 # Combo limits with 20 % proration per earlier hit, at least 40 %: three linked 5a jabs (1000 each)
 # do 1000, 800 and 600.
-setup: p1 character combo_dummy
-setup: p2 character combo_dummy
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
 setup: p1 x = -30000
 setup: p2 x = 30000
 setup: module combo_limits 200 400 0 0 0 0 0 0
