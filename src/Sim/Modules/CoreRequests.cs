@@ -21,7 +21,6 @@ public sealed class CoreRequests
     public RequestTable<MoveLockRequest> MoveLocks { get; } = new(FighterKeyCount);
     public RequestTable<GravityScaleRequest> GravityScales { get; } = new(FighterKeyCount);
     public RequestTable<StunOverrideRequest> StunOverrides { get; } = new(FighterKeyCount);
-    public RequestTable<PushbackScaleRequest> PushbackScales { get; } = new(FighterKeyCount);
 
     /// <summary>Keyed per fighter the event belongs to, like the fighter requests.</summary>
     public RequestTable<ModuleEventRequest> Events { get; } = new(FighterKeyCount);
@@ -50,7 +49,6 @@ public sealed class CoreRequests
         MoveLocks.Clear();
         GravityScales.Clear();
         StunOverrides.Clear();
-        PushbackScales.Clear();
         Freezes.Clear();
         Events.Clear();
     }

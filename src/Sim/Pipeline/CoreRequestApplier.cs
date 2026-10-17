@@ -1,7 +1,6 @@
 using System;
 using Sim.Characters;
 using Sim.Events;
-using Sim.Math;
 using Sim.Modules;
 using Sim.State;
 
@@ -9,16 +8,14 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, pushback scales, move locks, freezes,
-/// module events; within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins
-/// (ties: earlier slot); for time scale, hitstop, gravity and stun the latest slot wins; pushback scales multiply; move locks combine; the longest freeze wins
+/// Order: cancels, time scales, hitstop overrides, gravity scales, stun overrides, move locks, freezes, module events;
+/// within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier
+/// slot); for time scale, hitstop, gravity and stun the latest slot wins; move locks combine; the longest freeze wins
 /// (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
 /// slot, rather than being silently fixed. The request tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
 {
-    private const int Permille = 1000;
-
     private readonly CoreRequests _requests;
 
     public CoreRequestApplier(CoreRequests requests)
@@ -36,7 +33,6 @@ public sealed class CoreRequestApplier
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
             ApplyGravityScales(ref fighterState, fighter);
             ApplyStunOverrides(ref fighterState, fighter);
-            ApplyPushbackScales(ref fighterState.Pushback, fighter);
             ApplyMoveLocks(ref fighterState.LockedMoveCategories, fighter);
         }
 
@@ -61,26 +57,6 @@ public sealed class CoreRequestApplier
             }
 
             fighter.StunFramesLeft = request.Frames;
-        }
-    }
-
-    // Each module's scale applies to what the one before left, so two modules asking for twice give four times.
-    private void ApplyPushbackScales(ref PushbackSlide slide, int fighter)
-    {
-        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
-        {
-            int key = CoreRequests.FighterKey(slot, fighter);
-            if (!_requests.PushbackScales.TryGet(key, out PushbackScaleRequest request))
-            {
-                continue;
-            }
-
-            if (request.Permille < 0 || request.Permille > PushbackScaleRequest.MaxPermille)
-            {
-                throw Invalid(slot, $"a pushback scale of {request.Permille}‰");
-            }
-
-            slide.DistanceLeft = IntMath.MulDiv(slide.DistanceLeft, request.Permille, Permille);
         }
     }
 

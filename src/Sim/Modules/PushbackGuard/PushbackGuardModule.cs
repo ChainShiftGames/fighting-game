@@ -1,6 +1,7 @@
 using Sim.Characters;
 using Sim.Fighters.States;
 using Sim.Input;
+using Sim.Math;
 using Sim.Rules;
 using Sim.State;
 
@@ -13,20 +14,23 @@ namespace Sim.Modules.PushbackGuard;
 /// </summary>
 /// <remarks>
 /// Holding back with the guard buttons is the guard stance: the fighter's attacks are locked for that step (move lock
-/// request), so pressing the buttons never starts a throw or a normal instead. On the core's block hook, for strikes
-/// and projectiles alike: with the guard buttons held and the meter paid, the
-/// defender's pushback slide is scaled (core request, <see cref="PushbackScaleRequest"/>), and presentation is told
-/// (a module event). In the corner the longer slide pushes the attacker back instead, the core's corner rule. At the end
-/// of each frame a fighter guarding in blockstun pays the drain. Meter goes through the core
+/// request), so pressing the buttons never starts a throw or a normal instead. For strikes and projectiles alike, a
+/// block made guarding with enough meter is adjusted before it lands (<see cref="IBlockAdjustmentHook"/>): more
+/// pushback and, with <see cref="PushbackGuardConfig.NoChip"/>, no chip. The block hook then pays the meter and tells
+/// presentation (a module event). In the corner the longer slide pushes the attacker back instead, the core's corner
+/// rule. At the end of each frame a fighter guarding in blockstun pays the drain. Meter goes through the core
 /// (<see cref="ModuleContext.TrySpendMeter"/>), so with a cost it needs a meter module. Stateless.
 /// </remarks>
-public sealed class PushbackGuardModule : IMechanicModule, IBeforeStateMachinesHook, IOnBlockHook, IEndOfFrameHook
+public sealed class PushbackGuardModule :
+    IMechanicModule, IBeforeStateMachinesHook, IBlockAdjustmentHook, IOnBlockHook, IEndOfFrameHook
 {
     /// <summary>The code of the module event a guarded block emits (<see cref="ModuleEventRequest.Code"/>).</summary>
     public const int GuardCode = 0;
 
     private const MoveCategory Attacks = MoveCategory.Normal | MoveCategory.Special | MoveCategory.Super | MoveCategory.Throw;
     private const int MaxButtonCount = 4;
+    private const int Permille = 1000;
+    private const int MaxPushbackPermille = 10_000;
     private const int InputBits = 16;
 
     // Task number of P3-15, so module tasks running in parallel don't pick the same id.
@@ -37,9 +41,10 @@ public sealed class PushbackGuardModule : IMechanicModule, IBeforeStateMachinesH
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<PushbackGuardConfig>(
         new ModuleConfigField("buttonMask", 1, ushort.MaxValue),
         new ModuleConfigField("buttonCount", 1, MaxButtonCount),
-        new ModuleConfigField("pushbackPermille", 0, PushbackScaleRequest.MaxPermille),
+        new ModuleConfigField("pushbackPermille", 0, MaxPushbackPermille),
         new ModuleConfigField("meterCost", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("drainPerFrame", 0, IMeterGauge.FullMeter));
+        new ModuleConfigField("drainPerFrame", 0, IMeterGauge.FullMeter),
+        new ModuleConfigField("noChip", 0, 1));
 
     public void BeforeStateMachines(ModuleContext context)
     {
@@ -55,21 +60,36 @@ public sealed class PushbackGuardModule : IMechanicModule, IBeforeStateMachinesH
         }
     }
 
+    public void AdjustBlock(ModuleContext context, in FighterContact contact, ref HitData hit)
+    {
+        ref readonly PushbackGuardConfig config = ref context.GetConfig<PushbackGuardConfig>();
+        if (!IsGuardedBlock(context, contact.Defender, in config))
+        {
+            return;
+        }
+
+        hit = hit with
+        {
+            Pushback = IntMath.MulDiv(hit.Pushback, config.PushbackPermille, Permille),
+            ChipDamage = config.NoChip != 0 ? 0 : hit.ChipDamage,
+        };
+    }
+
+    // Asked again after the block: the meter hasn't changed since the adjustment, so this is the block that was guarded.
     public void OnBlock(ModuleContext context, in FighterContact contact)
     {
         ref readonly PushbackGuardConfig config = ref context.GetConfig<PushbackGuardConfig>();
         int defender = contact.Defender;
-        if (!IsGuarding(context.State.Inputs[defender].FramesAgo(0), in config))
+        if (!IsGuardedBlock(context, defender, in config))
         {
             return;
         }
 
-        if (config.MeterCost > 0 && !context.TrySpendMeter(defender, config.MeterCost))
+        if (config.MeterCost > 0)
         {
-            return;
+            context.TrySpendMeter(defender, config.MeterCost);
         }
 
-        context.RequestPushbackScale(defender, new PushbackScaleRequest { Permille = config.PushbackPermille });
         context.RequestEvent(
             defender,
             new ModuleEventRequest { Module = Id, Code = GuardCode, Position = context.State.Fighters[defender].Position });
@@ -93,6 +113,10 @@ public sealed class PushbackGuardModule : IMechanicModule, IBeforeStateMachinesH
             }
         }
     }
+
+    private static bool IsGuardedBlock(ModuleContext context, int defender, in PushbackGuardConfig config) =>
+        IsGuarding(context.State.Inputs[defender].FramesAgo(0), in config)
+        && (config.MeterCost == 0 || context.MeterOf(defender) >= config.MeterCost);
 
     private static bool IsGuarding(InputWord input, in PushbackGuardConfig config)
     {

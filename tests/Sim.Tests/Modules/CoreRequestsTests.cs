@@ -49,11 +49,8 @@ public sealed class CoreRequestsTests
         requests.Events.Set(5, new ModuleEventRequest { Code = 6 });
         requests.GravityScales.Set(6, new GravityScaleRequest { ExtraPermille = 7 });
         requests.MoveLocks.Set(7, new MoveLockRequest { Categories = MoveCategory.Super });
-        requests.PushbackScales.Set(8, new PushbackScaleRequest { Permille = 9 });
 
         requests.Clear();
-
-        Assert.False(requests.PushbackScales.TryGet(8, out _));
 
         Assert.False(requests.StunOverrides.TryGet(4, out _));
         Assert.False(requests.Events.TryGet(5, out _));

@@ -13,7 +13,7 @@ public sealed class InvalidRequestTests
     public static TheoryData<string> InvalidRequests =>
         [
             "cancel", "speed-up", "zero denominator", "hitstop", "gravity", "stun", "move lock", "event without module",
-            "event code", "freeze", "pushback scale",
+            "event code", "freeze",
         ];
 
     [Theory]
@@ -44,9 +44,6 @@ public sealed class InvalidRequestTests
                         break;
                     case "move lock":
                         context.RequestMoveLock(0, new MoveLockRequest { Categories = MoveCategory.Basic });
-                        break;
-                    case "pushback scale":
-                        context.RequestPushbackScale(0, new PushbackScaleRequest { Permille = -1 });
                         break;
                     case "stun":
                         context.RequestStunOverride(0, new StunOverrideRequest { Frames = -1 });

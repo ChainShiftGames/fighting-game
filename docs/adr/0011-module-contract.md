@@ -20,6 +20,8 @@ in before it's built, and it must already support what Roman Cancel and the open
      move's data window offers (into a move or a jump). With no module saying yes, data windows never cancel.
    - **Hit adjustment question** (P3-12): `IHitAdjustmentHook` adjusts a hit's damage, hitstun and hitstop before
      it lands, or makes it whiff; modules answer in slot order, each adjusting the previous result.
+   - **Block adjustment question** (P3-15, proposed): `IBlockAdjustmentHook` adjusts a block's chip, blockstun,
+     hitstop and pushback before the defender takes it (pushback guard); a block stays a block.
 2. Each module owns a **fixed-size state slice** in `MatchState` (declared at compile time, part of snapshots and
    the checksum). Modules never touch another module's slice.
 3. Modules change core state only through **core requests** (e.g. request cancel, spend meter, spawn entity,
@@ -39,8 +41,6 @@ in before it's built, and it must already support what Roman Cancel and the open
   detail packs the module id and the module's own code.
 - **Move lock** (P3-13, proposed): a request that stops a fighter starting moves of given categories for one state
   machine step; the state machine reports the category of an attack it started (`FighterState.StartedMoveCategory`).
-- **Pushback scale** (P3-15, proposed): a request that scales what is left of a fighter's pushback slide (core
-  pushback: `Sim.Collision.PushbackStage`); scales from several modules multiply.
 - **Meter gauge** (P3-13, proposed): `IMeterGauge` module role; any module reads/spends meter via
   `ModuleContext.MeterOf` / `TrySpendMeter`, routed by the core to the enabled gauge.
 

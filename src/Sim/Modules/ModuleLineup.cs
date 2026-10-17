@@ -24,6 +24,7 @@ public sealed class ModuleLineup
     private readonly HookList<IAirGuardHook> _airGuard;
     private readonly MeterAccess _meters;
     private readonly HookList<IHitAdjustmentHook> _hitAdjustment;
+    private readonly HookList<IBlockAdjustmentHook> _blockAdjustment;
     private readonly HookList<ICancelWindowHook> _cancelWindows;
 
     /// <exception cref="ArgumentException">The lineup names an unregistered module or one module twice.</exception>
@@ -42,6 +43,7 @@ public sealed class ModuleLineup
         _airGuard = new(modulesBySlot);
         _meters = CreateMeterAccess(modulesBySlot, in slots, requests);
         _hitAdjustment = new(modulesBySlot);
+        _blockAdjustment = new(modulesBySlot);
         _cancelWindows = new(modulesBySlot);
     }
 
@@ -138,6 +140,23 @@ public sealed class ModuleLineup
         }
 
         return true;
+    }
+
+    /// <summary>Lets the enabled modules adjust a block about to happen (<see cref="IBlockAdjustmentHook"/>).</summary>
+    /// <exception cref="InvalidOperationException">A module set a negative chip, blockstun, hitstop or pushback.</exception>
+    public void AdjustBlock(ref MatchState state, in FighterContact contact, ref HitData hit)
+    {
+        for (int i = 0; i < _blockAdjustment.Count; i++)
+        {
+            int slot = _blockAdjustment.SlotAt(i);
+            _blockAdjustment.HookAt(i).AdjustBlock(ContextFor(ref state, slot), in contact, ref hit);
+            if (hit.ChipDamage < 0 || hit.Blockstun < 0 || hit.Hitstop < 0 || hit.Pushback < 0)
+            {
+                throw new InvalidOperationException(
+                    $"The module in slot {slot} adjusted a block to {hit.ChipDamage} chip, {hit.Blockstun} blockstun, " +
+                    $"{hit.Hitstop} hitstop and {hit.Pushback} pushback, which the core can't apply.");
+            }
+        }
     }
 
     /// <summary>True when any enabled module lets the fighter take a data cancel (<see cref="ICancelWindowHook"/>).</summary>

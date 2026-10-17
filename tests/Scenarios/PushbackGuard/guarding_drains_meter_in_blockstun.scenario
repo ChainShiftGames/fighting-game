@@ -4,7 +4,7 @@ setup: p2 character scenario_dummy
 setup: p1 x = -30000
 setup: p2 x = 30000
 setup: module meter 5000 0 0 0 5000 0
-setup: module pushback_guard 48 2 2000 200 10
+setup: module pushback_guard 48 2 2000 200 10 1
 frame 1: p1 5a
 frames 5-21: p2 4a+b
 
