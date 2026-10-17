@@ -4,6 +4,7 @@
   "order": [
     "air_block",
     "instant_block",
-    "burst"
+    "burst",
+    "gatlings"
   ]
 }

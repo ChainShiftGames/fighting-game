@@ -5,7 +5,7 @@ using Sim.Data.Validation;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads a move's <c>cancels</c>: windows, outcomes and targets (move ids or whole categories).</summary>
+/// <summary>Reads a move's <c>cancels</c>: windows, outcomes and targets (move ids, whole categories or a jump).</summary>
 public sealed class MoveCancelReader
 {
     private readonly IReadOnlyList<string> _moveIds;
@@ -47,6 +47,7 @@ public sealed class MoveCancelReader
         }
 
         List<int> targets = ReadTargets(cancel);
+        bool intoJump = cancel.OptionalBool("intoJump", absent: false);
         cancel.Finish();
 
         if (on == CancelOn.None)
@@ -54,9 +55,10 @@ public sealed class MoveCancelReader
             cancel.Error("on", "must list at least one of \"hit\", \"block\", \"whiff\"");
         }
 
-        if (targets.Count == 0 && categories == MoveCategory.None)
+        if (targets.Count == 0 && categories == MoveCategory.None && !intoJump)
         {
-            cancel.Error("into", "a cancel needs at least one target in \"into\" or \"intoCategories\"");
+            cancel.Error(
+                "into", "a cancel needs at least one target in \"into\", \"intoCategories\" or \"intoJump\"");
         }
 
         CancelData data = new()
@@ -65,6 +67,7 @@ public sealed class MoveCancelReader
             LastFrame = lastFrame,
             On = on,
             IntoCategories = categories,
+            JumpCancel = intoJump ? 1 : 0,
         };
         return new CancelRecord(data, targets);
     }

@@ -1,0 +1,15 @@
+# The module's config closes chains (closedCancels 1): 5a no longer gatlings into 5b, but its window still cancels
+# into the 236c special (normal -> special).
+setup: module gatlings 1
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 13: p1 5b
+frame 14: p1 2, 3, 6c
+
+frame 5: expect p1 event hit
+frame 13: expect p1 move = 5a
+frame 16: expect p1 move = 236c

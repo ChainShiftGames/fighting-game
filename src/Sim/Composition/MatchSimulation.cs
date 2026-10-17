@@ -53,7 +53,8 @@ public sealed class MatchSimulation
             new MotionMoveInput(parser, movement, player1),
             new MotionMoveInput(parser, movement, player2),
             player1,
-            player2);
+            player2,
+            modules);
         HitContacts contacts = new();
         EntityContacts entityContacts = new();
         OwnerCharacters owners = new(player1, player2);
