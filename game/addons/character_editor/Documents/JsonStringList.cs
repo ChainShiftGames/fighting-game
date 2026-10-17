@@ -24,6 +24,24 @@ public static class JsonStringList
         return members;
     }
 
+    /// <summary>
+    /// The members to offer: <paramref name="choices"/>, then any the list holds that aren't among them (a removed flag,
+    /// a deleted move), so they can still be unticked; validation reports them.
+    /// </summary>
+    public static IReadOnlyList<string> Offered(IReadOnlyList<string> choices, JsonObject target, string field)
+    {
+        List<string> offered = [.. choices];
+        foreach (string member in Read(target, field))
+        {
+            if (!offered.Contains(member))
+            {
+                offered.Add(member);
+            }
+        }
+
+        return offered;
+    }
+
     public static bool Contains(JsonObject target, string field, string member)
     {
         foreach (string existing in Read(target, field))
