@@ -25,4 +25,4 @@ project/solution_directory=".."
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+enabled=PackedStringArray("res://addons/character_editor/plugin.cfg", "res://addons/godot_ai/plugin.cfg")
