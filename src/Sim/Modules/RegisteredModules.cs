@@ -1,6 +1,7 @@
 using Sim.Modules.AirBlock;
 using Sim.Modules.Burst;
 using Sim.Modules.ContractProbe;
+using Sim.Modules.InstantBlock;
 
 namespace Sim.Modules;
 
@@ -20,5 +21,6 @@ public static class RegisteredModules
         new AirBlockModule(),
         new BurstModule(),
         new ContractProbeModule(),
+        new InstantBlockModule(),
     ]);
 }

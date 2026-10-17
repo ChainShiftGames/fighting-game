@@ -1,4 +1,5 @@
 using System;
+using Sim.Events;
 using Sim.Modules;
 using Sim.State;
 
@@ -6,10 +7,11 @@ namespace Sim.Pipeline;
 
 /// <summary>Validates the modules' core requests and applies them to the state in a fixed order (ADR-0011).</summary>
 /// <remarks>
-/// Order: cancels, time scales, hitstop overrides, freezes; within a kind, fighter by fighter in module slot order.
-/// Conflicts: the highest-priority cancel wins (ties: earlier slot); for time scale and hitstop the latest slot
-/// wins; the longest freeze wins (ties: earlier slot). An invalid request is a module bug and throws, naming the
-/// slot, rather than being silently fixed. The request tables are cleared after applying.
+/// Order: cancels, time scales, hitstop overrides, stun overrides, freezes, module events; within a kind, fighter by
+/// fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier slot); for time scale,
+/// hitstop and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every module event is emitted.
+/// An invalid request is a module bug and throws, naming the slot, rather than being silently fixed. The request
+/// tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
 {
@@ -28,10 +30,54 @@ public sealed class CoreRequestApplier
             ApplyCancels(ref fighterState.Cancel, fighter);
             ApplyTimeScales(ref fighterState.Timing, fighter);
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
+            ApplyStunOverrides(ref fighterState, fighter);
         }
 
         ApplyFreezes(ref state.Freeze);
+        EmitEvents(ref state);
         _requests.Clear();
+    }
+
+    private void ApplyStunOverrides(ref FighterState fighter, int fighterIndex)
+    {
+        for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+        {
+            int key = CoreRequests.FighterKey(slot, fighterIndex);
+            if (!_requests.StunOverrides.TryGet(key, out StunOverrideRequest request))
+            {
+                continue;
+            }
+
+            if (request.Frames < 0)
+            {
+                throw Invalid(slot, $"a stun of {request.Frames} frames");
+            }
+
+            fighter.StunFramesLeft = request.Frames;
+        }
+    }
+
+    // Fighter by fighter in slot order, like the other requests, so both PCs emit the same events in the same order.
+    private void EmitEvents(ref MatchState state)
+    {
+        for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
+        {
+            for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
+            {
+                if (!_requests.Events.TryGet(CoreRequests.FighterKey(slot, fighter), out ModuleEventRequest request))
+                {
+                    continue;
+                }
+
+                if (request.Module.IsNone || request.Code < 0 || request.Code >= ModuleEventRequest.CodesPerModule)
+                {
+                    throw Invalid(slot, $"an event with code {request.Code} for module {request.Module}");
+                }
+
+                int detail = ModuleEventRequest.DetailOf(request.Module, request.Code);
+                state.Events.Emit(state.Frame, FrameEventKind.Module, fighter, request.Position, detail);
+            }
+        }
     }
 
     private void ApplyCancels(ref PendingCancel pending, int fighter)

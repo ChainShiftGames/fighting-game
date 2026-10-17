@@ -1,0 +1,8 @@
+{
+  "$schema": "../../schema/module.schema.json",
+  "schemaVersion": 1,
+  "enabled": false,
+  "windowFrames": 8,
+  "lockoutFrames": 10,
+  "blockstunReduction": 2
+}
