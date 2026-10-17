@@ -51,7 +51,7 @@ Done when:
 - [x] the packet check accepts exactly a real session's traffic (`BackdashPacketFormatTests.cs`)
 
 ### P2-04 Minimal Steam lobby
-Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Platform.Steam/`, `game/UI/`
+Status: done (two-PC Steam check pending) · Needs: P2-03 · Parallel: yes · Where: `src/Platform.Steam/`, `game/UI/`
 Read: ADR-0005
 - Create lobby, invite a friend, both ready → match. Rematch button.
 
@@ -78,10 +78,11 @@ Read: ADR-0005
 - Warning after 3 s without data; match ends without a result after 10 s. Timeouts are **developer settings**.
 
 ### P2-08 Effects during rollback
-Status: in progress (p2-08-rollback-effects) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
+Status: in progress (p2-08-p2-10-game-wiring) · Needs: P2-02 · Parallel: yes · Where: `game/Presentation/Events/`
 Read: ADR-0005
 - Play each frame-tagged event once (by id); cancel effects whose event disappears after a rollback.
-- Applies to sounds, sparks, shake and rumble.
+- Applies to sounds, sparks, shake and rumble. Wired into local, online and replay matches; F7–F10 toggle each kind
+  (developer settings).
 
 Done when:
 - [ ] at 150 ms with 5 % loss, no doubled hit sounds or ghost sparks in a 10-minute session
@@ -102,6 +103,9 @@ Status: done · Needs: P2-01 · Parallel: yes · Where: `src/Netcode/Replays/`
 Read: ADR-0005
 - Binary format: header (version, data hash, rules, characters, colours) + compressed inputs.
 - Recorder for every match; replay driver plays it back; replays from another version are rejected cleanly.
+- Game: local and online matches save to `user://replays/` when over or left (online: confirmed frames only);
+  **developer setting** "Save replays" (F11, on). `-- --replay <file>` plays one back. Retention and a replay menu:
+  undecided.
 
 ### P2-11 Network simulator panel
 Status: todo · Needs: P2-03 · Parallel: yes · Where: `src/Netcode/Transport/`, `game/Debug/`
@@ -110,13 +114,13 @@ Read: ADR-0005
 - A simple ping indicator for players: **player-facing**, no settings.
 
 ### P2-12 Bot soak test
-Status: in progress (p2-12-soak-test) · Needs: P2-02 · Parallel: yes · Where: `tests/Soak/`, `.github/workflows/`
+Status: done · Needs: P2-02 · Parallel: yes · Where: `tests/Soak/`, `.github/workflows/`
 Read: ADR-0006
 - Two in-process peers, simulated lag/loss, seeded random inputs (CPU bot replaces these in Phase 3), 1 hour.
 - Manual CI trigger only (ADR-0006).
 
 Done when:
-- [ ] one full hour without desync, run from the manual CI job
+- [x] one full hour without desync, run from the manual CI job (run 38974405498)
 
 ## Phase exit checklist
 - [ ] Devs play over Steam from different networks; feels good at ~100 ms

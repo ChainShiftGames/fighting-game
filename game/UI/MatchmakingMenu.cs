@@ -1,17 +1,23 @@
-using System.Text;
 using FightingGame.Platform;
 using Godot;
+using Platform.Steam.Lobbies;
 
 namespace FightingGame.UI;
 
 /// <summary>
-/// Placeholder online menu: lists friends running the game, number keys invite them. Shown until the match starts.
+/// Placeholder lobby menu (keys only, until the real menus): host, invite, ready, rematch, leave. Hidden while a
+/// match is being played; shown again over the finished match to offer a rematch.
 /// </summary>
 public partial class MatchmakingMenu : CanvasLayer
 {
     // Developer setting: how often the friend list is re-read from the platform.
     private const double FriendRefreshSeconds = 2.0;
-    private const int MaxListedFriends = 9;
+
+    // Placeholder menu keys (developer settings until the menus, which will follow the player's bindings).
+    private const Key HostKey = Key.H;
+    private const Key ReadyKey = Key.Enter;
+    private const Key InviteOverlayKey = Key.I;
+    private const Key LeaveKey = Key.Escape;
 
     private readonly Label _label = new()
     {
@@ -21,79 +27,86 @@ public partial class MatchmakingMenu : CanvasLayer
         AnchorBottom = 1f,
     };
 
-    private IMatchmaking? _matchmaking;
+    private LobbyFlow? _lobby;
     private double _untilRefresh;
     private string _lastAction = string.Empty;
-    private bool _loggedReady;
+    private LobbyStage _shownStage = LobbyStage.Idle;
 
     public override void _Ready() => AddChild(_label);
 
     public void Show(IMatchmaking matchmaking)
     {
-        _matchmaking = matchmaking;
+        _lobby = matchmaking.Lobby;
         Visible = true;
     }
 
     public override void _Process(double delta)
     {
-        if (_matchmaking is null || !Visible)
+        if (_lobby is null)
         {
             return;
         }
 
-        if (_matchmaking.IsReady && !_loggedReady)
+        if (_lobby.Stage != _shownStage)
         {
-            _loggedReady = true;
-            GD.Print("Online lobby open: waiting for an invite or a friend to invite.");
+            GD.Print($"Lobby: {_shownStage} → {_lobby.Stage}.");
+            _shownStage = _lobby.Stage;
+            _lastAction = string.Empty;
         }
 
+        Visible = _lobby.Stage != LobbyStage.InMatch;
         _untilRefresh -= delta;
-        if (_untilRefresh <= 0)
+        if (_untilRefresh <= 0 && _lobby.Stage == LobbyStage.InLobby && !_lobby.HasOpponent)
         {
             _untilRefresh = FriendRefreshSeconds;
-            _matchmaking.RefreshFriends();
+            _lobby.RefreshFriends();
         }
 
-        _label.Text = Describe(_matchmaking);
+        _label.Text = LobbyMenuText.Describe(_lobby, _lastAction);
     }
 
+    // No keys during a match: they belong to the fight.
     public override void _UnhandledKeyInput(InputEvent inputEvent)
     {
-        if (_matchmaking is null || !Visible || inputEvent is not InputEventKey { Pressed: true, Echo: false } key)
+        if (_lobby is null || _lobby.Stage == LobbyStage.InMatch ||
+            inputEvent is not InputEventKey { Pressed: true, Echo: false } key)
         {
             return;
         }
 
-        int index = (int)key.PhysicalKeycode - (int)Key.Key1;
-        if (index >= 0 && index < MaxListedFriends && index < _matchmaking.InvitableFriends.Count)
+        Key pressed = key.PhysicalKeycode;
+        if (pressed == HostKey)
         {
-            _matchmaking.Invite(index);
-            _lastAction = $"Invite sent to {_matchmaking.InvitableFriends[index]}.";
+            _lobby.Host();
         }
-    }
-
-    private string Describe(IMatchmaking matchmaking)
-    {
-        if (!matchmaking.IsReady)
+        else if (pressed == ReadyKey)
         {
-            return "Opening an online lobby…";
+            _lobby.Ready();
         }
-
-        var text = new StringBuilder("Online: waiting for an opponent\n\n");
-        if (matchmaking.InvitableFriends.Count == 0)
+        else if (pressed == LeaveKey)
         {
-            text.Append("No friends are running the game right now.\n");
+            _lobby.Leave();
+        }
+        else if (pressed == InviteOverlayKey)
+        {
+            _lastAction = _lobby.OpenInviteOverlay()
+                ? "Steam overlay open: pick a friend to invite."
+                : "No Steam overlay (start the game from Steam to get it): invite from the list instead.";
         }
         else
         {
-            text.Append("Press a number to invite a friend who is running the game:\n");
-            for (int i = 0; i < matchmaking.InvitableFriends.Count && i < MaxListedFriends; i++)
-            {
-                text.Append($"{i + 1}   {matchmaking.InvitableFriends[i]}\n");
-            }
+            InviteListedFriend((int)pressed - (int)Key.Key1);
+        }
+    }
+
+    private void InviteListedFriend(int index)
+    {
+        if (index < 0 || index >= LobbyMenuText.MaxListedFriends || index >= _lobby!.InvitableFriends.Count)
+        {
+            return;
         }
 
-        text.Append("\nOr accept a friend's invite in Steam.\n").Append(_lastAction);
-        return text.ToString();
+        string name = _lobby.InvitableFriends[index].Name;
+        _lastAction = _lobby.Invite(index) ? $"Invite sent to {name}." : $"Couldn't invite {name}.";
     }
 }
