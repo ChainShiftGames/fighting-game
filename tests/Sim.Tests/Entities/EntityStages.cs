@@ -47,7 +47,8 @@ internal sealed class EntityStages
             new HitDetectionStage(character, character, contacts),
             new EntityHitDetectionStage(owners, entityContacts, contacts));
         _resolution = new StageSequence(
-            new HitResolutionStage(character, character, contacts, lineup, tradeRule, counterHits, guarding),
+            new HitResolutionStage(
+                character, character, contacts, lineup, tradeRule, counterHits, new ShortcutDamage(in rules), guarding),
             new EntityHitResolutionStage(owners, entityContacts, contacts, lineup, tradeRule, counterHits, guarding));
         _spawnRequests = new SpawnRequestStage(owners, Spawner, Requests);
     }

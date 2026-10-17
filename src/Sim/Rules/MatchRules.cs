@@ -95,6 +95,17 @@ public struct MatchRules
     /// <remarks>Developer setting, from data/rules/match.json (<c>throwVsStrike</c>).</remarks>
     public ThrowPriority ThrowVsStrike;
 
+    /// <summary>What hits of a move started from its special button shortcut deal, in percent (ADR-0020).</summary>
+    /// <remarks>
+    /// Developer setting, from data/rules/match.json (<c>shortcutDamagePercent</c>); applies to damage and chip. 0
+    /// (rules built in code) is read as 100: no trade-off.
+    /// </remarks>
+    public int ShortcutDamagePercent;
+
+    /// <summary>Fighter frames after a shortcut move starts before the special button starts another (ADR-0020).</summary>
+    /// <remarks>Developer setting, from data/rules/match.json (<c>shortcutCooldownFrames</c>); motions are never locked.</remarks>
+    public int ShortcutCooldownFrames;
+
     /// <summary>Hash over the whole struct, so no gameplay setting can be left out of the online check.</summary>
     public readonly ulong ComputeHash() => StateChecksum.Compute(in this);
 }

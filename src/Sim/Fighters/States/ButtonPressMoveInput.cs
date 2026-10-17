@@ -33,6 +33,9 @@ public sealed class ButtonPressMoveInput : IMoveInput
         IsPressed(in history, move.ButtonMask) &&
         MatchesDirection(move.Motion, NumpadDirection.Of(history.FramesAgo(0), facing));
 
+    /// <summary>The stand-in has no special button.</summary>
+    public bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing) => false;
+
     public bool IsDashTriggered(in InputHistory history, int facing) =>
         IsPressed(in history, _dashButton) && !NumpadDirection.IsBack(NumpadDirection.Of(history.FramesAgo(0), facing));
 

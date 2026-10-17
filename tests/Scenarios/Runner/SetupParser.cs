@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Scenarios.Tests.Expectations;
 using Sim.Characters;
+using Sim.Data.Rules;
 using Sim.Modules;
 using Sim.Rules;
 using Sim.State;
@@ -12,7 +13,8 @@ namespace Scenarios.Tests.Runner;
 /// <summary>Reads the body of a <c>setup:</c> line: a character, a module, a match rule or a start-state value.</summary>
 /// <remarks>
 /// Forms: <c>p1 character &lt;id&gt;</c>, <c>module &lt;name&gt; [config integers…]</c>, <c>trade &lt;rule&gt;</c>,
-/// <c>entities_per_player &lt;n&gt;</c>, <c>throw_vs_strike &lt;rule&gt;</c> and
+/// <c>entities_per_player &lt;n&gt;</c>, <c>throw_vs_strike &lt;rule&gt;</c>, <c>shortcut_damage &lt;percent&gt;</c>,
+/// <c>shortcut_cooldown &lt;frames&gt;</c> and
 /// <c>[p1|p2] &lt;keyword&gt; = &lt;value&gt;</c> for any expectation kind that is also an <see cref="ISettableKind"/>.
 /// </remarks>
 public sealed class SetupParser
@@ -55,6 +57,14 @@ public sealed class SetupParser
             case "entities_per_player":
                 RequireNoPlayer(hasPlayer, "the entity pool size is a match rule", location);
                 SetEntitiesPerPlayer(rest, setup, location);
+                break;
+            case "shortcut_damage":
+                RequireNoPlayer(hasPlayer, "the shortcut trade-off is a match rule", location);
+                setup.SetShortcutDamagePercent(ReadNumber(rest, 1, MatchRulesSchema.MaxShortcutDamagePercent, location));
+                break;
+            case "shortcut_cooldown":
+                RequireNoPlayer(hasPlayer, "the shortcut trade-off is a match rule", location);
+                setup.SetShortcutCooldownFrames(ReadNumber(rest, 0, MatchRulesSchema.MaxShortcutCooldownFrames, location));
                 break;
             default:
                 AddValue(rest, player, setup, location);
@@ -154,6 +164,21 @@ public sealed class SetupParser
         setup.SetEntitiesPerPlayer(slots);
     }
 
+    // "<keyword> <n>" with n in range, for match rules that are one number.
+    private static int ReadNumber(string[] words, int min, int max, ScenarioLocation location)
+    {
+        int value = -1;
+        bool isValid = words.Length == 2 &&
+            int.TryParse(words[1], NumberStyles.None, CultureInfo.InvariantCulture, out value) &&
+            value >= min && value <= max;
+        if (!isValid)
+        {
+            throw new ScenarioSyntaxException(location, $"write 'setup: {words[0]} <n>' with n from {min} to {max}");
+        }
+
+        return value;
+    }
+
     private static void AddValue(string[] words, int player, ScenarioSetup setup, ScenarioLocation location)
     {
         bool isSettable = ExpectationKinds.TryFind(words[0], out IExpectationKind? kind) && kind is ISettableKind;
@@ -164,7 +189,7 @@ public sealed class SetupParser
             throw new ScenarioSyntaxException(
                 location,
                 $"can't set '{words[0]}' in setup; settable: character, module, trade, throw_vs_strike, " +
-                "entities_per_player, " +
+                "entities_per_player, shortcut_damage, shortcut_cooldown, " +
                 settableKinds);
         }
 

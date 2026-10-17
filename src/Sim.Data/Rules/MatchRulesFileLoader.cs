@@ -39,6 +39,9 @@ public static class MatchRulesFileLoader
         CounterBonus counterHit = CounterBonusReader.Read(file, "counterHit");
         CounterBonus punishCounter = CounterBonusReader.Read(file, "punishCounter");
         ThrowFormat throws = ReadThrows(file);
+        var shortcuts = new ShortcutFormat(
+            file.RequiredInt("shortcutDamagePercent", 1, MatchRulesSchema.MaxShortcutDamagePercent),
+            file.RequiredInt("shortcutCooldownFrames", 0, MatchRulesSchema.MaxShortcutCooldownFrames));
         file.Finish();
         return errors.Count > errorsBefore
             ? null
@@ -51,7 +54,8 @@ public static class MatchRulesFileLoader
                 entitiesPerPlayer,
                 counterHit,
                 punishCounter,
-                throws);
+                throws,
+                shortcuts);
     }
 
     private static ThrowFormat ReadThrows(FieldReader file)

@@ -22,5 +22,7 @@ public static class MatchRulesDataHash
         hash.Add(file.Throws.WakeUpInvulnerableFrames);
         hash.Add(file.Throws.LandingInvulnerableFrames);
         hash.Add((int)file.Throws.ThrowVsStrike);
+        hash.Add(file.Shortcuts.DamagePercent);
+        hash.Add(file.Shortcuts.CooldownFrames);
     }
 }

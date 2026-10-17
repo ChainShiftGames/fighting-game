@@ -32,7 +32,14 @@ internal sealed class CombatStages
         var lineup = new ModuleLineup(new ModuleCatalog([new CountingModule(1)]), in rules.Modules, new CoreRequests());
         _detection = new HitDetectionStage(character, character, Contacts);
         _resolution = new HitResolutionStage(
-            character, character, Contacts, lineup, tradeRule, new CounterHits(in rules), new Guarding(lineup));
+            character,
+            character,
+            Contacts,
+            lineup,
+            tradeRule,
+            new CounterHits(in rules),
+            new ShortcutDamage(in rules),
+            new Guarding(lineup));
     }
 
     public HitContacts Contacts { get; }

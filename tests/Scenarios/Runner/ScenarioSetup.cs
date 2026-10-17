@@ -17,6 +17,8 @@ public sealed class ScenarioSetup
     private TradeRule? _tradeRule;
     private int? _entitiesPerPlayer;
     private ThrowPriority? _throwVsStrike;
+    private int? _shortcutDamagePercent;
+    private int? _shortcutCooldownFrames;
 
     public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules)
     {
@@ -44,7 +46,8 @@ public sealed class ScenarioSetup
     public int ModuleSlot(string name) => _modules.FindIndex(module => module.Name == name);
 
     /// <summary>
-    /// The match rules: the values from data, the trade rule, entity pool size and throw against strike rule if set,
+    /// The match rules: the values from data, the trade rule, entity pool size, throw against strike rule and special
+    /// button shortcut trade-off if set,
     /// then the modules in lineup order.
     /// </summary>
     /// <remarks>
@@ -57,6 +60,8 @@ public sealed class ScenarioSetup
         rules.TradeRule = _tradeRule ?? rules.TradeRule;
         rules.EntitiesPerPlayer = _entitiesPerPlayer ?? rules.EntitiesPerPlayer;
         rules.ThrowVsStrike = _throwVsStrike ?? rules.ThrowVsStrike;
+        rules.ShortcutDamagePercent = _shortcutDamagePercent ?? rules.ShortcutDamagePercent;
+        rules.ShortcutCooldownFrames = _shortcutCooldownFrames ?? rules.ShortcutCooldownFrames;
         rules.Modules = default;
         for (int slot = 0; slot < _modules.Count; slot++)
         {
@@ -105,6 +110,12 @@ public sealed class ScenarioSetup
 
     /// <summary>Overrides the throw against strike rule from data; a later line wins.</summary>
     internal void SetThrowVsStrike(ThrowPriority priority) => _throwVsStrike = priority;
+
+    /// <summary>Overrides <c>shortcutDamagePercent</c> from data; a later line wins.</summary>
+    internal void SetShortcutDamagePercent(int percent) => _shortcutDamagePercent = percent;
+
+    /// <summary>Overrides <c>shortcutCooldownFrames</c> from data; a later line wins.</summary>
+    internal void SetShortcutCooldownFrames(int frames) => _shortcutCooldownFrames = frames;
 
     internal void RequireCharacters(string file)
     {

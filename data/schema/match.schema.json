@@ -5,7 +5,7 @@
   "description": "data/rules/match.json: match-wide gameplay values, copied into MatchRules (developer settings, compared before online matches). Editor aid only: Sim.Data's validator is authoritative (src/Sim.Data/Rules).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames", "entitiesPerPlayer", "counterHitExtraHitstun", "counterHitExtraHitstop", "counterHitExtraDamagePercent", "punishCounterExtraHitstun", "punishCounterExtraHitstop", "punishCounterExtraDamagePercent", "throwTechWindowFrames", "wakeUpThrowInvulnerableFrames", "landingThrowInvulnerableFrames", "throwVsStrike"],
+  "required": ["schemaVersion", "roundStartDistance", "wallDistance", "maxPlayerDistance", "tradeRule", "roundTimerFrames", "roundsToWin", "maxRounds", "roundOverFrames", "entitiesPerPlayer", "counterHitExtraHitstun", "counterHitExtraHitstop", "counterHitExtraDamagePercent", "punishCounterExtraHitstun", "punishCounterExtraHitstop", "punishCounterExtraDamagePercent", "throwTechWindowFrames", "wakeUpThrowInvulnerableFrames", "landingThrowInvulnerableFrames", "throwVsStrike", "shortcutDamagePercent", "shortcutCooldownFrames"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "const": 1 },
@@ -27,6 +27,8 @@
     "throwTechWindowFrames": { "type": "integer", "minimum": 1, "maximum": 99, "description": "Frames after a grab in which the thrown fighter techs by inputting a throw (any direction); the throw lands when they run out (P1-23)." },
     "wakeUpThrowInvulnerableFrames": { "type": "integer", "minimum": 0, "maximum": 99, "description": "Frames after wake-up ends in which a fighter can't be thrown." },
     "landingThrowInvulnerableFrames": { "type": "integer", "minimum": 0, "maximum": 99, "description": "Frames from landing (the first frame on the ground included) in which a fighter can't be thrown." },
-    "throwVsStrike": { "enum": ["throw", "strike"], "description": "When a throw grabs on the same frame the defender's strike hits the thrower: throw = the throw grabs and the strike is dropped, strike = the strike hits and the throw doesn't grab." }
+    "throwVsStrike": { "enum": ["throw", "strike"], "description": "When a throw grabs on the same frame the defender's strike hits the thrower: throw = the throw grabs and the strike is dropped, strike = the strike hits and the throw doesn't grab." },
+    "shortcutDamagePercent": { "type": "integer", "minimum": 1, "maximum": 100, "description": "Damage and chip of hits from a move started with its special button shortcut, in percent (ADR-0020)." },
+    "shortcutCooldownFrames": { "type": "integer", "minimum": 0, "maximum": 600, "description": "Frames after a shortcut move starts before the special button starts another; motions are never locked (ADR-0020)." }
   }
 }

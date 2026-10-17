@@ -72,4 +72,10 @@ public struct FighterState
 
     /// <summary>While <see cref="FighterAction.Thrown"/>: the thrower's move, whose hit and release apply.</summary>
     public int ThrownByMove;
+
+    /// <summary>1 while the current move was started from its special button shortcut (ADR-0020); its hits deal less.</summary>
+    public int IsShortcutMove;
+
+    /// <summary>Fighter frames until the special button can start another shortcut move (ADR-0020); 0 = ready.</summary>
+    public int ShortcutCooldownLeft;
 }

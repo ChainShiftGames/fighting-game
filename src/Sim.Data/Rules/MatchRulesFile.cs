@@ -16,7 +16,8 @@ public sealed class MatchRulesFile
         int entitiesPerPlayer,
         CounterBonus counterHit,
         CounterBonus punishCounter,
-        ThrowFormat throws)
+        ThrowFormat throws,
+        ShortcutFormat shortcuts)
     {
         RoundStartDistance = roundStartDistance;
         WallDistance = wallDistance;
@@ -27,6 +28,7 @@ public sealed class MatchRulesFile
         CounterHit = counterHit;
         PunishCounter = punishCounter;
         Throws = throws;
+        Shortcuts = shortcuts;
     }
 
     /// <summary>Subpixels from the stage centre.</summary>
@@ -56,6 +58,9 @@ public sealed class MatchRulesFile
     /// <summary>Tech window, throw protection and throw against strike (P1-23).</summary>
     public ThrowFormat Throws { get; }
 
+    /// <summary>The special button shortcut's damage and cooldown (ADR-0020).</summary>
+    public ShortcutFormat Shortcuts { get; }
+
     /// <summary>Copies the values into the match rules, where the logic reads them.</summary>
     public void ApplyTo(ref MatchRules rules)
     {
@@ -74,5 +79,7 @@ public sealed class MatchRulesFile
         rules.WakeUpThrowInvulnerableFrames = Throws.WakeUpInvulnerableFrames;
         rules.LandingThrowInvulnerableFrames = Throws.LandingInvulnerableFrames;
         rules.ThrowVsStrike = Throws.ThrowVsStrike;
+        rules.ShortcutDamagePercent = Shortcuts.DamagePercent;
+        rules.ShortcutCooldownFrames = Shortcuts.CooldownFrames;
     }
 }

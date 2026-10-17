@@ -400,6 +400,8 @@ public sealed class FighterStateMachineTests
         public bool IsTriggered(in InputHistory history, in MoveData move, int facing) =>
             _moves.IsTriggered(in history, in move, facing);
 
+        public bool IsShortcutTriggered(in InputHistory history, in MoveData move, int facing) => false;
+
         public bool IsDashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Dash);
 
         public bool IsBackdashTriggered(in InputHistory history, int facing) => history.FramesAgo(0).IsHeld(Backdash);

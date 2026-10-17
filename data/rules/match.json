@@ -19,5 +19,7 @@
   "throwTechWindowFrames": 5,
   "wakeUpThrowInvulnerableFrames": 3,
   "landingThrowInvulnerableFrames": 3,
-  "throwVsStrike": "throw"
+  "throwVsStrike": "throw",
+  "shortcutDamagePercent": 80,
+  "shortcutCooldownFrames": 0
 }

@@ -1,0 +1,10 @@
+# The same move from its motion has no trade-off.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: shortcut_damage 80
+frame 1: p1 2, 3, 6b
+
+frame 3: expect p1 move = 236b
+frame 14: expect p2 damage = 800
