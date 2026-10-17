@@ -9,8 +9,9 @@ namespace Sim.Pipeline;
 /// <remarks>
 /// Order: cancels, time scales, hitstop overrides, stun overrides, freezes, module events; within a kind, fighter by
 /// fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier slot); for time scale,
-/// hitstop and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
-/// slot, rather than being silently fixed. The request tables are cleared after applying.
+/// hitstop and stun the latest slot wins; the longest freeze wins (ties: earlier slot); every module event is emitted.
+/// An invalid request is a module bug and throws, naming the slot, rather than being silently fixed. The request
+/// tables are cleared after applying.
 /// </remarks>
 public sealed class CoreRequestApplier
 {

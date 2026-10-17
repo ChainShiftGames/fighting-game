@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../schema/move.schema.json",
+  "schemaVersion": 1,
+  "id": "burst",
+  "category": "normal",
+  "usableIn": "ground",
+  "input": { "motion": "5", "buttons": ["a", "b", "c", "d"] },
+  "frameData": { "startup": 8, "active": 4, "recovery": 28 },
+  "invulnerable": { "firstFrame": 1, "lastFrame": 11 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 39, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 39, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "push", "firstFrame": 9, "lastFrame": 11, "x": 0, "y": 0, "width": 100000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 8, "lastFrame": 11, "x": -60000, "y": 0, "width": 120000, "height": 140000 }
+  ],
+  "hit": {
+    "damage": 0,
+    "guard": "mid",
+    "hitstun": 30,
+    "blockstun": 20,
+    "hitstop": 12,
+    "pushback": 0,
+    "reaction": "knockdown"
+  }
+}
