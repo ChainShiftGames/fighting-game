@@ -18,6 +18,7 @@ public sealed class CoreRequests
     public RequestTable<CancelRequest> Cancels { get; } = new(FighterKeyCount);
     public RequestTable<TimeScaleRequest> TimeScales { get; } = new(FighterKeyCount);
     public RequestTable<HitstopOverrideRequest> HitstopOverrides { get; } = new(FighterKeyCount);
+    public RequestTable<GravityScaleRequest> GravityScales { get; } = new(FighterKeyCount);
 
     /// <summary>Keyed by module slot only: a freeze affects the whole match.</summary>
     public RequestTable<FreezeRequest> Freezes { get; } = new(ModuleStates.MaxModules);
@@ -40,6 +41,7 @@ public sealed class CoreRequests
         Cancels.Clear();
         TimeScales.Clear();
         HitstopOverrides.Clear();
+        GravityScales.Clear();
         Freezes.Clear();
     }
 }

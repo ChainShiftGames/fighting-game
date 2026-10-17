@@ -1,0 +1,13 @@
+# Hitstun decay of 3 frames per earlier hit, at most 5: linked 5a jabs (20 hitstun) stun for 20, 17, then 15.
+setup: p1 character combo_dummy
+setup: p2 character combo_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module combo_limits 0 0 3 5 0 0 0 0
+frame 1: p1 5a
+frame 10: p1 5a
+frame 19: p1 5a
+
+frame 3: expect p2 stun = 20
+frame 12: expect p2 stun = 17
+frame 21: expect p2 stun = 15

@@ -1,0 +1,39 @@
+{
+  "$schema": "../../../../../../data/schema/character.schema.json",
+  "schemaVersion": 1,
+  "id": "combo_dummy",
+  "displayName": "Combo Dummy",
+  "stats": {
+    "health": 100000,
+    "walkForwardSpeed": 4000,
+    "walkBackSpeed": 3200,
+    "dashStyle": "run",
+    "prejumpFrames": 4,
+    "jumpVelocity": 20000,
+    "highJumpVelocity": 25000,
+    "jumpForwardSpeed": 4500,
+    "jumpBackSpeed": 4000,
+    "gravity": 1000,
+    "airActions": 2
+  },
+  "moves": [
+    "2a",
+    "5a",
+    "idle",
+    "jump",
+    "landing",
+    "hitstun",
+    "air_hitstun",
+    "blockstun",
+    "knockdown"
+  ],
+  "states": {
+    "idle": "idle",
+    "jump": "jump",
+    "landing": "landing",
+    "hitstun": "hitstun",
+    "airHitstun": "air_hitstun",
+    "blockstun": "blockstun",
+    "knockdown": "knockdown"
+  }
+}

@@ -1,0 +1,13 @@
+# Without the combo limits module the same linked 5a jabs each do their full 1000 damage and 20 hitstun.
+setup: p1 character combo_dummy
+setup: p2 character combo_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 10: p1 5a
+frame 19: p1 5a
+
+frame 3: expect p2 damage = 1000
+frame 12: expect p2 damage = 2000
+frame 12: expect p2 stun = 20
+frame 21: expect p2 damage = 3000

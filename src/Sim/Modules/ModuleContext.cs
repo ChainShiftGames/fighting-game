@@ -59,6 +59,9 @@ public readonly ref struct ModuleContext
     public void RequestHitstopOverride(int fighter, in HitstopOverrideRequest request) =>
         _requests.HitstopOverrides.Set(CoreRequests.FighterKey(_slot, fighter), request);
 
+    public void RequestGravityScale(int fighter, in GravityScaleRequest request) =>
+        _requests.GravityScales.Set(CoreRequests.FighterKey(_slot, fighter), request);
+
     public void RequestFreeze(in FreezeRequest request) => _requests.Freezes.Set(_slot, request);
 
     /// <summary>Spawns an entity for <paramref name="owner"/> at the end of the frame (<see cref="CoreRequests.Spawns"/>).</summary>
