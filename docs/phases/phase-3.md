@@ -74,7 +74,7 @@ Read: ADR-0007
   Dummy options are **player settings** in the training menu.
 
 ### P3-31 Frame meter
-Status: todo · Needs: P3-30 · Parallel: yes · Where: `src/Sim/Diagnostics/`, `game/Training/`
+Status: done (Godot visual check pending) · Needs: P3-30 · Parallel: yes · Where: `src/Sim/Diagnostics/`, `game/Training/`
 Read: ADR-0007
 - Logic reports each fighter's frame state (startup/active/recovery/stun/invincible) every frame (ADR-0007).
 - Strive/SF6-style bar with frame advantage. Shown/hidden: **player setting**.

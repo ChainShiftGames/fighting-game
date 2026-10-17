@@ -13,6 +13,7 @@ public sealed class TrainingSettingsJsonTests
         TrainingSettings settings = TrainingSettingsJson.Read("{}", out string warning);
 
         Assert.Equal(DummyMode.Stand, settings.Dummy);
+        Assert.True(settings.ShowFrameMeter);
         Assert.Empty(warning);
     }
 

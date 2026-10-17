@@ -1,6 +1,5 @@
+using System;
 using Godot;
-using Netcode.Drivers;
-using Sim.State;
 
 namespace FightingGame.Training;
 
@@ -10,10 +9,13 @@ public static class TrainingMenuEntries
     // Placeholder menu keys (developer settings until the menus, which will follow the player's bindings).
     private const Key DummyModeKey = Key.Key1;
     private const Key RestartKey = Key.Key2;
+    private const Key FrameMeterKey = Key.Key3;
 
-    public static ITrainingMenuEntry[] Create(CurrentTrainingSettings settings, ITrainingMatchDriver<MatchState> driver) =>
+    /// <param name="restart">Puts training back at the start: the match and everything shown about it.</param>
+    public static ITrainingMenuEntry[] Create(CurrentTrainingSettings settings, Action restart) =>
     [
         new DummyModeEntry(DummyModeKey, settings),
-        new RestartEntry(RestartKey, driver.Restart),
+        new RestartEntry(RestartKey, restart),
+        new FrameMeterEntry(FrameMeterKey, settings),
     ];
 }
