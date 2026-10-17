@@ -221,8 +221,8 @@ public sealed class FighterStateMachine
         return true;
     }
 
-    // A run (dash style from data) loops while forward is held and stops when it's released; a step dash plays its
-    // move once.
+    // A run (dash style from data) loops while forward or the dash button is held and stops when both are released;
+    // a step dash plays its move once.
     private void AdvanceDash(
         ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
     {
@@ -232,7 +232,7 @@ public sealed class FighterStateMachine
             return;
         }
 
-        if (!NumpadDirection.IsForward(NumpadDirection.Of(history.FramesAgo(0), fighter.Facing)))
+        if (!_input.IsRunHeld(in history, fighter.Facing))
         {
             EnterFree(ref fighter, in history, character);
         }

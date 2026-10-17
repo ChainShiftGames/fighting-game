@@ -45,6 +45,13 @@ public sealed class ButtonPressMoveInput : IMoveInput
     public bool IsBackdashTriggered(in InputHistory history, int facing) =>
         IsPressed(in history, _dashButton) && NumpadDirection.IsBack(NumpadDirection.Of(history.FramesAgo(0), facing));
 
+    public bool IsRunHeld(in InputHistory history, int facing)
+    {
+        int direction = NumpadDirection.Of(history.FramesAgo(0), facing);
+        return NumpadDirection.IsForward(direction) ||
+            (_dashButton != 0 && history.FramesAgo(0).IsHeld(_dashButton) && !NumpadDirection.IsBack(direction));
+    }
+
     public bool IsHighJumpTriggered(in InputHistory history, int facing) =>
         history.FramesAgo(0).IsHeld(InputWord.Up) && history.FramesAgo(1).IsHeld(InputWord.Down);
 

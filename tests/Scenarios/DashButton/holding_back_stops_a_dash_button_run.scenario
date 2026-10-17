@@ -1,0 +1,8 @@
+# Holding back stops a run even while the dash button stays held.
+setup: p1 character testman
+setup: p2 character testman
+
+frames 1-10: p1 5dash
+frames 11-12: p1 4dash
+frames 1-10: expect p1 state = dash
+frame 11: expect p1 state != dash

@@ -1,0 +1,8 @@
+# Strive style: 5 + dash starts testman's run, which lasts while the dash button is held (or forward), and stops
+# the frame it's released.
+setup: p1 character testman
+setup: p2 character testman
+
+frames 1-20: p1 5dash
+frames 1-20: expect p1 state = dash
+frame 21: expect p1 state = idle
