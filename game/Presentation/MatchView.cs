@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FightingGame.Debug;
+using FightingGame.Presentation.Events;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
@@ -10,8 +11,8 @@ using Sim.State;
 namespace FightingGame.Presentation;
 
 /// <summary>
-/// Draws a match of the real game logic from the driver's state: stage, placeholder fighters, the hitbox overlay
-/// when it is on, and the HUD. Reads the state only (ARCHITECTURE.md §9).
+/// Draws a match of the real game logic from the driver's state: stage, placeholder fighters, hit sparks, the hitbox
+/// overlay when it is on, and the HUD, shaken by the screen shake. Reads the state only (ARCHITECTURE.md §9).
 /// </summary>
 public partial class MatchView : Node2D
 {
@@ -33,17 +34,25 @@ public partial class MatchView : Node2D
     private CharacterData[] _characters = [];
     private StageWalls _walls;
     private DeveloperToggle? _hitboxOverlay;
+    private MatchEffects? _effects;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
     /// <param name="walls">The stage walls from the match rules.</param>
     /// <param name="hitboxOverlay">Draws every box when on (developer setting).</param>
+    /// <param name="effects">The match's event effects; its sounds join the scene as a child of this view.</param>
     public void Show(
-        IMatchDriver<MatchState> driver, CharacterData[] characters, StageWalls walls, DeveloperToggle hitboxOverlay)
+        IMatchDriver<MatchState> driver,
+        CharacterData[] characters,
+        StageWalls walls,
+        DeveloperToggle hitboxOverlay,
+        MatchEffects effects)
     {
         _driver = driver;
         _characters = characters;
         _walls = walls;
         _hitboxOverlay = hitboxOverlay;
+        _effects = effects;
+        AddChild(effects.Sounds);
         _hud.Show(driver, characters);
         QueueRedraw();
     }
@@ -58,14 +67,18 @@ public partial class MatchView : Node2D
         }
 
         ref readonly MatchState state = ref _driver.State;
+        int latestFrame = state.Frame - 1;
         Vector2 size = GetViewportRect().Size;
-        StageCamera camera = StageCamera.Fit(size, _walls, state.Camera.X);
+        StageCamera fitted = StageCamera.Fit(size, _walls, state.Camera.X);
+        StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(latestFrame) };
         DrawStage(camera, size);
 
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             DrawFighter(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
         }
+
+        HitSparkArt.Draw(this, camera, _effects.Sparks.Live(latestFrame), latestFrame);
     }
 
     // The floor between the walls; the walls reach up past the top of the screen, as in the logic.
