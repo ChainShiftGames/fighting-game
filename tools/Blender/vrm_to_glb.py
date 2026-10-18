@@ -15,6 +15,8 @@ import bpy, sys, os, re
 TOON = "res://Assets/Shaders/toon.gdshader"
 TOON_DOUBLE_SIDED = "res://Assets/Shaders/toon_double_sided.gdshader"
 OUTLINE = "res://Assets/Shaders/toon_outline.gdshader"
+FACE_SKIN = re.compile(r"^face_\d+_skin$")
+FACE_NORMAL_FLATTEN = 0.8
 
 
 def clean_name(name):
@@ -71,8 +73,11 @@ def toon_material(material, texture_path):
         f"shader_parameter/shade_color = {color(ext.shade_color_factor)}",
         f"shader_parameter/shading_shift = {ext.shading_shift_factor:.4f}",
         f"shader_parameter/shading_toony = {ext.shading_toony_factor:.4f}",
-        f"shader_parameter/alpha_cutoff = {cutoff:.4f}", ""]
-    return "\n".join(lines)
+        f"shader_parameter/alpha_cutoff = {cutoff:.4f}"]
+    if FACE_SKIN.search(clean_name(material.name)):
+        # Flat face shading, as Xrd's edited face normals; the toon shader bends normals towards the camera.
+        lines.append(f"shader_parameter/normal_flatten = {FACE_NORMAL_FLATTEN:.4f}")
+    return "\n".join(lines + [""])
 
 
 def main():
