@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://Assets/Shaders/toon_double_sided.gdshader" id="toon"]
+[ext_resource type="Texture2D" path="res://Assets/Characters/vroid_test/vroid_test_faceeyeline_00_face_lit.png" id="texture"]
+
+[resource]
+shader = ExtResource("toon")
+shader_parameter/lit_texture = ExtResource("texture")
+shader_parameter/lit_color = Color(1.0000, 1.0000, 1.0000, 1.0000)
+shader_parameter/shade_color = Color(1.0000, 1.0000, 1.0000, 1.0000)
+shader_parameter/shading_shift = 0.7100
+shader_parameter/shading_toony = 0.9100
+shader_parameter/alpha_cutoff = 0.5000
