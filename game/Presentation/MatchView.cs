@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FightingGame.Debug;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.World;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
@@ -11,30 +12,26 @@ using Sim.State;
 namespace FightingGame.Presentation;
 
 /// <summary>
-/// Draws a match of the real game logic from the driver's state: stage, placeholder fighters, hit sparks, the hitbox
-/// overlay when it is on, and the HUD, shaken by the screen shake. Reads the state only (ARCHITECTURE.md §9).
+/// Shows a match of the real game logic from the driver's state: the 3D stage and fighters on the gameplay plane
+/// (ADR-0027), and over them hit sparks, the hitbox overlay when it is on, fighter readouts and the HUD, all shaken by
+/// the screen shake. Reads the state only (ARCHITECTURE.md §9).
 /// </summary>
 public partial class MatchView : Node2D
 {
-    private const float FloorWidth = 2f;
-    private const float WallWidth = 4f;
-    private const float CentreMarkHeight = 6f;
-
-    private static readonly Color _floorColor = new(0.35f, 0.35f, 0.4f);
-    private static readonly Color _wallColor = new(0.55f, 0.55f, 0.62f);
-    private static readonly Color _backgroundColor = new(0.08f, 0.08f, 0.1f);
-    private static readonly Color _outsideColor = new(0.03f, 0.03f, 0.04f);
-
     // Blue and orange: told apart with the common kinds of colour blindness (ADR-0008 §5).
     private static readonly Color[] _fighterColors = [new(0.25f, 0.55f, 1f), new(1f, 0.6f, 0.15f)];
 
     private readonly List<WorldBox> _boxes = [];
     private readonly MatchHud _hud = new();
+    private readonly MatchCamera _worldCamera = new();
+    private readonly StageSet _stage = new();
+    private readonly PlaceholderFighterModel[] _fighterArt = [new(), new()];
     private IMatchDriver<MatchState>? _driver;
     private CharacterData[] _characters = [];
     private StageWalls _walls;
     private DeveloperToggle? _hitboxOverlay;
     private MatchEffects? _effects;
+    private StageCamera? _camera;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
     /// <param name="walls">The stage walls from the match rules.</param>
@@ -54,53 +51,73 @@ public partial class MatchView : Node2D
         _effects = effects;
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
-        QueueRedraw();
+        _stage.Build(walls);
     }
 
-    public override void _Ready() => AddChild(_hud);
-
-    public override void _Draw()
+    public override void _Ready()
     {
-        if (_driver is null)
+        AddChild(_stage);
+        AddChild(_worldCamera);
+        for (int player = 0; player < MatchState.PlayerCount; player++)
+        {
+            _fighterArt[player].Paint(_fighterColors[player]);
+            AddChild(_fighterArt[player]);
+        }
+
+        AddChild(_hud);
+    }
+
+    /// <summary>Brings the 3D scene and the 2D layers up to the driver's state; call once per displayed frame.</summary>
+    public void Refresh()
+    {
+        if (_driver is null || !IsInsideTree())
         {
             return;
         }
 
         ref readonly MatchState state = ref _driver.State;
-        int latestFrame = state.Frame - 1;
         Vector2 size = GetViewportRect().Size;
         StageCamera fitted = StageCamera.Fit(size, _walls, state.Camera.X);
-        StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(latestFrame) };
-        DrawStage(camera, size);
-
+        StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(state.Frame - 1) };
+        _camera = camera;
+        _worldCamera.Frame(CameraFraming.Of(camera, size));
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
-            DrawFighter(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
+            ref readonly FighterState fighter = ref state.Fighters[player];
+            CollectBoxes(in fighter, _characters[player]);
+            _fighterArt[player].ShowPose(FighterPose.Of(_characters[player], in fighter), fighter.Position, fighter.Facing, _boxes);
         }
 
-        HitSparkArt.Draw(this, camera, _effects.Sparks.Live(latestFrame), latestFrame);
+        QueueRedraw();
     }
 
-    // The floor between the walls; the walls reach up past the top of the screen, as in the logic.
-    private void DrawStage(StageCamera camera, Vector2 size)
+    public override void _Draw()
     {
-        float left = camera.ToScreen(new IntVector2(_walls.Left, 0)).X;
-        float right = camera.ToScreen(new IntVector2(_walls.Right, 0)).X;
-        float floorY = camera.FloorCentre.Y;
-        DrawRect(new Rect2(Vector2.Zero, size), _outsideColor);
-        DrawRect(new Rect2(left, 0f, right - left, size.Y), _backgroundColor);
-        DrawLine(new Vector2(left, floorY), new Vector2(right, floorY), _floorColor, FloorWidth);
-        DrawLine(new Vector2(left, 0f), new Vector2(left, floorY), _wallColor, WallWidth);
-        DrawLine(new Vector2(right, 0f), new Vector2(right, floorY), _wallColor, WallWidth);
-        Vector2 centre = camera.FloorCentre;
-        DrawLine(centre, centre + new Vector2(0f, CentreMarkHeight), _floorColor, FloorWidth);
+        if (_driver is null || _camera is not { } camera)
+        {
+            return;
+        }
+
+        ref readonly MatchState state = ref _driver.State;
+        for (int player = 0; player < MatchState.PlayerCount; player++)
+        {
+            DrawReadouts(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
+        }
+
+        int latestFrame = state.Frame - 1;
+        HitSparkArt.Draw(this, camera, _effects!.Sparks.Live(latestFrame), latestFrame);
     }
 
-    private void DrawFighter(StageCamera camera, in FighterState fighter, CharacterData character, Color color)
+    private void CollectBoxes(in FighterState fighter, CharacterData character)
     {
         _boxes.Clear();
         FighterBoxes.Collect(character, in fighter, _boxes);
-        PlaceholderFighterArt.Draw(this, camera, FighterPose.Of(character, in fighter), fighter.Facing, _boxes, color);
+    }
+
+    private void DrawReadouts(StageCamera camera, in FighterState fighter, CharacterData character, Color color)
+    {
+        CollectBoxes(in fighter, character);
+        FighterReadoutArt.Draw(this, camera, FighterPose.Of(character, in fighter), _boxes, color);
         if (_hitboxOverlay!.Enabled)
         {
             BoxOverlayArt.Draw(this, camera, _boxes);

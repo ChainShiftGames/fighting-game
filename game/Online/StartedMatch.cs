@@ -1,6 +1,7 @@
 using System;
 using FightingGame.Diagnostics;
 using FightingGame.Loop;
+using FightingGame.Presentation;
 using Godot;
 using Netcode.Handshake;
 using Netcode.Online;
@@ -30,7 +31,7 @@ public sealed class StartedMatch : IDisposable
     public StartedMatch(
         IMatchLoop loop,
         IDisposable driver,
-        Node2D view,
+        MatchView view,
         Func<string> describe,
         ConnectionMeter? connection,
         MatchRecording? recording = null,
@@ -51,8 +52,8 @@ public sealed class StartedMatch : IDisposable
 
     public IMatchLoop Loop { get; }
 
-    /// <summary>Draws the match from the driver's state; the host adds it to the scene and redraws it each frame.</summary>
-    public Node2D View { get; }
+    /// <summary>Shows the match from the driver's state; the host adds it to the scene and refreshes it each frame.</summary>
+    public MatchView View { get; }
 
     public string Description => _describe();
 

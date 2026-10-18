@@ -199,7 +199,7 @@ public partial class Main : Node2D
         }
 
         // Every displayed frame, so developer toggles show at once, also while paused.
-        _match.View.QueueRedraw();
+        _match.View.Refresh();
 
         if (_overlay!.Visible)
         {

@@ -13,6 +13,9 @@ Content model (this order; ADR-0021–0023):
   resource channels; move `cost` comes with move conditions
 - [x] Move conditions: rekkas/follow-ups, stance-only and install moves, move costs, fighter flags (ADR-0023)
 - [ ] `tools/DataExport` for external character tools (ADR-0021)
+Presentation (ADR-0027, proposed):
+- [x] Match drawn as a 3D scene on the gameplay plane, 2D layers on top, `IFighterArt` swap point (placeholder blocks)
+- [ ] Skeletal `IFighterArt`: `.glb` model, animations named after move IDs, picked by logic frame
 Netcode hardening (ADR-0024–0025) and presentation hardening (ADR-0026) run in their own branches.
 
 ## Decisions to make at phase start

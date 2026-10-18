@@ -27,5 +27,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0021](0021-data-migration-and-export.md) | Game reads only current schema versions; format changes ship a `tools/DataMigrate` step; external tools read a `tools/DataExport` file |
 | [0022](0022-multi-hit-moves-and-juggles.md) | Moves list hits with own frames (each connects once); launch, air launch, ground/wall bounce, knockdown length, OTG per hit; air recovery a match rule |
 | [0023](0023-character-mechanics-resources-move-conditions.md) | *Proposed* (built, awaiting both devs): character-scoped mechanic modules, move roles, resource channels, fighter flags, move conditions, core follow-up cancels |
+| [0027](0027-3d-match-view.md) | *Proposed*: match drawn as a 3D scene on the 2D gameplay plane (1 m = 70 px), camera placed from the logic camera (orthographic, square-on), 2D layers on top, `IFighterArt` swap point |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.
