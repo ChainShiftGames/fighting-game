@@ -73,9 +73,10 @@ public sealed class MoveSelection
         return false;
     }
 
+    // A basic move (an air dash) never hits or is blocked, so its windows open as on a whiff.
     private static bool IsOpen(in FighterState fighter, in CancelData cancel) =>
         fighter.MoveFrame >= cancel.FirstFrame && fighter.MoveFrame <= cancel.LastFrame &&
-        (cancel.On & fighter.MoveOutcome) != 0;
+        (cancel.On & (fighter.Action == FighterAction.Attack ? fighter.MoveOutcome : CancelOn.Whiff)) != 0;
 
     // A move from a multi-step motion keeps its motion even when a shortcut was input too, so it gets no trade-off.
     private bool BeatsShortcuts(int move, CharacterData character) =>

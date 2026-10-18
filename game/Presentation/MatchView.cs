@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using FightingGame.Debug;
 using FightingGame.Presentation.Events;
 using FightingGame.Presentation.World;
+using FightingGame.Presentation.World.Projectiles;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
@@ -26,7 +27,9 @@ public partial class MatchView : Node2D
     private readonly MatchHud _hud = new();
     private readonly MatchCamera _worldCamera = new();
     private readonly StageSet _stage = new();
-    private readonly PlaceholderFighterModel[] _fighterArt = [new(), new()];
+    private readonly ProjectileViews _projectiles = new();
+    private readonly Node3D?[] _fighterNodes = new Node3D?[MatchState.PlayerCount];
+    private readonly IFighterArt?[] _fighterArt = new IFighterArt?[MatchState.PlayerCount];
     private IMatchDriver<MatchState>? _driver;
     private CharacterData[] _characters = [];
     private LogicScreen _screen;
@@ -53,18 +56,28 @@ public partial class MatchView : Node2D
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
         _stage.Build(screen.Stage);
+        _projectiles.Build(characters);
+        for (int player = 0; player < MatchState.PlayerCount; player++)
+        {
+            _fighterNodes[player] =
+                FighterArtChoice.Create(characters[player], _fighterColors[player], out IFighterArt art);
+            _fighterArt[player] = art;
+        }
     }
 
     public override void _Ready()
     {
         AddChild(_stage);
         AddChild(_worldCamera);
-        for (int player = 0; player < MatchState.PlayerCount; player++)
+        foreach (Node3D? fighter in _fighterNodes)
         {
-            _fighterArt[player].Paint(_fighterColors[player]);
-            AddChild(_fighterArt[player]);
+            if (fighter is not null)
+            {
+                AddChild(fighter);
+            }
         }
 
+        AddChild(_projectiles);
         AddChild(_hud);
     }
 
@@ -81,13 +94,18 @@ public partial class MatchView : Node2D
         StageCamera fitted = StageCamera.Fit(size, _screen, state.Camera.X);
         StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(state.Frame - 1) };
         _camera = camera;
-        _worldCamera.Frame(CameraFraming.Of(camera, size));
+        CameraFraming framing = CameraFraming.Of(camera, size);
+        _worldCamera.Frame(framing);
+        _stage.FollowCamera(framing.Centre.X);
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             ref readonly FighterState fighter = ref state.Fighters[player];
             CollectBoxes(in fighter, _characters[player]);
-            _fighterArt[player].ShowPose(FighterPose.Of(_characters[player], in fighter), fighter.Position, fighter.Facing, _boxes);
+            FighterPose pose = FighterPose.Of(_characters[player], in fighter) with { MatchFrame = state.Frame };
+            _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
         }
+
+        _projectiles.ShowFrame(in state.Entities);
 
         QueueRedraw();
     }

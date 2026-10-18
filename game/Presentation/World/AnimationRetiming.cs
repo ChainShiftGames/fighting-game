@@ -1,0 +1,97 @@
+namespace FightingGame.Presentation.World;
+
+/// <summary>
+/// Turns the logic's move frame into the time in an animation clip (ADR-0028). Without contact frames the clip plays
+/// frame for frame; with them, startup, active and recovery each stretch over their own span of the clip, so frame
+/// data can change without re-exporting the animation and the hit always lands on the authored contact pose.
+/// </summary>
+/// <remarks>
+/// Logic frames count from 1 and the clip's first key is time 0, so move frame 1 shows the first key. Each logic frame
+/// shows the start of its share of a span; a span the move doesn't have (0 frames) is skipped.
+/// </remarks>
+public static class AnimationRetiming
+{
+    public const float FramesPerSecond = 60f;
+
+    /// <summary>The clip time, in seconds, the model shows for <paramref name="pose"/>.</summary>
+    public static double SecondsAt(FighterPose pose, AnimationClipTiming clip) => FrameAt(pose, clip) / FramesPerSecond;
+
+    /// <summary>The clip position, in animation frames from its first key, for <paramref name="pose"/>.</summary>
+    public static float FrameAt(FighterPose pose, AnimationClipTiming clip)
+    {
+        FighterPose held = pose with { Frame = Held(pose.Frame, clip.HoldFrames) };
+        float frame;
+        if (clip.Fit && pose.TotalFrames > 0)
+        {
+            frame = Span(held.Frame - 1, pose.TotalFrames, 0f, clip.LengthFrames);
+        }
+        else if (clip.Contacts is { } contacts && pose.FirstActiveFrame > 0)
+        {
+            frame = Retimed(held, contacts, clip.LengthFrames);
+        }
+        else
+        {
+            frame = (held.Frame - 1) * clip.Speed;
+        }
+
+        return clip.StartFrame + Fit(frame, clip);
+    }
+
+    // On 2s, frames 1-2 show frame 1's pose, 3-4 frame 3's: the pose steps instead of moving every frame.
+    private static int Held(int frame, int holdFrames) =>
+        holdFrames <= 1 || frame < 1 ? frame : 1 + ((frame - 1) / holdFrames * holdFrames);
+
+    /// <summary>
+    /// The clip position for frame <paramref name="frameInTransition"/> (from 1) of a transition squeezed into
+    /// <paramref name="frames"/> logic frames; reversed, it starts from the clip's end.
+    /// </summary>
+    public static float TransitionFrameAt(int frameInTransition, int frames, float lengthFrames, bool reverse)
+    {
+        float frame = Span(frameInTransition - 1, frames, 0f, lengthFrames);
+        return reverse ? lengthFrames - frame : frame;
+    }
+
+    private static float Retimed(FighterPose pose, ContactFrames contacts, float lengthFrames)
+    {
+        if (pose.Frame < pose.FirstActiveFrame)
+        {
+            return Span(pose.Frame - 1, pose.FirstActiveFrame - 1, 0f, contacts.ActiveFrom);
+        }
+
+        if (pose.Frame <= pose.LastActiveFrame)
+        {
+            int activeFrames = pose.LastActiveFrame - pose.FirstActiveFrame + 1;
+            return Span(pose.Frame - pose.FirstActiveFrame, activeFrames, contacts.ActiveFrom, contacts.RecoveryFrom);
+        }
+
+        int recoveryFrames = pose.TotalFrames - pose.LastActiveFrame;
+        return Span(pose.Frame - pose.LastActiveFrame - 1, recoveryFrames, contacts.RecoveryFrom, lengthFrames);
+    }
+
+    // Where logic frame `offset` of a `count`-frame phase falls in the clip span `from`..`to`.
+    private static float Span(int offset, int count, float from, float to)
+    {
+        if (count <= 0)
+        {
+            return from;
+        }
+
+        int clamped = offset < 0 ? 0 : offset >= count ? count - 1 : offset;
+        return from + ((to - from) * clamped / count);
+    }
+
+    private static float Fit(float frame, AnimationClipTiming clip)
+    {
+        if (clip.LengthFrames <= 0f || frame < 0f)
+        {
+            return 0f;
+        }
+
+        if (clip.Loops)
+        {
+            return frame % clip.LengthFrames;
+        }
+
+        return frame > clip.LengthFrames ? clip.LengthFrames : frame;
+    }
+}

@@ -1,0 +1,13 @@
+# An air dash ends in j.C from its 4th frame (testman's follow-up window), with or without the gatlings module.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 9
+frame 12: p1 dash
+frame 12: expect p1 state = air_dash
+
+# Too early: the window opens on the air dash's 4th frame.
+frame 13: p1 c
+frame 13: expect p1 state = air_dash
+frame 15: p1 c
+frame 15: expect p1 move = j_c

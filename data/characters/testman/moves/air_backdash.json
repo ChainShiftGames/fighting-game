@@ -10,5 +10,14 @@
   "boxes": [
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 14, "x": -25000, "y": 10000, "width": 50000, "height": 100000 },
     { "kind": "push", "firstFrame": 1, "lastFrame": 14, "x": -20000, "y": 10000, "width": 40000, "height": 90000 }
+  ],
+  "cancels": [
+    {
+      "firstFrame": 4,
+      "lastFrame": 14,
+      "on": ["whiff"],
+      "into": ["j_c"],
+      "followUp": true
+    }
   ]
 }

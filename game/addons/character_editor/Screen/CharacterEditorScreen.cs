@@ -151,6 +151,7 @@ public partial class CharacterEditorScreen : VBoxContainer
         }
 
         _toolbar.Select(characterId);
+        _move.ShowCharacter(_document?.Id, _document?.MoveIds ?? []);
         _moves.ShowMoves(_document, 0);
         Refresh(status);
     }

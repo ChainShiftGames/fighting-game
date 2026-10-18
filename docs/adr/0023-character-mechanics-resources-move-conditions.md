@@ -45,6 +45,8 @@ ground/air, move locks are by category, and cancel windows only work when the ga
 6. **Follow-ups:** a cancel window with `followUp: true` is always allowed by the core (no module question), so
    rekkas and target combos work with gatlings off; a move with `followUpOnly: true` never starts from neutral.
    A follow-up window names its moves in `into` only, and a follow-up-only move is never reached by category.
+   An air dash may carry follow-up windows too (into air normals, e.g. testman's j.C, Oct 2026); a basic move never
+   hits, so its windows open as on a whiff.
 
 ## Consequences
 

@@ -79,7 +79,7 @@ public sealed class FighterStateMachine
                 JumpActions.AdvancePrejump(ref fighter, in history, character);
                 break;
             case FighterAction.AirDash or FighterAction.AirBackdash:
-                AdvanceAirDash(ref fighter, in history, character, in move);
+                AdvanceAirDash(ref fighter, in history, character, in move, cancels);
                 break;
             case FighterAction.Thrown:
                 break;
@@ -256,9 +256,21 @@ public sealed class FighterStateMachine
         }
     }
 
+    // An air dash ends in an attack through its data's cancel windows (a follow-up window into air normals).
     private void AdvanceAirDash(
-        ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
+        ref FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        in MoveData move,
+        CancelPermission cancels)
     {
+        int cancel = _moves.FindCancel(in fighter, in history, character, cancels);
+        if (cancel != CharacterData.NoMove)
+        {
+            StartAttack(ref fighter, cancel, character);
+            return;
+        }
+
         if (HasLanded(in fighter))
         {
             MoveEntry.EnterBasic(ref fighter, FighterAction.Landing, character);
