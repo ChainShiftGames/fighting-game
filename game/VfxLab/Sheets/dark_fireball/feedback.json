@@ -1,0 +1,28 @@
+{
+  "feedbackVersion": 1,
+  "variants": {
+    "void_vortex": {
+      "pick": false,
+      "rating": 0,
+      "hidden": false,
+      "note": "",
+      "values": {
+        "arms": 6,
+        "aura": 0.842,
+        "bend": 1.685,
+        "impact.spin": 0.095,
+        "intensity": 2.342,
+        "particles": 2,
+        "pulse": 0,
+        "trail": 0.513
+      },
+      "isEmpty": false
+    }
+  },
+  "forks": [],
+  "timing": {
+    "chargeFrames": 6,
+    "hitboxSize": 63,
+    "speed": 3.5
+  }
+}

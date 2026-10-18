@@ -6,6 +6,10 @@ shader_type spatial;
 render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
+#include "res://Assets/Effects/toon_effect.gdshaderinc"
+
+// Toon look (developer setting, off until picked): flat bands, ink, held drawings and no bending of the stage.
+uniform bool toon_look = false;
 
 uniform vec2 card_size = vec2(2.6, 2.6);
 uniform float age = 0.0;
@@ -96,13 +100,13 @@ void block_arc(inout vec4 acc, vec2 p, float f, float n) {
 	lay(acc, accent_color.rgb, arc * (1.0 - smoothstep(0.0, 0.8, n)) * step(1.0, f));
 }
 
-void fizzle(inout vec4 acc, vec2 p, float f, float n) {
+void fizzle(inout vec4 acc, vec2 p, float f, float n, float time, float turn) {
 	// The orb collapses into itself, pulling a last swirl of sparks in, and ends in a small pale pop.
 	float shrink = 1.0 - smoothstep(0.0, 0.7, n);
 	if (shrink > 0.02) {
 		vec2 q = p / shrink;
-		orb_halo(acc, q, t, spin, 1.0);
-		orb_core(acc, q, t, spin);
+		orb_halo(acc, q, time, turn, 1.0);
+		orb_core(acc, q, time, turn);
 	}
 	float pop = smoothstep(0.65, 0.75, n) * (1.0 - smoothstep(0.75, 1.0, n));
 	float ring_r = 0.04 + 0.25 * smoothstep(0.7, 1.0, n);
@@ -111,20 +115,31 @@ void fizzle(inout vec4 acc, vec2 p, float f, float n) {
 
 void fragment() {
 	vec2 local = (UV - 0.5) * card_size * vec2(1.0, -1.0);
+	float frames = toon_look ? toon_held_frames(age) : age;
+	float time = toon_look ? toon_held(t) : t;
+	float turn = toon_look ? toon_held_with(spin, t) : spin;
+	if (toon_look) {
+		local += toon_boil_offset(local, frames / TOON_FRAMES_PER_SECOND);
+	}
 	float edge = 1.0 - smoothstep(0.9, 1.28, length(local));
-	float n = clamp(age / lifetime, 0.0, 1.0);
+	float n = clamp(frames / lifetime, 0.0, 1.0);
 	float scale = kind == 1 ? 0.65 : (kind == 2 ? 0.8 : (kind == 3 ? 0.5 : 1.0));
-	vec4 acc;
-	shockwave_lens(acc, local, n, scale, edge, VERTEX, MODEL_MATRIX, VIEW_MATRIX, PROJECTION_MATRIX, SCREEN_UV);
+	vec4 acc = vec4(0.0);
+	if (!toon_look) {
+		shockwave_lens(acc, local, n, scale, edge, VERTEX, MODEL_MATRIX, VIEW_MATRIX, PROJECTION_MATRIX, SCREEN_UV);
+	}
 	if (kind == 3) {
-		fizzle(acc, local, age, n);
+		fizzle(acc, local, frames, n, time, turn);
 	} else {
 		// A blocked fireball bursts back towards where it came from (-X); a hit or clash bursts forward.
 		float lean = kind == 1 ? -1.0 : 1.0;
-		burst(acc, local, age, n, scale, lean);
+		burst(acc, local, frames, n, scale, lean);
 		if (kind == 1) {
-			block_arc(acc, local, age, n);
+			block_arc(acc, local, frames, n);
 		}
+	}
+	if (toon_look) {
+		acc = toon_finish(acc, core_color.rgb, accent_color.rgb, VIEWPORT_SIZE.y);
 	}
 	ALBEDO = acc.rgb;
 	ALPHA = acc.a;

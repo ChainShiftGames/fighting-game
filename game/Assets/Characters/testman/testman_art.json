@@ -10,10 +10,11 @@
   "model": "res://Assets/Characters/vroid_test/vroid_test.glb",
   "turnDegrees": 90,
   "scale": 1.0,
-  // Look settings: basic moves fade in over 4 frames, a side switch turns over 6, poses every frame (2 = on 2s).
+  // Look settings: basic moves fade in over 4 frames, a side switch turns over 6, poses on 2s (the hand-animated,
+  // Guilty Gear look; 1 = every frame).
   "crossfadeFrames": 4,
   "turnFrames": 6,
-  "holdFrames": 1,
+  "holdFrames": 2,
   // Played from the frame of the KO on, whatever the logic does meanwhile; it ends lying down.
   "knockOut": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Death01" },
   "animations": {

@@ -4,6 +4,10 @@ shader_type spatial;
 render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
+#include "res://Assets/Effects/toon_effect.gdshaderinc"
+
+// Toon look (developer setting, off until picked): flat bands, ink, held drawings and no bending of the stage.
+uniform bool toon_look = false;
 
 group_uniforms vortex;
 uniform float arms : hint_range(1.0, 6.0, 1.0) = 1.0;
@@ -46,14 +50,24 @@ void spiral_arms(inout vec4 acc, vec2 q, float time, float turn) {
 void fragment() {
 	vec2 local = (UV - 0.5) * card_size * vec2(1.0, -1.0) + card_centre;
 	vec2 q = local / max(size, 0.01);
-	float edge = 1.0 - smoothstep(0.55, 0.82, length(local));
-	vec2 seen = orb_lens(q, t, bend) * size;
-	vec4 acc = bent_screen(seen - local, edge, VERTEX, MODEL_MATRIX, VIEW_MATRIX, PROJECTION_MATRIX, SCREEN_UV);
-	wisps(acc, q, t, spin);
-	spiral_arms(acc, q, t, spin);
-	orb_halo(acc, q, t, spin, 1.0);
-	orb_embers(acc, q, t);
-	orb_core(acc, q, t, spin);
+	float time = toon_look ? toon_held(t) : t;
+	float turn = toon_look ? toon_held_with(spin, t) : spin;
+	vec4 acc = vec4(0.0);
+	if (toon_look) {
+		q += toon_boil_offset(q, time);
+	} else {
+		float edge = 1.0 - smoothstep(0.55, 0.82, length(local));
+		vec2 seen = orb_lens(q, t, bend) * size;
+		acc = bent_screen(seen - local, edge, VERTEX, MODEL_MATRIX, VIEW_MATRIX, PROJECTION_MATRIX, SCREEN_UV);
+	}
+	wisps(acc, q, time, turn);
+	spiral_arms(acc, q, time, turn);
+	orb_halo(acc, q, time, turn, 1.0);
+	orb_embers(acc, q, time);
+	orb_core(acc, q, time, turn);
+	if (toon_look) {
+		acc = toon_finish(acc, core_color.rgb, accent_color.rgb, VIEWPORT_SIZE.y);
+	}
 	ALBEDO = acc.rgb;
 	ALPHA = acc.a;
 }
