@@ -3,13 +3,13 @@
 // and sends a shockwave that ripples the screen; a block is smaller and deflected back along a pale barrier arc; a
 // clash is a smaller hit; a fizzle collapses into itself. `age` is in logic frames since the event.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"
 
-// Toon look (developer setting, off until picked): flat bands, ink, held drawings and no bending of the stage.
-uniform bool toon_look = false;
+// Toon look (developer setting): flat bands, ink, held drawings and no bending of the stage; off = the soft look.
+uniform bool toon_look = true;
 
 uniform vec2 card_size = vec2(2.6, 2.6);
 uniform float age = 0.0;

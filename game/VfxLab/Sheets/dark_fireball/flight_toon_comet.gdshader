@@ -2,7 +2,7 @@
 // violet inside, flame tongues streaming back and two swooshes wrapping round it; inked and held on 2s, like a
 // drawn Xrd effect.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"

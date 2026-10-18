@@ -1,7 +1,7 @@
 // Round 1, "Eclipse": a black sun. A flame corona round the void, two tilted orbit rings whose comets pass behind and
 // in front of the core, and speed streaks behind. Ported from the aura mockups.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 

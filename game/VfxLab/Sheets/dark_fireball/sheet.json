@@ -31,11 +31,12 @@
       "variants": [
         {
           "id": "void_vortex",
-          "name": "Void Vortex (in game)",
-          "pitch": "What ships now: the void with one spiral aura arm, a short wisp trail and the stage bending round it.",
+          "name": "Void Vortex (in game until round 3)",
+          "pitch": "What shipped before the toon round: the void with one spiral aura arm, a short wisp trail and the stage bending round it. Its values are spelled out, since the shaders' defaults are now Cel Vortex: bold.",
           "charge": { "shader": "res://Assets/Effects/dark_fireball_charge.gdshader", "card": [2.6, 2.6], "spin": 0.25 },
           "flight": { "shader": "res://Assets/Effects/dark_fireball.gdshader", "card": [1.8, 1.7], "centre": [-0.05, 0], "spin": 0.08, "growFrames": 12, "startScale": 0.2 },
-          "impact": { "shader": "res://Assets/Effects/dark_fireball_impact.gdshader", "card": [2.6, 2.6], "spin": 0 }
+          "impact": { "shader": "res://Assets/Effects/dark_fireball_impact.gdshader", "card": [2.6, 2.6], "spin": 0 },
+          "values": { "toon_look": false, "arms": 1, "intensity": 0.98, "aura": 0.92, "trail": 0.3, "pulse": 1.0, "particles": 1.39 }
         },
         {
           "id": "eclipse",
@@ -127,11 +128,11 @@
           "name": "Cel Vortex",
           "pitch": "The in-game Void Vortex, charge and impact as they are, with toon_look on and your latest Lab tweaks (6 arms, stronger glow, no pulse): the same design, now flat-toned, inked and on 2s. Promoting it is flipping one default.",
           "extends": "void_vortex",
-          "values": { "toon_look": true, "arms": 6, "aura": 0.842, "intensity": 2.342, "particles": 1.2, "pulse": 0, "trail": 0.513 }
+          "values": { "toon_look": true, "arms": 6, "aura": 0.842, "intensity": 2.342, "particles": 1.2, "pulse": 0, "trail": 0.513, "toon_bands": 3, "ink_pixels": 2.5, "toon_hold_frames": 2, "toon_boil": 0.6 }
         },
         {
           "id": "cel_vortex_bold",
-          "name": "Cel Vortex: bold, on 3s",
+          "name": "Cel Vortex: bold, on 3s (in game)",
           "pitch": "Cel Vortex pushed further: two tones only, thicker ink, held on 3s with more boil, fewer sparks. The most hand-drawn read of the current design.",
           "extends": "cel_vortex",
           "values": { "toon_bands": 2, "ink_pixels": 3.5, "toon_hold_frames": 3, "toon_boil": 1.2, "particles": 0.5, "arms": 3 }

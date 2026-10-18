@@ -1,7 +1,7 @@
 // Round 1, "Shadow Serpents": ribbons twist round the line of flight, crossing in front of and behind the core, and
 // taper into a long wake. Reads as something alive. Ported from the aura mockups.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 

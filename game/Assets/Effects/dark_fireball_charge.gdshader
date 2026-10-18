@@ -2,13 +2,13 @@
 // out, the world bends harder and harder towards the point, a seed orb grows to the fireball's spawn size, and a
 // pale ring snaps shut on the last frames. `progress` runs 0 to 1 over the move's startup.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"
 
-// Toon look (developer setting, off until picked): flat bands, ink, held drawings and no bending of the stage.
-uniform bool toon_look = false;
+// Toon look (developer setting): flat bands, ink, held drawings and no bending of the stage; off = the soft look.
+uniform bool toon_look = true;
 
 uniform vec2 card_size = vec2(2.6, 2.6);
 uniform float progress = 0.0;

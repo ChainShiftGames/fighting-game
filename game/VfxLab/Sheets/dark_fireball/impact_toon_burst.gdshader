@@ -2,7 +2,7 @@
 // spiky starburst, black with a pale edge, that hollows out and breaks into tumbling chunks while impact lines
 // shoot out; inked and held like a drawn effect. A block is smaller, thrown back, with a pale barrier arc.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"

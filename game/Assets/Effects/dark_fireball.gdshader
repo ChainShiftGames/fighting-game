@@ -1,16 +1,16 @@
 // The dark fireball in flight ("Void Vortex"): the orb with its spiral aura arm and short wisp trail, bending the
 // screen behind it. One card facing the camera; the node mirrors it for a fireball flying left.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"
 
-// Toon look (developer setting, off until picked): flat bands, ink, held drawings and no bending of the stage.
-uniform bool toon_look = false;
+// Toon look (developer setting): flat bands, ink, held drawings and no bending of the stage; off = the soft look.
+uniform bool toon_look = true;
 
 group_uniforms vortex;
-uniform float arms : hint_range(1.0, 6.0, 1.0) = 1.0;
+uniform float arms : hint_range(1.0, 6.0, 1.0) = 3.0;
 group_uniforms;
 uniform vec2 card_size = vec2(1.8, 1.7);
 uniform vec2 card_centre = vec2(-0.05, 0.0);

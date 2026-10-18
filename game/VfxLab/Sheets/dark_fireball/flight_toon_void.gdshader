@@ -1,7 +1,7 @@
 // Round 3, "Graphic Void": the most reduced take: a flat black disc, a thick pale crescent, solid ribbons orbiting
 // it and hard speed lines behind; on 3s, like a held anime key frame.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"

@@ -1,7 +1,7 @@
 // Round 1, "Rift": not a ball but a tear in the world flying forward. Inside the slit the stage shows in negative
 // and pulled towards the seam; its lips crackle with pale lightning, and black flakes peel off the back edge.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 
