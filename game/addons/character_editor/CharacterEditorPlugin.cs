@@ -12,14 +12,19 @@ namespace FightingGame.Addons.CharacterEditor;
 [Tool]
 public partial class CharacterEditorPlugin : EditorPlugin
 {
+    private const string ScreenName = "CharacterEditorScreen";
+
     private CharacterEditorScreen? _screen;
 
     public override void _EnterTree()
     {
-        _screen = new CharacterEditorScreen();
+        // A C# rebuild sets the plugin up again but can leave the old screen in the editor; drop it so there is one.
+        Control mainScreen = EditorInterface.Singleton.GetEditorMainScreen();
+        mainScreen.GetNodeOrNull(ScreenName)?.Free();
+        _screen = new CharacterEditorScreen { Name = ScreenName };
         // The editor and local matches read the same data folder, next to game/.
         _screen.Build(GameDataLocation.Choose().Folder);
-        EditorInterface.Singleton.GetEditorMainScreen().AddChild(_screen);
+        mainScreen.AddChild(_screen);
         _MakeVisible(false);
     }
 
