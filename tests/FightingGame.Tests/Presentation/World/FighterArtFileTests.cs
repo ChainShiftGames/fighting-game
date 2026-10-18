@@ -1,4 +1,5 @@
 using FightingGame.Presentation.World;
+using FightingGame.Presentation.World.Projectiles;
 using Xunit;
 
 namespace FightingGame.Tests.Presentation.World;
@@ -205,28 +206,40 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
-    public void ReadsTheEffectEachMovesProjectilesAreDrawnWith()
+    public void ReadsTheEffectsEachMovesProjectilesAreDrawnWith()
     {
         const string Json = """
-            { "artVersion": 1, "art": "placeholder", "projectiles": { "236c": "dark_fireball" } }
+            {
+              "artVersion": 1,
+              "art": "placeholder",
+              "projectiles": {
+                "236c": { "flight": "dark_fireball", "charge": "dark_fireball_charge", "impact": "dark_fireball_impact" },
+                "214c": { "flight": "dark_fireball" }
+              }
+            }
             """;
 
         FighterArtSettings? settings = FighterArtFile.Read(Json, out string error);
 
         Assert.Equal(string.Empty, error);
-        Assert.Equal("dark_fireball", settings!.Projectiles["236c"]);
+        Assert.Equal(
+            new ProjectileArtSettings("dark_fireball", "dark_fireball_charge", "dark_fireball_impact"),
+            settings!.Projectiles["236c"]);
+        Assert.Equal(new ProjectileArtSettings("dark_fireball"), settings.Projectiles["214c"]);
     }
 
-    [Fact]
-    public void RefusesAProjectileEffectThatDoesNotExist()
+    [Theory]
+    [InlineData("""{ "flight": "rainbow_beam" }""", "no flight effect")]
+    [InlineData("""{ "flight": "dark_fireball", "charge": "dark_fireball" }""", "no charge effect")]
+    [InlineData("""{ "flight": "dark_fireball", "impact": "dark_fireball_charge" }""", "no impact effect")]
+    [InlineData("""{ "charge": "dark_fireball_charge" }""", "flight")]
+    public void RefusesProjectileEffectsThatDoNotExist(string projectile, string reason)
     {
-        const string Json = """
-            { "artVersion": 1, "art": "placeholder", "projectiles": { "236c": "rainbow_beam" } }
-            """;
+        string json = $$"""{ "artVersion": 1, "art": "placeholder", "projectiles": { "236c": {{projectile}} } }""";
 
-        FighterArtSettings? settings = FighterArtFile.Read(Json, out string error);
+        FighterArtSettings? settings = FighterArtFile.Read(json, out string error);
 
         Assert.Null(settings);
-        Assert.Contains("projectiles.236c", error);
+        Assert.Contains(reason, error);
     }
 }

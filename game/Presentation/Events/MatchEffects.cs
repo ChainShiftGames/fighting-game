@@ -28,6 +28,7 @@ public sealed class MatchEffects : IEffectReset
     {
         var effects = new EffectGroup(
             new ToggledEffect(toggles.Sparks, Sparks),
+            new ToggledEffect(toggles.Sparks, Impacts),
             new ToggledEffect(toggles.Shake, Shake),
             new ToggledEffect(toggles.Sounds, Sounds),
             new ToggledEffect(toggles.Rumble, new ControllerRumble(rumble)));
@@ -35,6 +36,9 @@ public sealed class MatchEffects : IEffectReset
     }
 
     public HitSparks Sparks { get; } = new();
+
+    /// <summary>Projectile impacts (hit, block, clash, expiry), drawn by the projectile's impact effect.</summary>
+    public ProjectileImpacts Impacts { get; } = new();
 
     public ScreenShake Shake { get; } = new();
 

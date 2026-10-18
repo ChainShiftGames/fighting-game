@@ -94,11 +94,12 @@ public static class FighterArtFile
             return $"knockOut: {knockOutProblem}";
         }
 
-        foreach (KeyValuePair<string, string> entry in file.Projectiles)
+        foreach (KeyValuePair<string, ProjectileJson> entry in file.Projectiles)
         {
-            if (!ProjectileEffects.Exists(entry.Value))
+            string problem = CheckProjectile(entry.Value);
+            if (problem.Length > 0)
             {
-                return $"projectiles.{entry.Key}: no projectile effect is called '{entry.Value}'";
+                return $"projectiles.{entry.Key}: {problem}";
             }
         }
 
@@ -112,6 +113,23 @@ public static class FighterArtFile
         }
 
         return string.Empty;
+    }
+
+    private static string CheckProjectile(ProjectileJson projectile)
+    {
+        if (!ProjectileEffects.FlightExists(projectile.Flight))
+        {
+            return $"no flight effect is called '{projectile.Flight}'";
+        }
+
+        if (projectile.Charge is { } charge && !ProjectileEffects.ChargeExists(charge))
+        {
+            return $"no charge effect is called '{charge}'";
+        }
+
+        return projectile.Impact is { } impact && !ProjectileEffects.ImpactExists(impact)
+            ? $"no impact effect is called '{impact}'"
+            : string.Empty;
     }
 
     private static string CheckTransition(TransitionJson transition)
@@ -189,8 +207,19 @@ public static class FighterArtFile
             CrossfadeFrames = file.CrossfadeFrames,
             TurnFrames = file.TurnFrames,
             HoldFrames = file.HoldFrames,
-            Projectiles = file.Projectiles,
+            Projectiles = ToSettings(file.Projectiles),
         };
+    }
+
+    private static Dictionary<string, ProjectileArtSettings> ToSettings(Dictionary<string, ProjectileJson> projectiles)
+    {
+        var settings = new Dictionary<string, ProjectileArtSettings>(System.StringComparer.Ordinal);
+        foreach (KeyValuePair<string, ProjectileJson> entry in projectiles)
+        {
+            settings[entry.Key] = new ProjectileArtSettings(entry.Value.Flight, entry.Value.Charge, entry.Value.Impact);
+        }
+
+        return settings;
     }
 
     private static AnimationSettings ToSettings(AnimationJson animation, ContactFrames? contacts) => new(
@@ -227,13 +256,23 @@ public static class FighterArtFile
 
         public AnimationJson? KnockOut { get; init; }
 
-        public Dictionary<string, string> Projectiles { get; init; } = [];
+        public Dictionary<string, ProjectileJson> Projectiles { get; init; } = [];
 
         public int CrossfadeFrames { get; init; }
 
         public int TurnFrames { get; init; }
 
         public int HoldFrames { get; init; } = 1;
+    }
+
+    private sealed class ProjectileJson
+    {
+        [JsonRequired]
+        public string Flight { get; init; } = string.Empty;
+
+        public string? Charge { get; init; }
+
+        public string? Impact { get; init; }
     }
 
     private sealed class TransitionJson

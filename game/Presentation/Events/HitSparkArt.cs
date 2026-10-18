@@ -25,10 +25,21 @@ public static class HitSparkArt
     private static readonly Color _otherColor = new(0.9f, 0.9f, 0.95f);
 
     /// <param name="latestFrame">The newest simulated frame, the one on screen (<c>MatchState.Frame</c> − 1).</param>
-    public static void Draw(CanvasItem canvas, StageCamera camera, ReadOnlySpan<FrameEvent> sparks, int latestFrame)
+    /// <param name="drawnElsewhere">True for sparks another effect replaces (a projectile's own impact); null draws all.</param>
+    public static void Draw(
+        CanvasItem canvas,
+        StageCamera camera,
+        ReadOnlySpan<FrameEvent> sparks,
+        int latestFrame,
+        Func<FrameEvent, bool>? drawnElsewhere = null)
     {
         foreach (FrameEvent spark in sparks)
         {
+            if (drawnElsewhere?.Invoke(spark) == true)
+            {
+                continue;
+            }
+
             float progress = Math.Clamp((float)(latestFrame - spark.Frame) / HitSparks.LifetimeFrames, 0f, 1f);
             float radius = StartRadius + ((EndRadius - StartRadius) * progress);
             Color color = ColorOf(spark.Kind) with { A = 1f - progress };

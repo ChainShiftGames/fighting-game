@@ -28,6 +28,8 @@ public partial class MatchView : Node2D
     private readonly MatchCamera _worldCamera = new();
     private readonly StageSet _stage = new();
     private readonly ProjectileViews _projectiles = new();
+    private readonly ChargeViews _charges = new();
+    private readonly ImpactViews _impacts = new();
     private readonly Node3D?[] _fighterNodes = new Node3D?[MatchState.PlayerCount];
     private readonly IFighterArt?[] _fighterArt = new IFighterArt?[MatchState.PlayerCount];
     private IMatchDriver<MatchState>? _driver;
@@ -36,6 +38,7 @@ public partial class MatchView : Node2D
     private DeveloperToggle? _hitboxOverlay;
     private MatchEffects? _effects;
     private StageCamera? _camera;
+    private System.Func<Sim.Events.FrameEvent, bool>? _sparkDrawnElsewhere;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
     /// <param name="screen">The logic camera's width and the stage walls, from the match rules.</param>
@@ -56,7 +59,11 @@ public partial class MatchView : Node2D
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
         _stage.Build(screen.Stage);
-        _projectiles.Build(characters);
+        ProjectileArtSettings?[][] projectileArt = ProjectileArtLookup.Of(characters);
+        _projectiles.Build(characters, projectileArt);
+        _charges.Build(characters, projectileArt);
+        _impacts.Build(projectileArt);
+        _sparkDrawnElsewhere = _impacts.HasArt;
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             _fighterNodes[player] =
@@ -77,7 +84,9 @@ public partial class MatchView : Node2D
             }
         }
 
+        AddChild(_charges);
         AddChild(_projectiles);
+        AddChild(_impacts);
         AddChild(_hud);
     }
 
@@ -105,7 +114,10 @@ public partial class MatchView : Node2D
             _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
         }
 
+        _charges.ShowFrame(in state.Fighters);
         _projectiles.ShowFrame(in state.Entities);
+        int latestFrame = state.Frame - 1;
+        _impacts.ShowFrame(_effects.Impacts.Live(latestFrame), latestFrame, in state.Fighters);
 
         QueueRedraw();
     }
@@ -124,7 +136,7 @@ public partial class MatchView : Node2D
         }
 
         int latestFrame = state.Frame - 1;
-        HitSparkArt.Draw(this, camera, _effects!.Sparks.Live(latestFrame), latestFrame);
+        HitSparkArt.Draw(this, camera, _effects!.Sparks.Live(latestFrame), latestFrame, _sparkDrawnElsewhere);
     }
 
     private void CollectBoxes(in FighterState fighter, CharacterData character)
