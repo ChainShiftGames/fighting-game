@@ -5,18 +5,19 @@ using Godot;
 using Sim.Collision;
 using Sim.Math;
 using Xunit;
+using LogicScreen = Sim.Camera.CameraFraming;
 
 namespace FightingGame.Tests.Presentation.World;
 
 public sealed class CameraFramingTests
 {
     private static readonly Vector2 _viewport = new(1152f, 648f);
-    private static readonly StageWalls _walls = new(-600_000, 600_000);
+    private static readonly LogicScreen _screen = new(220_000, new StageWalls(-600_000, 600_000));
 
     [Fact]
     public void ShowsThePlanePointThe2DLayersDrawAtTheScreenCentre()
     {
-        StageCamera camera = StageCamera.Fit(_viewport, _walls, focusX: 140_000);
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 140_000);
 
         CameraFraming framing = CameraFraming.Of(camera, _viewport);
 
@@ -30,7 +31,7 @@ public sealed class CameraFramingTests
     [Fact]
     public void ShowsAsMuchOfThePlaneAsTheStageCameraFromTopToBottom()
     {
-        StageCamera camera = StageCamera.Fit(_viewport, _walls, focusX: 0);
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 0);
 
         CameraFraming framing = CameraFraming.Of(camera, _viewport);
 
@@ -41,7 +42,7 @@ public sealed class CameraFramingTests
     [Fact]
     public void MovesWithTheShake()
     {
-        StageCamera camera = StageCamera.Fit(_viewport, _walls, focusX: 0);
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 0);
         StageCamera shaken = camera with { FloorCentre = camera.FloorCentre + new Vector2(10f, 0f) };
 
         float still = CameraFraming.Of(camera, _viewport).Centre.X;

@@ -21,6 +21,7 @@ public sealed class ScenarioSetup
     private int? _shortcutDamagePercent;
     private int? _shortcutCooldownFrames;
     private bool? _airRecovery;
+    private int? _maxPlayerDistance;
 
     public ScenarioSetup(ButtonSet buttons, MotionFile motions, MatchRules dataRules, FighterFlagNames flags)
     {
@@ -65,6 +66,7 @@ public sealed class ScenarioSetup
         MatchRules rules = _dataRules;
         rules.TradeRule = _tradeRule ?? rules.TradeRule;
         rules.EntitiesPerPlayer = _entitiesPerPlayer ?? rules.EntitiesPerPlayer;
+        rules.MaxPlayerDistance = _maxPlayerDistance ?? rules.MaxPlayerDistance;
         rules.ThrowVsStrike = _throwVsStrike ?? rules.ThrowVsStrike;
         rules.ShortcutDamagePercent = _shortcutDamagePercent ?? rules.ShortcutDamagePercent;
         rules.ShortcutCooldownFrames = _shortcutCooldownFrames ?? rules.ShortcutCooldownFrames;
@@ -114,6 +116,9 @@ public sealed class ScenarioSetup
 
     /// <summary>Overrides <c>entitiesPerPlayer</c> from data; a later line wins.</summary>
     internal void SetEntitiesPerPlayer(int slots) => _entitiesPerPlayer = slots;
+
+    /// <summary>Overrides <c>maxPlayerDistance</c> (the logic screen width) from data; a later line wins.</summary>
+    internal void SetMaxPlayerDistance(int subpixels) => _maxPlayerDistance = subpixels;
 
     /// <summary>Overrides the throw against strike rule from data; a later line wins.</summary>
     internal void SetThrowVsStrike(ThrowPriority priority) => _throwVsStrike = priority;

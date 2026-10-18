@@ -52,7 +52,7 @@ public sealed class ReplayMatchStartup
         var driver = new ReplayMatchDriver<MatchState>(
             effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), replay.Inputs);
         var view = new MatchView();
-        view.Show(driver, lineup.Characters, lineup.Walls, _hitboxOverlay, effects);
+        view.Show(driver, lineup.Characters, lineup.Screen, _hitboxOverlay, effects);
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players: [], _stepping);
         string description = $"replay {Path.GetFileName(path)}: {lineup.Description}, {replay.Inputs.Count} frames";

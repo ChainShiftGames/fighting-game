@@ -1,13 +1,13 @@
-# Fighters walking apart are held by the screen edges at maxPlayerDistance (640000), outer pushbox edge to outer
-# pushbox edge (P1-11). Pushboxes are 40000 wide, so the centres end 600000 apart.
+# Fighters walking apart are held by the screen edges at maxPlayerDistance (440000), outer pushbox edge to outer
+# pushbox edge (P1-11). Pushboxes are 40000 wide, so the centres end 400000 apart.
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
 
-# Both walk back 3200 per frame from -+150000: frame 46 is the last that fits on screen.
+# Both walk back 3200 per frame from -+150000: frame 15 is the last that fits on screen.
 frames 1-60: p1 4
 frames 1-60: p2 4
-frame 46: expect p1 x = -297200
-frame 46: expect p2 x = 297200
-frames 47-60: expect p1 x = -300000
-frames 47-60: expect p2 x = 300000
+frame 15: expect p1 x = -198000
+frame 15: expect p2 x = 198000
+frames 16-60: expect p1 x = -200000
+frames 16-60: expect p2 x = 200000
 frames 1-60: expect camera = 0

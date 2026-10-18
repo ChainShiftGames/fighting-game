@@ -8,6 +8,7 @@ using Sim.Characters;
 using Sim.Collision;
 using Sim.Math;
 using Sim.State;
+using LogicScreen = Sim.Camera.CameraFraming;
 
 namespace FightingGame.Presentation;
 
@@ -28,30 +29,30 @@ public partial class MatchView : Node2D
     private readonly PlaceholderFighterModel[] _fighterArt = [new(), new()];
     private IMatchDriver<MatchState>? _driver;
     private CharacterData[] _characters = [];
-    private StageWalls _walls;
+    private LogicScreen _screen;
     private DeveloperToggle? _hitboxOverlay;
     private MatchEffects? _effects;
     private StageCamera? _camera;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
-    /// <param name="walls">The stage walls from the match rules.</param>
+    /// <param name="screen">The logic camera's width and the stage walls, from the match rules.</param>
     /// <param name="hitboxOverlay">Draws every box when on (developer setting).</param>
     /// <param name="effects">The match's event effects; its sounds join the scene as a child of this view.</param>
     public void Show(
         IMatchDriver<MatchState> driver,
         CharacterData[] characters,
-        StageWalls walls,
+        LogicScreen screen,
         DeveloperToggle hitboxOverlay,
         MatchEffects effects)
     {
         _driver = driver;
         _characters = characters;
-        _walls = walls;
+        _screen = screen;
         _hitboxOverlay = hitboxOverlay;
         _effects = effects;
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
-        _stage.Build(walls);
+        _stage.Build(screen.Stage);
     }
 
     public override void _Ready()
@@ -77,7 +78,7 @@ public partial class MatchView : Node2D
 
         ref readonly MatchState state = ref _driver.State;
         Vector2 size = GetViewportRect().Size;
-        StageCamera fitted = StageCamera.Fit(size, _walls, state.Camera.X);
+        StageCamera fitted = StageCamera.Fit(size, _screen, state.Camera.X);
         StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(state.Frame - 1) };
         _camera = camera;
         _worldCamera.Frame(CameraFraming.Of(camera, size));

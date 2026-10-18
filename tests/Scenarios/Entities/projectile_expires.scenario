@@ -2,6 +2,8 @@
 # frames 15-74 and disappears on frame 75 at its last position.
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
+# Wider than the shipped screen, so the projectile can run out before reaching p2.
+setup: max_player_distance 640000
 setup: p1 x = -300000
 setup: p2 x = 290000
 

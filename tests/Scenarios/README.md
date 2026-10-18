@@ -54,7 +54,7 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   Settable values below override it; a later round starts from data again (full health), not from setup.
 - **What runs**: the production match, `Sim.Composition.MatchSimulation`: every stage built so far (input step,
   move state machines with the motion parser and button buffer, movement, pushboxes and walls at
-  ±`wallDistance` (600000), the camera holding the fighters within `maxPlayerDistance` (640000), hit detection and
+  ±`wallDistance` (600000), the camera holding the fighters within `maxPlayerDistance` (440000), hit detection and
   hit resolution with stand/crouch block, projectiles in the entity pool (`entitiesPerPlayer` (4) slots each),
   and the round and timer step: KO, time-out, the `roundOverFrames` (120)
   pause with neutral input, the next round or match over). Match rules come from
@@ -115,6 +115,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   (never for projectiles). Scenarios that check x after a hit see the slide.
 - **Entity pool** (match rules): `setup: entities_per_player <n>` overrides `entitiesPerPlayer` from
   `data/rules/match.json`: projectiles each player can have out at once (0 to 8).
+- **Screen width** (match rules): `setup: max_player_distance <subpixels>` overrides `maxPlayerDistance` from
+  `data/rules/match.json`, for scenarios that need the fighters further apart than the shipped screen allows.
 - **Module spawns**: the contract probe's config is `<hitstop> <spawn frame> <owner> <projectile>`; on that frame it
   requests the owner's projectile (index in the character's projectile list, as above), e.g.
   `setup: module contract_probe 0 3 1 0` spawns p2's `236c` fireball at the end of frame 3.

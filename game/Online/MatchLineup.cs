@@ -1,11 +1,11 @@
 using Netcode.Drivers;
 using Netcode.Replays;
 using Sim.Characters;
-using Sim.Collision;
 using Sim.Composition;
 using Sim.Data;
 using Sim.Rules;
 using Sim.State;
+using LogicScreen = Sim.Camera.CameraFraming;
 
 namespace FightingGame.Online;
 
@@ -18,11 +18,11 @@ public sealed class MatchLineup
     // Until there is a colour select, every character plays in its first colour.
     private const byte DefaultColour = 0;
 
-    private MatchLineup(CharacterData[] characters, MatchSimulation simulation, StageWalls walls)
+    private MatchLineup(CharacterData[] characters, MatchSimulation simulation, LogicScreen screen)
     {
         Characters = characters;
         Simulation = simulation;
-        Walls = walls;
+        Screen = screen;
     }
 
     /// <summary>P1's character, then P2's.</summary>
@@ -30,7 +30,8 @@ public sealed class MatchLineup
 
     public MatchSimulation Simulation { get; }
 
-    public StageWalls Walls { get; }
+    /// <summary>The logic camera's width and the stage walls, from the match rules.</summary>
+    public LogicScreen Screen { get; }
 
     /// <summary>One line naming both characters, e.g. "testman vs testman".</summary>
     public string Description => $"{Characters[0].Id} vs {Characters[1].Id}";
@@ -76,6 +77,6 @@ public sealed class MatchLineup
     {
         var simulation = new MatchSimulation(
             player1, player2, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules, data.Flags.Names);
-        return new MatchLineup([player1, player2], simulation, StageWalls.From(in rules));
+        return new MatchLineup([player1, player2], simulation, LogicScreen.From(in rules));
     }
 }
