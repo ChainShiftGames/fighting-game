@@ -116,6 +116,51 @@
           "values": { "glow_color": "#6f2bff", "intensity": 1.4 }
         }
       ]
+    },
+    {
+      "id": "toon",
+      "name": "Round 3: toon, to match the character",
+      "note": "The character is now toon-shaded (hard two-tone light, cool purple shade, ink outlines, posed on 2s), so the fireball should read as drawn, not rendered. Every variant uses the shared toon finish (Assets/Effects/toon_effect.gdshaderinc): flat bands on a black → violet → lilac ramp, a hard silhouette with an ink line, drawings held on 2s or 3s with a little boil, and no bending of the stage. Its sliders are under 'toon' on every variant. Pick, fork, or tell me which way to push.",
+      "variants": [
+        {
+          "id": "cel_vortex",
+          "name": "Cel Vortex",
+          "pitch": "The in-game Void Vortex, charge and impact as they are, with toon_look on and your latest Lab tweaks (6 arms, stronger glow, no pulse): the same design, now flat-toned, inked and on 2s. Promoting it is flipping one default.",
+          "extends": "void_vortex",
+          "values": { "toon_look": true, "arms": 6, "aura": 0.842, "intensity": 2.342, "particles": 1.2, "pulse": 0, "trail": 0.513 }
+        },
+        {
+          "id": "cel_vortex_bold",
+          "name": "Cel Vortex: bold, on 3s",
+          "pitch": "Cel Vortex pushed further: two tones only, thicker ink, held on 3s with more boil, fewer sparks. The most hand-drawn read of the current design.",
+          "extends": "cel_vortex",
+          "values": { "toon_bands": 2, "ink_pixels": 3.5, "toon_hold_frames": 3, "toon_boil": 1.2, "particles": 0.5, "arms": 3 }
+        },
+        {
+          "id": "ink_comet",
+          "name": "Ink Comet",
+          "pitch": "Redrawn as an Xrd effect: a flat black ball with a pale crescent where the light catches it (the same light as the character), a violet swirl inside, flame tongues streaming back and two swooshes wrapping round it. Toon charge, toon starburst impact.",
+          "extends": "cel_vortex",
+          "flight": { "shader": "flight_toon_comet.gdshader", "card": [2.4, 1.4], "centre": [-0.45, 0], "spin": 0.1 },
+          "impact": { "shader": "impact_toon_burst.gdshader", "card": [2.6, 2.6], "spin": 0 }
+        },
+        {
+          "id": "flipbook_puff",
+          "name": "Flipbook Puff",
+          "pitch": "A cartoon fireball of clumped smoke puffs, redrawn on every held drawing like a flipbook: black heart, violet body, pale rims on the lit side, puffs shrinking off the back. The softest, most animated read. Cel Vortex's charge and impact.",
+          "extends": "cel_vortex",
+          "flight": { "shader": "flight_toon_puff.gdshader", "card": [2.2, 1.5], "centre": [-0.35, 0], "spin": 0.1 }
+        },
+        {
+          "id": "graphic_void",
+          "name": "Graphic Void",
+          "pitch": "The most reduced take: a flat black disc, a thick pale crescent, solid ribbons orbiting it and hard speed lines behind, held on 3s like an anime key frame. Toon starburst impact.",
+          "extends": "cel_vortex",
+          "flight": { "shader": "flight_toon_void.gdshader", "card": [2.4, 1.3], "centre": [-0.5, 0], "spin": 0.08 },
+          "impact": { "shader": "impact_toon_burst.gdshader", "card": [2.6, 2.6], "spin": 0 },
+          "values": { "toon_hold_frames": 3 }
+        }
+      ]
     }
   ]
 }
