@@ -89,7 +89,9 @@ public partial class MatchView : Node2D
         StageCamera fitted = StageCamera.Fit(size, _walls, state.Camera.X);
         StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(state.Frame - 1) };
         _camera = camera;
-        _worldCamera.Frame(CameraFraming.Of(camera, size));
+        CameraFraming framing = CameraFraming.Of(camera, size);
+        _worldCamera.Frame(framing);
+        _stage.FollowCamera(framing.Centre.X);
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             ref readonly FighterState fighter = ref state.Fighters[player];
