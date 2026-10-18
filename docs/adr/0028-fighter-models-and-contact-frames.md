@@ -80,9 +80,10 @@ the authored contact pose. Something has to say where that pose is, and which ch
 
 ## Trying it (no model in git yet)
 
-- Lukas' Mixamo test set (`game/TestModel/`, one FBX per animation; Mixamo files may be used in a game but not
-  redistributed, so never committed) works with an art file using `file`, `clip: "mixamo_com"`, `inPlace` and
-  `turnDegrees: 90`.
+- Lukas' Mixamo test set (`game/TestModel/`, one FBX per animation) and testman's art file are committed, by Lukas'
+  choice (Oct 2026), so every machine runs the same test character. Mixamo's terms allow use in a game but not
+  handing out the raw files, and the repo is public: replace them with our own model before release. The art file
+  uses `file`, `clip: "mixamo_com"`, `inPlace` and `turnDegrees: 90`.
 - Other free option: Quaternius' *Universal Animation Library* (Standard tier, CC0, commercial use allowed;
   quaternius.itch.io/universal-animation-library) has a humanoid `.glb` with idle, walk and punch clips: copy it to
   `game/Assets/Characters/testman/testman.glb`, open the editor once so it imports, and add `testman_art.json` with
