@@ -29,22 +29,31 @@ public sealed class MoveClipLibrary
         _rootBone = rootBone;
     }
 
-    /// <summary>Adds every move that has a clip to <paramref name="player"/>; returns them by move ID.</summary>
-    public Dictionary<string, BoundClip> AddTo(AnimationPlayer player, IReadOnlyList<string> moveIds)
+    /// <summary>Adds every move and transition that has a clip to <paramref name="player"/>.</summary>
+    public BoundClips AddTo(AnimationPlayer player, IReadOnlyList<string> moveIds)
     {
         var library = new AnimationLibrary();
-        var clips = new Dictionary<string, BoundClip>(StringComparer.Ordinal);
+        var moves = new Dictionary<string, BoundClip>(StringComparer.Ordinal);
         foreach (string moveId in moveIds)
         {
             AnimationSettings settings = _settings.For(moveId);
-            if (Find(moveId, settings) is not { } source)
+            // A move the art file doesn't name simply has no clip yet; the model warns once if it is used.
+            bool named = _settings.Animations.ContainsKey(moveId);
+            if (Find(settings.Clip ?? moveId, settings, $"move '{moveId}'", named) is { } source)
             {
-                continue;
+                moves[moveId] = Add(library, moveId, Prepare(source, settings), settings.Contacts, $"move '{moveId}'");
             }
+        }
 
-            Animation clip = Prepare(source, settings);
-            library.AddAnimation(moveId, clip);
-            clips[moveId] = new BoundClip(new StringName($"{LibraryName}/{moveId}"), Timing(moveId, clip, settings));
+        var transitions = new BoundClip?[_settings.Transitions.Count];
+        for (int i = 0; i < transitions.Length; i++)
+        {
+            AnimationSettings settings = _settings.Transitions[i].Clip;
+            string what = $"transitions[{i}]";
+            if (Find(settings.Clip ?? string.Empty, settings, what, named: true) is { } source)
+            {
+                transitions[i] = Add(library, $"transition_{i}", Prepare(source, settings), null, what);
+            }
         }
 
         player.AddAnimationLibrary(LibraryName, library);
@@ -53,23 +62,28 @@ public sealed class MoveClipLibrary
             loaded.Free();
         }
 
-        return clips;
+        return new BoundClips(moves, transitions);
     }
 
-    private Animation? Find(string moveId, AnimationSettings settings)
+    private BoundClip Add(AnimationLibrary library, string name, Animation clip, ContactFrames? contacts, string what)
+    {
+        library.AddAnimation(name, clip);
+        return new BoundClip(new StringName($"{LibraryName}/{name}"), Timing(what, clip, contacts));
+    }
+
+    /// <param name="named">The art file names this clip, so a missing one is an error rather than a gap.</param>
+    private Animation? Find(string clip, AnimationSettings settings, string what, bool named)
     {
         AnimationPlayer? source = settings.File is { } file ? FileClips(file) : _modelClips;
-        string clip = settings.Clip ?? moveId;
         if (source is not null && source.HasAnimation(clip))
         {
             return source.GetAnimation(clip);
         }
 
-        // A move the art file doesn't name simply has no clip yet; the model warns once if it is used.
-        if (_settings.Animations.ContainsKey(moveId))
+        if (named)
         {
             string available = source is null ? "none" : string.Join(", ", source.GetAnimationList());
-            GD.PushError($"{_characterId}: no clip '{clip}' for move '{moveId}' (clips there: {available})");
+            GD.PushError($"{_characterId}: no clip '{clip}' for {what} (clips there: {available})");
         }
 
         return null;
@@ -151,14 +165,13 @@ public sealed class MoveClipLibrary
         }
     }
 
-    private AnimationClipTiming Timing(string moveId, Animation clip, AnimationSettings settings)
+    private AnimationClipTiming Timing(string what, Animation clip, ContactFrames? contacts)
     {
         float lengthFrames = (float)clip.Length * AnimationRetiming.FramesPerSecond;
-        ContactFrames? contacts = settings.Contacts;
         if (contacts is { } frames && frames.RecoveryFrom > lengthFrames)
         {
             GD.PushError(
-                $"{_characterId}: {moveId} recoveryFrom {frames.RecoveryFrom} is past the end of its clip " +
+                $"{_characterId}: {what} recoveryFrom {frames.RecoveryFrom} is past the end of its clip " +
                 $"({lengthFrames:0.#} frames); playing it frame for frame");
             contacts = null;
         }

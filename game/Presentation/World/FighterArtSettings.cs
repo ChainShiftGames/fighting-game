@@ -8,15 +8,31 @@ namespace FightingGame.Presentation.World;
 /// <param name="Scale">Multiplies the model's size, for a model not authored in metres.</param>
 /// <param name="TurnDegrees">Turns the model about Y, for a model not facing +X.</param>
 /// <param name="Animations">Per move ID; a move missing here plays the clip named after it, frame for frame.</param>
+/// <param name="Transitions">Clips shown when entering a move from certain others; the first that fits is used.</param>
 public sealed record FighterArtSettings(
     FighterArtKind Art,
     string Model,
     float Scale,
     float TurnDegrees,
-    IReadOnlyDictionary<string, AnimationSettings> Animations)
+    IReadOnlyDictionary<string, AnimationSettings> Animations,
+    IReadOnlyList<ClipTransition> Transitions)
 {
     public static FighterArtSettings Placeholder { get; } =
-        new(FighterArtKind.Placeholder, string.Empty, 1f, 0f, new Dictionary<string, AnimationSettings>());
+        new(FighterArtKind.Placeholder, string.Empty, 1f, 0f, new Dictionary<string, AnimationSettings>(), []);
+
+    /// <summary>The index of the first transition from <paramref name="fromMove"/> into <paramref name="toMove"/>; -1 if none.</summary>
+    public int TransitionBetween(string fromMove, string toMove)
+    {
+        for (int i = 0; i < Transitions.Count; i++)
+        {
+            if (Transitions[i].Joins(fromMove, toMove))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 
     /// <summary>How a move is animated: its own entry, or the clip named after it in the model, frame for frame.</summary>
     public AnimationSettings For(string moveId) =>

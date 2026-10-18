@@ -47,10 +47,17 @@ the authored contact pose. Something has to say where that pose is, and which ch
      `activeFrom..recoveryFrom`, recovery frames → `recoveryFrom..end`. The first active frame always shows
      `activeFrom`. Multi-hit moves (ADR-0022) use first-hit start to last-hit end as "active" for now.
    - Past the end: looping clips wrap, others hold the last pose. Hitstop holds the pose, as the move frame holds.
-5. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
+5. **Transitions and the match clock.** The art file's `transitions` list clips played over the first `frames`
+   logic frames of a move entered from certain moves (`from`/`to` lists, optional `reverse`), e.g. one "crouch to
+   stand" clip both ways. The game state keeps no previous move, so the model remembers the move it showed last
+   and counts frames by the match frame (`FighterPose.MatchFrame`), never elapsed time; after a rollback or a
+   rewound replay the match frame goes back and the transition is skipped, a cosmetic loss. Looping clips of basic
+   moves count on the same clock, so idle runs through its whole clip and a one-frame crouch still animates.
+   Looks only: logic and boxes change on the move's first frame.
+6. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
    retiming from the move's frame data as edited, framed to the canvas's origin and zoom at 1 m = 70 px, so boxes
    are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
-6. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
+7. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
 
 ## Trying it (no model in git yet)
@@ -69,6 +76,6 @@ the authored contact pose. Something has to say where that pose is, and which ch
 - Frame data can change without touching animations; animators change contact frames without touching game data.
 - One `.glb` per character; clips that do not match a move ID are ignored. Asymmetric characters look mirrored
   when facing left (as in most 2D fighters); a per-side model is a later decision.
-- Not decided: per-hit contact frames for multi-hit moves, blending between clips (none now: poses snap, as the
-  logic does), and export of the art file (JSON in `res://` is packed with `all_resources`; check on the first
+- Not decided: per-hit contact frames for multi-hit moves, general blending between clips (only listed
+  transitions; other moves snap, as the logic does), and export of the art file (JSON in `res://` is packed with `all_resources`; check on the first
   export).

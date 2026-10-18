@@ -22,6 +22,12 @@ public readonly record struct FighterPose(
     int FirstActiveFrame = 0,
     int LastActiveFrame = 0)
 {
+    /// <summary>
+    /// The match frame the pose is shown on: the clock the model counts a move's frames by when the move's own frame
+    /// doesn't (a repeated one-frame crouch). 0 when there is no match (the character editor).
+    /// </summary>
+    public int MatchFrame { get; init; }
+
     public static FighterPose Of(CharacterData character, in FighterState fighter)
     {
         MoveData move = character.Moves[fighter.Move];

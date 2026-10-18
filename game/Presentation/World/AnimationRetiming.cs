@@ -25,6 +25,16 @@ public static class AnimationRetiming
         return Fit(frame, clip);
     }
 
+    /// <summary>
+    /// The clip position for frame <paramref name="frameInTransition"/> (from 1) of a transition squeezed into
+    /// <paramref name="frames"/> logic frames; reversed, it starts from the clip's end.
+    /// </summary>
+    public static float TransitionFrameAt(int frameInTransition, int frames, float lengthFrames, bool reverse)
+    {
+        float frame = Span(frameInTransition - 1, frames, 0f, lengthFrames);
+        return reverse ? lengthFrames - frame : frame;
+    }
+
     private static float Retimed(FighterPose pose, ContactFrames contacts, float lengthFrames)
     {
         if (pose.Frame < pose.FirstActiveFrame)

@@ -94,7 +94,7 @@ public partial class MatchView : Node2D
         {
             ref readonly FighterState fighter = ref state.Fighters[player];
             CollectBoxes(in fighter, _characters[player]);
-            FighterPose pose = FighterPose.Of(_characters[player], in fighter);
+            FighterPose pose = FighterPose.Of(_characters[player], in fighter) with { MatchFrame = state.Frame };
             _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
         }
 

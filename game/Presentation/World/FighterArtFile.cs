@@ -83,7 +83,33 @@ public static class FighterArtFile
             }
         }
 
+        for (int i = 0; i < file.Transitions.Count; i++)
+        {
+            string problem = CheckTransition(file.Transitions[i]);
+            if (problem.Length > 0)
+            {
+                return $"transitions[{i}]: {problem}";
+            }
+        }
+
         return string.Empty;
+    }
+
+    private static string CheckTransition(TransitionJson transition)
+    {
+        if (transition.From.Count == 0 || transition.To.Count == 0)
+        {
+            return "from and to each need at least one move";
+        }
+
+        if (transition.Frames < 1)
+        {
+            return $"frames {transition.Frames} must be at least 1";
+        }
+
+        return string.IsNullOrWhiteSpace(transition.Clip) && string.IsNullOrWhiteSpace(transition.File)
+            ? "name its clip, its file, or both"
+            : string.Empty;
     }
 
     private static string CheckAnimation(AnimationJson animation)
@@ -119,7 +145,19 @@ public static class FighterArtFile
                 animation.InPlace);
         }
 
-        return new FighterArtSettings(file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations);
+        var transitions = new List<ClipTransition>(file.Transitions.Count);
+        foreach (TransitionJson transition in file.Transitions)
+        {
+            transitions.Add(new ClipTransition(
+                transition.From,
+                transition.To,
+                new AnimationSettings(transition.Clip, null, transition.File, null, transition.InPlace),
+                transition.Frames,
+                transition.Reverse));
+        }
+
+        return new FighterArtSettings(
+            file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations, transitions);
     }
 
     private sealed class ArtFileJson
@@ -137,6 +175,28 @@ public static class FighterArtFile
         public float TurnDegrees { get; init; }
 
         public Dictionary<string, AnimationJson> Animations { get; init; } = [];
+
+        public List<TransitionJson> Transitions { get; init; } = [];
+    }
+
+    private sealed class TransitionJson
+    {
+        [JsonRequired]
+        public List<string> From { get; init; } = [];
+
+        [JsonRequired]
+        public List<string> To { get; init; } = [];
+
+        public string? File { get; init; }
+
+        public string? Clip { get; init; }
+
+        [JsonRequired]
+        public int Frames { get; init; }
+
+        public bool Reverse { get; init; }
+
+        public bool InPlace { get; init; }
     }
 
     private sealed class AnimationJson

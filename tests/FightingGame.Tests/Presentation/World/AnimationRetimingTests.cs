@@ -97,6 +97,17 @@ public sealed class AnimationRetimingTests
         Assert.Equal(10f, shown, 4);
     }
 
+    [Theory]
+    [InlineData(1, false, 0f)]
+    [InlineData(5, false, 28f)]
+    [InlineData(1, true, 56f)]
+    [InlineData(8, true, 7f)]
+    public void SqueezesATransitionClipIntoItsFrames(int frame, bool reverse, float clipFrame)
+    {
+        // A 56-frame clip in 8 logic frames: 7 clip frames each; reversed it starts from the end.
+        Assert.Equal(clipFrame, AnimationRetiming.TransitionFrameAt(frame, 8, 56f, reverse), 4);
+    }
+
     private static FighterPose Attack(int frame) =>
         new(FighterAction.Attack, "5a", frame, Total, MovePhase.Startup, FirstActive, LastActive);
 

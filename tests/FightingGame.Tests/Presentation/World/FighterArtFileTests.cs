@@ -58,6 +58,40 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void ReadsTransitionsAndFindsTheFirstThatJoinsTwoMoves()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "m.glb",
+              "transitions": [
+                { "from": ["crouch"], "to": ["idle", "walk_back"], "file": "stand.fbx", "clip": "c", "frames": 8 },
+                { "from": ["idle"], "to": ["crouch"], "file": "stand.fbx", "clip": "c", "frames": 6, "reverse": true }
+              ]
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out _)!;
+
+        Assert.Equal(0, settings.TransitionBetween("crouch", "walk_back"));
+        Assert.Equal(1, settings.TransitionBetween("idle", "crouch"));
+        Assert.Equal(-1, settings.TransitionBetween("idle", "walk_back"));
+        Assert.True(settings.Transitions[1].Reverse);
+        Assert.Equal(6, settings.Transitions[1].Frames);
+    }
+
+    [Theory]
+    [InlineData("""{ "from": [], "to": ["idle"], "clip": "c", "frames": 8 }""")]
+    [InlineData("""{ "from": ["crouch"], "to": ["idle"], "clip": "c", "frames": 0 }""")]
+    [InlineData("""{ "from": ["crouch"], "to": ["idle"], "frames": 8 }""")]
+    public void RefusesATransitionThatCantPlay(string transition)
+    {
+        string json = $$"""{ "artVersion": 1, "art": "model", "model": "m.glb", "transitions": [{{transition}}] }""";
+
+        Assert.Null(FighterArtFile.Read(json, out string error));
+        Assert.Contains("transitions[0]", error);
+    }
+
+    [Fact]
     public void LeavesAMoveWithoutAnEntryToTheModelsClipNamedAfterIt()
     {
         AnimationSettings move = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _)!
