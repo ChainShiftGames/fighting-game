@@ -83,6 +83,13 @@ public partial class SchemaForm : VBoxContainer
 
     private void AddField(SchemaField field)
     {
+        // Ticking a box adds the list, so a missing optional one needs no Add first.
+        if (!_target.ContainsKey(field.Name) && field is { Kind: SchemaFieldKind.ChoiceList, IsRequired: false })
+        {
+            AddRow(field.Name, field.Description, ChoiceListInput(field), removable: false);
+            return;
+        }
+
         if (!_target.ContainsKey(field.Name))
         {
             var add = new Button { Text = field.IsRequired ? "Add (required)" : "Add" };
@@ -269,7 +276,7 @@ public partial class SchemaForm : VBoxContainer
     private HFlowContainer ChoiceListInput(SchemaField field)
     {
         var flow = new HFlowContainer();
-        foreach (string choice in field.Choices)
+        foreach (string choice in JsonStringList.Offered(field.Choices, _target, field.Name))
         {
             var check = new CheckBox
             {

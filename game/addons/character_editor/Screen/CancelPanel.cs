@@ -93,17 +93,7 @@ public partial class CancelPanel : VBoxContainer
             CustomMinimumSize = new Vector2(SchemaForm.LabelWidth, 0f),
         });
         var flow = new HFlowContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        // Targets the character doesn't have are listed too, so they can be unticked (validation reports them).
-        List<string> shown = [.. _targets];
-        foreach (string target in JsonStringList.Read(window, MoveFields.Into))
-        {
-            if (!shown.Contains(target))
-            {
-                shown.Add(target);
-            }
-        }
-
-        foreach (string target in shown)
+        foreach (string target in JsonStringList.Offered(_targets, window, MoveFields.Into))
         {
             var check = new CheckBox
             {

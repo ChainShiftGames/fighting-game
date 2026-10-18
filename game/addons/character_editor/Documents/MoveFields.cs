@@ -13,6 +13,11 @@ public static class MoveFields
     public const string Active = "active";
     public const string Recovery = "recovery";
     public const string UsableIn = "usableIn";
+    public const string Requires = "requires";
+    public const string Flags = "flags";
+    public const string NotFlags = "notFlags";
+    public const string SetsFlags = "setsFlags";
+    public const string ClearsFlags = "clearsFlags";
     public const string Input = "input";
     public const string Motion = "motion";
     public const string Button = "button";
