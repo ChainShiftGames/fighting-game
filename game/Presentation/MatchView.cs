@@ -59,6 +59,7 @@ public partial class MatchView : Node2D
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
         _stage.Build(screen.Stage);
+        _worldCamera.UsePerspective = _stage.WantsPerspective;
         ProjectileArtSettings?[][] projectileArt = ProjectileArtLookup.Of(characters);
         _projectiles.Build(characters, projectileArt);
         _charges.Build(characters, projectileArt);

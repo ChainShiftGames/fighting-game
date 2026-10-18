@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace FightingGame.Presentation.World;
 
 /// <summary>
-/// Reads the stage art file, <c>game/Assets/Stages/stage_art.json</c> (developer setting): the background picture
-/// the placeholder stage shows. An invalid file is refused with the reason, never fixed up.
+/// Reads the stage art file, <c>game/Assets/Stages/stage_art.json</c> (developer setting): the stage scene to build, or
+/// the background picture the placeholder stage shows. An invalid file is refused with the reason, never fixed up.
 /// </summary>
 public static class StageArtFile
 {
@@ -23,7 +23,7 @@ public static class StageArtFile
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
 
-    /// <summary>Where the picture is: a <c>res://</c> path as written, anything else relative to <see cref="Folder"/>.</summary>
+    /// <summary>Where a picture or scene is: a <c>res://</c> path as written, anything else relative to <see cref="Folder"/>.</summary>
     public static string Resolve(string file) =>
         file.StartsWith("res://", System.StringComparison.Ordinal) ? file : $"{Folder}/{file}";
 
@@ -48,9 +48,11 @@ public static class StageArtFile
             { GroundLine: < 0f or >= 1f } => $"groundLine {file.GroundLine} must be from 0 up to 1",
             { Depth: <= 0f } => $"depth {file.Depth} must be above 0",
             { Parallax: < 0f or >= 1f } => $"parallax {file.Parallax} must be from 0 up to 1",
+            { Scene.Length: > 0, Background.Length: > 0 } => "scene and background both set: a stage scene draws its own background",
             _ => string.Empty,
         };
-        return error.Length > 0 ? null : new StageArtSettings(file!.Background ?? string.Empty, file.GroundLine, file.Depth, file.Parallax, file.Floor);
+        return error.Length > 0 ? null : new StageArtSettings(
+            file!.Background ?? string.Empty, file.GroundLine, file.Depth, file.Parallax, file.Floor, file.Scene ?? string.Empty, file.Perspective);
     }
 
     private sealed class StageArtJson
@@ -67,5 +69,9 @@ public static class StageArtFile
         public float Parallax { get; init; }
 
         public bool Floor { get; init; }
+
+        public string? Scene { get; init; }
+
+        public bool Perspective { get; init; }
     }
 }
