@@ -1,22 +1,24 @@
 // Toon finish for effects, so they match the toon-shaded characters (P4-B, Guilty Gear Xrd): an effect draws its
 // layers as usual, then `toon_finish` turns them into flat palette bands with a hard silhouette and an ink line, and
 // `toon_held` steps its clock on 2s or 3s like the characters' poses. Look settings are developer settings
-// (ADR-0008); the ranges and groups are the VFX Lab's sliders (ADR-0029).
+// (ADR-0008); the ranges and groups are the VFX Lab's sliders (ADR-0029). The defaults are the house style, picked from
+// the fireball's toon round (Cel Vortex: bold), so a new effect starts on-model. Effect shaders also use
+// fog_disabled: a stage's fog would tint the whole card, transparent parts too, and show it as a pale square.
 
 group_uniforms toon;
 // Logic frames each drawing is held for: 1 = smooth, 2-3 = on 2s or 3s.
-uniform float toon_hold_frames : hint_range(1.0, 4.0, 1.0) = 2.0;
+uniform float toon_hold_frames : hint_range(1.0, 4.0, 1.0) = 3.0;
 // Flat tones from dark to light, mapped onto the palette ramp below.
-uniform float toon_bands : hint_range(2.0, 5.0, 1.0) = 3.0;
+uniform float toon_bands : hint_range(2.0, 5.0, 1.0) = 2.0;
 // The ramp's middle tone; the ends are the effect's own dark and light colours.
 uniform vec4 toon_mid_color : source_color = vec4(0.42, 0.25, 0.6, 1.0);
 // Coverage above this is the effect, below is not: one hard silhouette instead of soft fades.
 uniform float toon_cut : hint_range(0.05, 0.95) = 0.35;
 uniform vec4 ink_color : source_color = vec4(0.06, 0.02, 0.08, 1.0);
 // Ink line along the silhouette, in pixels at 1080p; 0 = none.
-uniform float ink_pixels : hint_range(0.0, 6.0) = 2.5;
+uniform float ink_pixels : hint_range(0.0, 6.0) = 3.5;
 // How far shapes jump between held drawings, as hand-drawn frames never line up exactly ("boil").
-uniform float toon_boil : hint_range(0.0, 2.0) = 0.6;
+uniform float toon_boil : hint_range(0.0, 2.0) = 1.2;
 group_uniforms;
 
 const float TOON_FRAMES_PER_SECOND = 60.0;

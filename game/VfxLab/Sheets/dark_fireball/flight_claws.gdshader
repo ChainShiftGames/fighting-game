@@ -1,7 +1,7 @@
 // Round 1, "Grasping Shadow": the void reaches for the opponent. Shadow fingers stretch forward from the orb and
 // clench and open as it flies, pale at the tips; a smoky wake trails behind.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 

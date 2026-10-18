@@ -1,7 +1,7 @@
 // Round 3, "Flipbook Puff": a cartoon fireball of clumped smoke puffs, redrawn on every held drawing like a hand-drawn
 // flipbook: a black heart, violet body, pale rims where the light catches each puff, puffs shrinking off the back.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 #include "res://Assets/Effects/toon_effect.gdshaderinc"

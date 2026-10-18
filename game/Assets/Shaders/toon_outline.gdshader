@@ -2,7 +2,7 @@
 // same width whatever the camera zoom (Xrd-style constant-thickness outlines); the width is in pixels at 1080p and
 // scales with the window height.
 shader_type spatial;
-render_mode unshaded, cull_front;
+render_mode unshaded, cull_front, fog_disabled;
 
 uniform sampler2D lit_texture : source_color, filter_linear_mipmap, repeat_enable;
 // Multiplies the texture, so the line takes on a darker shade of the part it outlines.

@@ -1,6 +1,17 @@
 {
   "feedbackVersion": 1,
   "variants": {
+    "cel_vortex_bold": {
+      "pick": false,
+      "rating": 0,
+      "hidden": false,
+      "note": "",
+      "values": {
+        "aura": 1.113,
+        "intensity": 1.808
+      },
+      "isEmpty": false
+    },
     "void_vortex": {
       "pick": false,
       "rating": 0,

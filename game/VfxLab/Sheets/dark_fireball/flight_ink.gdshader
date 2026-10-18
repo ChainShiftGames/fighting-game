@@ -1,7 +1,7 @@
 // Round 1, "Sumi Ink": the void as a wet blot of ink dragging a calligraphy stroke. Dry-brush gaps open up towards
 // the tail, the edges bleed, and droplets splatter off. The orb's veins still swirl in the blot.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 

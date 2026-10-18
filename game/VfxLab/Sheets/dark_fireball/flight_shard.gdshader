@@ -1,7 +1,7 @@
 // Round 1, "Obsidian Comet": a faceted black crystal instead of a soft orb, hard cel highlights on its faces, a ring
 // of small shards orbiting it, and a trail of sharp triangles that flicker out behind. Clean, graphic, readable.
 shader_type spatial;
-render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
+render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 
