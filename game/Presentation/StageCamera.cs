@@ -19,10 +19,10 @@ public readonly record struct StageCamera(Vector2 FloorCentre, float PixelsPerSu
 
     // Developer settings (presentation): world pixels shown from the top of the screen to the bottom, where the
     // floor sits as a share of the screen height from the top, the least room shown past each logic screen edge, and
-    // how much of the world beyond a wall may show. 264 px makes a 120 px standing fighter ~45% of the screen height,
-    // as close as Street Fighter, Guilty Gear and Under Night frame theirs.
-    private const float VisibleWorldHeight = 264f;
-    private const float FloorFromTop = 0.85f;
+    // how much of the world beyond a wall may show. 228 px makes a 120 px standing fighter ~53% of the screen height,
+    // as close as Guilty Gear Strive frames its fighters.
+    private const float VisibleWorldHeight = 228f;
+    private const float FloorFromTop = 0.88f;
     private const float ScreenEdgeMarginPixels = 12f;
     private const float BeyondWallPixels = 16f;
 

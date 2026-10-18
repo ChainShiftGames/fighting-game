@@ -1,6 +1,8 @@
 # Without a meter module there is no meter to lose; the penalty still happens and tells presentation.
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
+# Room to back off: wider than the shipped screen.
+setup: max_player_distance 640000
 setup: module negative_penalty 30 2 2500
 frames 1-40: p1 4
 

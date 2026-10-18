@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "roundStartDistance": 150000,
   "wallDistance": 600000,
-  "maxPlayerDistance": 440000,
+  "maxPlayerDistance": 380000,
   "tradeRule": "trade",
   "roundTimerFrames": 5940,
   "roundsToWin": 2,

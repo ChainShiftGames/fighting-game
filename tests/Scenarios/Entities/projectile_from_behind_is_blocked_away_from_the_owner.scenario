@@ -3,6 +3,8 @@
 # the fireball arrives from p2's left, p1 stands on p2's right, so p2 blocks by holding left, toward the fireball.
 setup: p1 character scenario_dummy
 setup: p2 character scenario_dummy
+# Room to back off: wider than the shipped screen.
+setup: max_player_distance 640000
 setup: p1 x = -345000
 setup: p2 x = 45000
 

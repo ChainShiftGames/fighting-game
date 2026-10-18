@@ -9,10 +9,10 @@ namespace FightingGame.Tests.Presentation;
 
 public sealed class StageCameraTests
 {
-    // 2 screen pixels per world pixel (264 world pixels high); wide enough for the 440 px logic screen.
-    private static readonly Vector2 _viewport = new(1056f, 528f);
+    // 2 screen pixels per world pixel (228 world pixels high); wide enough for the 380 px logic screen.
+    private static readonly Vector2 _viewport = new(912f, 456f);
     private static readonly StageWalls _walls = new(-600_000, 600_000);
-    private static readonly LogicScreen _screen = new(220_000, _walls);
+    private static readonly LogicScreen _screen = new(190_000, _walls);
 
     private readonly StageCamera _camera = new(new Vector2(500f, 400f), 0.002f);
 
@@ -45,7 +45,7 @@ public sealed class StageCameraTests
         StageCamera large = StageCamera.Fit(_viewport * 2f, _screen, focusX: 0);
 
         Assert.Equal(2f * small.PixelsPerSubpixel, large.PixelsPerSubpixel, 6);
-        Assert.Equal(528f, small.FloorCentre.X);
+        Assert.Equal(456f, small.FloorCentre.X);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class StageCameraTests
     {
         StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 100_000);
 
-        Assert.Equal(528f, camera.ToScreen(new IntVector2(100_000, 0)).X, 3);
+        Assert.Equal(456f, camera.ToScreen(new IntVector2(100_000, 0)).X, 3);
     }
 
     [Fact]
@@ -72,17 +72,17 @@ public sealed class StageCameraTests
     {
         StageCamera camera = StageCamera.Fit(_viewport, new LogicScreen(100_000, new StageWalls(-100_000, 100_000)), focusX: 90_000);
 
-        Assert.Equal(528f, camera.FloorCentre.X);
+        Assert.Equal(456f, camera.FloorCentre.X);
     }
 
     [Fact]
     public void ZoomsOutWhenTheViewportIsTooNarrowForTheLogicScreen()
     {
-        var narrow = new Vector2(800f, 528f);
+        var narrow = new Vector2(700f, 456f);
 
         StageCamera camera = StageCamera.Fit(narrow, _screen, focusX: 0);
 
-        // The 440 px logic screen plus 12 px each side fills the width exactly.
+        // The 380 px logic screen plus 12 px each side fills the width exactly.
         float left = camera.ToScreen(new IntVector2(-_screen.HalfWidth - 12_000, 0)).X;
         float right = camera.ToScreen(new IntVector2(_screen.HalfWidth + 12_000, 0)).X;
         Assert.Equal(0f, left, 3);
