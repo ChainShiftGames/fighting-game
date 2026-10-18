@@ -144,6 +144,17 @@ public sealed class AnimationRetimingTests
         Assert.Equal(clipFrame, AnimationRetiming.FrameAt(Attack(frame) with { FirstActiveFrame = 0 }, onTwos), 4);
     }
 
+    [Fact]
+    public void PlaysAClipFasterAtItsSpeed()
+    {
+        // A walk cycle sped up to the logic's walk speed: frame 11 is 10 frames in, 26 clip frames at 2.6.
+        var walk = new FighterPose(FighterAction.WalkForward, "walk_forward", 11, 60, MovePhase.None);
+
+        float shown = AnimationRetiming.FrameAt(walk, new AnimationClipTiming(58f, Loops: true, Speed: 2.6f));
+
+        Assert.Equal(26f, shown, 3);
+    }
+
     private static FighterPose Attack(int frame) =>
         new(FighterAction.Attack, "5a", frame, Total, MovePhase.Startup, FirstActive, LastActive);
 

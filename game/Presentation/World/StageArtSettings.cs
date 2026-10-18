@@ -6,7 +6,10 @@ namespace FightingGame.Presentation.World;
 /// <param name="Depth">How far behind the gameplay plane the picture stands, in metres.</param>
 /// <param name="Parallax">How much of the camera's sideways travel the picture follows: 0 fixed to the stage, near 1
 /// almost fixed to the screen. Following part of it, a smaller picture covers the whole stage and reads as far away.</param>
-public sealed record StageArtSettings(string Background, float GroundLine, float Depth, float Parallax = 0f)
+/// <param name="Floor">Keeps the stage's own floor in front of the picture, so the fighters stand on ground that moves
+/// with them while a parallax picture is only distant scenery.</param>
+public sealed record StageArtSettings(
+    string Background, float GroundLine, float Depth, float Parallax = 0f, bool Floor = false)
 {
     public static StageArtSettings None { get; } = new(string.Empty, 0f, 0f);
 }

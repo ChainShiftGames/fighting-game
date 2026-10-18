@@ -57,13 +57,20 @@ public sealed class MoveClipLibrary
             }
         }
 
+        BoundClip? knockOut = null;
+        if (_settings.KnockOut is { } knockOutSettings && knockOutSettings.Clip is { } name &&
+            Find(name, knockOutSettings, "knockOut", named: true) is { } knockOutSource)
+        {
+            knockOut = Add(library, "knock_out", Prepare(knockOutSource, knockOutSettings), knockOutSettings, "knockOut");
+        }
+
         mixer.AddAnimationLibrary(LibraryName, library);
         foreach (Node loaded in _loadedFiles)
         {
             loaded.Free();
         }
 
-        return new BoundClips(moves, transitions);
+        return new BoundClips(moves, transitions, knockOut);
     }
 
     private BoundClip Add(AnimationLibrary library, string name, Animation clip, AnimationSettings settings, string what)
@@ -165,6 +172,7 @@ public sealed class MoveClipLibrary
             contacts,
             start,
             settings.Fit,
-            settings.HoldFrames ?? _settings.HoldFrames);
+            settings.HoldFrames ?? _settings.HoldFrames,
+            settings.Speed);
     }
 }

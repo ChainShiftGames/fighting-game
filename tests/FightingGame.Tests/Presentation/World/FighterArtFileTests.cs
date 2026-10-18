@@ -126,6 +126,27 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void ReadsTheKnockoutClipAndClipSpeeds()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "m.glb",
+              "knockOut": { "file": "dying.fbx", "clip": "c", "inPlace": true },
+              "animations": { "walk_forward": { "clip": "walk", "speed": 2.6 } }
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out _)!;
+
+        Assert.Equal("dying.fbx", settings.KnockOut!.File);
+        Assert.True(settings.KnockOut.InPlace);
+        Assert.Equal(2.6f, settings.For("walk_forward").Speed);
+        Assert.Equal(1f, settings.For("idle").Speed);
+        Assert.Null(FighterArtFile.Read(Json.Replace("2.6", "0", System.StringComparison.Ordinal), out string error));
+        Assert.Contains("speed", error);
+    }
+
+    [Fact]
     public void LeavesAMoveWithoutAnEntryToTheModelsClipNamedAfterIt()
     {
         AnimationSettings move = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _)!

@@ -16,6 +16,7 @@ namespace FightingGame.Presentation.World;
 /// <param name="HoldFrames">Shows each pose this many frames (2 or 3); null uses the art file's setting.</param>
 /// <param name="CrossfadeFrames">Frames this move's clip fades in over; null uses the art file's setting, 0 snaps
 /// (a 4-frame prejump is itself the transition).</param>
+/// <param name="Speed">Plays the clip faster or slower, so a walk cycle's feet keep up with the logic's walk speed.</param>
 public sealed record AnimationSettings(
     string? Clip,
     ContactFrames? Contacts,
@@ -27,7 +28,8 @@ public sealed record AnimationSettings(
     bool Fit = false,
     bool HoldHeight = false,
     int? HoldFrames = null,
-    int? CrossfadeFrames = null)
+    int? CrossfadeFrames = null,
+    float Speed = 1f)
 {
     /// <summary>A move the art file doesn't list: the clip named after it, frame for frame.</summary>
     public static AnimationSettings Default { get; } = new(null, null);

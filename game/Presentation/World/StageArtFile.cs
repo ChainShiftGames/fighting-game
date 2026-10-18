@@ -50,7 +50,7 @@ public static class StageArtFile
             { Parallax: < 0f or >= 1f } => $"parallax {file.Parallax} must be from 0 up to 1",
             _ => string.Empty,
         };
-        return error.Length > 0 ? null : new StageArtSettings(file!.Background ?? string.Empty, file.GroundLine, file.Depth, file.Parallax);
+        return error.Length > 0 ? null : new StageArtSettings(file!.Background ?? string.Empty, file.GroundLine, file.Depth, file.Parallax, file.Floor);
     }
 
     private sealed class StageArtJson
@@ -65,5 +65,7 @@ public static class StageArtFile
         public float Depth { get; init; } = 4f;
 
         public float Parallax { get; init; }
+
+        public bool Floor { get; init; }
     }
 }

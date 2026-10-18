@@ -17,6 +17,9 @@ public sealed record FighterArtSettings(
     IReadOnlyDictionary<string, AnimationSettings> Animations,
     IReadOnlyList<ClipTransition> Transitions)
 {
+    /// <summary>The clip played once a fighter is KO'd, from that frame on; null keeps showing its moves.</summary>
+    public AnimationSettings? KnockOut { get; init; }
+
     /// <summary>Frames a basic move's clip takes to fade in from the pose before; 0 snaps.</summary>
     public int CrossfadeFrames { get; init; }
 

@@ -88,6 +88,11 @@ public static class FighterArtFile
             }
         }
 
+        if (file.KnockOut is { } knockOut && CheckAnimation(knockOut) is { Length: > 0 } knockOutProblem)
+        {
+            return $"knockOut: {knockOutProblem}";
+        }
+
         for (int i = 0; i < file.Transitions.Count; i++)
         {
             string problem = CheckTransition(file.Transitions[i]);
@@ -135,6 +140,11 @@ public static class FighterArtFile
             return "clipFrom must be 0 or more, and clipTo after it";
         }
 
+        if (animation.Speed <= 0f)
+        {
+            return $"speed {animation.Speed} must be above 0";
+        }
+
         return animation.HoldFrames < 1 || animation.CrossfadeFrames < 0
             ? "holdFrames must be at least 1 and crossfadeFrames 0 or more"
             : string.Empty;
@@ -149,18 +159,7 @@ public static class FighterArtFile
             ContactFrames? contacts = animation.ActiveFrom is { } active && animation.RecoveryFrom is { } recovery
                 ? new ContactFrames(active, recovery)
                 : null;
-            animations[entry.Key] = new AnimationSettings(
-                animation.Clip,
-                contacts,
-                animation.File,
-                animation.Loop,
-                animation.InPlace,
-                animation.ClipFrom,
-                animation.ClipTo,
-                animation.Fit,
-                animation.HoldHeight,
-                animation.HoldFrames,
-                animation.CrossfadeFrames);
+            animations[entry.Key] = ToSettings(animation, contacts);
         }
 
         var transitions = new List<ClipTransition>(file.Transitions.Count);
@@ -177,11 +176,26 @@ public static class FighterArtFile
         return new FighterArtSettings(
             file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations, transitions)
         {
+            KnockOut = file.KnockOut is { } knockOut ? ToSettings(knockOut, null) : null,
             CrossfadeFrames = file.CrossfadeFrames,
             TurnFrames = file.TurnFrames,
             HoldFrames = file.HoldFrames,
         };
     }
+
+    private static AnimationSettings ToSettings(AnimationJson animation, ContactFrames? contacts) => new(
+        animation.Clip,
+        contacts,
+        animation.File,
+        animation.Loop,
+        animation.InPlace,
+        animation.ClipFrom,
+        animation.ClipTo,
+        animation.Fit,
+        animation.HoldHeight,
+        animation.HoldFrames,
+        animation.CrossfadeFrames,
+        animation.Speed);
 
     private sealed class ArtFileJson
     {
@@ -200,6 +214,8 @@ public static class FighterArtFile
         public Dictionary<string, AnimationJson> Animations { get; init; } = [];
 
         public List<TransitionJson> Transitions { get; init; } = [];
+
+        public AnimationJson? KnockOut { get; init; }
 
         public int CrossfadeFrames { get; init; }
 
@@ -253,5 +269,7 @@ public static class FighterArtFile
         public int? HoldFrames { get; init; }
 
         public int? CrossfadeFrames { get; init; }
+
+        public float Speed { get; init; } = 1f;
     }
 }

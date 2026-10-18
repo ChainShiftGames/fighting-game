@@ -7,10 +7,12 @@ namespace FightingGame.Presentation.World;
 /// <param name="StartFrame">Where the played part starts in the clip (<c>clipFrom</c>).</param>
 /// <param name="Fit">Stretches or squeezes the part over the whole move (a 4-frame prejump).</param>
 /// <param name="HoldFrames">Shows each pose for this many logic frames (2 or 3: animation on 2s or 3s).</param>
+/// <param name="Speed">Clip frames per logic frame when played frame for frame.</param>
 public readonly record struct AnimationClipTiming(
     float LengthFrames,
     bool Loops,
     ContactFrames? Contacts = null,
     float StartFrame = 0f,
     bool Fit = false,
-    int HoldFrames = 1);
+    int HoldFrames = 1,
+    float Speed = 1f);

@@ -28,6 +28,9 @@ public readonly record struct FighterPose(
     /// </summary>
     public int MatchFrame { get; init; }
 
+    /// <summary>The fighter is KO'd: the model plays its knockout clip from the frame it happened.</summary>
+    public bool IsKnockedOut { get; init; }
+
     public static FighterPose Of(CharacterData character, in FighterState fighter)
     {
         MoveData move = character.Moves[fighter.Move];
@@ -38,7 +41,10 @@ public readonly record struct FighterPose(
             move.TotalFrames,
             MovePhases.Of(in move, fighter.MoveFrame),
             move.FirstActiveFrame,
-            move.LastActiveFrame);
+            move.LastActiveFrame)
+        {
+            IsKnockedOut = KnockOut.IsKnockedOut(in fighter),
+        };
     }
 
     /// <summary>E.g. <c>5a 6/16</c> for an attack, <c>WalkForward: idle 12/60</c> for a basic action.</summary>

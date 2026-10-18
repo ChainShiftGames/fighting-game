@@ -6,7 +6,7 @@ namespace FightingGame.Presentation.World;
 /// <summary>
 /// The placeholder stage in the 3D scene: a floor slab between the walls with its top on the logic floor, solid walls
 /// standing just outside the logic walls, a fixed light and a plain background, or the picture the stage art file
-/// names standing behind the plane, its ground on the logic floor and in place of the slab.
+/// names standing behind the plane, its ground on the logic floor and in place of the slab unless the file keeps it.
 /// </summary>
 /// <remarks>Stage art replaces this; it keeps the walls at the logic's positions (P4-D).</remarks>
 public partial class StageSet : Node3D
@@ -37,7 +37,7 @@ public partial class StageSet : Node3D
     {
         float left = WorldScale.ToMetres(_walls.Left);
         float right = WorldScale.ToMetres(_walls.Right);
-        if (!AddBackground(left, right))
+        if (!AddBackground(left, right, out bool keepFloor) || keepFloor)
         {
             AddBlock(new Vector3(right - left, FloorThickness, StageDepth), new Vector3((left + right) / 2f, -FloorThickness / 2f, 0f), _floorColor);
         }
@@ -58,12 +58,15 @@ public partial class StageSet : Node3D
         }
     }
 
-    private bool AddBackground(float left, float right)
+    private bool AddBackground(float left, float right, out bool keepFloor)
     {
+        keepFloor = false;
         if (ReadArt() is not { Background.Length: > 0 } art)
         {
             return false;
         }
+
+        keepFloor = art.Floor;
 
         string path = StageArtFile.Resolve(art.Background);
         if (!ResourceLoader.Exists(path) || ResourceLoader.Load(path) is not Texture2D picture)

@@ -29,6 +29,16 @@ public sealed class FighterPoseTests
     }
 
     [Fact]
+    public void KnowsWhenTheFighterIsKnockedOut()
+    {
+        FighterState down = Fighter(FighterAction.Knockdown, "knockdown", 3) with { Health = 0 };
+        FighterState hurt = down with { Health = 1 };
+
+        Assert.True(FighterPose.Of(_character, down).IsKnockedOut);
+        Assert.False(FighterPose.Of(_character, hurt).IsKnockedOut);
+    }
+
+    [Fact]
     public void NamesTheActionOfABasicMove()
     {
         FighterPose pose = FighterPose.Of(_character, Fighter(FighterAction.WalkForward, "idle", 12));

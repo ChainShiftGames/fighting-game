@@ -14,10 +14,13 @@ namespace FightingGame.Presentation.World;
 public partial class RiggedFighterModel : Node3D, IFighterArt
 {
     private const string IdleMoveId = "idle";
+    private const string KnockedOutState = "knocked_out";
+    private const string StandingState = "standing";
 
     private readonly HashSet<string> _warnedMoves = new(StringComparer.Ordinal);
     private readonly ClipMixer _mixer = new();
     private readonly MoveEntryTracker _entries = new();
+    private readonly MoveEntryTracker _knockOut = new();
     private readonly PoseFade _fade = new();
     private readonly FacingTurn _turn = new();
     private readonly Node3D _pivot = new();
@@ -65,7 +68,7 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
             _entries.Observe(pose.MoveId, pose.MatchFrame);
         }
 
-        (BoundClip Clip, double Seconds)? transition = Transition(pose);
+        (BoundClip Clip, double Seconds)? transition = KnockedOut(pose) ?? Transition(pose);
         bool isTransition = transition is not null;
         BoundClip? shown = transition?.Clip ?? MoveClip(pose.MoveId);
         if (shown is not { } clip)
@@ -123,6 +126,24 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
             ? pose with { Frame = _entries.FramesInMove(pose.MatchFrame) }
             : pose;
 
+    // A KO plays the knockout clip from the frame it happened, whatever the logic's moves do meanwhile.
+    private (BoundClip Clip, double Seconds)? KnockedOut(FighterPose pose)
+    {
+        if (pose.MatchFrame <= 0 || _clips.KnockOut is not { } clip)
+        {
+            return null;
+        }
+
+        _knockOut.Observe(pose.IsKnockedOut ? KnockedOutState : StandingState, pose.MatchFrame);
+        if (!pose.IsKnockedOut)
+        {
+            return null;
+        }
+
+        var frame = new FighterPose(pose.Action, pose.MoveId, _knockOut.FramesInMove(pose.MatchFrame), 0, pose.Phase);
+        return (clip, AnimationRetiming.SecondsAt(frame, clip.Timing));
+    }
+
     private (BoundClip Clip, double Seconds)? Transition(FighterPose pose)
     {
         if (pose.MatchFrame <= 0 || _entries.CameFrom is not { } from)
@@ -145,7 +166,12 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
 
     private static StringName[] NamesById(BoundClips clips)
     {
-        var names = new StringName[clips.Moves.Count + clips.Transitions.Length];
+        var names = new StringName[clips.Moves.Count + clips.Transitions.Length + 1];
+        if (clips.KnockOut is { } knockOut)
+        {
+            names[knockOut.Id] = knockOut.Name;
+        }
+
         foreach (BoundClip clip in clips.Moves.Values)
         {
             names[clip.Id] = clip.Name;

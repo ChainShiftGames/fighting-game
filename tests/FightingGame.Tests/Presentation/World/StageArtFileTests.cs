@@ -9,9 +9,9 @@ public sealed class StageArtFileTests
     public void ReadsTheBackgroundAndWhereItsGroundIs()
     {
         StageArtSettings? art = FileRead(
-            """{ "artVersion": 1, "background": "waterfall.webp", "groundLine": 0.25, "parallax": 0.6 }""");
+            """{ "artVersion": 1, "background": "waterfall.webp", "groundLine": 0.25, "parallax": 0.6, "floor": true }""");
 
-        Assert.Equal(new StageArtSettings("waterfall.webp", 0.25f, 4f, 0.6f), art);
+        Assert.Equal(new StageArtSettings("waterfall.webp", 0.25f, 4f, 0.6f, Floor: true), art);
         Assert.Equal("res://Assets/Stages/waterfall.webp", StageArtFile.Resolve(art!.Background));
     }
 

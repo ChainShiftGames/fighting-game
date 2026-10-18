@@ -31,7 +31,7 @@ public static class AnimationRetiming
         }
         else
         {
-            frame = held.Frame - 1;
+            frame = (held.Frame - 1) * clip.Speed;
         }
 
         return clip.StartFrame + Fit(frame, clip);

@@ -61,6 +61,8 @@ the authored contact pose. Something has to say where that pose is, and which ch
    file. Per move, `clipFrom`/`clipTo` play part of a clip, `fit` squeezes it into the move (a 4-frame prejump from
    a jump clip's wind-up) and `holdHeight` keeps the root bone's height for a clip that jumps by itself. Poses are
    mixed by an animation tree that never advances on its own.
+   `speed` plays a clip faster so a walk cycle's feet keep up with the logic's walk speed. `knockOut` names the
+   clip played from the frame a fighter is KO'd (`FighterPose.IsKnockedOut`), whatever its moves do meanwhile.
 7. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
    retiming from the move's frame data as edited, framed to the canvas's origin and zoom at 1 m = 70 px, so boxes
    are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
