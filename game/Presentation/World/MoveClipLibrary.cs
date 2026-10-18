@@ -125,6 +125,11 @@ public sealed class MoveClipLibrary
     private Animation Prepare(Animation source, AnimationSettings settings)
     {
         var clip = (Animation)source.Duplicate();
+        if (settings.Reverse)
+        {
+            ClipReversal.Reverse(clip);
+        }
+
         if (settings.Loop is { } loop)
         {
             clip.LoopMode = loop ? Animation.LoopModeEnum.Linear : Animation.LoopModeEnum.None;

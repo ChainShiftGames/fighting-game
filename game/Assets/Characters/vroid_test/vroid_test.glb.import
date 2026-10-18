@@ -136,6 +136,12 @@ _subresources={
 "use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02.tres",
 "use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02.tres"
 }
+},
+"nodes": {
+"PATH:Armature/Skeleton3D": {
+"retarget/bone_map": Resource("res://Assets/Characters/vroid_test/vroid_test_bone_map.tres"),
+"retarget/rest_fixer/fix_silhouette/enable": true
+}
 }
 }
 gltf/naming_version=2
