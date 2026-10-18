@@ -12,7 +12,8 @@
       "keyboard": {
         "bindings": {
           "up": ["W"], "down": ["S"], "left": ["A"], "right": ["D"],
-          "a": ["U"], "b": ["I"], "c": ["J"], "d": ["K"], "special": ["O"], "dash": ["L"]
+          // P is special + C at once: the 236C fireball by its shortcut, in one key for laptops.
+          "a": ["U"], "b": ["I"], "c": ["J", "P"], "d": ["K"], "special": ["O", "P"], "dash": ["L"]
         }
       },
       "gamepad": {

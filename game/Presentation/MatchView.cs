@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using FightingGame.Debug;
 using FightingGame.Presentation.Events;
 using FightingGame.Presentation.World;
+using FightingGame.Presentation.World.Projectiles;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
@@ -25,6 +26,7 @@ public partial class MatchView : Node2D
     private readonly MatchHud _hud = new();
     private readonly MatchCamera _worldCamera = new();
     private readonly StageSet _stage = new();
+    private readonly ProjectileViews _projectiles = new();
     private readonly Node3D?[] _fighterNodes = new Node3D?[MatchState.PlayerCount];
     private readonly IFighterArt?[] _fighterArt = new IFighterArt?[MatchState.PlayerCount];
     private IMatchDriver<MatchState>? _driver;
@@ -53,6 +55,7 @@ public partial class MatchView : Node2D
         AddChild(effects.Sounds);
         _hud.Show(driver, characters);
         _stage.Build(walls);
+        _projectiles.Build(characters);
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             _fighterNodes[player] =
@@ -73,6 +76,7 @@ public partial class MatchView : Node2D
             }
         }
 
+        AddChild(_projectiles);
         AddChild(_hud);
     }
 
@@ -99,6 +103,8 @@ public partial class MatchView : Node2D
             FighterPose pose = FighterPose.Of(_characters[player], in fighter) with { MatchFrame = state.Frame };
             _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
         }
+
+        _projectiles.ShowFrame(in state.Entities);
 
         QueueRedraw();
     }

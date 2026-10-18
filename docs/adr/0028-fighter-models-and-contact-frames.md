@@ -68,6 +68,11 @@ the authored contact pose. Something has to say where that pose is, and which ch
    are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
 8. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
+9. **Projectile art: `IProjectileArt`, named per move in the art file.** `"projectiles": { "236c": "dark_fireball" }`
+   draws every projectile a move spawns with an effect from `ProjectileEffects` (an unknown name refuses the file).
+   `ProjectileViews` makes one effect node per entity slot at match start and shows each live entity with its life
+   frame, hitbox centre and facing, so effects move with the logic frame, never elapsed time. No entry: the projectile
+   shows only in the hitbox overlay. Effects are built in Godot (shaders in `game/Assets/Effects/`), no new dependency.
 
 ## Trying it (no model in git yet)
 

@@ -44,7 +44,8 @@ public static class FighterArtChoice
         return fighter;
     }
 
-    private static FighterArtSettings? ReadSettings(string characterId)
+    /// <summary>The character's art file, or null without one or when it is invalid (the reason is logged).</summary>
+    public static FighterArtSettings? ReadSettings(string characterId)
     {
         string path = FighterArtFile.PathFor(characterId);
         if (!FileAccess.FileExists(path))

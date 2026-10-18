@@ -203,4 +203,30 @@ public sealed class FighterArtFileTests
         Assert.NotEmpty(error);
         Assert.Contains(reason, error);
     }
+
+    [Fact]
+    public void ReadsTheEffectEachMovesProjectilesAreDrawnWith()
+    {
+        const string Json = """
+            { "artVersion": 1, "art": "placeholder", "projectiles": { "236c": "dark_fireball" } }
+            """;
+
+        FighterArtSettings? settings = FighterArtFile.Read(Json, out string error);
+
+        Assert.Equal(string.Empty, error);
+        Assert.Equal("dark_fireball", settings!.Projectiles["236c"]);
+    }
+
+    [Fact]
+    public void RefusesAProjectileEffectThatDoesNotExist()
+    {
+        const string Json = """
+            { "artVersion": 1, "art": "placeholder", "projectiles": { "236c": "rainbow_beam" } }
+            """;
+
+        FighterArtSettings? settings = FighterArtFile.Read(Json, out string error);
+
+        Assert.Null(settings);
+        Assert.Contains("projectiles.236c", error);
+    }
 }

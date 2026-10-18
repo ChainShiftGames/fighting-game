@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FightingGame.Presentation.World.Projectiles;
 
 namespace FightingGame.Presentation.World;
 
@@ -93,6 +94,14 @@ public static class FighterArtFile
             return $"knockOut: {knockOutProblem}";
         }
 
+        foreach (KeyValuePair<string, string> entry in file.Projectiles)
+        {
+            if (!ProjectileEffects.Exists(entry.Value))
+            {
+                return $"projectiles.{entry.Key}: no projectile effect is called '{entry.Value}'";
+            }
+        }
+
         for (int i = 0; i < file.Transitions.Count; i++)
         {
             string problem = CheckTransition(file.Transitions[i]);
@@ -180,6 +189,7 @@ public static class FighterArtFile
             CrossfadeFrames = file.CrossfadeFrames,
             TurnFrames = file.TurnFrames,
             HoldFrames = file.HoldFrames,
+            Projectiles = file.Projectiles,
         };
     }
 
@@ -216,6 +226,8 @@ public static class FighterArtFile
         public List<TransitionJson> Transitions { get; init; } = [];
 
         public AnimationJson? KnockOut { get; init; }
+
+        public Dictionary<string, string> Projectiles { get; init; } = [];
 
         public int CrossfadeFrames { get; init; }
 

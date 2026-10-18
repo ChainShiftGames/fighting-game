@@ -26,6 +26,9 @@ public sealed record FighterArtSettings(
     /// <summary>Frames the model takes to turn round when the facing switches; 0 mirrors at once.</summary>
     public int TurnFrames { get; init; }
 
+    /// <summary>The projectile effect per move ID that spawns it (<c>ProjectileEffects</c>); a move missing here has none.</summary>
+    public IReadOnlyDictionary<string, string> Projectiles { get; init; } = new Dictionary<string, string>();
+
     /// <summary>Frames each pose is shown for, for every move without its own setting: 1, or 2-3 for animation on 2s or 3s.</summary>
     public int HoldFrames { get; init; } = 1;
 
