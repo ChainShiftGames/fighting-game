@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using Sim.Characters;
 
@@ -14,11 +15,8 @@ public static class FighterArtChoice
     /// <returns>The node to add to the 3D scene.</returns>
     public static Node3D Create(CharacterData character, Color color, out IFighterArt art)
     {
-        if (ReadSettings(character.Id) is { Art: FighterArtKind.Model } settings &&
-            LoadModel(character.Id, settings) is { } model)
+        if (CreateModel(character.Id, character.MoveIds.ToArray()) is { } fighter)
         {
-            var fighter = new RiggedFighterModel();
-            fighter.Build(model, settings, character);
             art = fighter;
             return fighter;
         }
@@ -27,6 +25,23 @@ public static class FighterArtChoice
         placeholder.Paint(color);
         art = placeholder;
         return placeholder;
+    }
+
+    /// <summary>
+    /// The character's rigged model when its art file asks for one and it loads; null for a placeholder. Also used
+    /// by the character editor, which has the move list but not the compiled character.
+    /// </summary>
+    public static RiggedFighterModel? CreateModel(string characterId, IReadOnlyList<string> moveIds)
+    {
+        if (ReadSettings(characterId) is not { Art: FighterArtKind.Model } settings ||
+            LoadModel(characterId, settings) is not { } model)
+        {
+            return null;
+        }
+
+        var fighter = new RiggedFighterModel();
+        fighter.Build(model, settings, characterId, moveIds);
+        return fighter;
     }
 
     private static FighterArtSettings? ReadSettings(string characterId)

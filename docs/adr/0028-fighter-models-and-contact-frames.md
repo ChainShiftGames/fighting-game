@@ -47,7 +47,10 @@ the authored contact pose. Something has to say where that pose is, and which ch
      `activeFrom..recoveryFrom`, recovery frames → `recoveryFrom..end`. The first active frame always shows
      `activeFrom`. Multi-hit moves (ADR-0022) use first-hit start to last-hit end as "active" for now.
    - Past the end: looping clips wrap, others hold the last pose. Hitstop holds the pose, as the move frame holds.
-5. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
+5. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
+   retiming from the move's frame data as edited, framed to the canvas's origin and zoom at 1 m = 70 px, so boxes
+   are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
+6. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
 
 ## Trying it (no model in git yet)

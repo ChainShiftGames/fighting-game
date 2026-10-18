@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Sim.Characters;
 using Sim.Math;
 
 namespace FightingGame.Presentation.World;
@@ -23,9 +22,10 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
 
     /// <summary>Puts the model in and gathers its move clips; once, before the first frame.</summary>
     /// <param name="model">The imported model scene (<c>.glb</c>; <c>.fbx</c> for test models).</param>
-    public void Build(PackedScene model, FighterArtSettings settings, CharacterData character)
+    /// <param name="moveIds">The character's moves; each gets the clip its art file or its name points to.</param>
+    public void Build(PackedScene model, FighterArtSettings settings, string characterId, IReadOnlyList<string> moveIds)
     {
-        _characterId = character.Id;
+        _characterId = characterId;
         var pivot = new Node3D
         {
             Basis = new Basis(Vector3.Up, Mathf.DegToRad(settings.TurnDegrees)).Scaled(Vector3.One * settings.Scale),
@@ -44,8 +44,8 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         instance.AddChild(_player);
         // Manual: the player never advances by itself; ShowPose seeks it to the logic's frame (ARCHITECTURE.md §9).
         _player.CallbackModeProcess = AnimationMixer.AnimationCallbackModeProcess.Manual;
-        var library = new MoveClipLibrary(settings, character.Id, modelClips, RootBone(instance));
-        _clips = library.AddTo(_player, character);
+        var library = new MoveClipLibrary(settings, characterId, modelClips, RootBone(instance));
+        _clips = library.AddTo(_player, moveIds);
     }
 
     public void ShowPose(FighterPose pose, IntVector2 position, int facing, List<WorldBox> boxes)

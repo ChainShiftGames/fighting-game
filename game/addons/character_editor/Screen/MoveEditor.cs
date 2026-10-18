@@ -87,6 +87,10 @@ public partial class MoveEditor : VBoxContainer
 
     /// <summary>Shows the move; nothing when null (no move selected, or its file is missing).</summary>
     /// <param name="cancelTargets">Move ids a cancel window can go into: the character's attacks.</param>
+    /// <summary>Shows the character's model behind the boxes, when it has one.</summary>
+    public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds) =>
+        _boxes.ShowCharacter(characterId, moveIds);
+
     public void ShowMove(EditedFile? move, EditingContext? context, IReadOnlyList<string> cancelTargets)
     {
         _move = move;

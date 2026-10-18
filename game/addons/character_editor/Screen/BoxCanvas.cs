@@ -11,8 +11,8 @@ using Sim.Data.Characters.Reading;
 namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
-/// One frame of a move, facing right: the placeholder body the game draws, every box on the frame in the hitbox
-/// overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
+/// One frame of a move, facing right: the character's model posed for the frame (<see cref="ModelPreview"/>), or the
+/// placeholder body when it has none, every box on the frame in the hitbox overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
 /// new box of <see cref="DrawKind"/> on empty space; right- or middle-drag pans; the wheel zooms.
 /// </summary>
 /// <remarks>Edges snap to whole pixels; hold Alt to place them on any subpixel.</remarks>
@@ -37,6 +37,7 @@ public partial class BoxCanvas : Control
     private static readonly Color _unknownKind = new(0.6f, 0.6f, 0.6f);
     private static readonly Color _handle = new(1f, 1f, 1f);
 
+    private readonly ModelPreview _preview = new();
     private JsonObject _move = [];
     private IReadOnlyList<string> _fieldOrder = [];
     private int _frame = 1;
@@ -56,6 +57,7 @@ public partial class BoxCanvas : Control
         CustomMinimumSize = new Vector2(0f, 360f);
         ClipContents = true;
         FocusMode = FocusModeEnum.Click;
+        AddChild(_preview);
     }
 
     /// <summary>The selected box changed (null: none).</summary>
@@ -71,6 +73,13 @@ public partial class BoxCanvas : Control
 
     /// <summary>Dragging a box that spans several frames first splits this frame out of it.</summary>
     public bool ThisFrameOnly { get; set; } = true;
+
+    /// <summary>Shows the character's model behind the boxes, when its art file has one; null for none.</summary>
+    public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds)
+    {
+        _preview.ShowCharacter(characterId, moveIds);
+        QueueRedraw();
+    }
 
     /// <param name="fieldOrder">The move's field names in schema order, for a move without boxes.</param>
     public void ShowFrame(JsonObject move, IReadOnlyList<string> fieldOrder, int frame, JsonObject? selected)
@@ -88,7 +97,12 @@ public partial class BoxCanvas : Control
         Vector2 origin = Origin();
         DrawLine(new Vector2(0f, origin.Y), new Vector2(Size.X, origin.Y), _axis);
         DrawLine(new Vector2(origin.X, 0f), new Vector2(origin.X, Size.Y), _axis);
-        if (MoveBoxes.Body(_move, _frame) is BoxArea body)
+        if (_preview.HasModel)
+        {
+            _preview.ShowFrame(_move, _frame, Size, origin, _zoom / Subpixels);
+            DrawTexture(_preview.GetTexture(), Vector2.Zero);
+        }
+        else if (MoveBoxes.Body(_move, _frame) is BoxArea body)
         {
             DrawRect(ToScreen(body), _body);
         }

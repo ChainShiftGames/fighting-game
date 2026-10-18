@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Sim.Characters;
 
 namespace FightingGame.Presentation.World;
 
@@ -31,11 +30,11 @@ public sealed class MoveClipLibrary
     }
 
     /// <summary>Adds every move that has a clip to <paramref name="player"/>; returns them by move ID.</summary>
-    public Dictionary<string, BoundClip> AddTo(AnimationPlayer player, CharacterData character)
+    public Dictionary<string, BoundClip> AddTo(AnimationPlayer player, IReadOnlyList<string> moveIds)
     {
         var library = new AnimationLibrary();
         var clips = new Dictionary<string, BoundClip>(StringComparer.Ordinal);
-        foreach (string moveId in character.MoveIds)
+        foreach (string moveId in moveIds)
         {
             AnimationSettings settings = _settings.For(moveId);
             if (Find(moveId, settings) is not { } source)

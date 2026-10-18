@@ -73,6 +73,10 @@ public partial class BoxPanel : VBoxContainer
 
     public int Frame => (int)_frame.Value;
 
+    /// <summary>Shows the character's model behind the boxes, when it has one.</summary>
+    public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds) =>
+        _canvas.ShowCharacter(characterId, moveIds);
+
     public void ShowMove(JsonObject move, SchemaObject moveSchema)
     {
         bool sameMove = move == _move;
