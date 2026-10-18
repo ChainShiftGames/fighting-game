@@ -20,6 +20,13 @@ public static class FighterArtFile
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) },
     };
 
+    /// <summary>
+    /// Where a file the art file names is: a <c>res://</c> path as written, anything else relative to the character's
+    /// folder.
+    /// </summary>
+    public static string Resolve(string characterId, string file) =>
+        file.StartsWith("res://", System.StringComparison.Ordinal) ? file : $"{FolderFor(characterId)}/{file}";
+
     /// <summary>The art file's <c>res://</c> path for a character.</summary>
     public static string PathFor(string characterId) => $"{FolderFor(characterId)}/{characterId}_art.json";
 
@@ -104,7 +111,12 @@ public static class FighterArtFile
             ContactFrames? contacts = animation.ActiveFrom is { } active && animation.RecoveryFrom is { } recovery
                 ? new ContactFrames(active, recovery)
                 : null;
-            animations[entry.Key] = new AnimationSettings(animation.Clip, contacts);
+            animations[entry.Key] = new AnimationSettings(
+                animation.Clip,
+                contacts,
+                animation.File,
+                animation.Loop,
+                animation.InPlace);
         }
 
         return new FighterArtSettings(file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations);
@@ -134,5 +146,11 @@ public static class FighterArtFile
         public int? ActiveFrom { get; init; }
 
         public int? RecoveryFrom { get; init; }
+
+        public string? File { get; init; }
+
+        public bool? Loop { get; init; }
+
+        public bool InPlace { get; init; }
     }
 }

@@ -6,6 +6,6 @@ public enum FighterArtKind
     /// <summary>The box-shaped <see cref="PlaceholderFighterModel"/>, sized by the body box.</summary>
     Placeholder,
 
-    /// <summary>The character's rigged glTF model, <see cref="GltfFighterModel"/>.</summary>
+    /// <summary>The character's rigged model, <see cref="RiggedFighterModel"/>.</summary>
     Model,
 }

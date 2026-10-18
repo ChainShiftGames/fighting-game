@@ -36,6 +36,47 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void ReadsClipsKeptInTheirOwnFiles()
+    {
+        const string Json = """
+            {
+              "artVersion": 1,
+              "art": "model",
+              "model": "res://TestModel/MainModel.fbx",
+              "animations": {
+                "walk_back": { "file": "res://TestModel/Walking Backwards.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true }
+              }
+            }
+            """;
+
+        AnimationSettings walk = FighterArtFile.Read(Json, out _)!.For("walk_back");
+
+        Assert.Equal("res://TestModel/Walking Backwards.fbx", walk.File);
+        Assert.Equal("mixamo_com", walk.Clip);
+        Assert.True(walk.Loop);
+        Assert.True(walk.InPlace);
+    }
+
+    [Fact]
+    public void LeavesAMoveWithoutAnEntryToTheModelsClipNamedAfterIt()
+    {
+        AnimationSettings move = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _)!
+            .For("2c");
+
+        Assert.Null(move.File);
+        Assert.Null(move.Loop);
+        Assert.False(move.InPlace);
+    }
+
+    [Theory]
+    [InlineData("testman.glb", "res://Assets/Characters/testman/testman.glb")]
+    [InlineData("res://TestModel/MainModel.fbx", "res://TestModel/MainModel.fbx")]
+    public void FindsNamedFilesInTheCharactersFolderUnlessGivenAResPath(string file, string path)
+    {
+        Assert.Equal(path, FighterArtFile.Resolve("testman", file));
+    }
+
+    [Fact]
     public void NamesAMovesClipAfterTheMoveWhenTheFileDoesNot()
     {
         FighterArtSettings? settings = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _);

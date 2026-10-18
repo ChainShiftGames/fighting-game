@@ -17,7 +17,7 @@ public static class FighterArtChoice
         if (ReadSettings(character.Id) is { Art: FighterArtKind.Model } settings &&
             LoadModel(character.Id, settings) is { } model)
         {
-            var fighter = new GltfFighterModel();
+            var fighter = new RiggedFighterModel();
             fighter.Build(model, settings, character);
             art = fighter;
             return fighter;
@@ -48,7 +48,7 @@ public static class FighterArtChoice
 
     private static PackedScene? LoadModel(string characterId, FighterArtSettings settings)
     {
-        string path = $"{FighterArtFile.FolderFor(characterId)}/{settings.Model}";
+        string path = FighterArtFile.Resolve(characterId, settings.Model);
         if (ResourceLoader.Exists(path) && ResourceLoader.Load(path) is PackedScene model)
         {
             return model;

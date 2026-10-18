@@ -13,9 +13,9 @@ the authored contact pose. Something has to say where that pose is, and which ch
 
 ## Decision
 
-1. **`GltfFighterModel` is the second `IFighterArt`.** It instances the character's imported `.glb`, binds one clip
-   per move ID, and each displayed frame seeks the `AnimationPlayer` (process mode Manual, paused, method/audio
-   tracks off) to the time for the logic's move frame. It never advances by elapsed time. The model root stands on
+1. **`RiggedFighterModel` is the second `IFighterArt`.** It instances the character's imported `.glb`, gathers one
+   clip per move ID into its own `AnimationPlayer` (`MoveClipLibrary`), and each displayed frame seeks it (process
+   mode Manual, paused, method/audio tracks off) to the time for the logic's move frame. It never advances by elapsed time. The model root stands on
    the logic position and is mirrored (scale X = facing), not turned, for facing.
 2. **Per-character art file: `game/Assets/Characters/<id>/<id>_art.json`** (developer setting, presentation, in
    git), read by `FighterArtFile`, next to the `.glb` it names:
@@ -30,8 +30,12 @@ the authored contact pose. Something has to say where that pose is, and which ch
    }
    ```
    - `art`: `placeholder` or `model`. **No file → placeholder.** This is the switch; no code names a character.
-   - `animations` is optional per move: `clip` overrides the move-ID name (for third-party test models);
-     `activeFrom`/`recoveryFrom` are the contact frames. `scale`/`turnDegrees` only adapt off-spec models.
+   - `animations` is optional per move: `activeFrom`/`recoveryFrom` are the contact frames; `loop` overrides the
+     clip's loop setting.
+   - Adapters for off-spec (third-party test) models only: `clip` (a clip name other than the move ID), `file` (the
+     clip comes from another imported model file, e.g. one Mixamo FBX per animation), `inPlace` (removes the root
+     bone's horizontal travel, keeping height), `scale`, `turnDegrees`. Files are relative to the character folder,
+     or a `res://` path. Clips are copied, so imported files are never changed.
    - An invalid file is refused with the reason (error in the log) and the character drawn as a placeholder.
 3. **Contact frames live in the art file, not in character data.** They are animation facts: they change when an
    animator re-exports, never when the game rules change. In `data/` they would enter the data hash (an art tweak
@@ -48,12 +52,14 @@ the authored contact pose. Something has to say where that pose is, and which ch
 
 ## Trying it (no model in git yet)
 
-Third-party models stay out of git until the art direction picks one. Quaternius' *Universal Animation Library*
-(Standard tier, free, CC0: commercial use allowed) has a humanoid `.glb` with clips such as idle, walk and punches:
-download it from quaternius.itch.io/universal-animation-library, copy the character `.glb` to
-`game/Assets/Characters/testman/testman.glb`, open the editor once so it imports, and add `testman_art.json` with
-`"art": "model"`, `"turnDegrees": 90` (glTF models usually face +Z) and `clip` names for the moves to try. Moves
-without a clip show idle.
+- Lukas' Mixamo test set (`game/TestModel/`, one FBX per animation; Mixamo files may be used in a game but not
+  redistributed, so never committed) works with an art file using `file`, `clip: "mixamo_com"`, `inPlace` and
+  `turnDegrees: 90`.
+- Other free option: Quaternius' *Universal Animation Library* (Standard tier, CC0, commercial use allowed;
+  quaternius.itch.io/universal-animation-library) has a humanoid `.glb` with idle, walk and punch clips: copy it to
+  `game/Assets/Characters/testman/testman.glb`, open the editor once so it imports, and add `testman_art.json` with
+  `"art": "model"`, `"turnDegrees": 90` (glTF models usually face +Z) and `clip` names. Moves without a clip show
+  idle.
 
 ## Consequences
 
