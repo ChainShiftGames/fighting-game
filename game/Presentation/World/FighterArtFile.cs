@@ -234,7 +234,8 @@ public static class FighterArtFile
         animation.HoldHeight,
         animation.HoldFrames,
         animation.CrossfadeFrames,
-        animation.Speed);
+        animation.Speed,
+        animation.Reverse);
 
     private sealed class ArtFileJson
     {
@@ -322,5 +323,7 @@ public static class FighterArtFile
         public int? CrossfadeFrames { get; init; }
 
         public float Speed { get; init; } = 1f;
+
+        public bool Reverse { get; init; }
     }
 }

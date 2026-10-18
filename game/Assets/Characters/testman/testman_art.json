@@ -1,53 +1,71 @@
 {
-  // Test setup: Mixamo FBX files in game/TestModel (committed by Lukas' choice). Mixamo models face +Z, so turn 90°.
-  // Contact frames: measured peak limb reach in each clip (5A 34, 5B 24, 5C 38, 5D 34), contact just before it.
+  // Test setup: the VRoid test model (game/Assets/Characters/vroid_test) with Quaternius' Universal Animation Library
+  // 1 and 2 (CC0, game/Assets/Animations), retargeted at import through Godot's humanoid bone maps. VRoid models face
+  // +Z, so turn 90°; at 1.75 m she already stands the height of testman's 120 px idle hurtbox.
+  // Godot drops a clip's "_Loop" suffix on import (and makes it loop). The pack has few fighting moves, so several
+  // moves borrow the nearest clip; see game/Assets/Animations/README.md for the measurements.
+  // Contact frames: measured peak hand or foot reach in each clip, contact just before it.
   "artVersion": 1,
   "art": "model",
-  "model": "res://TestModel/MainModel.fbx",
+  "model": "res://Assets/Characters/vroid_test/vroid_test.glb",
   "turnDegrees": 90,
-  // The Mixamo model's idle stance is ~1.2 m; ×1.4 makes it 1.7 m, the height of testman's 120 px idle hurtbox.
-  "scale": 1.4,
+  "scale": 1.0,
   // Look settings: basic moves fade in over 4 frames, a side switch turns over 6, poses every frame (2 = on 2s).
   "crossfadeFrames": 4,
   "turnFrames": 6,
   "holdFrames": 1,
   // Played from the frame of the KO on, whatever the logic does meanwhile; it ends lying down.
-  "knockOut": { "file": "res://TestModel/Dying.fbx", "clip": "mixamo_com", "inPlace": true },
+  "knockOut": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Death01" },
   "animations": {
-    "idle": { "file": "res://TestModel/Idle.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true },
-    // Speeds: logic walk/run speed over the clip's own travel (walk 0.057/0.0216 m per frame, run 0.129/0.0551, back 0.046/0.0146).
-    "walk_forward": { "file": "res://TestModel/Walking.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true, "speed": 2.64 },
-    "walk_back": { "file": "res://TestModel/Walking Backwards.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true, "speed": 3.1 },
-    // Backdash: the walk-back cycle's first step (clip 0-26) in the 6 fast frames, then held there; not looping, so it holds.
-    "backdash": { "file": "res://TestModel/Standing Walk Back.fbx", "clip": "mixamo_com", "inPlace": true, "clipTo": 26, "speed": 4.33 },
-    "dash": { "file": "res://TestModel/Run.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true, "speed": 2.33 },
-    "crouch": { "file": "res://TestModel/Crouch.fbx", "clip": "mixamo_com", "loop": true, "inPlace": true },
-    // Jumping.fbx measured by hip height: wind-up to 28 (takeoff), airborne to 66 (touchdown), settled by 96.
-    "prejump": { "file": "res://TestModel/Jumping.fbx", "clip": "mixamo_com", "inPlace": true, "clipFrom": 8, "clipTo": 28, "fit": true, "crossfadeFrames": 0 },
-    "jump": { "file": "res://TestModel/Jumping.fbx", "clip": "mixamo_com", "inPlace": true, "holdHeight": true, "clipFrom": 28, "clipTo": 66 },
-    "landing": { "file": "res://TestModel/Jumping.fbx", "clip": "mixamo_com", "inPlace": true, "clipFrom": 66, "clipTo": 96, "fit": true, "crossfadeFrames": 0 },
-    "wake_up": { "file": "res://TestModel/Crouch To Standing.fbx", "clip": "mixamo_com", "inPlace": true },
-    "blockstun": { "file": "res://TestModel/Blocking.fbx", "clip": "mixamo_com", "inPlace": true },
-    "crouch_blockstun": { "file": "res://TestModel/Blocking.fbx", "clip": "mixamo_com", "inPlace": true },
-    "hitstun": { "file": "res://TestModel/GettingHit.fbx", "clip": "mixamo_com", "inPlace": true },
-    "crouch_hitstun": { "file": "res://TestModel/GettingHit.fbx", "clip": "mixamo_com", "inPlace": true },
-    "air_hitstun": { "file": "res://TestModel/GettingHit.fbx", "clip": "mixamo_com", "inPlace": true },
-    "5a": { "file": "res://TestModel/AttackA.fbx", "clip": "mixamo_com", "inPlace": true, "activeFrom": 32, "recoveryFrom": 36 },
-    "5b": { "file": "res://TestModel/AttackB.fbx", "clip": "mixamo_com", "inPlace": true, "activeFrom": 22, "recoveryFrom": 27 },
-    "5c": { "file": "res://TestModel/AttackC.fbx", "clip": "mixamo_com", "inPlace": true, "activeFrom": 35, "recoveryFrom": 42 },
-    "5d": { "file": "res://TestModel/AttackD.fbx", "clip": "mixamo_com", "inPlace": true, "activeFrom": 31, "recoveryFrom": 38 },
-    // SpecialMoveFireball.fbx (162 frames) from frame 15, its last idle-like frame; hands overhead 30-57, pushed out
-    // at 66, fully out 72-96, back by 150. Contacts relative to clipFrom: the push (66) and arms out (72).
-    "236c": { "file": "res://TestModel/SpecialMoveFireball.fbx", "clip": "mixamo_com", "inPlace": true, "clipFrom": 15, "clipTo": 150, "activeFrom": 51, "recoveryFrom": 57 }
+    "idle": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Idle", "loop": true },
+    // Speeds: logic speed over the clip's own foot speed (walk 0.057/0.0423 jog, back 0.046/0.0155 walk, run 0.129/0.0597 m per frame).
+    "walk_forward": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Jog_Fwd", "loop": true, "speed": 1.35 },
+    // No walk back in the pack: the walk played backwards.
+    "walk_back": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "loop": true, "reverse": true, "speed": 3.0 },
+    "dash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sprint", "loop": true, "speed": 2.16 },
+    // Backdash: half a backwards walk cycle, fast, then held.
+    "backdash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "reverse": true, "loop": false, "clipTo": 40, "speed": 4.0 },
+    "air_dash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sprint", "loop": true, "speed": 2.0 },
+    "air_backdash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "reverse": true, "loop": false, "clipTo": 40, "speed": 4.0 },
+    "crouch": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
+    // NinjaJump: hips lowest at 0, up by 14 (takeoff); landing lowest at 12, standing by 24.
+    "prejump": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "NinjaJump_Start", "clipTo": 14, "fit": true, "crossfadeFrames": 0 },
+    "jump": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Jump", "loop": true },
+    "landing": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "NinjaJump_Land", "clipTo": 24, "fit": true, "crossfadeFrames": 0 },
+    "knockdown": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "fit": true },
+    "wake_up": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "LayToIdle", "fit": true },
+    "thrown": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "fit": true },
+    "throw_tech": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Hit_Chest", "fit": true },
+    // Guard up by 10, lowest at 22; held there.
+    "blockstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Block", "clipTo": 22 },
+    "air_blockstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Block", "clipTo": 22 },
+    "hitstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Hit_Chest" },
+    "air_hitstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "clipTo": 20 },
+    // No crouching hit or block clips: she stays crouched.
+    "crouch_blockstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
+    "crouch_hitstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
+    // Peak reach: jab 12, cross 18, slash 14, overhand 23, low hook 16, crouching slash 15, slide 16, air chop 26.
+    "5a": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Punch_Jab", "activeFrom": 10, "recoveryFrom": 14 },
+    "5b": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Punch_Cross", "activeFrom": 15, "recoveryFrom": 20 },
+    "5c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_A", "activeFrom": 11, "recoveryFrom": 16 },
+    "5d": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "OverhandThrow", "activeFrom": 20, "recoveryFrom": 26 },
+    "2a": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Melee_Hook", "activeFrom": 13, "recoveryFrom": 18 },
+    "2b": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_B", "activeFrom": 12, "recoveryFrom": 17 },
+    "2c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Slide_Start", "activeFrom": 13, "recoveryFrom": 19 },
+    "j_c": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sword_Attack", "activeFrom": 23, "recoveryFrom": 28 },
+    // Rising arm swing: reach at 10, hips highest at 30.
+    "623c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "ClimbUp_1m", "activeFrom": 8, "recoveryFrom": 20 },
+    // Hands pushed out at 32 (the clip's end), held through recovery.
+    "236c": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Spell_Simple_Enter", "activeFrom": 29, "recoveryFrom": 32 },
+    "236236d": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Dash", "activeFrom": 16, "recoveryFrom": 22 },
+    "burst": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Idle_Shield_Break", "activeFrom": 8, "recoveryFrom": 14 },
+    // Shove: hands furthest out at 42.
+    "forward_throw": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Push", "loop": false, "clipTo": 70, "activeFrom": 38, "recoveryFrom": 44 },
+    "back_throw": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "OverhandThrow", "activeFrom": 20, "recoveryFrom": 26 }
   },
   // How each projectile-throwing move's projectiles are drawn (ProjectileEffects): in flight, the startup charge at
   // the spawn point, and the impact where it hits, is blocked, clashes or runs out.
   "projectiles": {
     "236c": { "flight": "dark_fireball", "charge": "dark_fireball_charge", "impact": "dark_fireball_impact" }
-  },
-  // "Crouch To Standing" both ways: forward to stand up, reversed to crouch down. Looks only; the logic snaps.
-  "transitions": [
-    { "from": ["crouch"], "to": ["idle", "walk_forward", "walk_back"], "file": "res://TestModel/Crouch To Standing.fbx", "clip": "mixamo_com", "frames": 8, "inPlace": true },
-    { "from": ["idle", "walk_forward", "walk_back"], "to": ["crouch"], "file": "res://TestModel/Crouch To Standing.fbx", "clip": "mixamo_com", "frames": 6, "reverse": true, "inPlace": true }
-  ]
+  }
 }

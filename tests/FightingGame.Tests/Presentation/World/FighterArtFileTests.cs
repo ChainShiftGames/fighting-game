@@ -148,6 +148,22 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void ReadsClipsPlayedBackwards()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "m.glb",
+              "animations": { "walk_back": { "clip": "walk", "reverse": true }, "walk_forward": { "clip": "walk" } }
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out _)!;
+
+        Assert.True(settings.For("walk_back").Reverse);
+        Assert.False(settings.For("walk_forward").Reverse);
+    }
+
+    [Fact]
     public void LeavesAMoveWithoutAnEntryToTheModelsClipNamedAfterIt()
     {
         AnimationSettings move = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _)!
