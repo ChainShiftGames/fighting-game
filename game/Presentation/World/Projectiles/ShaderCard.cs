@@ -13,9 +13,13 @@ public partial class ShaderCard : MeshInstance3D
     private readonly ShaderMaterial _material = new();
 
     // Godot needs a parameterless constructor for nodes; the shader and size come in once, before the first frame.
-    public void Build(string shader, Vector2 size, Vector2 centre)
+    public void Build(string shader, Vector2 size, Vector2 centre) =>
+        Build(GD.Load<Shader>($"res://Assets/Effects/{shader}.gdshader"), size, centre);
+
+    /// <summary>Draws <paramref name="shader"/>; call again to change the card's size (the VFX Lab's sliders do).</summary>
+    public void Build(Shader shader, Vector2 size, Vector2 centre)
     {
-        _material.Shader = GD.Load<Shader>($"res://Assets/Effects/{shader}.gdshader");
+        _material.Shader = shader;
         _material.SetShaderParameter(_cardSize, size);
         Mesh = new QuadMesh { Size = size };
         MaterialOverride = _material;

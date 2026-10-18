@@ -6,16 +6,20 @@
 
 const float ORB_RADIUS = 0.19;
 
-// Look (developer settings, presentation): Lukas' pick from the aura mockups.
+// Look (developer settings, presentation): Lukas' pick from the aura mockups. The ranges and groups are the VFX Lab's
+// sliders (ADR-0029).
+group_uniforms palette;
 uniform vec4 core_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
 uniform vec4 glow_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
 uniform vec4 accent_color : source_color = vec4(0.953, 0.761, 1.0, 1.0);
-uniform float intensity = 0.98;
-uniform float aura = 0.92;
-uniform float trail = 0.3;
-uniform float pulse = 1.0;
-uniform float particles = 1.39;
-uniform float bend = 1.13;
+group_uniforms orb;
+uniform float intensity : hint_range(0.0, 3.0) = 0.98;
+uniform float aura : hint_range(0.3, 2.5) = 0.92;
+uniform float trail : hint_range(0.0, 2.5) = 0.3;
+uniform float pulse : hint_range(0.0, 3.0) = 1.0;
+uniform float particles : hint_range(0.0, 2.0) = 1.39;
+uniform float bend : hint_range(0.0, 3.0) = 1.13;
+group_uniforms;
 
 // Set by the effect's node every displayed frame.
 uniform float t = 0.0;

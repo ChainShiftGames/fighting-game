@@ -1,0 +1,121 @@
+{
+  "labVersion": 1,
+  "title": "Dark fireball (testman 236C)",
+  "brief": "testman's fireball: a slow, menacing mid-screen projectile (6 px a frame) with a 13-frame startup. It must read instantly as dangerous at match zoom, against bright and dark stages, and look like the same character as the rest of the kit. The in-game look is Void Vortex; round 1 asks whether another direction is stronger, round 2 pushes Void Vortex itself.",
+  "style": {
+    "character": "testman",
+    "motifs": "A black void at the core with violet veins swirling inside; a pale lilac rim with crackling lightning; an uneven heartbeat that throws shockwaves; the stage bending round it; sparks pulled in and swallowed. Impacts flash white, then negative, then burst into black shards.",
+    "palette": {
+      "core_color": "#000000",
+      "glow_color": "#000000",
+      "accent_color": "#f3c2ff"
+    }
+  },
+  "timing": {
+    "chargeFrames": 12,
+    "flightFrames": 60,
+    "impactFrames": 30,
+    "restFrames": 20,
+    "spawnX": 45,
+    "spawnY": 70,
+    "speed": 6,
+    "hitboxSize": 30,
+    "fighterWidth": 55,
+    "fighterHeight": 115
+  },
+  "rounds": [
+    {
+      "id": "directions",
+      "name": "Round 1: directions",
+      "note": "Six really different takes on the flight, all sharing the in-game charge and impact and the character's palette. Pick the ones worth pushing, reject the rest, and fork any you tweak.",
+      "variants": [
+        {
+          "id": "void_vortex",
+          "name": "Void Vortex (in game)",
+          "pitch": "What ships now: the void with one spiral aura arm, a short wisp trail and the stage bending round it.",
+          "charge": { "shader": "res://Assets/Effects/dark_fireball_charge.gdshader", "card": [2.6, 2.6], "spin": 0.25 },
+          "flight": { "shader": "res://Assets/Effects/dark_fireball.gdshader", "card": [1.8, 1.7], "centre": [-0.05, 0], "spin": 0.08, "growFrames": 12, "startScale": 0.2 },
+          "impact": { "shader": "res://Assets/Effects/dark_fireball_impact.gdshader", "card": [2.6, 2.6], "spin": 0 }
+        },
+        {
+          "id": "eclipse",
+          "name": "Eclipse",
+          "pitch": "A black sun: a flame corona round the void, two tilted orbit rings whose comets pass in front of and behind it, and speed streaks behind.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_eclipse.gdshader", "card": [2.0, 1.8], "centre": [-0.1, 0], "spin": 0.14 }
+        },
+        {
+          "id": "serpents",
+          "name": "Shadow Serpents",
+          "pitch": "Ribbons coil round the line of flight, crossing in front of and behind the core, tapering into a long wake. Reads as something alive.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_serpents.gdshader", "card": [2.6, 1.6], "centre": [-0.5, 0], "spin": 0.18 },
+          "values": { "trail": 0.45 }
+        },
+        {
+          "id": "rift",
+          "name": "Rift",
+          "pitch": "Not a ball but a tear in the world: inside the slit the stage shows in negative, its lips crackle with lightning, black flakes peel off the back.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_rift.gdshader", "card": [2.0, 1.4], "centre": [-0.25, 0], "spin": 0.1 }
+        },
+        {
+          "id": "claws",
+          "name": "Grasping Shadow",
+          "pitch": "The void reaches for the opponent: shadow fingers stretch forward and clench as it flies, pale at the tips, with a smoky wake.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_claws.gdshader", "card": [2.2, 1.8], "centre": [0, 0], "spin": 0.1 }
+        },
+        {
+          "id": "obsidian",
+          "name": "Obsidian Comet",
+          "pitch": "A faceted black crystal with hard cel highlights, a ring of orbiting shards and a trail of sharp triangles flickering out. Clean and graphic.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_shard.gdshader", "card": [2.0, 1.6], "centre": [-0.2, 0], "spin": 0.12 }
+        },
+        {
+          "id": "ink",
+          "name": "Sumi Ink",
+          "pitch": "A wet ink blot dragging a calligraphy stroke: dry-brush gaps towards the tail, bleeding edges, splatter. The orb's veins still swirl in the blot.",
+          "extends": "void_vortex",
+          "flight": { "shader": "flight_ink.gdshader", "card": [2.6, 1.5], "centre": [-0.55, 0], "spin": 0.08 }
+        }
+      ]
+    },
+    {
+      "id": "vortex_pushed",
+      "name": "Round 2: Void Vortex pushed",
+      "note": "Same shaders as the in-game look, different values: how drilling down on a pick looks. Tell me which way to push, or fork your own.",
+      "variants": [
+        {
+          "id": "vortex_triple",
+          "name": "Vortex: three arms, quicker",
+          "pitch": "Three spiral arms turning twice as fast and a longer wisp trail: busier, more motion read at a glance.",
+          "extends": "void_vortex",
+          "values": { "arms": 3, "flight.spin": 0.16, "trail": 0.6 }
+        },
+        {
+          "id": "vortex_heavy",
+          "name": "Vortex: heavy",
+          "pitch": "Bigger, slower and heavier: a wide aura, a strong uneven heartbeat and the stage bending hard round it.",
+          "extends": "void_vortex",
+          "values": { "aura": 1.4, "pulse": 1.8, "bend": 1.8, "particles": 0.8, "flight.spin": 0.04, "flight.scale": 1.3 }
+        },
+        {
+          "id": "vortex_clean",
+          "name": "Vortex: clean read",
+          "pitch": "Fewer sparks, a short trail, a gentler bend and a white rim: the quietest, clearest silhouette.",
+          "extends": "void_vortex",
+          "values": { "particles": 0.35, "trail": 0.15, "bend": 0.6, "intensity": 0.8, "accent_color": "#ffffff" }
+        },
+        {
+          "id": "vortex_violet",
+          "name": "Vortex: violet glow",
+          "pitch": "The one change the palette rules out: a saturated violet glow round the void. Turn on Lock palette to compare it on-model.",
+          "extends": "void_vortex",
+          "values": { "glow_color": "#6f2bff", "intensity": 1.4 }
+        }
+      ]
+    }
+  ]
+}

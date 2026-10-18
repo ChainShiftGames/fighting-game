@@ -5,7 +5,9 @@ render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled;
 
 #include "res://Assets/Effects/dark_orb.gdshaderinc"
 
-uniform float arms = 1.0;
+group_uniforms vortex;
+uniform float arms : hint_range(1.0, 6.0, 1.0) = 1.0;
+group_uniforms;
 uniform vec2 card_size = vec2(1.8, 1.7);
 uniform vec2 card_centre = vec2(-0.05, 0.0);
 // Grows from small to full size as it leaves the caster's hands; set per frame.
