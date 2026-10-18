@@ -1,10 +1,8 @@
 {
-  // Test background (committed by Lukas' choice; the picture's licence is unknown). groundLine: where its floor meets ours.
+  // Test stage (P4-D): the castle hall, built from shaders and simple meshes; perspective so its depth shows.
+  // For the old picture instead: "background": "waterfall.webp", "groundLine": 0.22, "depth": 4, "parallax": 0.6,
+  // "floor": true (and no scene).
   "artVersion": 1,
-  "background": "waterfall.webp",
-  "groundLine": 0.22,
-  "depth": 4,
-  "parallax": 0.6,
-  // Our own floor in front, so the fighters stand on ground that moves with them; the picture is far scenery.
-  "floor": true
+  "scene": "res://Presentation/World/Stages/CastleHall/CastleHallSet.tscn",
+  "perspective": true
 }

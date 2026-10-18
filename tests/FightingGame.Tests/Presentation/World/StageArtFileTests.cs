@@ -15,7 +15,18 @@ public sealed class StageArtFileTests
         Assert.Equal("res://Assets/Stages/waterfall.webp", StageArtFile.Resolve(art!.Background));
     }
 
+    [Fact]
+    public void ReadsAStageSceneAndThePerspectiveCamera()
+    {
+        StageArtSettings? art = FileRead("""{ "artVersion": 1, "scene": "res://Hall.tscn", "perspective": true }""");
+
+        Assert.Equal("res://Hall.tscn", art!.Scene);
+        Assert.True(art.Perspective);
+        Assert.Empty(art.Background);
+    }
+
     [Theory]
+    [InlineData("""{ "artVersion": 1, "scene": "hall.tscn", "background": "waterfall.webp" }""", "scene")]
     [InlineData("""{ "artVersion": 2 }""", "artVersion")]
     [InlineData("""{ "artVersion": 1, "groundLine": 1.5 }""", "groundLine")]
     [InlineData("""{ "artVersion": 1, "depth": 0 }""", "depth")]
