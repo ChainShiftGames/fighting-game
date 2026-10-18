@@ -74,6 +74,11 @@ public static class FighterArtFile
             return $"scale {file.Scale} must be above 0";
         }
 
+        if (file.CrossfadeFrames < 0 || file.TurnFrames < 0 || file.HoldFrames < 1)
+        {
+            return "crossfadeFrames and turnFrames can't be negative, and holdFrames must be at least 1";
+        }
+
         foreach (KeyValuePair<string, AnimationJson> entry in file.Animations)
         {
             string problem = CheckAnimation(entry.Value);
@@ -125,7 +130,14 @@ public static class FighterArtFile
             return $"contact frames must have 0 ≤ activeFrom ≤ recoveryFrom, not {active} and {recovery}";
         }
 
-        return string.Empty;
+        if (animation.ClipFrom < 0 || animation.ClipTo <= (animation.ClipFrom ?? 0))
+        {
+            return "clipFrom must be 0 or more, and clipTo after it";
+        }
+
+        return animation.HoldFrames < 1 || animation.CrossfadeFrames < 0
+            ? "holdFrames must be at least 1 and crossfadeFrames 0 or more"
+            : string.Empty;
     }
 
     private static FighterArtSettings ToSettings(ArtFileJson file)
@@ -142,7 +154,13 @@ public static class FighterArtFile
                 contacts,
                 animation.File,
                 animation.Loop,
-                animation.InPlace);
+                animation.InPlace,
+                animation.ClipFrom,
+                animation.ClipTo,
+                animation.Fit,
+                animation.HoldHeight,
+                animation.HoldFrames,
+                animation.CrossfadeFrames);
         }
 
         var transitions = new List<ClipTransition>(file.Transitions.Count);
@@ -157,7 +175,12 @@ public static class FighterArtFile
         }
 
         return new FighterArtSettings(
-            file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations, transitions);
+            file.Art, file.Model ?? string.Empty, file.Scale, file.TurnDegrees, animations, transitions)
+        {
+            CrossfadeFrames = file.CrossfadeFrames,
+            TurnFrames = file.TurnFrames,
+            HoldFrames = file.HoldFrames,
+        };
     }
 
     private sealed class ArtFileJson
@@ -177,6 +200,12 @@ public static class FighterArtFile
         public Dictionary<string, AnimationJson> Animations { get; init; } = [];
 
         public List<TransitionJson> Transitions { get; init; } = [];
+
+        public int CrossfadeFrames { get; init; }
+
+        public int TurnFrames { get; init; }
+
+        public int HoldFrames { get; init; } = 1;
     }
 
     private sealed class TransitionJson
@@ -212,5 +241,17 @@ public static class FighterArtFile
         public bool? Loop { get; init; }
 
         public bool InPlace { get; init; }
+
+        public int? ClipFrom { get; init; }
+
+        public int? ClipTo { get; init; }
+
+        public bool Fit { get; init; }
+
+        public bool HoldHeight { get; init; }
+
+        public int? HoldFrames { get; init; }
+
+        public int? CrossfadeFrames { get; init; }
     }
 }

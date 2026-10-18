@@ -15,9 +15,10 @@ public sealed class MoveClipLibrary
     private readonly FighterArtSettings _settings;
     private readonly string _characterId;
     private readonly AnimationPlayer? _modelClips;
-    private readonly string? _rootBone;
+    private readonly RootBoneEdit _rootEdit;
     private readonly Dictionary<string, AnimationPlayer?> _fileClips = new(StringComparer.Ordinal);
     private readonly List<Node> _loadedFiles = [];
+    private int _nextId;
 
     /// <param name="modelClips">The model's own clips; null when it has none.</param>
     /// <param name="rootBone">The skeleton's root bone, whose travel <c>inPlace</c> removes; null when unknown.</param>
@@ -26,11 +27,11 @@ public sealed class MoveClipLibrary
         _settings = settings;
         _characterId = characterId;
         _modelClips = modelClips;
-        _rootBone = rootBone;
+        _rootEdit = new RootBoneEdit(characterId, rootBone);
     }
 
     /// <summary>Adds every move and transition that has a clip to <paramref name="player"/>.</summary>
-    public BoundClips AddTo(AnimationPlayer player, IReadOnlyList<string> moveIds)
+    public BoundClips AddTo(AnimationMixer mixer, IReadOnlyList<string> moveIds)
     {
         var library = new AnimationLibrary();
         var moves = new Dictionary<string, BoundClip>(StringComparer.Ordinal);
@@ -41,7 +42,7 @@ public sealed class MoveClipLibrary
             bool named = _settings.Animations.ContainsKey(moveId);
             if (Find(settings.Clip ?? moveId, settings, $"move '{moveId}'", named) is { } source)
             {
-                moves[moveId] = Add(library, moveId, Prepare(source, settings), settings.Contacts, $"move '{moveId}'");
+                moves[moveId] = Add(library, moveId, Prepare(source, settings), settings, $"move '{moveId}'");
             }
         }
 
@@ -52,11 +53,11 @@ public sealed class MoveClipLibrary
             string what = $"transitions[{i}]";
             if (Find(settings.Clip ?? string.Empty, settings, what, named: true) is { } source)
             {
-                transitions[i] = Add(library, $"transition_{i}", Prepare(source, settings), null, what);
+                transitions[i] = Add(library, $"transition_{i}", Prepare(source, settings), settings, what);
             }
         }
 
-        player.AddAnimationLibrary(LibraryName, library);
+        mixer.AddAnimationLibrary(LibraryName, library);
         foreach (Node loaded in _loadedFiles)
         {
             loaded.Free();
@@ -65,10 +66,10 @@ public sealed class MoveClipLibrary
         return new BoundClips(moves, transitions);
     }
 
-    private BoundClip Add(AnimationLibrary library, string name, Animation clip, ContactFrames? contacts, string what)
+    private BoundClip Add(AnimationLibrary library, string name, Animation clip, AnimationSettings settings, string what)
     {
         library.AddAnimation(name, clip);
-        return new BoundClip(new StringName($"{LibraryName}/{name}"), Timing(what, clip, contacts));
+        return new BoundClip(_nextId++, new StringName($"{LibraryName}/{name}"), Timing(what, clip, settings));
     }
 
     /// <param name="named">The art file names this clip, so a missing one is an error rather than a gap.</param>
@@ -124,58 +125,46 @@ public sealed class MoveClipLibrary
 
         if (settings.InPlace)
         {
-            RemoveRootTravel(clip);
+            _rootEdit.RemoveTravel(clip);
+        }
+
+        if (settings.HoldHeight)
+        {
+            _rootEdit.HoldHeight(clip, (settings.ClipFrom ?? 0) / AnimationRetiming.FramesPerSecond);
         }
 
         return clip;
     }
 
-    private void RemoveRootTravel(Animation clip)
+    private AnimationClipTiming Timing(string what, Animation clip, AnimationSettings settings)
     {
-        if (_rootBone is null)
+        float clipFrames = (float)clip.Length * AnimationRetiming.FramesPerSecond;
+        float start = settings.ClipFrom ?? 0;
+        float end = settings.ClipTo ?? clipFrames;
+        if (end > clipFrames || start >= end)
         {
-            GD.PushWarning($"{_characterId}: inPlace needs a skeleton, and the model has none");
-            return;
+            GD.PushError($"{_characterId}: {what} clipFrom/clipTo {start}-{end} is outside its clip ({clipFrames:0.#} frames); playing all of it");
+            (start, end) = (0f, clipFrames);
         }
 
-        for (int track = 0; track < clip.GetTrackCount(); track++)
-        {
-            if (clip.TrackGetType(track) != Animation.TrackType.Position3D ||
-                clip.TrackGetPath(track).GetConcatenatedSubNames() != _rootBone)
-            {
-                continue;
-            }
-
-            if (clip.TrackIsCompressed(track))
-            {
-                GD.PushWarning($"{_characterId}: can't make a compressed clip in place; turn off its import compression");
-                return;
-            }
-
-            int keys = clip.TrackGetKeyCount(track);
-            Vector3 first = (Vector3)clip.TrackGetKeyValue(track, 0);
-            Vector3 last = (Vector3)clip.TrackGetKeyValue(track, keys - 1);
-            double end = clip.TrackGetKeyTime(track, keys - 1);
-            for (int key = 0; key < keys; key++)
-            {
-                float progress = end > 0 ? (float)(clip.TrackGetKeyTime(track, key) / end) : 0f;
-                Vector3 value = (Vector3)clip.TrackGetKeyValue(track, key);
-                clip.TrackSetKeyValue(track, key, RootTravel.Removed(value, first, last, progress));
-            }
-        }
-    }
-
-    private AnimationClipTiming Timing(string what, Animation clip, ContactFrames? contacts)
-    {
-        float lengthFrames = (float)clip.Length * AnimationRetiming.FramesPerSecond;
-        if (contacts is { } frames && frames.RecoveryFrom > lengthFrames)
+        // Contact frames are written in clip frames, as an animator reads them; the retiming counts from the part's start.
+        ContactFrames? contacts = settings.Contacts is { } frames
+            ? new ContactFrames(frames.ActiveFrom - (int)start, frames.RecoveryFrom - (int)start)
+            : null;
+        if (settings.Contacts is { } written && (written.ActiveFrom < start || written.RecoveryFrom > end))
         {
             GD.PushError(
-                $"{_characterId}: {what} recoveryFrom {frames.RecoveryFrom} is past the end of its clip " +
-                $"({lengthFrames:0.#} frames); playing it frame for frame");
+                $"{_characterId}: {what} contact frames {written.ActiveFrom}-{written.RecoveryFrom} are outside the " +
+                $"part played ({start:0.#}-{end:0.#}); playing it frame for frame");
             contacts = null;
         }
 
-        return new AnimationClipTiming(lengthFrames, clip.LoopMode != Animation.LoopModeEnum.None, contacts);
+        return new AnimationClipTiming(
+            end - start,
+            clip.LoopMode != Animation.LoopModeEnum.None,
+            contacts,
+            start,
+            settings.Fit,
+            settings.HoldFrames ?? _settings.HoldFrames);
     }
 }

@@ -108,6 +108,42 @@ public sealed class AnimationRetimingTests
         Assert.Equal(clipFrame, AnimationRetiming.TransitionFrameAt(frame, 8, 56f, reverse), 4);
     }
 
+    [Fact]
+    public void PlaysOnlyThePartOfTheClipBetweenClipFromAndClipTo()
+    {
+        // A jump clip's airborne part, clip frames 28-66, from takeoff.
+        var airborne = new AnimationClipTiming(38f, Loops: false, StartFrame: 28f);
+        var jump = new FighterPose(FighterAction.Jump, "jump", 11, 1, MovePhase.None);
+
+        Assert.Equal(38f, AnimationRetiming.FrameAt(jump, airborne), 4);
+        Assert.Equal(66f, AnimationRetiming.FrameAt(jump with { Frame = 60 }, airborne), 4);
+    }
+
+    [Theory]
+    [InlineData(1, 8f)]
+    [InlineData(3, 18f)]
+    [InlineData(4, 23f)]
+    public void FitsAPartOfTheClipIntoTheMove(int frame, float clipFrame)
+    {
+        // Prejump: the clip's wind-up, frames 8-28, squeezed into 4 frames.
+        var windUp = new AnimationClipTiming(20f, Loops: false, StartFrame: 8f, Fit: true);
+        var prejump = new FighterPose(FighterAction.Prejump, "prejump", frame, 4, MovePhase.None);
+
+        Assert.Equal(clipFrame, AnimationRetiming.FrameAt(prejump, windUp), 4);
+    }
+
+    [Theory]
+    [InlineData(1, 0f)]
+    [InlineData(2, 0f)]
+    [InlineData(3, 2f)]
+    [InlineData(6, 4f)]
+    public void HoldsEachPoseForItsHoldFrames(int frame, float clipFrame)
+    {
+        var onTwos = new AnimationClipTiming(30f, Loops: false, HoldFrames: 2);
+
+        Assert.Equal(clipFrame, AnimationRetiming.FrameAt(Attack(frame) with { FirstActiveFrame = 0 }, onTwos), 4);
+    }
+
     private static FighterPose Attack(int frame) =>
         new(FighterAction.Attack, "5a", frame, Total, MovePhase.Startup, FirstActive, LastActive);
 

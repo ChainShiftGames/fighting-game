@@ -8,9 +8,27 @@ namespace FightingGame.Presentation.World;
 /// </param>
 /// <param name="Loop">Overrides whether the clip loops; null keeps the file's setting.</param>
 /// <param name="InPlace">Removes the root bone's horizontal travel, for clips not authored in place.</param>
+/// <param name="ClipFrom">Where the part of the clip played starts, in clip frames at 60 fps; null for its start.</param>
+/// <param name="ClipTo">Where that part ends; null for the clip's end.</param>
+/// <param name="Fit">Stretches or squeezes the part over the whole move instead of playing it frame for frame.</param>
+/// <param name="HoldHeight">Holds the root bone at its height at <paramref name="ClipFrom"/>, for a clip that jumps
+/// by itself while the logic already moves the fighter up.</param>
+/// <param name="HoldFrames">Shows each pose this many frames (2 or 3); null uses the art file's setting.</param>
+/// <param name="CrossfadeFrames">Frames this move's clip fades in over; null uses the art file's setting, 0 snaps
+/// (a 4-frame prejump is itself the transition).</param>
 public sealed record AnimationSettings(
     string? Clip,
     ContactFrames? Contacts,
     string? File = null,
     bool? Loop = null,
-    bool InPlace = false);
+    bool InPlace = false,
+    int? ClipFrom = null,
+    int? ClipTo = null,
+    bool Fit = false,
+    bool HoldHeight = false,
+    int? HoldFrames = null,
+    int? CrossfadeFrames = null)
+{
+    /// <summary>A move the art file doesn't list: the clip named after it, frame for frame.</summary>
+    public static AnimationSettings Default { get; } = new(null, null);
+}

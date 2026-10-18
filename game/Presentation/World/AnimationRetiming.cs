@@ -19,11 +19,27 @@ public static class AnimationRetiming
     /// <summary>The clip position, in animation frames from its first key, for <paramref name="pose"/>.</summary>
     public static float FrameAt(FighterPose pose, AnimationClipTiming clip)
     {
-        float frame = clip.Contacts is { } contacts && pose.FirstActiveFrame > 0
-            ? Retimed(pose, contacts, clip.LengthFrames)
-            : pose.Frame - 1;
-        return Fit(frame, clip);
+        FighterPose held = pose with { Frame = Held(pose.Frame, clip.HoldFrames) };
+        float frame;
+        if (clip.Fit && pose.TotalFrames > 0)
+        {
+            frame = Span(held.Frame - 1, pose.TotalFrames, 0f, clip.LengthFrames);
+        }
+        else if (clip.Contacts is { } contacts && pose.FirstActiveFrame > 0)
+        {
+            frame = Retimed(held, contacts, clip.LengthFrames);
+        }
+        else
+        {
+            frame = held.Frame - 1;
+        }
+
+        return clip.StartFrame + Fit(frame, clip);
     }
+
+    // On 2s, frames 1-2 show frame 1's pose, 3-4 frame 3's: the pose steps instead of moving every frame.
+    private static int Held(int frame, int holdFrames) =>
+        holdFrames <= 1 || frame < 1 ? frame : 1 + ((frame - 1) / holdFrames * holdFrames);
 
     /// <summary>
     /// The clip position for frame <paramref name="frameInTransition"/> (from 1) of a transition squeezed into

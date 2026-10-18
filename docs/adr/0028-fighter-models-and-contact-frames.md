@@ -54,10 +54,17 @@ the authored contact pose. Something has to say where that pose is, and which ch
    rewound replay the match frame goes back and the transition is skipped, a cosmetic loss. Looping clips of basic
    moves count on the same clock, so idle runs through its whole clip and a one-frame crouch still animates.
    Looks only: logic and boxes change on the move's first frame.
-6. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
+6. **Look settings, all by match frames:** a basic move's clip crossfades in from the pose before
+   (`crossfadeFrames`, per move or for the file; attacks always snap, so their first frame is the frame data's);
+   a facing switch turns the model through facing the camera, where the mirrored pose looks the same
+   (`turnFrames`); `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
+   file. Per move, `clipFrom`/`clipTo` play part of a clip, `fit` squeezes it into the move (a 4-frame prejump from
+   a jump clip's wind-up) and `holdHeight` keeps the root bone's height for a clip that jumps by itself. Poses are
+   mixed by an animation tree that never advances on its own.
+7. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
    retiming from the move's frame data as edited, framed to the canvas's origin and zoom at 1 m = 70 px, so boxes
    are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
-7. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
+8. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
 
 ## Trying it (no model in git yet)

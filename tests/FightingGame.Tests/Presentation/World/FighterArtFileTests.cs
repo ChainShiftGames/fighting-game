@@ -92,6 +92,40 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void ReadsClipRangesAndTheLookSettings()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "m.glb",
+              "crossfadeFrames": 4, "turnFrames": 6, "holdFrames": 2,
+              "animations": {
+                "prejump": { "clipFrom": 8, "clipTo": 28, "fit": true },
+                "jump": { "clipFrom": 28, "clipTo": 66, "holdHeight": true, "holdFrames": 1 }
+              }
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out _)!;
+
+        Assert.Equal((4, 6, 2), (settings.CrossfadeFrames, settings.TurnFrames, settings.HoldFrames));
+        Assert.Equal((8, 28, true), (settings.For("prejump").ClipFrom, settings.For("prejump").ClipTo, settings.For("prejump").Fit));
+        Assert.True(settings.For("jump").HoldHeight);
+        Assert.Equal(1, settings.For("jump").HoldFrames);
+    }
+
+    [Theory]
+    [InlineData("""{ "clipFrom": 30, "clipTo": 20 }""")]
+    [InlineData("""{ "clipFrom": -1 }""")]
+    [InlineData("""{ "holdFrames": 0 }""")]
+    public void RefusesAClipRangeOrHoldThatCantPlay(string animation)
+    {
+        string json = $$"""{ "artVersion": 1, "art": "model", "model": "m.glb", "animations": { "5a": {{animation}} } }""";
+
+        Assert.Null(FighterArtFile.Read(json, out string error));
+        Assert.Contains("animations.5a", error);
+    }
+
+    [Fact]
     public void LeavesAMoveWithoutAnEntryToTheModelsClipNamedAfterIt()
     {
         AnimationSettings move = FighterArtFile.Read("""{ "artVersion": 1, "art": "model", "model": "m.glb" }""", out _)!

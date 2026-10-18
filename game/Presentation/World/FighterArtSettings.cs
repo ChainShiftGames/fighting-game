@@ -17,6 +17,15 @@ public sealed record FighterArtSettings(
     IReadOnlyDictionary<string, AnimationSettings> Animations,
     IReadOnlyList<ClipTransition> Transitions)
 {
+    /// <summary>Frames a basic move's clip takes to fade in from the pose before; 0 snaps.</summary>
+    public int CrossfadeFrames { get; init; }
+
+    /// <summary>Frames the model takes to turn round when the facing switches; 0 mirrors at once.</summary>
+    public int TurnFrames { get; init; }
+
+    /// <summary>Frames each pose is shown for, for every move without its own setting: 1, or 2-3 for animation on 2s or 3s.</summary>
+    public int HoldFrames { get; init; } = 1;
+
     public static FighterArtSettings Placeholder { get; } =
         new(FighterArtKind.Placeholder, string.Empty, 1f, 0f, new Dictionary<string, AnimationSettings>(), []);
 
@@ -36,7 +45,10 @@ public sealed record FighterArtSettings(
 
     /// <summary>How a move is animated: its own entry, or the clip named after it in the model, frame for frame.</summary>
     public AnimationSettings For(string moveId) =>
-        Animations.TryGetValue(moveId, out AnimationSettings? settings) ? settings : new AnimationSettings(null, null);
+        Animations.TryGetValue(moveId, out AnimationSettings? settings) ? settings : AnimationSettings.Default;
+
+    /// <summary>Frames a move's clip fades in over: its own setting or the art file's.</summary>
+    public int CrossfadeFramesFor(string moveId) => For(moveId).CrossfadeFrames ?? CrossfadeFrames;
 
     /// <summary>The clip a move plays: its own entry's clip, or the move ID.</summary>
     public string ClipFor(string moveId) => For(moveId).Clip ?? moveId;

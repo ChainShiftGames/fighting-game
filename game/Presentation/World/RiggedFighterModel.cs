@@ -8,19 +8,22 @@ namespace FightingGame.Presentation.World;
 /// <summary>
 /// A fighter drawn as its rigged model (ADR-0028): each displayed frame it seeks the move's clip to the time
 /// <see cref="AnimationRetiming"/> gives for the logic's move frame, never advancing by elapsed time, and stands on the
-/// logic position, mirrored for facing. A move without a clip shows idle, with one warning. Entering a move from
-/// certain others first plays the art file's transition clip; looping clips of basic moves run on the match clock.
+/// logic position, mirrored for facing. A move without a clip shows idle, with one warning. On top, by match frames:
+/// transition clips into listed moves, a crossfade into basic moves and a turn when the facing switches.
 /// </summary>
 public partial class RiggedFighterModel : Node3D, IFighterArt
 {
     private const string IdleMoveId = "idle";
 
     private readonly HashSet<string> _warnedMoves = new(StringComparer.Ordinal);
-    private readonly AnimationPlayer _player = new();
+    private readonly ClipMixer _mixer = new();
     private readonly MoveEntryTracker _entries = new();
+    private readonly PoseFade _fade = new();
+    private readonly FacingTurn _turn = new();
+    private readonly Node3D _pivot = new();
     private BoundClips _clips = new([], []);
+    private StringName[] _clipNames = [];
     private FighterArtSettings _settings = FighterArtSettings.Placeholder;
-    private StringName? _shownClip;
     private string _characterId = string.Empty;
 
     /// <summary>Puts the model in and gathers its move clips; once, before the first frame.</summary>
@@ -30,45 +33,74 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
     {
         _characterId = characterId;
         _settings = settings;
-        var pivot = new Node3D
+        var adapter = new Node3D
         {
             Basis = new Basis(Vector3.Up, Mathf.DegToRad(settings.TurnDegrees)).Scaled(Vector3.One * settings.Scale),
         };
         Node instance = model.Instantiate();
-        pivot.AddChild(instance);
-        AddChild(pivot);
+        adapter.AddChild(instance);
+        _pivot.AddChild(adapter);
+        AddChild(_pivot);
 
-        // The model's own player only lends its clips; ours plays them, with track paths from the same scene root.
+        // The model's own player only lends its clips; the mixer plays them, with track paths from the same root.
         AnimationPlayer? modelClips = SceneSearch.First<AnimationPlayer>(instance);
         if (modelClips is not null)
         {
             modelClips.Active = false;
         }
 
-        instance.AddChild(_player);
-        // Manual: the player never advances by itself; ShowPose seeks it to the logic's frame (ARCHITECTURE.md §9).
-        _player.CallbackModeProcess = AnimationMixer.AnimationCallbackModeProcess.Manual;
+        instance.AddChild(_mixer.Tree);
         var library = new MoveClipLibrary(settings, characterId, modelClips, RootBone(instance));
-        _clips = library.AddTo(_player, moveIds);
+        _clips = library.AddTo(_mixer.Tree, moveIds);
+        _clipNames = NamesById(_clips);
+        _mixer.Tree.Active = true;
     }
 
     public void ShowPose(FighterPose pose, IntVector2 position, int facing, List<WorldBox> boxes)
     {
-        // Mirroring, not turning, keeps the side facing the camera the same; the model faces +X.
-        Transform = new Transform3D(Basis.FromScale(new Vector3(facing, 1f, 1f)), WorldScale.ToWorld(position));
+        Position = WorldScale.ToWorld(position);
+        ShowFacing(facing, pose.MatchFrame);
         if (pose.MatchFrame > 0)
         {
             _entries.Observe(pose.MoveId, pose.MatchFrame);
         }
 
-        if (Transition(pose) is { } transition)
+        (BoundClip Clip, double Seconds)? transition = Transition(pose);
+        bool isTransition = transition is not null;
+        BoundClip? shown = transition?.Clip ?? MoveClip(pose.MoveId);
+        if (shown is not { } clip)
         {
-            Seek(transition.Clip, transition.Seconds);
+            return;
         }
-        else if (MoveClip(pose.MoveId) is { } clip)
+
+        double seconds = transition?.Seconds ?? AnimationRetiming.SecondsAt(Timed(pose, clip), clip.Timing);
+        int crossfade = _settings.CrossfadeFramesFor(pose.MoveId);
+        bool fadesIn = !isTransition && pose.FirstActiveFrame == 0 && crossfade > 0;
+        if (pose.MatchFrame <= 0)
         {
-            Seek(clip, AnimationRetiming.SecondsAt(Timed(pose, clip), clip.Timing));
+            _mixer.Show(clip.Name, seconds, null, 0, 1f);
+            return;
         }
+
+        _fade.Observe(clip.Id, seconds, fadesIn, pose.MatchFrame);
+        StringName? from = _fade.FromClip >= 0 ? _clipNames[_fade.FromClip] : null;
+        _mixer.Show(clip.Name, seconds, from, _fade.FromSeconds, _fade.Weight(pose.MatchFrame, crossfade));
+    }
+
+    // Mirroring, not turning, keeps the side facing the camera the same; the model faces +X. While the facing
+    // switches it turns through facing the camera, where the mirrored pose looks the same.
+    private void ShowFacing(int facing, int matchFrame)
+    {
+        if (matchFrame <= 0)
+        {
+            Basis = Basis.FromScale(new Vector3(facing, 1f, 1f));
+            return;
+        }
+
+        _turn.Observe(facing, matchFrame);
+        (int side, float yaw) = _turn.PoseAt(matchFrame, _settings.TurnFrames);
+        Basis = Basis.FromScale(new Vector3(side, 1f, 1f));
+        _pivot.Basis = new Basis(Vector3.Up, Mathf.DegToRad(yaw));
     }
 
     private BoundClip? MoveClip(string moveId)
@@ -80,14 +112,14 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
 
         WarnMissingOnce(moveId);
         return _clips.Moves.TryGetValue(IdleMoveId, out BoundClip idle)
-            ? idle with { Timing = idle.Timing with { Contacts = null } }
+            ? idle with { Timing = idle.Timing with { Contacts = null, Fit = false } }
             : null;
     }
 
-    // A basic move's looping clip counts the frames since the move began, so it runs on through the move's own loop
-    // (idle restarts every 60 frames, crouch repeats one frame) instead of jumping back to its start.
+    // A basic move counts the frames since it began by the match clock, so a looping clip runs on through the move's
+    // own loop (idle restarts every 60 frames) and a one-frame move repeated (crouch, jump) still animates.
     private FighterPose Timed(FighterPose pose, BoundClip clip) =>
-        pose.MatchFrame > 0 && pose.FirstActiveFrame == 0 && clip.Timing.Loops
+        pose.MatchFrame > 0 && pose.FirstActiveFrame == 0 && !clip.Timing.Fit
             ? pose with { Frame = _entries.FramesInMove(pose.MatchFrame) }
             : pose;
 
@@ -106,22 +138,28 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         }
 
         ClipTransition transition = _settings.Transitions[index];
-        float clipFrame = AnimationRetiming.TransitionFrameAt(
+        float clipFrame = clip.Timing.StartFrame + AnimationRetiming.TransitionFrameAt(
             frame, transition.Frames, clip.Timing.LengthFrames, transition.Reverse);
         return (clip, clipFrame / AnimationRetiming.FramesPerSecond);
     }
 
-    private void Seek(BoundClip clip, double seconds)
+    private static StringName[] NamesById(BoundClips clips)
     {
-        if (_shownClip != clip.Name)
+        var names = new StringName[clips.Moves.Count + clips.Transitions.Length];
+        foreach (BoundClip clip in clips.Moves.Values)
         {
-            _player.Play(clip.Name);
-            _player.Pause();
-            _shownClip = clip.Name;
+            names[clip.Id] = clip.Name;
         }
 
-        // updateOnly: method and audio tracks never fire; sounds come from the logic's events (ARCHITECTURE.md §9).
-        _player.Seek(seconds, update: true, updateOnly: true);
+        foreach (BoundClip? transition in clips.Transitions)
+        {
+            if (transition is { } clip)
+            {
+                names[clip.Id] = clip.Name;
+            }
+        }
+
+        return names;
     }
 
     private static string? RootBone(Node instance)
