@@ -35,5 +35,5 @@ those tools, so it is decided first; placeholder art moves onto the same path fi
 
 - Models and animations can be wired in without touching the logic or the 2D overlays.
 - The overlay and the 3D scene can drift apart only if the camera is rotated (point 4); that needs its own ADR.
-- Next: the skeletal `IFighterArt` (glTF import, move ID → animation, per-phase retiming with contact frames), and
+- Next: the skeletal `IFighterArt` ([ADR-0028](0028-fighter-models-and-contact-frames.md)), and
   a renderer check on Steam Deck (Forward+ vs Mobile).

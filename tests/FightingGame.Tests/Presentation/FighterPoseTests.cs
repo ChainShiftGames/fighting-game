@@ -23,6 +23,8 @@ public sealed class FighterPoseTests
         Assert.Equal(moveFrame, pose.Frame);
         Assert.Equal(15, pose.TotalFrames);
         Assert.Equal(phase, pose.Phase);
+        Assert.Equal(5, pose.FirstActiveFrame);
+        Assert.Equal(7, pose.LastActiveFrame);
         Assert.Equal($"5a {moveFrame}/15", pose.Label);
     }
 

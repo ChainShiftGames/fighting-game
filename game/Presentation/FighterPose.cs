@@ -6,14 +6,21 @@ using Sim.State;
 namespace FightingGame.Presentation;
 
 /// <summary>
-/// What the placeholder art shows for a fighter on this logic frame: its action, move, animation frame and frame
-/// data phase.
+/// What the fighter art shows for a fighter on this logic frame: its action, move, animation frame, frame data phase
+/// and the move's active frames (first and last; 0 when it has none), which the model retimes its animation by.
 /// </summary>
 /// <remarks>
 /// The animation frame is the move frame from the game state, never elapsed time (ARCHITECTURE.md §9), so a
 /// paused, stepped or rolled-back match always shows the frame the logic is on.
 /// </remarks>
-public readonly record struct FighterPose(FighterAction Action, string MoveId, int Frame, int TotalFrames, MovePhase Phase)
+public readonly record struct FighterPose(
+    FighterAction Action,
+    string MoveId,
+    int Frame,
+    int TotalFrames,
+    MovePhase Phase,
+    int FirstActiveFrame = 0,
+    int LastActiveFrame = 0)
 {
     public static FighterPose Of(CharacterData character, in FighterState fighter)
     {
@@ -23,7 +30,9 @@ public readonly record struct FighterPose(FighterAction Action, string MoveId, i
             character.MoveIds[fighter.Move],
             fighter.MoveFrame,
             move.TotalFrames,
-            MovePhases.Of(in move, fighter.MoveFrame));
+            MovePhases.Of(in move, fighter.MoveFrame),
+            move.FirstActiveFrame,
+            move.LastActiveFrame);
     }
 
     /// <summary>E.g. <c>5a 6/16</c> for an attack, <c>WalkForward: idle 12/60</c> for a basic action.</summary>
