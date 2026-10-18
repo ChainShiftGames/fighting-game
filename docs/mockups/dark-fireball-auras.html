@@ -1,0 +1,625 @@
+<title>FireballAura</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: a frame-stepping VFX bench. Global transport bar on top, then one wide panel per aura style:
+   live viewport left, its tuning rack right (stacks under it on phones). Single dark look by choice:
+   it is a monitor for judging effects, like an editor viewport. */
+:root {
+  color-scheme: dark;
+  --bg: #0f0e13;
+  --panel: #17151d;
+  --line: #2a2733;
+  --fg: #e9e6f0;
+  --muted: #9a94a8;
+  --accent: #b77bff;
+  --accent-ink: #1a0f26;
+  --display: "Chakra Petch", "Arial Narrow", sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.list { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 4vw, 34px); letter-spacing: 0.02em; margin: 0; text-wrap: balance; }
+.lede { color: var(--muted); margin: 4px 0 0; max-width: 64ch; }
+.transport {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+  padding-block: 10px;
+}
+.group { display: flex; align-items: center; gap: 6px; }
+.label { font-family: var(--display); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+button, select {
+  font: 500 14px var(--body); color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--muted); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.frame { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 9ch; }
+.style {
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+@media (max-width: 860px) { .style { grid-template-columns: minmax(0, 1fr); } }
+.view { position: relative; min-width: 0; background: #000; }
+canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; }
+.tag {
+  position: absolute; left: 12px; top: 10px; font-family: var(--display); font-weight: 700; font-size: 13px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000a;
+}
+.rack { padding: 16px; display: flex; flex-direction: column; gap: 14px; border-left: 1px solid var(--line); min-width: 0; }
+@media (max-width: 860px) { .rack { border-left: 0; border-top: 1px solid var(--line); } }
+.rack h2 { font-family: var(--display); font-size: 20px; margin: 0; letter-spacing: 0.02em; }
+.rack p { margin: 0; color: var(--muted); font-size: 14px; }
+.row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 44px; align-items: center; gap: 8px; }
+.row output { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.colours { display: flex; gap: 12px; flex-wrap: wrap; }
+.colours label { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+input[type="color"] { width: 44px; height: 30px; border: 1px solid var(--line); border-radius: 6px; background: none; padding: 2px; cursor: pointer; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+textarea {
+  width: 100%; box-sizing: border-box; min-height: 120px; font: 12px/1.4 var(--mono); color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; resize: vertical;
+}
+.note { color: var(--muted); font-size: 13px; }
+.notice { color: var(--muted); font-size: 14px; border: 1px dashed var(--line); border-radius: 8px; padding: 12px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Dark Fireball Auras</h1>
+      <p class="lede">Three aura directions for testman's 236C, drawn at the match's framing: 228 world px of height, a 120 px fighter silhouette for scale, the fireball leaving her hand at 6 px a frame and growing to full size over 12 frames. All three share the same orb: an uneven heartbeat with shockwaves, sparks pulled in and swallowed, lightning on the rim, and the stage bending around it. Tune any of them, then copy its settings back to me.</p>
+    </div>
+  </header>
+
+  <div class="transport" role="toolbar" aria-label="Playback">
+    <div class="group"><button id="play" aria-pressed="true">Pause</button><button id="step">Step +1 frame</button></div>
+    <div class="group"><span class="label">Speed</span>
+      <select id="speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option></select></div>
+    <div class="group"><span class="label">View</span>
+      <select id="mode"><option value="travel" selected>In flight</option><option value="hold">Close-up</option></select></div>
+    <div class="group"><span class="label">Backdrop</span>
+      <select id="bg"><option value="0" selected>Waterfall stage</option><option value="1">Night</option><option value="2">Flat grey</option></select></div>
+    <div class="group"><button id="ultimate" aria-pressed="false">Ultimate flash</button><button id="replay">Recast all</button></div>
+    <span class="frame" id="frame">frame 0</span>
+  </div>
+
+  <p class="notice" id="nogl" hidden>This browser couldn't start WebGL 2, so the previews can't run here. Open the page in a recent Chrome, Edge, Firefox or Safari.</p>
+
+  <div id="styles" class="list"></div>
+</div>
+
+<script>
+(() => {
+  const PRELUDE = `#version 300 es
+precision highp float;
+out vec4 outColor;
+uniform vec2 uRes;
+uniform float uLife, uScale, uSpin, uAura, uTrail, uIntensity, uCount, uZoom, uBg, uVisible;
+uniform float uPulse, uParticles, uDistort, uSuper;
+uniform vec2 uBall, uCam;
+uniform vec3 uCore, uGlow, uAccent;
+const float VIEW_H = 228.0;
+const float PX_PER_M = 70.0;
+const float TAU = 6.2831853;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p) {
+  float s = 0.0, a = 0.5;
+  for (int o = 0; o < 4; o++) { s += a * noise(p); p *= 2.03; a *= 0.5; }
+  return s;
+}
+vec3 over(vec3 c, vec3 layer, float a) { return mix(c, layer, clamp(a, 0.0, 1.0)); }
+
+vec3 background(vec2 w) {
+  if (w.y < 0.0) return uBg > 1.5 ? vec3(0.28) : (uBg > 0.5 ? vec3(0.07, 0.06, 0.09) : vec3(0.31, 0.3, 0.36));
+  if (uBg > 1.5) return vec3(0.5);
+  if (uBg > 0.5) {
+    vec3 sky = mix(vec3(0.05, 0.05, 0.1), vec3(0.12, 0.1, 0.2), w.y / 260.0);
+    float hills = smoothstep(0.02, 0.0, w.y / 260.0 - 0.25 - 0.12 * fbm(vec2(w.x * 0.01, 1.0)));
+    return mix(sky, vec3(0.04, 0.04, 0.06), hills);
+  }
+  vec3 sky = mix(vec3(0.62, 0.78, 0.76), vec3(0.86, 0.93, 0.92), clamp(w.y / 240.0, 0.0, 1.0));
+  float fall = smoothstep(0.55, 0.8, noise(vec2(w.x * 0.08, w.y * 0.004)));
+  sky = mix(sky, vec3(0.95, 0.98, 0.98), fall * 0.6);
+  float rock = smoothstep(0.52, 0.56, fbm(w * 0.012 + vec2(3.0, 1.0)) + (60.0 - w.y) * 0.002);
+  vec3 stone = mix(vec3(0.16, 0.22, 0.21), vec3(0.28, 0.36, 0.34), fbm(w * 0.06));
+  return mix(sky, stone, rock);
+}
+
+// testman's 120 px standing hurtbox, as a silhouette for scale.
+float caster(vec2 w) {
+  vec2 b = w - vec2(70.0, 55.0);
+  vec2 d = abs(b) - vec2(14.0, 48.0);
+  float body = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - 6.0;
+  float head = length(w - vec2(72.0, 110.0)) - 10.0;
+  vec2 a = w - vec2(92.0, 88.0);
+  vec2 da = abs(a) - vec2(22.0, 3.5);
+  float arm = length(max(da, 0.0)) + min(max(da.x, da.y), 0.0) - 2.0;
+  return 1.0 - smoothstep(-0.6, 0.6, min(min(body, head), arm));
+}
+
+float segDist(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a, ba = b - a;
+  return length(pa - ba * clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0));
+}
+
+// The orb's heartbeat: two drifting rhythms plus rare hard spikes, so it never pulses evenly.
+float throb(float t) {
+  float n = noise(vec2(t * 2.3, 1.7)) * 0.6 + noise(vec2(t * 5.7, 4.2)) * 0.4;
+  float spike = pow(noise(vec2(t * 1.4, 9.1)), 4.0) * 2.4;
+  return n + spike;
+}
+float coreRadius(float t, float ang) {
+  float p = throb(t) * uPulse;
+  float wobble = (noise(vec2(ang * 2.5 + t * 3.0, t * 4.0)) - 0.5) * 0.09 * uPulse;
+  return 0.19 * (0.9 + 0.1 * p + wobble);
+}
+// Shockwave rings on an irregular beat: some beats fire, some don't.
+float shock(float r, float t) {
+  float beat = t * 1.6;
+  float age = fract(beat);
+  if (hash(vec2(floor(beat), 3.7)) < 0.35) return 0.0;
+  float ringR = 0.19 * (1.0 + age * 2.6 * uAura);
+  float width = 0.015 + 0.03 * age;
+  return (1.0 - smoothstep(0.0, width, abs(r - ringR))) * pow(1.0 - age, 2.0) * min(uPulse, 1.5);
+}
+// Where the background is seen from near the orb: pulled in and twisted round it, rippled by the shockwaves.
+vec2 lens(vec2 q, float t) {
+  float r = length(q);
+  float near = max(r - 0.19, 0.0);
+  float pull = uDistort * 0.34 * exp(-near * 5.0);
+  float twist = uDistort * 1.1 * exp(-near * 4.0);
+  float c = cos(twist), sn = sin(twist);
+  vec2 turned = vec2(c * q.x - sn * q.y, sn * q.x + c * q.y);
+  return turned * (1.0 - pull + 0.12 * shock(r, t) * uDistort);
+}
+
+vec3 orbHalo(vec3 col, vec2 q, float t, float spin) {
+  vec3 glow = uGlow * uIntensity;
+  float r = length(q), ang = atan(q.y, q.x);
+  float R = coreRadius(t, ang);
+  float p = throb(t) * uPulse;
+  // Cel-shaded glow: hard-edged bands stepping down from the rim, breathing with the pulse.
+  float g = exp(-max(r - R, 0.0) * (7.5 / uAura)) * (0.55 + 0.22 * p);
+  float banded = mix(g, floor(g * 5.0) / 5.0, 0.7);
+  vec3 halo = mix(glow * 0.7, glow, smoothstep(0.15, 0.7, banded));
+  halo = mix(halo, uAccent, smoothstep(0.72, 1.0, banded));
+  col = over(col, halo, banded * 0.95 * step(R, r));
+  col = over(col, mix(glow, uAccent, 0.6), shock(r, t) * 0.85);
+  // Sparks drawn in on spirals and swallowed at the rim.
+  for (int i = 0; i < 40; i++) {
+    if (float(i) >= 8.0 + 30.0 * uParticles) break;
+    float h = hash(vec2(float(i), 1.3)), h2 = hash(vec2(float(i), 7.9));
+    float u = fract(t / (0.45 + 0.6 * h2) + h);
+    float u0 = max(u - 0.08, 0.0);
+    float far = 0.19 * (2.0 + 2.4 * h2) * uAura;
+    float r1 = mix(far, 0.19, u * u), r0 = mix(far, 0.19, u0 * u0);
+    float a1 = h * TAU + u * 3.0 + spin * 0.15, a0 = h * TAU + u0 * 3.0 + spin * 0.15;
+    float d = segDist(q, r0 * vec2(cos(a0), sin(a0)), r1 * vec2(cos(a1), sin(a1)));
+    float w = 0.003 + 0.006 * u;
+    col = over(col, mix(glow, uAccent, u), (1.0 - smoothstep(w * 0.4, w, d)) * smoothstep(0.0, 0.25, u));
+  }
+  // Embers flung off the back as it flies.
+  for (int i = 0; i < 28; i++) {
+    if (float(i) >= 6.0 + 20.0 * uParticles) break;
+    float h = hash(vec2(float(i), 4.1)), h2 = hash(vec2(float(i), 2.2));
+    float u = fract(t * (0.8 + 0.7 * h2) + h);
+    float side = (h - 0.5) * 2.0;
+    vec2 start = 0.2 * vec2(-cos(side * 1.2), sin(side * 1.2));
+    vec2 pos = start + vec2(-u * 0.9 * uTrail, side * 0.2 * u + sin(u * 6.0 + h * 9.0) * 0.03);
+    float size = 0.016 * (1.0 - u) + 0.003;
+    col = over(col, mix(uAccent, glow, u), (1.0 - smoothstep(size * 0.5, size, length(q - pos))) * (1.0 - u));
+  }
+  return col;
+}
+
+vec3 orbCore(vec3 col, vec2 q, float t, float spin) {
+  vec3 glow = uGlow * uIntensity;
+  float r = length(q), ang = atan(q.y, q.x);
+  float R = coreRadius(t, ang);
+  float p = throb(t) * uPulse;
+  if (r < R) {
+    float x = r / R;
+    // Veins of energy swirling inside the dark; the very centre stays a black void.
+    float veins = fbm(vec2(ang * 2.0 + spin * 0.35 + x * 3.0, x * 5.0 - t * 2.5));
+    float vein = smoothstep(0.52, 0.58, veins) * (1.0 - smoothstep(0.6, 0.68, veins));
+    vec3 c = mix(uCore, glow * 0.25, pow(x, 3.0));
+    c = mix(c, mix(glow, uAccent, 0.3), vein * pow(x, 1.3) * (0.55 + 0.35 * p));
+    col = mix(uCore, c, smoothstep(0.12, 0.45, x));
+  }
+  col = over(col, uAccent, 1.0 - smoothstep(0.004, 0.012, abs(r - R)));
+  float flicker = 0.4 + 0.6 * step(0.5, noise(vec2(t * 18.0, 1.0)));
+  col = over(col, glow, (1.0 - smoothstep(0.003, 0.008, abs(r - R * (1.13 + 0.05 * p)))) * flicker);
+  // Lightning crackling round the rim, redrawn every three frames.
+  float beat = floor(t * 20.0);
+  float arcR = R * (1.05 + 0.18 * noise(vec2(ang * 9.0, beat)));
+  float on = step(0.6, noise(vec2(ang * 1.6 + beat * 0.7, beat * 0.3)));
+  col = over(col, uAccent, (1.0 - smoothstep(0.002, 0.007, abs(r - arcR))) * on * min(uParticles, 1.0));
+  // A four-point glint flares on the pulse spikes.
+  vec2 g = q - R * 0.75 * vec2(cos(0.9), sin(0.9));
+  float star = max(0.0, 1.0 - abs(g.x) * 70.0 - abs(g.y) * 6.0) + max(0.0, 1.0 - abs(g.y) * 70.0 - abs(g.x) * 6.0);
+  col = over(col, vec3(1.0), clamp(star, 0.0, 1.0) * smoothstep(1.0, 1.7, p));
+  return col;
+}
+
+vec3 fireball(vec3 col, vec2 q, float t, float spin);
+
+void main() {
+  float pxPerWorld = uRes.y / (VIEW_H / uZoom);
+  vec2 w = uCam + (gl_FragCoord.xy - 0.5 * uRes) / pxPerWorld;
+  float t = uLife / 60.0;
+  vec2 q = (w - uBall) / PX_PER_M / uScale;
+  vec2 seen = uVisible > 0.5 ? uBall + lens(q, t) * PX_PER_M * uScale : w;
+  vec3 col = background(seen);
+  col = mix(col, vec3(0.07, 0.06, 0.09), caster(seen) * 0.92);
+  if (uSuper > 0.5) {
+    // Ultimate flash: the stage drops into shadow tinted by the glow, with speed lines aimed at the orb.
+    col = mix(col * 0.25, uGlow * 0.12, 0.35);
+    float r = length(q), a = atan(q.y, q.x);
+    float lines = step(0.8, noise(vec2(a * 40.0, floor(uLife / 2.0))));
+    col = over(col, mix(uAccent, vec3(1.0), 0.5), lines * smoothstep(0.35, 1.4, r) * 0.55);
+  }
+  if (uVisible > 0.5) col = fireball(col, q, t, uLife * uSpin);
+  outColor = vec4(col, 1.0);
+}
+`;
+
+  // Style 1: the current draft, pushed further. Spiral arms with bright leading edges and an ember trail.
+  const VORTEX = `
+vec3 fireball(vec3 col, vec2 q, float t, float spin) {
+  vec3 glow = uGlow * uIntensity;
+  for (int k = 0; k < 10; k++) {
+    float fk = float(k);
+    float along = (fk + 1.0) / 10.0;
+    vec2 c = vec2(-(fk + 1.0) * 0.1 * uTrail, sin(spin * 0.6 + fk * 1.1) * 0.06 * along);
+    float r = 0.18 * (1.0 - 0.55 * along);
+    vec2 d = (q - c) / r;
+    float puff = fbm(d * 1.5 + vec2(fk * 7.0, t * 1.5));
+    float dist = length(d) * 0.5 + (puff - 0.5) * 0.35;
+    float a = (1.0 - smoothstep(0.18, 0.48, dist)) * 0.8 * (1.0 - along + 0.06);
+    col = over(col, mix(uCore, glow * 0.6, 0.45 + 0.4 * along), a);
+  }
+  vec2 p = q / (0.625 * uAura);
+  vec2 s = p; s.x *= p.x < 0.0 ? 0.6 : 1.05;
+  float radius = length(s), angle = atan(s.y, s.x);
+  float wobble = fbm(vec2(angle * 1.2, radius * 3.0 - t * 2.0));
+  float phase = fract((uCount * angle + radius * 7.0 - spin + wobble * 1.5) / TAU);
+  float arm = smoothstep(0.0, 0.08, phase) * (1.0 - smoothstep(0.08, 0.45, phase));
+  float leading = smoothstep(0.0, 0.05, phase) * (1.0 - smoothstep(0.05, 0.13, phase));
+  float ring = smoothstep(0.25, 0.4, radius) * (1.0 - smoothstep(0.6, 0.97, radius));
+  vec3 armCol = mix(glow * 0.75, uCore, smoothstep(0.45, 0.95, radius));
+  armCol = mix(armCol, uAccent, leading * (1.0 - smoothstep(0.4, 0.8, radius)));
+  col = over(col, armCol, arm * ring * 1.15);
+  col = orbHalo(col, q, t, spin);
+  return orbCore(col, q, t, spin);
+}`;
+
+  // Style 2: a black sun. Flame corona round a perfect black disc, tilted orbit rings with comets that pass
+  // behind and in front of the core, and speed streaks behind.
+  const ECLIPSE = `
+vec4 orbit(vec2 q, float tilt, float a, float b, float heads, float spin) {
+  float c = cos(tilt), s = sin(tilt);
+  vec2 u = vec2(c * q.x + s * q.y, -s * q.x + c * q.y);
+  float f = (u.x * u.x) / (a * a) + (u.y * u.y) / (b * b) - 1.0;
+  vec2 g = vec2(2.0 * u.x / (a * a), 2.0 * u.y / (b * b));
+  float d = abs(f) / max(length(g), 1e-4);
+  float phi = atan(u.y / b, u.x / a);
+  float trailPos = fract((phi - spin) * heads / TAU);
+  float comet = pow(trailPos, 4.0);
+  float line = 1.0 - smoothstep(0.004, 0.014, d);
+  float faint = (1.0 - smoothstep(0.0, 0.006, d)) * 0.25;
+  float front = u.y < 0.0 ? 1.0 : 0.0;
+  return vec4(line * comet + faint, comet, front, d);
+}
+vec3 fireball(vec3 col, vec2 q, float t, float spin) {
+  vec3 glow = uGlow * uIntensity;
+  float r = length(q), ang = atan(q.y, q.x);
+  if (q.x < 0.0) {
+    float len = 0.9 * uTrail;
+    float lane = noise(vec2(q.y * 55.0, 3.0));
+    float streak = step(0.72, lane) * smoothstep(0.0, 0.25, noise(vec2(q.x * 3.0 + t * 9.0, q.y * 55.0)));
+    float fade = (1.0 - smoothstep(0.0, len, -q.x)) * (1.0 - smoothstep(0.08, 0.2 * uAura, abs(q.y)));
+    col = over(col, glow, streak * fade * 0.8);
+  }
+  col = orbHalo(col, q, t, spin);
+  vec4 o1 = orbit(q, 0.38, 0.46 * uAura, 0.13 * uAura, uCount, spin);
+  vec4 o2 = orbit(q, -0.55, 0.4 * uAura, 0.1 * uAura, uCount, -spin * 1.3 + 2.0);
+  if (o1.z < 0.5) col = over(col, mix(glow, uAccent, o1.y), o1.x * 0.7);
+  if (o2.z < 0.5) col = over(col, mix(glow, uAccent, o2.y), o2.x * 0.7);
+  float lick = fbm(vec2(ang * uCount * 0.7, t * 3.0)) + 0.4 * fbm(vec2(ang * 5.0, r * 9.0 - t * 7.0));
+  float len = 0.19 + (0.03 + 0.11 * lick) * uAura;
+  len *= 1.0 + 0.6 * max(0.0, -cos(ang)) * uTrail;
+  float tongue = 1.0 - smoothstep(len - 0.03, len, r);
+  col = over(col, mix(uCore, glow, smoothstep(len - 0.06, len, r)), tongue);
+  col = orbCore(col, q, t, spin);
+  if (o1.z > 0.5) col = over(col, mix(glow, uAccent, o1.y), o1.x);
+  if (o2.z > 0.5) col = over(col, mix(glow, uAccent, o2.y), o2.x);
+  return col;
+}`;
+
+  // Style 3: serpents. Ribbons twist round the travel axis, passing behind and in front of the core, over a
+  // the orb; they taper into a long tail.
+  const SERPENTS = `
+vec4 ribbon(vec2 q, float i, float spin) {
+  float s = -q.x;
+  float len = 1.1 * uTrail;
+  if (s < -0.24 || s > len) return vec4(0.0);
+  float k = 7.0;
+  float phase = s * k + spin + i * TAU / uCount;
+  float head = smoothstep(-0.24, 0.02, s);
+  float amp = 0.2 * uAura * head * (1.0 + 0.5 * smoothstep(0.0, 0.35, s)) * (1.0 - smoothstep(0.35, len, s));
+  float y = amp * sin(phase);
+  float slope = amp * k * cos(phase);
+  float d = abs(q.y - y) / sqrt(1.0 + slope * slope);
+  float width = (0.045 * (1.0 - smoothstep(0.0, len, s)) + 0.006) * head;
+  if (width < 0.001) return vec4(0.0);
+  float body = 1.0 - smoothstep(width * 0.55, width, d);
+  float edge = smoothstep(width * 0.15, width * 0.9, d);
+  return vec4(body, edge, cos(phase), d);
+}
+vec3 fireball(vec3 col, vec2 q, float t, float spin) {
+  vec3 glow = uGlow * uIntensity;
+  for (int i = 0; i < 6; i++) {
+    if (float(i) >= uCount) break;
+    vec4 rb = ribbon(q, float(i), spin);
+    if (rb.z < 0.0) col = over(col, mix(uCore, glow * 0.7, rb.y), rb.x * 0.85);
+  }
+  col = orbHalo(col, q, t, spin);
+  col = orbCore(col, q, t, spin);
+  for (int i = 0; i < 6; i++) {
+    if (float(i) >= uCount) break;
+    vec4 rb = ribbon(q, float(i), spin);
+    if (rb.z >= 0.0) {
+      vec3 c = mix(uCore, glow, rb.y);
+      c = mix(c, uAccent, smoothstep(0.75, 1.0, rb.z) * rb.y * 0.8);
+      col = over(col, c, rb.x);
+    }
+  }
+  return col;
+}`;
+
+  const STYLES = [
+    {
+      id: "void_vortex", name: "Void Vortex",
+      blurb: "The current draft, pushed further: spiral arms with bright leading edges turn round the ball and a trail of embers follows.",
+      shader: VORTEX,
+      colours: { core: "#000000", glow: "#9a33ff", accent: "#f3c2ff" },
+      params: { spin: 0.22, aura: 1.0, trail: 1.0, intensity: 1.0, count: 3, pulse: 1.0, particles: 1.0, distort: 1.0 },
+      countLabel: "Arms",
+    },
+    {
+      id: "eclipse", name: "Eclipse",
+      blurb: "A black sun: a perfect disc with a flame corona, two tilted orbit rings whose comets pass behind and in front of the core, and speed streaks behind.",
+      shader: ECLIPSE,
+      colours: { core: "#000000", glow: "#6f2bff", accent: "#ffffff" },
+      params: { spin: 0.14, aura: 1.0, trail: 1.0, intensity: 1.1, count: 2, pulse: 1.0, particles: 0.8, distort: 1.2 },
+      countLabel: "Comets",
+    },
+    {
+      id: "serpents", name: "Shadow Serpents",
+      blurb: "Ribbons twist round the line of flight, crossing in front of and behind the core, and taper into a long wake. Reads as something alive.",
+      shader: SERPENTS,
+      colours: { core: "#050008", glow: "#c41f6b", accent: "#ff9fd0" },
+      params: { spin: 0.18, aura: 1.0, trail: 1.0, intensity: 1.0, count: 3, pulse: 1.2, particles: 1.0, distort: 0.8 },
+      countLabel: "Ribbons",
+    },
+  ];
+
+  const SLIDERS = [
+    ["spin", "Turn speed", 0, 0.6, 0.01, "rad per frame"],
+    ["aura", "Aura size", 0.5, 1.8, 0.01, ""],
+    ["trail", "Trail length", 0.3, 2.2, 0.01, ""],
+    ["intensity", "Glow", 0.4, 2.0, 0.01, ""],
+    ["count", "", 1, 6, 1, ""],
+    ["pulse", "Pulse", 0, 2, 0.01, ""],
+    ["particles", "Particles", 0, 1.5, 0.01, ""],
+    ["distort", "Bend", 0, 2, 0.01, ""],
+  ];
+
+  const state = { ultimate: false, playing: true, speed: 1, mode: "travel", bg: 0, frame: 0, castStart: 0 };
+  const panels = [];
+  const root = document.getElementById("styles");
+
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+
+  function compile(gl, type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+
+  function makePanel(style) {
+    const el = document.createElement("section");
+    el.className = "style";
+    el.setAttribute("aria-label", style.name);
+    el.innerHTML = `
+      <div class="view"><canvas id="cv-${style.id}" width="960" height="540"></canvas><span class="tag">${style.name}</span></div>
+      <div class="rack">
+        <div><h2>${style.name}</h2><p>${style.blurb}</p></div>
+        <div class="colours">
+          ${["core", "glow", "accent"].map((c) => `<label><input type="color" id="${style.id}-${c}" value="${style.colours[c]}"><span class="label">${c}</span></label>`).join("")}
+        </div>
+        ${SLIDERS.map(([k, label, min, max, step]) => `
+          <div class="row"><label class="label" for="${style.id}-${k}">${label || style.countLabel}</label>
+          <input type="range" id="${style.id}-${k}" min="${min}" max="${max}" step="${step}" value="${style.params[k]}">
+          <output id="${style.id}-${k}-out">${style.params[k]}</output></div>`).join("")}
+        <div class="actions"><button id="${style.id}-copy">Copy settings</button><button id="${style.id}-reset">Reset</button></div>
+        <textarea id="${style.id}-json" readonly hidden aria-label="${style.name} settings"></textarea>
+        <span class="note" id="${style.id}-msg" aria-live="polite"></span>
+      </div>`;
+    root.appendChild(el);
+
+    const canvas = el.querySelector("canvas");
+    const gl = canvas.getContext("webgl2", { antialias: false, preserveDrawingBuffer: false });
+    if (!gl) return null;
+    const vs = compile(gl, gl.VERTEX_SHADER, `#version 300 es
+in vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }`);
+    const fs = compile(gl, gl.FRAGMENT_SHADER, PRELUDE + style.shader);
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gl.useProgram(prog);
+    const u = {};
+    ["uRes", "uLife", "uScale", "uSpin", "uAura", "uTrail", "uIntensity", "uCount", "uZoom", "uBg", "uVisible", "uPulse", "uParticles", "uDistort", "uSuper", "uBall", "uCam", "uCore", "uGlow", "uAccent"]
+      .forEach((n) => (u[n] = gl.getUniformLocation(prog, n)));
+
+    const values = { colours: { ...style.colours }, params: { ...style.params } };
+    const sync = () => {
+      for (const c of ["core", "glow", "accent"]) values.colours[c] = document.getElementById(`${style.id}-${c}`).value;
+      for (const [k] of SLIDERS) {
+        const v = parseFloat(document.getElementById(`${style.id}-${k}`).value);
+        values.params[k] = v;
+        document.getElementById(`${style.id}-${k}-out`).textContent = k === "count" ? v.toFixed(0) : v.toFixed(2);
+      }
+    };
+    el.addEventListener("input", sync);
+    sync();
+
+    document.getElementById(`${style.id}-reset`).addEventListener("click", () => {
+      for (const c of ["core", "glow", "accent"]) document.getElementById(`${style.id}-${c}`).value = style.colours[c];
+      for (const [k] of SLIDERS) document.getElementById(`${style.id}-${k}`).value = style.params[k];
+      sync();
+    });
+    document.getElementById(`${style.id}-copy`).addEventListener("click", () => {
+      const text = JSON.stringify({ style: style.id, ...values }, null, 2);
+      const area = document.getElementById(`${style.id}-json`);
+      const msg = document.getElementById(`${style.id}-msg`);
+      area.value = text;
+      const fallback = () => { area.hidden = false; area.focus(); area.select(); msg.textContent = "Select and copy the settings above."; };
+      try {
+        navigator.clipboard.writeText(text).then(() => { area.hidden = true; msg.textContent = "Copied. Paste it in the chat."; }, fallback);
+      } catch { fallback(); }
+    });
+
+    const panel = { gl, u, canvas, values, onScreen: true };
+    new IntersectionObserver(([e]) => (panel.onScreen = e.isIntersecting)).observe(canvas);
+    return panel;
+  }
+
+  // Fireball timing from the game: spawns 45 px ahead of the caster, flies 6 px a frame, grows over 12 frames.
+  const CAST_GAP = 30, FLIGHT = 60, GROW = 12;
+  const size = (life) => { const g = Math.min(Math.max((life - 1) / GROW, 0), 1); return 0.2 + 0.8 * (1 - (1 - g) * (1 - g)); };
+
+  function draw(panel) {
+    const { gl, u, canvas, values } = panel;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    gl.viewport(0, 0, w, h);
+    const f = state.frame - state.castStart;
+    let life, visible, ball, cam, zoom;
+    if (state.mode === "travel") {
+      const cycle = ((f % (CAST_GAP + FLIGHT)) + (CAST_GAP + FLIGHT)) % (CAST_GAP + FLIGHT);
+      life = cycle - CAST_GAP + 1;
+      visible = life >= 1;
+      ball = [115 + (life - 1) * 6, 70];
+      zoom = 1;
+      cam = [202, 87];
+    } else {
+      life = Math.max(f + 1, 1);
+      visible = true;
+      ball = [240, 70];
+      zoom = 2;
+      cam = ball;
+    }
+    const p = values.params;
+    gl.uniform2f(u.uRes, w, h);
+    gl.uniform1f(u.uLife, Math.max(life, 1));
+    gl.uniform1f(u.uScale, size(life));
+    gl.uniform1f(u.uSpin, p.spin);
+    gl.uniform1f(u.uAura, p.aura);
+    gl.uniform1f(u.uTrail, p.trail);
+    gl.uniform1f(u.uIntensity, p.intensity);
+    gl.uniform1f(u.uCount, p.count);
+    gl.uniform1f(u.uZoom, zoom);
+    gl.uniform1f(u.uBg, state.bg);
+    gl.uniform1f(u.uVisible, visible ? 1 : 0);
+    gl.uniform1f(u.uPulse, p.pulse);
+    gl.uniform1f(u.uParticles, p.particles);
+    gl.uniform1f(u.uDistort, p.distort);
+    gl.uniform1f(u.uSuper, state.ultimate ? 1 : 0);
+    gl.uniform2f(u.uBall, ball[0], ball[1]);
+    gl.uniform2f(u.uCam, cam[0], cam[1]);
+    gl.uniform3fv(u.uCore, hex(values.colours.core));
+    gl.uniform3fv(u.uGlow, hex(values.colours.glow));
+    gl.uniform3fv(u.uAccent, hex(values.colours.accent));
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  try {
+    for (const s of STYLES) {
+      const panel = makePanel(s);
+      if (!panel) { document.getElementById("nogl").hidden = false; break; }
+      panels.push(panel);
+    }
+  } catch (err) {
+    const n = document.getElementById("nogl");
+    n.hidden = false;
+    n.textContent = "A preview shader failed to compile: " + err.message;
+  }
+
+  const frameLabel = document.getElementById("frame");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const playBtn = document.getElementById("play");
+  const setPlaying = (on) => { state.playing = on; playBtn.textContent = on ? "Pause" : "Play"; playBtn.setAttribute("aria-pressed", String(on)); };
+  if (reduced) setPlaying(false);
+
+  playBtn.addEventListener("click", () => setPlaying(!state.playing));
+  document.getElementById("step").addEventListener("click", () => { setPlaying(false); state.frame += 1; });
+  document.getElementById("speed").addEventListener("change", (e) => (state.speed = parseFloat(e.target.value)));
+  document.getElementById("mode").addEventListener("change", (e) => { state.mode = e.target.value; state.castStart = Math.floor(state.frame); });
+  document.getElementById("bg").addEventListener("change", (e) => (state.bg = parseFloat(e.target.value)));
+  const ult = document.getElementById("ultimate");
+  ult.addEventListener("click", () => { state.ultimate = !state.ultimate; ult.setAttribute("aria-pressed", String(state.ultimate)); });
+  document.getElementById("replay").addEventListener("click", () => (state.castStart = Math.floor(state.frame)));
+
+  // Effects move by whole logic frames, as in the game; playback speed only changes how fast frames come.
+  let last = performance.now(), acc = 0;
+  state.frame = reduced ? 50 : 0;
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, 0.1);
+    last = now;
+    if (state.playing) {
+      acc += dt * 60 * state.speed;
+      const whole = Math.floor(acc);
+      state.frame += whole;
+      acc -= whole;
+    }
+    frameLabel.textContent = "frame " + Math.floor(state.frame);
+    for (const p of panels) if (p.onScreen) draw(p);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
