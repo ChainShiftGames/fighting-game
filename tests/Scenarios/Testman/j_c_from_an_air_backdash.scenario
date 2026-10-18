@@ -1,0 +1,11 @@
+# An air backdash ends in j.C from its 4th frame too (testman's follow-up window), with no modules on.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 7
+frame 12: p1 4dash
+frame 12: expect p1 state = air_backdash
+
+frame 14: p1 c
+frame 14: expect p1 state = air_backdash
+frame 15: expect p1 move = j_c
