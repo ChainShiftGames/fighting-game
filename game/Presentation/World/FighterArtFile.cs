@@ -28,11 +28,14 @@ public static class FighterArtFile
     public static string Resolve(string characterId, string file) =>
         file.StartsWith("res://", System.StringComparison.Ordinal) ? file : $"{FolderFor(characterId)}/{file}";
 
+    /// <summary>The folder holding one folder per character.</summary>
+    public const string CharactersFolder = "res://Assets/Characters";
+
     /// <summary>The art file's <c>res://</c> path for a character.</summary>
     public static string PathFor(string characterId) => $"{FolderFor(characterId)}/{characterId}_art.json";
 
     /// <summary>The folder the art file, and the model it names, live in.</summary>
-    public static string FolderFor(string characterId) => $"res://Assets/Characters/{characterId}";
+    public static string FolderFor(string characterId) => $"{CharactersFolder}/{characterId}";
 
     /// <param name="error">Why the file was refused; empty when it was read.</param>
     /// <returns>The settings, or null when the file is invalid.</returns>
@@ -78,6 +81,11 @@ public static class FighterArtFile
         if (file.CrossfadeFrames < 0 || file.TurnFrames < 0 || file.HoldFrames < 1)
         {
             return "crossfadeFrames and turnFrames can't be negative, and holdFrames must be at least 1";
+        }
+
+        if (file.CameraTurnDegrees is < 0f or > 90f)
+        {
+            return $"cameraTurnDegrees {file.CameraTurnDegrees} must be from 0 to 90";
         }
 
         foreach (KeyValuePair<string, AnimationJson> entry in file.Animations)
@@ -206,6 +214,7 @@ public static class FighterArtFile
             KnockOut = file.KnockOut is { } knockOut ? ToSettings(knockOut, null) : null,
             CrossfadeFrames = file.CrossfadeFrames,
             TurnFrames = file.TurnFrames,
+            CameraTurnDegrees = file.CameraTurnDegrees,
             HoldFrames = file.HoldFrames,
             Projectiles = ToSettings(file.Projectiles),
         };
@@ -262,6 +271,8 @@ public static class FighterArtFile
         public int CrossfadeFrames { get; init; }
 
         public int TurnFrames { get; init; }
+
+        public float CameraTurnDegrees { get; init; }
 
         public int HoldFrames { get; init; } = 1;
     }

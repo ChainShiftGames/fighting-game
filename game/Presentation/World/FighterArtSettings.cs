@@ -27,6 +27,9 @@ public sealed record FighterArtSettings(
     /// <summary>Frames the model takes to turn round when the facing switches; 0 mirrors at once.</summary>
     public int TurnFrames { get; init; }
 
+    /// <summary>Degrees the model turns toward the camera at rest (0 to 90): more shows more face, 0 is side-on.</summary>
+    public float CameraTurnDegrees { get; init; }
+
     /// <summary>How each move's projectiles are drawn, by the move ID that spawns them; a move missing here has no effects.</summary>
     public IReadOnlyDictionary<string, ProjectileArtSettings> Projectiles { get; init; } =
         new Dictionary<string, ProjectileArtSettings>();

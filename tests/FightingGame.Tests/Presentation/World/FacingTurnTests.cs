@@ -31,5 +31,19 @@ public sealed class FacingTurnTests
         Assert.Equal((1, 0f), turn.PoseAt(2, frames: 0));
     }
 
+    [Fact]
+    public void RestsCheatedTowardTheCameraAndTurnsThroughFacingIt()
+    {
+        var turn = new FacingTurn();
+        turn.Observe(1, 100);
+        Assert.Equal((1, -30f), Rounded(turn.PoseAt(100, frames: 4, cameraTurnDegrees: 30f)));
+
+        // From -30 to -90 and back, a fifth of the way per frame.
+        turn.Observe(-1, 101);
+        Assert.Equal((1, -54f), Rounded(turn.PoseAt(101, frames: 4, cameraTurnDegrees: 30f)));
+        Assert.Equal((-1, -78f), Rounded(turn.PoseAt(103, frames: 4, cameraTurnDegrees: 30f)));
+        Assert.Equal((-1, -30f), Rounded(turn.PoseAt(105, frames: 4, cameraTurnDegrees: 30f)));
+    }
+
     private static (int, float) Rounded((int Facing, float Yaw) pose) => (pose.Facing, (float)System.Math.Round(pose.Yaw));
 }

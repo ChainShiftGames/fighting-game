@@ -90,18 +90,18 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         _mixer.Show(clip.Name, seconds, from, _fade.FromSeconds, _fade.Weight(pose.MatchFrame, crossfade));
     }
 
-    // Mirroring, not turning, keeps the side facing the camera the same; the model faces +X. While the facing
-    // switches it turns through facing the camera, where the mirrored pose looks the same.
+    // Mirroring, not turning, keeps the side facing the camera the same; the model faces +X, cheated toward the
+    // camera. While the facing switches it turns through facing the camera, where the mirrored pose looks the same.
     private void ShowFacing(int facing, int matchFrame)
     {
-        if (matchFrame <= 0)
+        int side = facing;
+        float yaw = -_settings.CameraTurnDegrees;
+        if (matchFrame > 0)
         {
-            Basis = Basis.FromScale(new Vector3(facing, 1f, 1f));
-            return;
+            _turn.Observe(facing, matchFrame);
+            (side, yaw) = _turn.PoseAt(matchFrame, _settings.TurnFrames, _settings.CameraTurnDegrees);
         }
 
-        _turn.Observe(facing, matchFrame);
-        (int side, float yaw) = _turn.PoseAt(matchFrame, _settings.TurnFrames);
         Basis = Basis.FromScale(new Vector3(side, 1f, 1f));
         _pivot.Basis = new Basis(Vector3.Up, Mathf.DegToRad(yaw));
     }

@@ -23,6 +23,16 @@ public sealed class JsonNumberFieldTests
         Assert.Equal(-8, JsonNumberField.Read(written, "motionWindow"));
     }
 
+    [Fact]
+    public void ReadsAndRewritesAFileWithComments()
+    {
+        const string Commented = "{\n  // Look settings\n  \"cameraTurnDegrees\": 30,\n  \"turnFrames\": 6\n}\n";
+
+        string written = JsonNumberField.Write(Commented, "cameraTurnDegrees", 45);
+
+        Assert.Equal(Commented.Replace("30", "45", StringComparison.Ordinal), written);
+    }
+
     [Theory]
     [InlineData("buttonBuffer")]
     [InlineData("movementInputs")]
