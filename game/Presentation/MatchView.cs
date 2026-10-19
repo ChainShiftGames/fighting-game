@@ -39,6 +39,9 @@ public partial class MatchView : Node2D
     private MatchEffects? _effects;
     private StageCamera? _camera;
     private System.Func<Sim.Events.FrameEvent, bool>? _sparkDrawnElsewhere;
+    private readonly BackdropBlur _backdropBlur = new();
+    private LookToggles? _look;
+    private AnimeGrade? _grade;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
     /// <param name="screen">The logic camera's width and the stage walls, from the match rules.</param>
@@ -73,9 +76,13 @@ public partial class MatchView : Node2D
         }
     }
 
+    /// <summary>The whole-screen looks to follow (developer settings); without them the stage shows its own look.</summary>
+    public void FollowLook(LookToggles look) => _look = look;
+
     public override void _Ready()
     {
         AddChild(_stage);
+        _worldCamera.Attributes = _backdropBlur.Attributes;
         AddChild(_worldCamera);
         foreach (Node3D? fighter in _fighterNodes)
         {
@@ -107,6 +114,7 @@ public partial class MatchView : Node2D
         CameraFraming framing = CameraFraming.Of(camera, size);
         _worldCamera.Frame(framing);
         _stage.FollowCamera(framing.Centre.X);
+        ShowLook();
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             ref readonly FighterState fighter = ref state.Fighters[player];
@@ -138,6 +146,17 @@ public partial class MatchView : Node2D
 
         int latestFrame = state.Frame - 1;
         HitSparkArt.Draw(this, camera, _effects!.Sparks.Live(latestFrame), latestFrame, _sparkDrawnElsewhere);
+    }
+
+    // The stage brings its own environment; the grade is laid over it once the stage is in the scene.
+    private void ShowLook()
+    {
+        _grade ??= SceneSearch.First<WorldEnvironment>(_stage)?.Environment is { } environment
+            ? new AnimeGrade(environment)
+            : null;
+        _grade?.Show(_look?.Grade.Enabled ?? false);
+        bool blurred = (_look?.BackdropBlur.Enabled ?? false) && _worldCamera.Projection == Camera3D.ProjectionType.Perspective;
+        _backdropBlur.Show(blurred, _worldCamera.PlaneDistance);
     }
 
     private void CollectBoxes(in FighterState fighter, CharacterData character)

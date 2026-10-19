@@ -137,7 +137,8 @@ public partial class DebugPanel : CanvasLayer
 
     private void AddToggleRow(DeveloperToggle toggle)
     {
-        var box = new CheckBox { Text = $"{toggle.Name} ({toggle.Key})", FocusMode = Control.FocusModeEnum.None };
+        string text = toggle.Key == Key.None ? toggle.Name : $"{toggle.Name} ({toggle.Key})";
+        var box = new CheckBox { Text = text, FocusMode = Control.FocusModeEnum.None };
         box.Toggled += pressed => toggle.Enabled = pressed;
         _toggleRows.Add((toggle, box));
         _rows.AddChild(box);

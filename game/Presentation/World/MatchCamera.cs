@@ -23,6 +23,9 @@ public partial class MatchCamera : Camera3D
         Current = true;
     }
 
+    /// <summary>The camera's distance to the gameplay plane, from the last <see cref="Frame"/>.</summary>
+    public float PlaneDistance { get; private set; }
+
     public void Frame(CameraFraming framing)
     {
         float distance = OrthographicDistance;
@@ -35,6 +38,7 @@ public partial class MatchCamera : Camera3D
             Size = framing.VisibleHeight;
         }
 
+        PlaneDistance = distance;
         Position = framing.Centre + new Vector3(0f, 0f, distance);
     }
 }
