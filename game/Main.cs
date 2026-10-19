@@ -65,6 +65,7 @@ public partial class Main : Node2D
     private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
     private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
     private readonly EffectToggles _effectToggles = new();
+    private readonly LookToggles _lookToggles = new();
 
     // Developer setting until there is a replay menu (ADR-0018 §5): every match's replay goes to ReplaysPath.
     private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
@@ -111,7 +112,7 @@ public partial class Main : Node2D
                 () => DataFolderFingerprint.Of(folder), (long)(Stopwatch.Frequency * DataCheckSeconds), Stopwatch.GetTimestamp());
         }
         _stepping = new FrameStepping(_pause);
-        _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All, _saveReplays]);
+        _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All, _saveReplays, .. _lookToggles.All]);
         _replays = new ReplayFolder(ProjectSettings.GlobalizePath(ReplaysPath));
 
         _overlay = new DeveloperOverlay { Visible = OS.IsDebugBuild() };
@@ -425,6 +426,7 @@ public partial class Main : Node2D
     {
         _match = match;
         GD.Print($"Match: {match.Description}");
+        match.View.FollowLook(_lookToggles);
         AddChild(match.View);
         MoveChild(match.View, 0);
         _matchmakingMenu!.Visible = false;
