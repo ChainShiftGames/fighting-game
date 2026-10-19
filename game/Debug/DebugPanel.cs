@@ -6,8 +6,9 @@ using Godot;
 namespace FightingGame.Debug;
 
 /// <summary>
-/// The debug panel (developer setting): lists every developer setting. Toggles act at once; values stored in
-/// <c>data/</c> are written back to their files on Save, and the host then restarts the local match with them.
+/// The debug panel (developer setting): lists every developer setting, scrolling when they outgrow the window.
+/// Toggles act at once; values stored in <c>data/</c> are written back to their files on Save, and the host then
+/// restarts the local match with them.
 /// </summary>
 /// <remarks>
 /// A new developer setting is one more <see cref="DeveloperToggle"/>, <see cref="DataFileFlag"/>,
@@ -97,7 +98,17 @@ public partial class DebugPanel : CanvasLayer
         panel.GrowHorizontal = Control.GrowDirection.Begin;
         panel.OffsetRight = -Margin;
         panel.OffsetTop = TopOffset;
-        panel.AddChild(_rows);
+
+        // The settings outgrow the window, so the panel reaches down to the bottom margin and its rows scroll.
+        panel.AnchorBottom = 1f;
+        panel.OffsetBottom = -Margin;
+        var scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            FocusMode = Control.FocusModeEnum.None,
+        };
+        scroll.AddChild(_rows);
+        panel.AddChild(scroll);
         AddChild(panel);
     }
 
