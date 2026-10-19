@@ -1,4 +1,6 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Shader" path="res://Assets/Shaders/stage_toon.gdshader" id="1_toon"]
 
 [sub_resource type="Environment" id="Environment_stage"]
 background_mode = 1
@@ -12,8 +14,9 @@ fog_density = 0.008
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(24, 8)
 
-[sub_resource type="StandardMaterial3D" id="Material_floor"]
-albedo_color = Color(0.35, 0.35, 0.4, 1)
+[sub_resource type="ShaderMaterial" id="Material_floor"]
+shader = ExtResource("1_toon")
+shader_parameter/albedo_color = Color(0.35, 0.35, 0.4, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall"]
 size = Vector3(0.05, 6, 0.05)

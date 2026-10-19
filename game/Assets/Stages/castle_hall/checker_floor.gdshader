@@ -1,7 +1,7 @@
 // The castle hall's floor: cream and green tiles in world space, kept low in contrast so the fighters stand out.
 shader_type spatial;
 
-#include "res://Assets/Stages/castle_hall/toon_light.gdshaderinc"
+#include "res://Assets/Shaders/stage_toon_light.gdshaderinc"
 
 uniform vec3 light_tile : source_color = vec3(0.62, 0.56, 0.45);
 uniform vec3 dark_tile : source_color = vec3(0.42, 0.46, 0.38);

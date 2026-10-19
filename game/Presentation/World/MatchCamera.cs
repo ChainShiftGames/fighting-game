@@ -7,7 +7,8 @@ public partial class MatchCamera : Camera3D
 {
     // Developer settings (presentation, ADR-0027 §4): the perspective angle is narrow, as fighting games use, and the
     // orthographic camera keeps OrthographicDistance from the plane.
-    private const float PerspectiveFieldOfView = 25f;
+    /// <summary>Vertical field of view in degrees; stage key art is painted for it (ADR-0030).</summary>
+    public const float PerspectiveFieldOfView = 25f;
     private const float OrthographicDistance = 20f;
     private const float ViewDepth = 200f;
 

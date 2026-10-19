@@ -29,6 +29,13 @@ Step-by-step walkthrough (first stage): [docs/testingstage.md](../../../../docs/
 | (root) | `Stage` | — | `stage.tscn` only |
 
 - Depths are starting values; tune them in the real camera view.
+- Materials (all in `game/Assets/Shaders/`, fog fades them with distance):
+  - **`stage_toon`**: floor and props, lit by the stage's lights in hard bands. Outline: `toon_outline` as next pass,
+    thinner than the fighters'.
+  - **`stage_projection`**: blocked-out shapes that show the key art (or one layer cut from it), projected from the
+    round-start camera. Its defaults fit a painting made over the camera guide; a painting widened evenly sideways
+    only needs the new file. Paint the guide in a 16:9 window (the default 1152×648 is).
+  - **`stage_card`**: `QuadMesh` cards in `Back` and `Sky`, with optional scroll, sway and flicker.
 - **Guides** (hidden node): logic walls and two fighter-sized boxes at the round start. Turn them on while building,
   off before saving.
 - Behind the plane, the camera sees wider than the walls (x = ±8.57 m): the further back a layer stands, the further

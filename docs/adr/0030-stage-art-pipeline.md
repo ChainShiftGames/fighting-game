@@ -62,5 +62,7 @@ would need per-layer scroll scripts.
 - Layers deeper than the plane show a wider span than the walls (perspective): `Middle` and `Back` must reach further
   sideways the further back they stand.
 - The castle hall stays as the code-built test stage until stage 1 replaces it in `stage_art.json`.
-- Next: a fog-aware toon variant for stage props (the toon shader disables fog), a camera-projection material, and a
-  decision on Git LFS before large layered or `.blend` source files are committed.
+- Shared stage shaders in `game/Assets/Shaders/`: `stage_toon` (banded, fogged), `stage_projection` (key art from the
+  round-start camera; `StageProjectionTests` fail when the camera settings move away from it), `stage_card`.
+- Changing the camera's field of view, visible height or floor line re-frames every stage's key art.
+- Next: a decision on Git LFS before large layered or `.blend` source files are committed.

@@ -6,14 +6,15 @@ in order; each ends with a checkpoint in the running game.
 
 ## Step 1: Copy the template and wire it in
 
-- Duplicate `game/Assets/Stages/_template` as `magic_ruins` (template README, "New stage").
+- `game/Assets/Stages/magic_ruins` is already copied from the template; reference images go in its `reference/`.
 - `game/Assets/Stages/stage_art.json`: `"scene": "magic_ruins/stage.tscn", "perspective": true`. The castle hall
   stays in the repo; switching back is one line.
 - **Checkpoint:** the match runs on the placeholder floor, both fighters on it, the HUD unchanged.
 
 ## Step 2: Make the camera guide
 
-- Turn on the `Guides` node, run the match, and take a screenshot at round start with the camera centred.
+- Turn on the `Guides` node, run the match in a 16:9 window (the default size is), and take a screenshot at round
+  start with the camera centred. The `stage_projection` shader assumes exactly this frame.
 - Paint over it in flat shapes: floor line, the two fighter silhouettes, the walls. Save it as
   `reference/camera_guide.png`.
 - Every concept image is generated from this guide, so the horizon, floor height and fighter scale match the game.
@@ -40,7 +41,7 @@ in order; each ends with a checkpoint in the running game.
   props, floor.
 - Cut each back layer out with alpha; inpaint what the layer in front of it hid. Working files in `source/`.
 - Export the cards to `sky/` and `back/` (`back_ruins_far.webp`, `back_trees_mid.webp`, …).
-- **Checkpoint:** the cards stand as unshaded quads under `Sky` and `Back`; with the camera at each wall nothing
+- **Checkpoint:** the cards stand as `QuadMesh`es with `stage_card` under `Sky` and `Back`; with the camera at each wall nothing
   shows its edge, and the layers slide past each other as the camera moves.
 
 ## Step 5: Block out the floor and middle
@@ -52,9 +53,9 @@ in order; each ends with a checkpoint in the running game.
 
 ## Step 6: Texture the floor and props
 
-- Floor: stylized tileable textures matching the palette, on the toon shading (`game/Assets/Shaders/`), in
-  `floor/`.
-- Middle: project the key art onto the block-out from the camera, or toon materials with flat palette colours.
+- Floor: stylized tileable textures matching the palette on `stage_toon` (`uv_scale` repeats them), in `floor/`.
+- Middle: `stage_projection` with the key art on the block-out, or `stage_toon` with flat palette colours.
+  Widened the key art sideways? Only the file changes; widened it upward too, set `art_bottom`/`art_height`.
 - Replace a block-out piece with a real model (`.glb` in `middle/`) only where the camera's travel shows the
   projection stretching. AI-generated models are allowed here after cleanup in Blender (origin at the base, real
   scale, no stray geometry, textures embedded); never for the floor.
@@ -64,7 +65,7 @@ in order; each ends with a checkpoint in the running game.
 
 - Under `Effects`: a `GPUParticles3D` of motes (start around 150–250, lifetime 5–10 s, an emission box covering the
   visible arena, slow drift), small emissive quads in cyan, violet and pale gold.
-- Cheap life: sway on foliage, a slow scroll on mist cards, flicker on crystal lights.
+- Cheap life on `stage_card`: `sway_amount` on foliage, `scroll_speed` on mist, `flicker_amount` on crystal glow.
 - Motes stay subtle: they must never hide attacks, hit sparks or silhouettes.
 - Particle amount and tint are tuned in the scene for now; a per-stage config only once a second stage needs it.
 

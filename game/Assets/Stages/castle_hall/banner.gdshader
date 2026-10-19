@@ -2,7 +2,7 @@
 shader_type spatial;
 render_mode cull_disabled;
 
-#include "res://Assets/Stages/castle_hall/toon_light.gdshaderinc"
+#include "res://Assets/Shaders/stage_toon_light.gdshaderinc"
 
 uniform vec3 field_color : source_color = vec3(0.55, 0.12, 0.12);
 uniform vec3 trim_color : source_color = vec3(0.85, 0.66, 0.25);

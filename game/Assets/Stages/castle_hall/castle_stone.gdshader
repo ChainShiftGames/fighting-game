@@ -3,7 +3,7 @@
 shader_type spatial;
 
 #include "res://Assets/Stages/castle_hall/castle_stone.gdshaderinc"
-#include "res://Assets/Stages/castle_hall/toon_light.gdshaderinc"
+#include "res://Assets/Shaders/stage_toon_light.gdshaderinc"
 
 uniform vec3 stone_color : source_color = vec3(0.74, 0.64, 0.5);
 uniform vec3 mortar_color : source_color = vec3(0.5, 0.42, 0.33);

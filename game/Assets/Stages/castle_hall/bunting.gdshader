@@ -2,7 +2,7 @@
 shader_type spatial;
 render_mode cull_disabled;
 
-#include "res://Assets/Stages/castle_hall/toon_light.gdshaderinc"
+#include "res://Assets/Shaders/stage_toon_light.gdshaderinc"
 
 uniform float flag_count = 24.0;
 uniform float sag = 0.8;
