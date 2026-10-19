@@ -17,7 +17,8 @@
 
 ## Prompts
 
-Keep every prompt that produced an image we use, with the output file name.
+Keep every prompt that produced an image we use, with the output file name. Build them from
+`docs/world/art-prompts.md`; note the region and purpose blocks used.
 
 | Output | Prompt | Notes |
 |---|---|---|
