@@ -8,6 +8,7 @@ using Netcode.Drivers;
 using Sim.Characters;
 using Sim.Collision;
 using Sim.Math;
+using Sim.Rules;
 using Sim.State;
 using LogicScreen = Sim.Camera.CameraFraming;
 
@@ -44,12 +45,14 @@ public partial class MatchView : Node2D
     private AnimeGrade? _grade;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
+    /// <param name="rules">The match rules, for the HUD's round count and gauges.</param>
     /// <param name="screen">The logic camera's width and the stage walls, from the match rules.</param>
     /// <param name="hitboxOverlay">Draws every box when on (developer setting).</param>
     /// <param name="effects">The match's event effects; its sounds join the scene as a child of this view.</param>
     public void Show(
         IMatchDriver<MatchState> driver,
         CharacterData[] characters,
+        in MatchRules rules,
         LogicScreen screen,
         DeveloperToggle hitboxOverlay,
         MatchEffects effects)
@@ -60,7 +63,7 @@ public partial class MatchView : Node2D
         _hitboxOverlay = hitboxOverlay;
         _effects = effects;
         AddChild(effects.Sounds);
-        _hud.Show(driver, characters);
+        _hud.Show(driver, characters, in rules);
         _stage.Build(screen.Stage);
         _worldCamera.UsePerspective = _stage.WantsPerspective;
         ProjectileArtSettings?[][] projectileArt = ProjectileArtLookup.Of(characters);

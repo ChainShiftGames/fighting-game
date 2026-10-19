@@ -73,7 +73,7 @@ public sealed class TrainingMatchStartup
             simulation, inputs, TrainingAdjustments.Create(lineup.Simulation, timings));
 
         var view = new MatchView();
-        view.Show(driver, lineup.Characters, lineup.Screen, _hitboxOverlay, effects);
+        view.Show(driver, lineup.Characters, lineup.Simulation.Rules, lineup.Screen, _hitboxOverlay, effects);
         var meterBar = new FrameMeterBar();
         meterBar.Show(meter, () => _settings.Value.ShowFrameMeter);
         view.AddChild(meterBar);

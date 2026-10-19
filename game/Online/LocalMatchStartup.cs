@@ -55,7 +55,7 @@ public sealed class LocalMatchStartup
         var driver = new LocalMatchDriver<MatchState>(effects.Observe(lineup.RecordedSimulation(recorder)));
         PlayerInputReader[] players = [LocalPlayer(0), LocalPlayer(1)];
         var view = new MatchView();
-        view.Show(driver, lineup.Characters, lineup.Screen, _hitboxOverlay, effects);
+        view.Show(driver, lineup.Characters, lineup.Simulation.Rules, lineup.Screen, _hitboxOverlay, effects);
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players, _stepping);
         var recording = new MatchRecording(recorder, driver, confirmed: null, kind: "local");

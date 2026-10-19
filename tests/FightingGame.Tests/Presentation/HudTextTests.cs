@@ -17,6 +17,16 @@ public sealed class HudTextTests
     }
 
     [Theory]
+    [InlineData(6800, 0, 1f)]
+    [InlineData(6800, 1, 0.36f)]
+    [InlineData(2500, 1, 0f)]
+    [InlineData(10_000, 1, 1f)]
+    public void FillsMeterSegmentsInOrder(int meter, int segment, float fill)
+    {
+        Assert.Equal(fill, HudText.MeterSegmentFill(meter, segment, 2, 10_000), 3);
+    }
+
+    [Theory]
     [InlineData(5940, "99")]
     [InlineData(61, "2")]
     [InlineData(60, "1")]
