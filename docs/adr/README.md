@@ -30,5 +30,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0027](0027-3d-match-view.md) | *Proposed*: match drawn as a 3D scene on the 2D gameplay plane (1 m = 70 px), camera placed from the logic camera (orthographic, square-on), 2D layers on top, `IFighterArt` swap point |
 | [0028](0028-fighter-models-and-contact-frames.md) | *Proposed*: `RiggedFighterModel` seeks clips named after move IDs to the logic frame; per-character art file in `game/Assets/Characters/<id>/` picks placeholder or model and holds contact frames (not in data, not hashed); per-phase retiming |
 | [0029](0029-vfx-lab.md) | *Proposed*: dev-only VFX Lab scene: sheets of effect variants in rounds, controls generated from shader uniforms, feedback file and forks, live reload |
+| [0030](0030-stage-art-pipeline.md) | *Proposed*: stages use the perspective camera; depth layers (Front, Floor, Middle, Back, Sky, Effects, Lighting); AI key art at the game's framing, split by depth and projected; fighters own the value extremes; per-stage folder copied from `game/Assets/Stages/_template/` |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

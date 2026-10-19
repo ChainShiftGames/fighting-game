@@ -1,0 +1,85 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="Environment" id="Environment_stage"]
+background_mode = 1
+background_color = Color(0.08, 0.08, 0.1, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.5, 0.5, 0.55, 1)
+fog_enabled = true
+fog_light_color = Color(0.5, 0.55, 0.65, 1)
+fog_density = 0.008
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(24, 8)
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.35, 0.35, 0.4, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(0.05, 6, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fighter"]
+size = Vector3(0.6, 1.71, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Material_guide"]
+shading_mode = 0
+albedo_color = Color(1, 0.2, 0.6, 1)
+
+[node name="Stage" type="Node3D"]
+editor_description = "Stage template (ADR-0030). Layers are empty groups at the origin: give their children real positions. Copy steps: README.md next to this scene."
+
+[node name="Lighting" type="Node3D" parent="."]
+editor_description = "Key light, environment, fog, the stage's grade."
+
+[node name="KeyLight" type="DirectionalLight3D" parent="Lighting"]
+transform = Transform3D(0.8660254, 0.38302222, -0.32139382, 0, 0.64278764, 0.76604444, 0.5, -0.66341394, 0.5566704, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
+environment = SubResource("Environment_stage")
+
+[node name="Sky" type="Node3D" parent="."]
+editor_description = "z about -150 (inside the camera's 200 m far plane): gradient and a painted card, unshaded."
+
+[node name="Back" type="Node3D" parent="."]
+editor_description = "z -20 to -120: painted cards cut from the key art, unshaded, faded by fog. Wider the further back."
+
+[node name="Middle" type="Node3D" parent="."]
+editor_description = "z -3 to -20: simple 3D shapes, toon-shaded or with the key art projected on them."
+
+[node name="Floor" type="Node3D" parent="."]
+editor_description = "z +3 to -3: the modelled floor, top at y = 0 (the logic floor). The most polished part."
+
+[node name="FloorPlaceholder" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+mesh = SubResource("PlaneMesh_floor")
+surface_material_override/0 = SubResource("Material_floor")
+
+[node name="Front" type="Node3D" parent="."]
+editor_description = "z 0 to +3: rare edge silhouettes in the bottom corners; never over the play space."
+
+[node name="Effects" type="Node3D" parent="."]
+editor_description = "Particles, flipbooks, sway and scroll shaders, at any depth."
+
+[node name="Guides" type="Node3D" parent="."]
+visible = false
+editor_description = "Turn on in the editor while building; keep off when saving. Logic walls at x = ±8.57 m (rules wallDistance 600 000), fighters 1.71 m tall at the round start (x = ±2.14 m, rules roundStartDistance 150 000)."
+
+[node name="LeftWall" type="MeshInstance3D" parent="Guides"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.57, 3, 0)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("Material_guide")
+
+[node name="RightWall" type="MeshInstance3D" parent="Guides"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.57, 3, 0)
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("Material_guide")
+
+[node name="P1Silhouette" type="MeshInstance3D" parent="Guides"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.14, 0.855, 0)
+mesh = SubResource("BoxMesh_fighter")
+surface_material_override/0 = SubResource("Material_guide")
+
+[node name="P2Silhouette" type="MeshInstance3D" parent="Guides"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0.855, 0)
+mesh = SubResource("BoxMesh_fighter")
+surface_material_override/0 = SubResource("Material_guide")
