@@ -7,15 +7,18 @@ namespace FightingGame.Debug;
 
 /// <summary>Reads and rewrites one top-level whole-number field of a JSON data file's text.</summary>
 /// <remarks>
-/// Rewrites only the number, so the file keeps its exact layout and key order and the git diff shows just the
-/// value. Validation stays with Sim.Data, which reloads the file afterwards.
+/// Rewrites only the number, so the file keeps its exact layout, comments and key order and the git diff shows just
+/// the value. Validation stays with the file's loader, which reloads it afterwards.
 /// </remarks>
 public static class JsonNumberField
 {
+    // Art files carry // comments; data files have none, so skipping them changes nothing there.
+    private static readonly JsonDocumentOptions _options = new() { CommentHandling = JsonCommentHandling.Skip };
+
     /// <exception cref="FormatException">The field is missing or isn't a whole number.</exception>
     public static int Read(string json, string key)
     {
-        using JsonDocument document = JsonDocument.Parse(json);
+        using JsonDocument document = JsonDocument.Parse(json, _options);
         if (!document.RootElement.TryGetProperty(key, out JsonElement field) || field.ValueKind != JsonValueKind.Number
             || !field.TryGetInt32(out int value))
         {

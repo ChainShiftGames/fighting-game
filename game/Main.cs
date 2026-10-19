@@ -9,6 +9,7 @@ using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.World;
 using FightingGame.Settings;
 using FightingGame.Training;
 using FightingGame.UI;
@@ -129,6 +130,7 @@ public partial class Main : Node2D
         var networkSimulator = new NetworkSimulatorControls();
         networkSimulator.Build(_networkSimulation);
         _debugPanel.AddSection("Network simulator (developer settings, act at once)", networkSimulator);
+        AddFighterLookSection(_debugPanel);
         AddChild(_debugPanel);
         _networkReadout = new NetworkReadout(_networkSimulation);
 
@@ -382,6 +384,22 @@ public partial class Main : Node2D
             _matchError = $"No {kind} match:\n{exception.Message}";
             return null;
         }
+    }
+
+    // Only where the art files are plain files on disk (editor and dev runs), not in an exported build.
+    private void AddFighterLookSection(DebugPanel panel)
+    {
+        string root = ProjectSettings.GlobalizePath(FighterArtFile.CharactersFolder);
+        DataFileSetting[] settings = ArtFileSettingList.CameraTurns(root);
+        if (settings.Length == 0)
+        {
+            return;
+        }
+
+        var look = new FighterLookControls();
+        look.Build(settings, root);
+        look.Saved += RestartLocalMatch;
+        panel.AddSection("Fighter look (art files, developer settings)", look);
     }
 
     // After data was saved (debug panel, character editor): a local or training match starts over with the new data,

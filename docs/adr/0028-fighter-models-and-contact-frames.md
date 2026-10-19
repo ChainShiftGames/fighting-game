@@ -57,7 +57,8 @@ the authored contact pose. Something has to say where that pose is, and which ch
 6. **Look settings, all by match frames:** a basic move's clip crossfades in from the pose before
    (`crossfadeFrames`, per move or for the file; attacks always snap, so their first frame is the frame data's);
    a facing switch turns the model through facing the camera, where the mirrored pose looks the same
-   (`turnFrames`); `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
+   (`turnFrames`); `cameraTurnDegrees` (0-90) keeps the model turned that far toward the camera at rest, the 3/4
+   view fighting games cheat with, so face and chest read and toon shading falls predictably; `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
    file. Per move, `clipFrom`/`clipTo` play part of a clip, `fit` squeezes it into the move (a 4-frame prejump from
    a jump clip's wind-up) and `holdHeight` keeps the root bone's height for a clip that jumps by itself. Poses are
    mixed by an animation tree that never advances on its own.
