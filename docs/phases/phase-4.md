@@ -34,7 +34,7 @@ Netcode hardening (ADR-0024–0025) and presentation hardening (ADR-0026) run in
 - **P4-F Audio:** Godot audio buses, SFX per event, −16 LUFS, **directional audio** panned by on-screen position.
 - **P4-G HUD:** health, meter, burst, timer, combo counter. Starter done: "Aether Glass" style (frosted glass,
   aurora fills) in `game/Presentation/Hud/`; meter, burst and combo show only when their modules are enabled.
-  Todo: add the Marcellus font file (`game/Assets/UI/Fonts/Marcellus-Regular.ttf`, OFL), round-start/KO banners.
+  Font: Marcellus (SIL OFL, `game/Assets/UI/Fonts/`). Todo: round-start/KO banners.
 - **P4-H Game feel pass:** hitstop, shake, camera zoom, all values as **developer settings**.
 - **P4-I Playtest:** external FGC session; pass when both devs say so.
 - **P4-J Steam page:** partner account, app fee, store art, trailer, "Coming Soon" *(timing proposal)*.
