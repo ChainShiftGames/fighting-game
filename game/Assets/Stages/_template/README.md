@@ -6,7 +6,7 @@ Step-by-step walkthrough (first stage): [docs/testingstage.md](../../../../docs/
 ## New stage
 
 1. In Godot's FileSystem dock, right-click `_template` → **Duplicate** and name it `<stage_id>` (lowercase
-   `snake_case`, e.g. `magic_ruins`). Duplicating in Godot gives the copy its own resource IDs; a plain file copy
+   `snake_case`, e.g. `royal_plaza`). Duplicating in Godot gives the copy its own resource IDs; a plain file copy
    doesn't.
 2. Delete `.gitkeep` from each folder once it holds a real file.
 3. Point `game/Assets/Stages/stage_art.json` at it:

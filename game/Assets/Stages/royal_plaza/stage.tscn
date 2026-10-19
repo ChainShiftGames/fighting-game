@@ -29,7 +29,7 @@ shading_mode = 0
 albedo_color = Color(1, 0.2, 0.6, 1)
 
 [node name="Stage" type="Node3D"]
-editor_description = "Magic Ruins (stage 1, P4-D). Layers are empty groups at the origin: give their children real positions. Folder rules: Stages/_template/README.md."
+editor_description = "Royal Plaza (stage 1, P4-D). Layers are empty groups at the origin: give their children real positions. Folder rules: Stages/_template/README.md."
 
 [node name="Lighting" type="Node3D" parent="."]
 editor_description = "Key light, environment, fog, the stage's grade."
