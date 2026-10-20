@@ -85,7 +85,7 @@ public sealed class BurstModule : IMechanicModule, IAfterInputHook, IOnHitHook
     private static bool WantsBurst(in MatchState match, int fighter, int gauge, in BurstConfig config) =>
         gauge >= config.BurstCost &&
         BurstSituation.Allows(match.Fighters[fighter].Action, in config) &&
-        ButtonPress.IsPressedAt(in match.Inputs[fighter], config.TriggerButtons, 0);
+        ButtonPress.IsUnusedPressAt(in match.Inputs[fighter], config.TriggerButtons, 0);
 
     private static int Gain(int gauge, int amount, in BurstConfig config)
     {

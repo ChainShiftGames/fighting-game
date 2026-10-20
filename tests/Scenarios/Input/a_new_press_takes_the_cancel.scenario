@@ -1,0 +1,12 @@
+# ADR-0033: pressing again still cancels. mechanics_dummy's 5b hits on frame 1 (hitstop until frame 7); b pressed
+# again on frame 9, in 5b's follow-up window, starts 5b_2.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5b
+frame 9: p1 5b
+
+frame 8: expect p1 move = 5b
+frame 9: expect p1 move = 5b_2
+frame 9: expect p1 move_frame = 1

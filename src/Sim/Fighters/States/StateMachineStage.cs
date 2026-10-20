@@ -12,7 +12,8 @@ namespace Sim.Fighters.States;
 /// be taken (<see cref="CancelPermission"/>); without, every window can. Every fighter's started move category is
 /// cleared before the step and its move lock after it, whether or not it advanced
 /// (<see cref="FighterState.StartedMoveCategory"/>, <see cref="FighterState.LockedMoveCategories"/>). A move's cost
-/// (ADR-0023) is checked against the fighter's meter as the step starts and paid right after the step.
+/// (ADR-0023) is checked against the fighter's meter as the step starts and paid right after the step. A fighter
+/// whose machine started an action from a press uses its presses up (ADR-0033), so they can't start another.
 /// </remarks>
 public sealed class StateMachineStage : ITickStage
 {
@@ -64,12 +65,14 @@ public sealed class StateMachineStage : ITickStage
         {
             _player1Machine.Advance(
                 ref player1, in state.Inputs[0], _player1, CancelsFor(ref state, 0), in player1Meter);
+            UsePresses(ref state.Inputs[0], _player1Machine);
         }
 
         if (activity.Advances(1))
         {
             _player2Machine.Advance(
                 ref player2, in state.Inputs[1], _player2, CancelsFor(ref state, 1), in player2Meter);
+            UsePresses(ref state.Inputs[1], _player2Machine);
         }
 
         PayCost(ref state, 0, in player1, _player1);
@@ -80,6 +83,14 @@ public sealed class StateMachineStage : ITickStage
         player2.LockedMoveCategories = MoveCategory.None;
         state.Fighters[0] = player1;
         state.Fighters[1] = player2;
+    }
+
+    private static void UsePresses(ref InputHistory history, FighterStateMachine machine)
+    {
+        if (machine.HasUsedPress)
+        {
+            history.UsePresses();
+        }
     }
 
     private AvailableMeter MeterOf(ref MatchState state, int fighter)

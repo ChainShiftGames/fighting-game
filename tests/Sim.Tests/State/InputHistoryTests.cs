@@ -163,4 +163,43 @@ public sealed class InputHistoryTests
 
         return history;
     }
+
+    [Fact]
+    public void NothingIsUsedAtFirst()
+    {
+        InputHistory history = default;
+        history.Record(new InputWord(1));
+
+        Assert.False(history.IsUsed(0));
+        Assert.False(history.IsUsed(InputHistory.Capacity - 1));
+    }
+
+    [Fact]
+    public void UsePressesCoversTheNewestFrameAndOlderOnly()
+    {
+        InputHistory history = default;
+        history.Record(new InputWord(1));
+        history.Record(new InputWord(2));
+        history.UsePresses();
+        history.Record(new InputWord(3));
+
+        Assert.False(history.IsUsed(0));
+        Assert.True(history.IsUsed(1));
+        Assert.True(history.IsUsed(2));
+    }
+
+    [Fact]
+    public void UsedFramesAreForgottenOnceTheyLeaveTheHistory()
+    {
+        InputHistory history = default;
+        history.Record(new InputWord(1));
+        history.UsePresses();
+        for (int frame = 0; frame < InputHistory.Capacity; frame++)
+        {
+            history.Record(new InputWord(2));
+        }
+
+        Assert.False(history.IsUsed(InputHistory.Capacity - 1));
+        Assert.False(history.IsUsed(InputHistory.Capacity));
+    }
 }

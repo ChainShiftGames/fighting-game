@@ -1,0 +1,15 @@
+# ADR-0033: a global freeze (a super freeze or Roman Cancel freeze) doesn't age the frozen fighters' input. Both
+# press 5a on frame 5 of a 10-frame freeze; 6 match frames later, on frame 11, both are running again and 5a comes
+# out, as in SF6 and Strive.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: freeze = 10
+frame 5: p1 5a
+frame 5: p2 5a
+
+frames 1-10: expect p1 state = idle
+frames 1-10: expect p2 state = idle
+frame 11: expect p1 move = 5a
+frame 11: expect p1 move_frame = 1
+frame 11: expect p2 move = 5a
+frame 11: expect p2 move_frame = 1

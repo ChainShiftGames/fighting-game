@@ -17,7 +17,7 @@
     "airActions": 2
   },
   "moves": [
-    "rekka_2", "rekka_3", "rekka_1", "stance_c", "install_c", "5c", "stance_enter", "install", "5a", "idle", "crouch",
+    "rekka_2", "rekka_3", "rekka_1", "stance_c", "install_c", "5c", "stance_enter", "install", "5b_2", "5b", "5a", "idle", "crouch",
     "hitstun", "crouch_hitstun", "blockstun", "crouch_blockstun"
   ],
   "states": {

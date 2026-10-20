@@ -29,6 +29,36 @@ public sealed class StateMachineStageTests
     }
 
     [Fact]
+    public void StartingAMoveUsesUpTheFightersPressesOnly()
+    {
+        var stage = new StateMachineStage(new ButtonPressMoveInput(), _character, _character);
+        MatchState state = CreateIdleState(stage);
+        state.Inputs[0].Record(new InputWord(ButtonA));
+        state.Inputs[1].Record(InputWord.Neutral);
+
+        stage.Run(ref state, FrameActivity.Everyone);
+
+        Assert.Equal(FighterAction.Attack, state.Fighters[0].Action);
+        Assert.True(state.Inputs[0].IsUsed(0));
+        Assert.False(state.Inputs[1].IsUsed(0));
+    }
+
+    [Fact]
+    public void FollowingTheHeldDirectionUsesNoPress()
+    {
+        var stage = new StateMachineStage(new ButtonPressMoveInput(), _character, _character);
+        MatchState state = CreateIdleState(stage);
+        state.Inputs[0].Record(new InputWord(InputWord.Up));
+        state.Inputs[1].Record(new InputWord(InputWord.Right));
+
+        stage.Run(ref state, FrameActivity.Everyone);
+
+        Assert.Equal(FighterAction.Prejump, state.Fighters[0].Action);
+        Assert.False(state.Inputs[0].IsUsed(0));
+        Assert.False(state.Inputs[1].IsUsed(0));
+    }
+
+    [Fact]
     public void BothFightersGetTheSameResultForTheSameInput()
     {
         var stage = new StateMachineStage(new ButtonPressMoveInput(), _character, _character);

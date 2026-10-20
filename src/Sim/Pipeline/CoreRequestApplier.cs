@@ -13,7 +13,9 @@ namespace Sim.Pipeline;
 /// within a kind, fighter by fighter in module slot order. Conflicts: the highest-priority cancel wins (ties: earlier
 /// slot); for time scale, hitstop, gravity and stun the latest slot wins; move locks combine; the longest freeze wins
 /// (ties: earlier slot); every module event is emitted. An invalid request is a module bug and throws, naming the
-/// slot, rather than being silently fixed. The request tables are cleared after applying.
+/// slot, rather than being silently fixed. The request tables are cleared after applying. A cancel request comes from
+/// a press the module accepted (Roman Cancel, burst), so it uses up the fighter's presses so far (ADR-0033): they
+/// can't also start a move once the cancel is taken.
 /// </remarks>
 public sealed class CoreRequestApplier
 {
@@ -29,7 +31,7 @@ public sealed class CoreRequestApplier
         for (int fighter = 0; fighter < MatchState.PlayerCount; fighter++)
         {
             ref FighterState fighterState = ref state.Fighters[fighter];
-            ApplyCancels(ref fighterState.Cancel, fighter);
+            ApplyCancels(ref fighterState.Cancel, ref state.Inputs[fighter], fighter);
             ApplyTimeScales(ref fighterState.Timing, fighter);
             ApplyHitstopOverrides(ref fighterState.Timing, fighter);
             ApplyGravityScales(ref fighterState, fighter);
@@ -97,7 +99,7 @@ public sealed class CoreRequestApplier
         }
     }
 
-    private void ApplyCancels(ref PendingCancel pending, int fighter)
+    private void ApplyCancels(ref PendingCancel pending, ref InputHistory input, int fighter)
     {
         for (int slot = 0; slot < ModuleStates.MaxModules; slot++)
         {
@@ -111,6 +113,7 @@ public sealed class CoreRequestApplier
                 throw Invalid(slot, $"a cancel into move {request.TargetMove}");
             }
 
+            input.UsePresses();
             if (pending.IsPending == 0 || request.Priority > pending.Priority)
             {
                 pending = new PendingCancel

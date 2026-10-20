@@ -1,0 +1,15 @@
+# ADR-0033: only the press that started the Roman Cancel is used up. A deliberate new press of a on frame 3, right
+# after the 1-frame freeze, starts 5a.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module meter 5000 0 0 0 10000 0
+setup: module roman_cancel 112 3 3 5000 15 1 40 1 2
+frame 1: p1 5a+b+c
+frame 3: p1 5a
+
+frame 1: expect p1 event module
+frame 2: expect p1 state != attack
+frame 3: expect p1 move = 5a
+frame 3: expect p1 move_frame = 1

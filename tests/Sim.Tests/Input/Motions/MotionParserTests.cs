@@ -1,4 +1,5 @@
 using System;
+using Sim.Input;
 using Sim.Input.Motions;
 using Sim.Rules;
 using Sim.State;
@@ -239,6 +240,37 @@ public sealed class MotionParserTests
         InputHistory history = new InputSequence().Directions("23").Hold(6, 17).Press(6, C).History;
 
         Assert.True(parser.IsInput(0, in history, 1, C));
+    }
+
+    [Fact]
+    public void AUsedPressTriggersNoMotion()
+    {
+        InputHistory history = WithPressOnLast("236", facing: 1);
+        history.UsePresses();
+        history.Record(new InputWord(C | InputWord.Right));
+
+        Assert.False(IsInput(236, history, 1, C));
+    }
+
+    [Fact]
+    public void AFreshPressCanReuseTheMotionsDirections()
+    {
+        // 236 with a used press, then the button released and pressed again: the motion's directions still count.
+        InputHistory history = WithPressOnLast("236", facing: 1);
+        history.UsePresses();
+        history.Record(new InputWord(InputWord.Right));
+        history.Record(new InputWord(C | InputWord.Right));
+
+        Assert.True(IsInput(236, history, 1, C));
+    }
+
+    [Fact]
+    public void AUsedDirectionTriggersNoDashMotion()
+    {
+        InputHistory history = new InputSequence().Directions("656").History;
+        history.UsePresses();
+
+        Assert.False(IsInput(66, history, 1, NoButton));
     }
 
     private static InputHistory WithPressOnLast(string directions, int facing) =>

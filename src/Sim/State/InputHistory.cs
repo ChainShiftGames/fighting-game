@@ -10,6 +10,8 @@ namespace Sim.State;
 /// marks them), so the button buffer and motion windows count only the fighter's own frames
 /// (<see cref="OldestFrameWithin"/>): a press made while the fighter is stopped doesn't grow older. A recorded frame
 /// counts as advanced until <see cref="MarkNewestSkipped"/> says otherwise; unrecorded frames count as advanced.
+/// It also remembers up to which frame the presses are used (<see cref="UsePresses"/>, ADR-0033): a press that
+/// started an action can't start another one.
 /// </remarks>
 public struct InputHistory
 {
@@ -20,6 +22,10 @@ public struct InputHistory
     private InputHistorySkips _skips;
     private int _newestIndex;
     private int _count;
+
+    // 0: no recorded press is used. Otherwise frames ago of the newest used frame, plus 1; every frame at least that
+    // old is used. Kept relative so the history needs no match frame; back to 0 once it falls out of the history.
+    private int _usedAge;
 
     /// <summary>Frames recorded so far, up to <see cref="Capacity"/>.</summary>
     public readonly int Count => _count;
@@ -33,7 +39,21 @@ public struct InputHistory
         {
             _count++;
         }
+
+        if (_usedAge != 0)
+        {
+            _usedAge = _usedAge < Capacity ? _usedAge + 1 : 0;
+        }
     }
+
+    /// <summary>
+    /// Uses up every press recorded so far, the newest frame included: an action started from them, so they can't
+    /// start another (<see cref="IsUsed"/>). Presses on later frames are fresh again.
+    /// </summary>
+    public void UsePresses() => _usedAge = 1;
+
+    /// <summary>A press on the frame <paramref name="framesAgo"/> back was already used to start an action.</summary>
+    public readonly bool IsUsed(int framesAgo) => _usedAge != 0 && framesAgo >= _usedAge - 1;
 
     /// <summary>The fighter didn't advance on the newest frame, so that frame doesn't age older presses.</summary>
     public void MarkNewestSkipped() => SetSkipped(_newestIndex, true);

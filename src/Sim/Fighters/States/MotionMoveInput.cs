@@ -13,7 +13,8 @@ namespace Sim.Fighters.States;
 /// button and the move's button are pressed together, within the button buffer (ADR-0020); a high jump is its data
 /// motion, asked on the frame a prejump starts; a double jump is a fresh up press in the air. Presses count the
 /// fighter's own frames (<see cref="InputHistory.OldestFrameWithin"/>): "this frame" includes frames it skipped
-/// since it last advanced. Built once per fighter at match start; checks never allocate.
+/// since it last advanced. Only presses that haven't started an action count (ADR-0033). Built once per fighter at
+/// match start; checks never allocate.
 /// </remarks>
 public sealed class MotionMoveInput : IMoveInput
 {
@@ -61,7 +62,7 @@ public sealed class MotionMoveInput : IMoveInput
         int oldest = history.OldestFrameWithin(0, _parser.ButtonBuffer);
         for (int framesAgo = 0; framesAgo <= oldest; framesAgo++)
         {
-            if (ButtonPress.IsPressedAt(in history, buttons, framesAgo) &&
+            if (ButtonPress.IsUnusedPressAt(in history, buttons, framesAgo) &&
                 NumpadDirection.Of(history.FramesAgo(framesAgo), facing) == shortcut)
             {
                 return true;
@@ -91,10 +92,10 @@ public sealed class MotionMoveInput : IMoveInput
 
     // A fresh press since the fighter last advanced, so one made during hitstop or slowdown isn't lost.
     public bool IsAirJumpTriggered(in InputHistory history, int facing) =>
-        ButtonPress.IsPressedWithin(in history, InputWord.Up, buffer: 0);
+        ButtonPress.IsUnusedPressWithin(in history, InputWord.Up, buffer: 0);
 
     private bool IsDashButtonPressed(in InputHistory history) =>
-        _dashButton != 0 && ButtonPress.IsPressedWithin(in history, _dashButton, buffer: 0);
+        _dashButton != 0 && ButtonPress.IsUnusedPressWithin(in history, _dashButton, buffer: 0);
 
     private static bool IsHoldingBack(in InputHistory history, int facing) =>
         NumpadDirection.IsBack(NumpadDirection.Of(history.FramesAgo(0), facing));

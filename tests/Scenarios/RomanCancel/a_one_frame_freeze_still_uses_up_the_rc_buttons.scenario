@@ -1,0 +1,13 @@
+# ADR-0033: the a+b+c press that starts a Roman Cancel is used up, so even a 1-frame freeze (the press still in the
+# button buffer when p1 runs again on frame 2) doesn't also start a throw (5 + a+b) or 5a out of the cancel.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module meter 5000 0 0 0 10000 0
+setup: module roman_cancel 112 3 3 5000 15 1 40 1 2
+frame 1: p1 5a+b+c
+
+frame 1: expect p1 event module
+frame 1: expect module meter[0] = 5000
+frames 1-20: expect p1 state != attack
