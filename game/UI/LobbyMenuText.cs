@@ -3,13 +3,10 @@ using Platform.Steam.Lobbies;
 
 namespace FightingGame.UI;
 
-/// <summary>What the placeholder lobby menu says at each <see cref="LobbyStage"/>: who is there, who is ready, the keys.</summary>
+/// <summary>What the online lobby menu says above its buttons at each <see cref="LobbyStage"/>: who is there, who is ready.</summary>
 public static class LobbyMenuText
 {
-    /// <summary>Most friends listed with a number key (1–9).</summary>
-    public const int MaxListedFriends = 9;
-
-    /// <param name="lastAction">The menu's own note on the last key pressed (e.g. an invite sent); may be empty.</param>
+    /// <param name="lastAction">The menu's own note on the last button chosen (e.g. an invite sent); may be empty.</param>
     /// <param name="matchNote">What the finished match underneath says (e.g. a desync); may be empty.</param>
     public static string Describe(LobbyFlow lobby, string lastAction, string matchNote = "")
     {
@@ -17,17 +14,18 @@ public static class LobbyMenuText
         switch (lobby.Stage)
         {
             case LobbyStage.Idle:
-                text.Append("Not in a lobby.\n\nH   host a lobby\nOr accept a friend's invite in Steam.\n");
+                text.Append("Host a lobby and invite a friend, or join a friend's lobby.\n");
+                text.Append("A friend's invite accepted in Steam also joins.\n");
                 break;
             case LobbyStage.Entering:
                 text.Append("Entering the lobby…\n");
                 break;
             case LobbyStage.InLobby when !lobby.HasOpponent:
-                AppendInvites(text, lobby);
+                text.Append("Lobby: waiting for an opponent.\nInvite a friend, or they join from their Online menu.\n");
                 break;
             case LobbyStage.InLobby:
                 text.Append($"Lobby: {Players(lobby)}\n\n");
-                AppendReadiness(text, lobby, "ready", "Enter   ready");
+                AppendReadiness(text, lobby, "ready");
                 break;
             case LobbyStage.Starting:
                 text.Append($"{Players(lobby)}\n\nBoth ready: starting the match…\n");
@@ -35,34 +33,17 @@ public static class LobbyMenuText
             case LobbyStage.InMatch:
                 return string.Empty;
             case LobbyStage.Rematch:
-                text.Append("Match over\n\n");
-                AppendReadiness(text, lobby, "wants a rematch", "Enter   rematch");
+                AppendReadiness(text, lobby, "wants a rematch");
                 break;
         }
 
-        if (lobby.Stage is not (LobbyStage.Idle or LobbyStage.Starting))
-        {
-            text.Append("Esc   leave the lobby\n");
-        }
-
-        return AppendNotes(text, matchNote, lobby.Notice, lastAction).ToString();
+        return AppendNotes(text, matchNote, lobby.Notice, lastAction).ToString().TrimEnd('\n');
     }
 
-    private static void AppendInvites(StringBuilder text, LobbyFlow lobby)
+    private static void AppendReadiness(StringBuilder text, LobbyFlow lobby, string readyWord)
     {
-        text.Append("Lobby: waiting for an opponent\n\nI   invite a friend through the Steam overlay\n");
-        for (int i = 0; i < lobby.InvitableFriends.Count && i < MaxListedFriends; i++)
-        {
-            text.Append($"{i + 1}   invite {lobby.InvitableFriends[i].Name} (running the game)\n");
-        }
-
-        text.Append("Or accept a friend's invite in Steam.\n\n");
-    }
-
-    private static void AppendReadiness(StringBuilder text, LobbyFlow lobby, string readyWord, string readyKey)
-    {
-        text.Append($"You: {(lobby.IsLocalReady ? readyWord : $"not yet — {readyKey}")}\n");
-        text.Append($"{lobby.OpponentName}: {(lobby.IsOpponentReady ? readyWord : "not yet")}\n\n");
+        text.Append($"You: {(lobby.IsLocalReady ? readyWord : "not yet")}\n");
+        text.Append($"{lobby.OpponentName}: {(lobby.IsOpponentReady ? readyWord : "not yet")}\n");
     }
 
     private static string Players(LobbyFlow lobby) =>

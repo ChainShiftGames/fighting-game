@@ -5,7 +5,7 @@ using Platform.Steam.Friends;
 namespace Platform.Steam.Lobbies;
 
 /// <summary>
-/// The lobby from this player's side: host one or accept a friend's invite, both ready → match, then rematch
+/// The lobby from this player's side: host one, join a friend's or accept their invite, both ready → match, then rematch
 /// (<see cref="LobbyStage"/>). Steam sits behind <see cref="ILobby"/>; call <see cref="Update"/> once per displayed
 /// frame, after Steam's callbacks.
 /// </summary>
@@ -55,7 +55,10 @@ public sealed class LobbyFlow : IDisposable
     /// <summary>The last thing that went wrong or changed on its own (a failed join, the opponent leaving); may be empty.</summary>
     public string Notice { get; private set; } = string.Empty;
 
-    /// <summary>Friends who can be invited, as of the last <see cref="RefreshFriends"/>.</summary>
+    /// <summary>
+    /// Friends running this game, as of the last <see cref="RefreshFriends"/>: the ones who can be invited, and those
+    /// in a lobby can be joined (<see cref="JoinFriend"/>).
+    /// </summary>
     public IReadOnlyList<SteamFriend> InvitableFriends => _friends;
 
     /// <summary>Creates a lobby to invite a friend to. Only from <see cref="LobbyStage.Idle"/>.</summary>
@@ -69,6 +72,17 @@ public sealed class LobbyFlow : IDisposable
         Notice = string.Empty;
         _lobby.Create();
         Stage = LobbyStage.Entering;
+    }
+
+    /// <summary>Joins the lobby of the friend at this index of <see cref="InvitableFriends"/>. Only from <see cref="LobbyStage.Idle"/>.</summary>
+    public void JoinFriend(int friendIndex)
+    {
+        if (Stage != LobbyStage.Idle || friendIndex < 0 || friendIndex >= _friends.Count || !_friends[friendIndex].HasLobby)
+        {
+            return;
+        }
+
+        JoinInvited(_friends[friendIndex].LobbyId);
     }
 
     /// <summary>Marks this player ready for the next match: the first one, or a rematch. Needs an opponent.</summary>

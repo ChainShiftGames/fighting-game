@@ -59,7 +59,9 @@ public sealed class LocalMatchStartup
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players, _stepping);
         var recording = new MatchRecording(recorder, driver, confirmed: null, kind: "local");
-        return new StartedMatch(loop, driver, view, () => $"local {lineup.Description}", connection: null, recording);
+        return new StartedMatch(
+            loop, driver, view, () => $"local {lineup.Description}", connection: null, recording,
+            isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
     // Player n uses their own keyboard bindings and the joypad in slot n.

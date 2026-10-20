@@ -24,8 +24,9 @@ using Sim.Input;
 namespace FightingGame;
 
 /// <summary>
-/// Startup: builds the pieces, starts the match (local, online against one other PC, or a replay), then feeds the
-/// loop time each displayed frame and saves the match's replay when it is over or left.
+/// Startup: builds the pieces and the menus, starts the match picked there or on the command line (versus, training,
+/// online against one other PC, or a replay), then feeds the loop time each displayed frame and saves the match's
+/// replay when it is over or left.
 /// </summary>
 public partial class Main : Node2D
 {
@@ -48,7 +49,8 @@ public partial class Main : Node2D
     private const double DataCheckSeconds = 0.5;
     private const string DeveloperKeys =
         "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
-        "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one | --training: Tab menu";
+        "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | Esc pause menu | --replay <file> plays one | " +
+        "--training starts training (Tab menu)";
 
     // Player setting: a shortcut for the options menu's vsync entry.
     private const Key ToggleVsyncKey = Key.F2;
@@ -84,7 +86,7 @@ public partial class Main : Node2D
     private OnlineMatchStartup? _onlineStartup;
     private ReplayMatchStartup? _replayStartup;
     private TrainingMatchStartup? _trainingStartup;
-    private bool _wantsTraining;
+    private TrainingMenu? _trainingMenu;
     private ReplayFolder? _replays;
     private MatchLauncher? _launcher;
     private StartedMatch? _match;
@@ -92,7 +94,7 @@ public partial class Main : Node2D
     private DeveloperOverlay? _overlay;
     private DebugPanel? _debugPanel;
     private MatchStatusLabel? _status;
-    private MatchmakingMenu? _matchmakingMenu;
+    private GameMenus? _menus;
     private OptionsMenu? _optionsMenu;
     private PingIndicator? _pingIndicator;
     private NetworkReadout? _networkReadout;
@@ -148,21 +150,19 @@ public partial class Main : Node2D
         _status = new MatchStatusLabel();
         AddChild(_status);
 
-        _matchmakingMenu = new MatchmakingMenu { Visible = false };
-        AddChild(_matchmakingMenu);
+        // Before the options and training menus, so they see Escape first while open.
+        _menus = new GameMenus();
+        AddChild(_menus);
 
         _optionsMenu = new OptionsMenu();
         AddChild(_optionsMenu);
         _optionsMenu.Bind(() => _settings, ChangeSettings);
 
         string[] args = OS.GetCmdlineUserArgs();
-        _wantsTraining = TrainingLaunchOptions.WantsTraining(args);
         CreateStartups(args);
-        _launcher = new MatchLauncher(CreateLocalMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
-        if (_launcher.Matchmaking is { } matchmaking)
-        {
-            _matchmakingMenu.Show(matchmaking);
-        }
+        _launcher = new MatchLauncher(
+            CreateVersusMatch, CreateTrainingMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
+        _menus.Bind(_launcher, _stepping!);
 
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
@@ -187,15 +187,15 @@ public partial class Main : Node2D
 
         if (_match is null)
         {
-            _status!.Show(_matchError);
-            _matchmakingMenu!.MatchNote = string.Empty;
+            _menus!.Refresh(null, _matchError, delta);
+            _status!.Show(string.Empty);
             _pingIndicator!.Show(null);
             return;
         }
 
         long now = Stopwatch.GetTimestamp();
         int framesRun = RunDueFrames(now);
-        ShowMatchStatus();
+        ShowMatchStatus(delta);
         _logicRate.Count(framesRun, now);
         SampleConnection(now);
         _pingIndicator!.Show(_match.Connection?.PingMilliseconds);
@@ -301,8 +301,8 @@ public partial class Main : Node2D
         }
     }
 
-    // Over a finished match the lobby menu is up: its text carries the message then, so the two never overlap.
-    private void ShowMatchStatus()
+    // Over a finished or paused match a menu is up: its text carries the message then, so the two never overlap.
+    private void ShowMatchStatus(double delta)
     {
         ConnectionStatus connection = _match!.ConnectionStatus;
         if (connection.State != _shownConnection)
@@ -313,9 +313,8 @@ public partial class Main : Node2D
 
         string waiting = _match.IsOnline && _match.Loop.CurrentFrame == 0 ? _match.WaitingMessage : string.Empty;
         string status = MatchStatusText.Choose(_match.Desync, connection, waiting, PausedText());
-        bool menuShown = _matchmakingMenu!.Visible;
-        _status!.Show(menuShown ? string.Empty : status);
-        _matchmakingMenu.MatchNote = menuShown ? status : string.Empty;
+        _menus!.Refresh(_match, status, delta);
+        _status!.Show(_menus.IsOpen ? string.Empty : status);
     }
 
     private string PausedText() =>
@@ -342,8 +341,8 @@ public partial class Main : Node2D
             args);
         _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
         var trainingStore = new TrainingSettingsStore(TrainingSettingsPath);
-        var trainingMenu = new TrainingMenu();
-        AddChild(trainingMenu);
+        _trainingMenu = new TrainingMenu();
+        AddChild(_trainingMenu);
         _trainingStartup = new TrainingMatchStartup(
             bindings[0],
             devices,
@@ -353,13 +352,13 @@ public partial class Main : Node2D
             _hitboxOverlay,
             _effectToggles,
             new CurrentTrainingSettings(trainingStore.Load(), trainingStore.Save),
-            trainingMenu);
+            _trainingMenu);
     }
 
-    // --training replaces the local match until there is a main menu.
-    private StartedMatch? CreateLocalMatch() => _wantsTraining
-        ? TryCreateMatch("training", () => _trainingStartup!.Create(_data!.Load()))
-        : TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
+    private StartedMatch? CreateVersusMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
+
+    private StartedMatch? CreateTrainingMatch() =>
+        TryCreateMatch("training", () => _trainingStartup!.Create(_data!.Load()));
 
     private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent)
     {
@@ -406,22 +405,15 @@ public partial class Main : Node2D
         panel.AddSection("Fighter look (art files, developer settings)", look);
     }
 
-    // After data was saved (debug panel, character editor): a local or training match starts over with the new data,
-    // an online one keeps running.
+    // After data was saved (debug panel, character editor): a match on this PC starts over with the new data, an
+    // online one keeps running.
     private void RestartLocalMatch()
     {
         // The data as it is now is what the next match loads, so the same save never restarts it twice.
         _dataWatch?.Accept(Stopwatch.GetTimestamp());
-        if (_match is { IsOnline: true } || _launcher!.Matchmaking is not null)
+        if (!_launcher!.Restart())
         {
-            GD.Print("Saved data applies to the next local match.");
-            return;
-        }
-
-        EndMatch();
-        if (CreateLocalMatch() is { } match)
-        {
-            StartMatch(match);
+            GD.Print("Saved data applies to the next match.");
         }
     }
 
@@ -433,7 +425,6 @@ public partial class Main : Node2D
         _modelSwitch.ShowName(match.View.ShowModel(_modelSwitch.Variant));
         AddChild(match.View);
         MoveChild(match.View, 0);
-        _matchmakingMenu!.Visible = false;
     }
 
     // Leaving a match saves what it recorded so far, unless its finished replay was saved already.
@@ -453,6 +444,7 @@ public partial class Main : Node2D
 
         _match.Dispose();
         _match = null;
+        _trainingMenu?.Use([]);
         _wasWaiting = true;
         _shownConnection = ConnectionState.Connected;
     }

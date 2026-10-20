@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using FightingGame.UI;
 using Platform.Steam.Friends;
 using Platform.Steam.Lobbies;
@@ -11,14 +12,19 @@ public sealed class LobbyMenuTextTests
     private static readonly SteamFriend _rival = new(42, "Rival");
 
     [Fact]
-    public void IdleOffersToHost()
+    public void IdleOffersToHostOrJoinAFriendInALobby()
     {
-        using var flow = new LobbyFlow(new StubLobby());
+        var lobby = new StubLobby();
+        lobby.Friends.Add(_rival);
+        lobby.Friends.Add(new SteamFriend(43, "Host", LobbyId: 900));
+        using var flow = new LobbyFlow(lobby);
+        flow.RefreshFriends();
 
         string text = LobbyMenuText.Describe(flow, string.Empty);
 
-        Assert.Contains("H   host a lobby", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Esc", text, StringComparison.Ordinal);
+        Assert.Contains("Host a lobby and invite a friend", text, StringComparison.Ordinal);
+        Assert.Equal(["Host a lobby", "Join Host's lobby", "Back"], Labels(flow));
+        Assert.Equal(1, LobbyMenuItems.For(flow)[1].FriendIndex);
     }
 
     [Fact]
@@ -31,10 +37,9 @@ public sealed class LobbyMenuTextTests
 
         string text = LobbyMenuText.Describe(flow, "Invite sent to Rival.");
 
-        Assert.Contains("I   invite a friend through the Steam overlay", text, StringComparison.Ordinal);
-        Assert.Contains("1   invite Rival", text, StringComparison.Ordinal);
-        Assert.Contains("Esc   leave the lobby", text, StringComparison.Ordinal);
-        Assert.EndsWith("Invite sent to Rival.\n", text, StringComparison.Ordinal);
+        Assert.Equal(["Invite through the Steam overlay", "Invite Rival", "Leave the lobby"], Labels(flow));
+        Assert.Contains("waiting for an opponent", text, StringComparison.Ordinal);
+        Assert.EndsWith("Invite sent to Rival.", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -49,28 +54,39 @@ public sealed class LobbyMenuTextTests
         string text = LobbyMenuText.Describe(flow, string.Empty);
 
         Assert.Contains("you (P1) vs Rival (P2)", text, StringComparison.Ordinal);
-        Assert.Contains("You: not yet — Enter   ready", text, StringComparison.Ordinal);
+        Assert.Contains("You: not yet", text, StringComparison.Ordinal);
         Assert.Contains("Rival: ready", text, StringComparison.Ordinal);
+        Assert.Equal(["Ready", "Leave the lobby"], Labels(flow));
     }
 
     [Fact]
-    public void AFinishedMatchOffersARematch()
+    public void ReadyCantBePressedTwice()
     {
         var lobby = new StubLobby();
         using LobbyFlow flow = Hosting(lobby);
         lobby.Opponent = _rival;
-        lobby.OpponentReadyFor = 1;
         flow.Update();
         flow.Ready();
-        flow.TakeMatchToStart();
+
+        LobbyMenuItem ready = LobbyMenuItems.For(flow)[0];
+
+        Assert.Equal(LobbyChoice.Ready, ready.Choice);
+        Assert.False(ready.Enabled);
+    }
+
+    [Fact]
+    public void AFinishedMatchOffersARematchOrTheMainMenu()
+    {
+        using LobbyFlow flow = InMatch(new StubLobby());
 
         Assert.Equal(string.Empty, LobbyMenuText.Describe(flow, string.Empty));
+        Assert.Empty(LobbyMenuItems.For(flow));
 
         flow.MatchEnded();
         string text = LobbyMenuText.Describe(flow, string.Empty);
 
-        Assert.Contains("Match over", text, StringComparison.Ordinal);
-        Assert.Contains("Enter   rematch", text, StringComparison.Ordinal);
+        Assert.Equal(["Rematch", "Main menu"], Labels(flow));
+        Assert.Equal(LobbyChoice.MainMenu, LobbyMenuItems.For(flow)[1].Choice);
         Assert.Contains("Rival: not yet", text, StringComparison.Ordinal);
     }
 
@@ -82,8 +98,7 @@ public sealed class LobbyMenuTextTests
 
         string text = LobbyMenuText.Describe(flow, string.Empty, "DESYNC — match stopped\nChecksums differ.");
 
-        Assert.Contains("Enter   rematch", text, StringComparison.Ordinal);
-        Assert.Contains("Esc   leave the lobby", text, StringComparison.Ordinal);
+        Assert.Equal(["Rematch", "Main menu"], Labels(flow));
         Assert.Contains("DESYNC — match stopped\nChecksums differ.", text, StringComparison.Ordinal);
     }
 
@@ -95,10 +110,12 @@ public sealed class LobbyMenuTextTests
         flow.OpponentDisconnected();
         string text = LobbyMenuText.Describe(flow, string.Empty);
 
-        Assert.Contains("H   host a lobby", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("rematch", text, StringComparison.Ordinal);
+        Assert.Contains("Host a lobby", Labels(flow));
+        Assert.DoesNotContain("Rematch", Labels(flow));
         Assert.Contains("Lost the connection to Rival: the match ended without a result.", text, StringComparison.Ordinal);
     }
+
+    private static string[] Labels(LobbyFlow flow) => [.. LobbyMenuItems.For(flow).Select(item => item.Label)];
 
     private static LobbyFlow InMatch(StubLobby lobby)
     {

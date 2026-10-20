@@ -8,7 +8,7 @@ namespace FightingGame.Presentation.Hud;
 public partial class HudLettering : Node2D
 {
     // The Aether Glass face (SIL OFL, licence beside it); Godot's default font stands in if it is missing.
-    private const string FontPath = "res://Assets/UI/Fonts/Marcellus-Regular.ttf";
+    internal const string FontPath = "res://Assets/UI/Fonts/Marcellus-Regular.ttf";
 
     // Font sizes in reference pixels (HudLayout).
     private const float NameSize = 19f;

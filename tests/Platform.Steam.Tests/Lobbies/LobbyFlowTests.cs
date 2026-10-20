@@ -346,6 +346,44 @@ public sealed class LobbyFlowTests
     }
 
     [Fact]
+    public void JoiningAFriendEntersTheirLobby()
+    {
+        var lobby = new FakeLobby();
+        lobby.Friends.Add(_rival);
+        lobby.Friends.Add(_other with { LobbyId = FriendLobby });
+        using var flow = new LobbyFlow(lobby);
+        flow.RefreshFriends();
+
+        flow.JoinFriend(0);
+        Assert.Equal(LobbyStage.Idle, flow.Stage);
+
+        flow.JoinFriend(1);
+        Assert.Equal(LobbyStage.Entering, flow.Stage);
+        Assert.Equal([FriendLobby], lobby.Joined);
+
+        lobby.Enter(asOwner: false);
+        lobby.Opponent = _other;
+        flow.Update();
+
+        Assert.Equal(LobbyStage.InLobby, flow.Stage);
+        Assert.False(flow.IsHost);
+    }
+
+    [Fact]
+    public void JoiningAFriendNeedsToBeOutOfALobby()
+    {
+        var lobby = new FakeLobby();
+        lobby.Friends.Add(_rival with { LobbyId = FriendLobby });
+        using LobbyFlow flow = HostAlone(lobby);
+        flow.RefreshFriends();
+
+        flow.JoinFriend(0);
+
+        Assert.Empty(lobby.Joined);
+        Assert.Equal(0, lobby.Leaves);
+    }
+
+    [Fact]
     public void InvitesNeedALobby()
     {
         var lobby = new FakeLobby();

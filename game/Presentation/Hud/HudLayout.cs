@@ -28,6 +28,7 @@ public readonly struct HudLayout
     private const float MeterNumberWidth = 50f;
     private const float MeterNumberGap = 13f;
     private const float ComboTop = 192f;
+    private const float BannerBaseline = 300f;
 
     private readonly Vector2 _screen;
     private readonly Vector2 _origin;
@@ -82,6 +83,9 @@ public readonly struct HudLayout
 
     /// <summary>The top outer corner of the combo counter, on the attacker's side.</summary>
     public Rect2 Combo(int player) => Mirrored(player, new Rect2(Side, ComboTop, BarWidth / 2f, 0f));
+
+    /// <summary>The middle of the round banner's headline baseline (KO, time-out, the winner).</summary>
+    public Vector2 Banner => _origin + (new Vector2(_reference.X / 2f, BannerBaseline) * Scale);
 
     /// <summary>A font size given in reference pixels, on this screen.</summary>
     public int FontSize(float referenceSize) => Mathf.Max(1, Mathf.RoundToInt(referenceSize * Scale));

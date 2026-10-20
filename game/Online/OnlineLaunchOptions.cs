@@ -8,23 +8,21 @@ using Sim.Data.Online;
 namespace FightingGame.Online;
 
 /// <summary>
-/// Reads an online test match from the command line (developer settings, until there is a menu). After <c>--</c>:
+/// Reads online test options from the command line (developer settings). After <c>--</c>:
 /// <list type="bullet">
-/// <item><c>--steam</c>: find the opponent through a Steam lobby and invites, play over Steam's relay.</item>
 /// <item><c>--online --port 7000 --remote 127.0.0.1:7001 --player 1</c>: direct UDP (development only).</item>
-/// <item>Either one: <c>[--lag | --ping ms --jitter ms --loss %] [--rollback frames] [--delay frames]</c>.</item>
+/// <item>For it and for Steam matches started from the Online menu:
+/// <c>[--lag | --ping ms --jitter ms --loss %] [--rollback frames] [--delay frames]</c>.</item>
 /// </list>
 /// <c>--delay</c> stands in for the player's input delay choice (0–4) for one run; the rest are developer settings.
 /// </summary>
 public static class OnlineLaunchOptions
 {
     public const string Usage =
-        "--steam | --online --port <local port> --remote <ip:port> --player <1|2>, then optionally " +
+        "--online --port <local port> --remote <ip:port> --player <1|2>, then optionally " +
         "--lag, --ping <ms>, --jitter <ms>, --loss <percent>, --rollback <frames>, --delay <frames>";
 
     private const int MaxPacketLossPercent = 100;
-
-    public static bool WantsSteam(string[] args) => Array.IndexOf(args, "--steam") >= 0;
 
     /// <summary>The opponent of a direct UDP match; null with no error when the arguments don't ask for one.</summary>
     /// <remarks>The tuning options are read when the match starts (<see cref="WithTuning"/>, <see cref="InputDelay"/>).</remarks>

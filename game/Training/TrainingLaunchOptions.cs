@@ -2,7 +2,7 @@ using System;
 
 namespace FightingGame.Training;
 
-/// <summary>Starts training mode instead of a local match from the command line, until there is a main menu: <c>--training</c>.</summary>
+/// <summary>Starts training mode at once instead of showing the main menu, from the command line: <c>--training</c>.</summary>
 public static class TrainingLaunchOptions
 {
     public const string Usage = "--training";

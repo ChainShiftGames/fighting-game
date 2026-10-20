@@ -56,6 +56,8 @@ public sealed class ReplayMatchStartup
 
         MatchLoop<MatchState> loop = _loops.Create(driver, players: [], _stepping);
         string description = $"replay {Path.GetFileName(path)}: {lineup.Description}, {replay.Inputs.Count} frames";
-        return new StartedMatch(loop, driver, view, () => description, connection: null);
+        return new StartedMatch(
+            loop, driver, view, () => description, connection: null,
+            isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 }

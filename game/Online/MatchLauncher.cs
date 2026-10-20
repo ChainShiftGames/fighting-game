@@ -1,30 +1,47 @@
 using System;
 using FightingGame.Platform;
+using FightingGame.Training;
 using Godot;
 using Platform.Steam.Lobbies;
 
 namespace FightingGame.Online;
 
 /// <summary>
-/// Picks the match from the command line and hands it over once it can start: at once for local, replay and direct
-/// UDP matches, whenever the lobby has both players ready for Steam ones (the first match and every rematch).
+/// Starts the match the player picks (<see cref="LaunchMode"/>) and hands it over once it can start: at once on this
+/// PC, whenever the lobby has both players ready for Steam ones (the first match and every rematch). The command line
+/// can pick one at startup instead of the main menu (development): a replay, direct UDP or <c>--training</c>. Steam
+/// matches always start from the main menu's Online entry.
 /// </summary>
+/// <remarks>
+/// The platform's matchmaking stays open the whole time, so a friend's invite accepted in Steam goes to the online
+/// lobby from anywhere: the main menu, or ending a match on this PC.
+/// </remarks>
 public sealed class MatchLauncher : IDisposable
 {
+    private readonly Func<StartedMatch?> _createVersus;
+    private readonly Func<StartedMatch?> _createTraining;
     private readonly Func<OnlineOpponent, StartedMatch?> _createOnline;
+    private Func<StartedMatch?>? _restart;
+    private bool _restartRequested;
     private StartedMatch? _readyMatch;
 
-    /// <param name="createLocal">Builds the local match; null when it can't (the host shows why).</param>
+    /// <param name="createVersus">Builds the local two-player match; null when it can't (the host shows why).</param>
+    /// <param name="createTraining">Builds the training match; null when it can't.</param>
     /// <param name="createOnline">Builds an online match against the opponent; null when it can't.</param>
     /// <param name="createReplay">Plays the replay file at the path back; null when it can't.</param>
     public MatchLauncher(
-        Func<StartedMatch?> createLocal,
+        Func<StartedMatch?> createVersus,
+        Func<StartedMatch?> createTraining,
         Func<OnlineOpponent, StartedMatch?> createOnline,
         Func<string, StartedMatch?> createReplay,
         IPlatformServices platform,
         string[] args)
     {
+        _createVersus = createVersus;
+        _createTraining = createTraining;
         _createOnline = createOnline;
+        Matchmaking = platform.OpenMatchmaking();
+        PlatformName = platform.PlatformName;
         string? replay = ReplayLaunchOptions.ParsePath(args, out string replayError);
         if (replayError.Length > 0)
         {
@@ -33,44 +50,109 @@ public sealed class MatchLauncher : IDisposable
 
         if (replay is not null)
         {
-            _readyMatch = createReplay(replay);
-            return;
+            Play(LaunchMode.Replay, () => createReplay(replay));
         }
-
-        if (OnlineLaunchOptions.WantsSteam(args))
+        else if (OnlineLaunchOptions.ParseDirect(args, out string error) is { } direct)
         {
-            Matchmaking = platform.OpenMatchmaking();
-            if (Matchmaking is null)
+            Mode = LaunchMode.DirectOnline;
+            _readyMatch = createOnline(direct);
+        }
+        else
+        {
+            if (error.Length > 0)
             {
-                GD.PushError($"--steam needs Steam, which isn't available ({platform.PlatformName}); starting a local match.");
-                _readyMatch = createLocal();
+                GD.PushError($"Ignoring online options: {error}");
             }
 
-            return;
+            if (TrainingLaunchOptions.WantsTraining(args))
+            {
+                StartTraining();
+            }
         }
-
-        OnlineOpponent? direct = OnlineLaunchOptions.ParseDirect(args, out string error);
-        if (error.Length > 0)
-        {
-            GD.PushError($"Ignoring online options, starting a local match: {error}");
-        }
-
-        _readyMatch = direct is null ? createLocal() : createOnline(direct);
     }
 
-    /// <summary>Set while looking for an opponent through the platform; null for local and direct matches.</summary>
+    public LaunchMode Mode { get; private set; } = LaunchMode.MainMenu;
+
+    /// <summary>Online through the platform; null when it has none (offline), so the online menu can't open.</summary>
     public IMatchmaking? Matchmaking { get; }
+
+    /// <summary>The platform's name for the player, e.g. why online play isn't there ("Offline").</summary>
+    public string PlatformName { get; }
+
+    /// <summary>Whether a finished match can be played again: a new match on this PC, or a rematch in the lobby.</summary>
+    public bool CanRematch => Mode is LaunchMode.Online || _restart is not null;
+
+    /// <summary>Whether a match or the lobby is on this PC only, so it can start over (rematch, data saved).</summary>
+    public bool IsLocal => Mode is LaunchMode.Versus or LaunchMode.Training or LaunchMode.Replay;
+
+    public void StartVersus() => Play(LaunchMode.Versus, _createVersus);
+
+    public void StartTraining() => Play(LaunchMode.Training, _createTraining);
+
+    /// <summary>Goes to the online lobby. False when the platform has no online play.</summary>
+    public bool OpenOnline()
+    {
+        if (Matchmaking is null)
+        {
+            return false;
+        }
+
+        Leave();
+        Mode = LaunchMode.Online;
+        return true;
+    }
+
+    /// <summary>
+    /// After a finished match: plays the same mode again on this PC, or marks this player ready for a rematch in the
+    /// lobby (it starts once both are).
+    /// </summary>
+    public void Rematch()
+    {
+        if (Mode == LaunchMode.Online)
+        {
+            Matchmaking!.Lobby.Ready();
+        }
+        else
+        {
+            Restart();
+        }
+    }
+
+    /// <summary>Starts the match on this PC over (also after its data was saved). False for online modes.</summary>
+    public bool Restart()
+    {
+        if (!IsLocal || _restart is null)
+        {
+            return false;
+        }
+
+        _restartRequested = true;
+        return true;
+    }
+
+    /// <summary>Back to the main menu: ends the running match, and leaves the lobby.</summary>
+    public void ReturnToMainMenu()
+    {
+        Leave();
+        Mode = LaunchMode.MainMenu;
+    }
 
     /// <summary>The match to play once it can start, handed over once; null until then.</summary>
     public StartedMatch? TakeReadyMatch()
     {
+        if (_restartRequested && _restart is not null)
+        {
+            _restartRequested = false;
+            return _restart();
+        }
+
         if (_readyMatch is { } ready)
         {
             _readyMatch = null;
             return ready;
         }
 
-        if (Matchmaking?.TakeMatchToStart() is not { } found)
+        if (Mode != LaunchMode.Online || Matchmaking?.TakeMatchToStart() is not { } found)
         {
             return null;
         }
@@ -88,21 +170,39 @@ public sealed class MatchLauncher : IDisposable
 
     /// <summary>
     /// Brings the lobby up to date, once per displayed frame before <see cref="TakeReadyMatch"/>. Returns true when the
-    /// running match must end because the lobby moved on: a rematch is starting, the opponent left or disconnected, or
-    /// so did we.
+    /// running match must end: the player picked something else (restart, main menu, a friend's invite), or the lobby
+    /// moved on (a rematch is starting, the opponent left or disconnected, or so did we).
     /// </summary>
     public bool EndsMatch(StartedMatch? current)
     {
-        if (Matchmaking is null)
+        LobbyFlow? lobby = Matchmaking?.Lobby;
+        lobby?.Update();
+        if (lobby is not null && Mode != LaunchMode.Online && lobby.Stage != LobbyStage.Idle)
+        {
+            // The player accepted a friend's invite in Steam: they chose to go.
+            Mode = LaunchMode.Online;
+            _restart = null;
+            _restartRequested = false;
+        }
+
+        if (current is null)
         {
             return false;
         }
 
-        LobbyFlow lobby = Matchmaking.Lobby;
-        lobby.Update();
+        if (Mode == LaunchMode.MainMenu || _restartRequested)
+        {
+            return true;
+        }
+
+        if (Mode != LaunchMode.Online || lobby is null)
+        {
+            return false;
+        }
+
         if (current is { OpponentDisconnected: true })
         {
-            // No rematch with an opponent whose PC is gone: back to the menu, which says why.
+            // No rematch with an opponent whose PC is gone: back to the lobby menu, which says why.
             lobby.OpponentDisconnected();
         }
         else if (current is { IsOver: true } && lobby.Stage == LobbyStage.InMatch)
@@ -110,8 +210,25 @@ public sealed class MatchLauncher : IDisposable
             lobby.MatchEnded();
         }
 
-        return current is not null && lobby.Stage is not (LobbyStage.InMatch or LobbyStage.Rematch);
+        return lobby.Stage is not (LobbyStage.InMatch or LobbyStage.Rematch);
     }
 
     public void Dispose() => Matchmaking?.Dispose();
+
+    private void Play(LaunchMode mode, Func<StartedMatch?> create)
+    {
+        Leave();
+        Mode = mode;
+        _restart = create;
+        _restartRequested = true;
+    }
+
+    // Whatever was going on stops: the lobby is left, nothing restarts.
+    private void Leave()
+    {
+        Matchmaking?.Lobby.Leave();
+        _restart = null;
+        _restartRequested = false;
+        _readyMatch = null;
+    }
 }

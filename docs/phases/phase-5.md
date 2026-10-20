@@ -13,7 +13,8 @@
   can't express it). Uniqueness check per character (GAP-38).
 - **P5-B Stages 2–3 and music.**
 - **P5-C Palettes and costumes:** palette textures; costumes as separate models.
-- **P5-D Menus:** main menu, character select, versus, results.
+- **P5-D Menus:** main menu, character select, versus, results. Placeholder menus exist (`game/UI/GameMenus.cs`: main,
+  online lobby, match over, pause); restyle or replace them, and add character select (both sides are Testman now).
 - **P5-E Player settings menu and persistence:** keybinds, vsync, input-delay override, audio,
   language, accessibility. Versioned JSON in `user://`, Steam Cloud sync. Only **player settings** appear here.
 - **P5-F Rebinding UI** per device.

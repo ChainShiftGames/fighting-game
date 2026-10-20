@@ -11,8 +11,8 @@ namespace FightingGame.Presentation;
 
 /// <summary>
 /// The match HUD in the Aether Glass style: health with a damage trail, burst, names and round wins, the timer, the
-/// meter and the combo counter, on frosted glass over the stage. Reads the game state only; burst, meter and combo
-/// show only when their modules are enabled.
+/// meter and the combo counter, on frosted glass over the stage, and the KO / time-out banner. Reads the game state
+/// only; burst, meter and combo show only when their modules are enabled.
 /// </summary>
 public partial class MatchHud : Node2D
 {
@@ -47,6 +47,7 @@ public partial class MatchHud : Node2D
     private readonly GlassGauge[] _health = [new(_healthLook), new(_healthLook)];
     private readonly GlassGauge[] _burst = [new(_burstLook), new(_burstLook)];
     private readonly GlassGauge[] _meter = new GlassGauge[MatchState.PlayerCount * HudLayout.MeterSegments];
+    private readonly RoundBanner _banner = new();
     private IMatchDriver<MatchState>? _driver;
     private HudReadout? _readout;
     private HudLettering? _lettering;
@@ -75,6 +76,7 @@ public partial class MatchHud : Node2D
         }
 
         AddChild(_lettering);
+        AddChild(_banner);
     }
 
     // Drawn on top of the stage; redrawn every displayed frame, like the view under it.
@@ -97,6 +99,7 @@ public partial class MatchHud : Node2D
 
         string timer = HudText.Timer(state.Round.TimerFramesLeft, LoopSettings.Default.FramesPerSecond);
         _lettering.Show(layout, player1, player2, timer, HudText.Round(state.Round.Round), _readout.Gauges.HasMeter);
+        _banner.Show(layout, in state.Round);
     }
 
     private static int MeterIndex(int player, int segment) => (player * HudLayout.MeterSegments) + segment;
