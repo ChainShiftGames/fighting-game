@@ -1,0 +1,13 @@
+# Our own addon: undoes the root file's "Not ours / generated" section for game/addons/**, so the build and
+# `dotnet format` lint this folder like the rest of our code.
+
+[*]
+generated_code = false
+charset = utf-8
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+max_line_length = 120

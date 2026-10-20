@@ -17,7 +17,7 @@ public sealed class AirBlockModule : IMechanicModule, IAirGuardHook
     public string Name => "air_block";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<AirBlockConfig>(
-        new ModuleConfigField("unblockableAttacks", 0, AirBlockAttacks.All));
+        new ModuleConfigField("unblockableAttacks", 0, AirBlockAttacks.All, "Attack kinds that can't be air-blocked, added up: ground normals 1, air normals 2, specials 4, supers 8, projectiles 16. 0 = all blockable."));
 
     public bool CanAirGuard(ModuleContext context, in AirGuardCheck check)
     {

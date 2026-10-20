@@ -9,6 +9,7 @@ using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using FightingGame.Presentation.World;
 using FightingGame.Settings;
 using FightingGame.Training;
@@ -111,8 +112,12 @@ public partial class Main : Node2D
         _data = GameDataLocation.Choose();
         if (_data.Folder is string folder)
         {
+            // The effect settings file is presentation, outside data/, but the control panel saves it the same way.
+            string effects = ProjectSettings.GlobalizePath(EffectSettingsFile.ResPath);
             _dataWatch = new DataChangeWatch(
-                () => DataFolderFingerprint.Of(folder), (long)(Stopwatch.Frequency * DataCheckSeconds), Stopwatch.GetTimestamp());
+                () => HashCode.Combine(DataFolderFingerprint.Of(folder), DataFolderFingerprint.OfFile(effects)),
+                (long)(Stopwatch.Frequency * DataCheckSeconds),
+                Stopwatch.GetTimestamp());
         }
         _stepping = new FrameStepping(_pause);
         _toggles.AddRange([_hitboxOverlay, _pause, .. _effectToggles.All, _saveReplays, .. _lookToggles.All]);

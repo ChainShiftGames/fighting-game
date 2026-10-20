@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Debug;
 using Sim.Data.Rules;
 using Sim.Data.Sources;
 using Sim.Data.Validation;

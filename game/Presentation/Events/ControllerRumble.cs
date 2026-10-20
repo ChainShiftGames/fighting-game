@@ -1,3 +1,4 @@
+using FightingGame.Presentation.Feel;
 using Sim.Events;
 using Sim.State;
 
@@ -10,34 +11,32 @@ namespace FightingGame.Presentation.Events;
 /// </remarks>
 public sealed class ControllerRumble : IFrameEventEffect
 {
-    // Developer settings (presentation): pulse strengths (0 to 1) and lengths.
-    private const float HeavyStrength = 0.8f;
-    private const float LightStrength = 0.3f;
-    private const float HitSeconds = 0.15f;
-    private const float KnockOutSeconds = 0.4f;
-
     private readonly IRumbleMotor _motor;
+    private readonly RumbleSettings _settings;
     private readonly FrameEventId?[] _pulseOf = new FrameEventId?[MatchState.PlayerCount];
 
-    public ControllerRumble(IRumbleMotor motor)
+    /// <param name="settings">Pulse strengths and lengths (developer settings, presentation).</param>
+    public ControllerRumble(IRumbleMotor motor, RumbleSettings settings)
     {
         _motor = motor;
+        _settings = settings;
     }
 
     public void Play(in FrameEvent frameEvent)
     {
         int fighter = frameEvent.Fighter;
+        (float heavy, float light) = (_settings.HeavyStrength, _settings.LightStrength);
         switch (frameEvent.Kind)
         {
             case FrameEventKind.Hit or FrameEventKind.ProjectileHit or FrameEventKind.ThrowHit:
-                Pulse(OpponentOf(fighter), in frameEvent, HeavyStrength, HitSeconds);
-                Pulse(fighter, in frameEvent, LightStrength, HitSeconds);
+                Pulse(OpponentOf(fighter), in frameEvent, heavy, _settings.HitSeconds);
+                Pulse(fighter, in frameEvent, light, _settings.HitSeconds);
                 break;
             case FrameEventKind.Block or FrameEventKind.ProjectileBlock:
-                Pulse(OpponentOf(fighter), in frameEvent, LightStrength, HitSeconds);
+                Pulse(OpponentOf(fighter), in frameEvent, light, _settings.HitSeconds);
                 break;
             case FrameEventKind.KnockOut:
-                Pulse(fighter, in frameEvent, HeavyStrength, KnockOutSeconds);
+                Pulse(fighter, in frameEvent, heavy, _settings.KnockOutSeconds);
                 break;
         }
     }

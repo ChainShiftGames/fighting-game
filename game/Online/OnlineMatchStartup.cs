@@ -7,6 +7,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using FightingGame.Settings;
 using Godot;
 using Netcode.Desync;
@@ -94,7 +95,8 @@ public sealed class OnlineMatchStartup
         var handshake = new VersionHandshake(
             new MatchIdentity(GameVersion.Current, data.Hash.ToBytes(), lineup.Simulation.Rules));
         var recorder = new ReplayRecorder(lineup.CreateReplayHeader(data));
-        var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, RumbleSlots(settings)));
+        var effects = new MatchEffects(
+            _effectToggles, new JoypadRumbleMotor(_joypads, RumbleSlots(settings)), EffectSettingsChoice.Load());
 
         // The effects observe the recorded logic: both wrappers see every resimulated frame (ADR-0018 §4).
         InputDelayMatchDriver driver = PeerSession.CreateDriver(

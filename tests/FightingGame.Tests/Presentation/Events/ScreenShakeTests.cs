@@ -8,7 +8,7 @@ namespace FightingGame.Tests.Presentation.Events;
 
 public sealed class ScreenShakeTests
 {
-    private readonly ScreenShake _shake = new();
+    private readonly ScreenShake _shake = new(TestEffectSettings.Standard.Shake);
 
     [Fact]
     public void ShakesFlipEveryFrameAndFadeOut()
@@ -21,7 +21,7 @@ public sealed class ScreenShakeTests
         Assert.True(first.X > 0f);
         Assert.True(second.X < 0f);
         Assert.True(-second.X < first.X);
-        Assert.Equal(Vector2.Zero, _shake.Offset(10 + ScreenShake.LifetimeFrames));
+        Assert.Equal(Vector2.Zero, _shake.Offset(10 + TestEffectSettings.Standard.Shake.LifetimeFrames));
     }
 
     [Fact]

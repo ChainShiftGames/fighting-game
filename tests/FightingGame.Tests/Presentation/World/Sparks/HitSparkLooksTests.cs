@@ -103,7 +103,7 @@ public sealed class HitSparkLooksTests
             byMove[move] = [settings];
         }
 
-        return new HitSparkLooks([_testman, _testman], [byMove, byMove]);
+        return new HitSparkLooks([_testman, _testman], [byMove, byMove], TestEffectSettings.Standard.Sparks);
     }
 
     private static LiveSpark Spark(

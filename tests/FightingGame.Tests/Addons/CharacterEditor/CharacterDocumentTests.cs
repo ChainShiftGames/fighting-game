@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Debug;
 using Sim.Data.Sources;
 using Sim.Data.Validation;
 using Xunit;

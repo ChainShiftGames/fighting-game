@@ -24,13 +24,13 @@ public sealed class CharacterGaugeModule : IMechanicModule, IAfterInputHook, IOn
     public bool IsCharacterMechanic => true;
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<CharacterGaugeConfig>(
-        new ModuleConfigField("channel", 0, IMeterGauge.ChannelCount - 1),
-        new ModuleConfigField("maxGauge", 1, 1_000_000),
-        new ModuleConfigField("roundStartGauge", 0, 1_000_000),
-        new ModuleConfigField("gainPerFrame", 0, 1_000_000),
-        new ModuleConfigField("hitGain", 0, 1_000_000),
-        new ModuleConfigField("blockGain", 0, 1_000_000),
-        new ModuleConfigField("carryOverRounds", 0, 1));
+        new ModuleConfigField("channel", 0, IMeterGauge.ChannelCount - 1, "Which meter channel this character's gauge is (ADR-0023)."),
+        new ModuleConfigField("maxGauge", 1, 1_000_000, "A full gauge; gains stop there."),
+        new ModuleConfigField("roundStartGauge", 0, 1_000_000, "Gauge at the start of each round."),
+        new ModuleConfigField("gainPerFrame", 0, 1_000_000, "Gauge gained on every frame of a round being fought."),
+        new ModuleConfigField("hitGain", 0, 1_000_000, "Gauge gained each time the owner's attack hits."),
+        new ModuleConfigField("blockGain", 0, 1_000_000, "Gauge gained each time the owner's attack is blocked."),
+        new ModuleConfigField("carryOverRounds", 0, 1, "1: the gauge carries over into the next round. 0: it starts fresh."));
 
     public void AfterInput(ModuleContext context)
     {

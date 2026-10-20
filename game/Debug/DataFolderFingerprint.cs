@@ -29,4 +29,11 @@ public static class DataFolderFingerprint
 
         return hash.ToHashCode();
     }
+
+    /// <summary>The same summary for one file outside the folder; it changes when the file is saved or deleted.</summary>
+    public static int OfFile(string path)
+    {
+        var info = new FileInfo(path);
+        return info.Exists ? HashCode.Combine(info.Length, info.LastWriteTimeUtc.Ticks) : 0;
+    }
 }

@@ -1,3 +1,4 @@
+using FightingGame.Presentation.Feel;
 using Netcode.Drivers;
 using Sim.Data.Online;
 using Sim.State;
@@ -24,23 +25,29 @@ public sealed class MatchEffects : IEffectReset
 
     /// <param name="toggles">Switches each kind of effect (developer settings).</param>
     /// <param name="rumble">The controllers of the players on this PC.</param>
-    public MatchEffects(EffectToggles toggles, IRumbleMotor rumble)
+    /// <param name="settings">How strong each effect is (developer settings, <see cref="EffectSettingsChoice"/>).</param>
+    public MatchEffects(EffectToggles toggles, IRumbleMotor rumble, EffectSettings settings)
     {
+        Settings = settings;
+        Shake = new ScreenShake(settings.Shake);
         var effects = new EffectGroup(
             new ToggledEffect(toggles.Sparks, Sparks),
             new ToggledEffect(toggles.Sparks, Impacts),
             new ToggledEffect(toggles.Shake, Shake),
             new ToggledEffect(toggles.Sounds, Sounds),
-            new ToggledEffect(toggles.Rumble, new ControllerRumble(rumble)));
+            new ToggledEffect(toggles.Rumble, new ControllerRumble(rumble, settings.Rumble)));
         _reconciler = new FrameEventReconciler(effects, RememberedFrames);
     }
+
+    /// <summary>The settings the effects were made with; the view sizes the sparks from them.</summary>
+    public EffectSettings Settings { get; }
 
     public HitSparks Sparks { get; } = new();
 
     /// <summary>Projectile impacts (hit, block, clash, expiry), drawn by the projectile's impact effect.</summary>
     public ProjectileImpacts Impacts { get; } = new();
 
-    public ScreenShake Shake { get; } = new();
+    public ScreenShake Shake { get; }
 
     /// <summary>The host adds this node to the scene tree; sounds only play while it is there.</summary>
     public PlaceholderSounds Sounds { get; } = new();

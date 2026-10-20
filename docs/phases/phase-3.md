@@ -93,6 +93,8 @@ Read: ADR-0007
 Status: done (Godot check pending) · Needs: P3-30 · Parallel: yes · Where: `game/Debug/`
 Read: ADR-0005
 - Toggle modules and edit their configs (restarts the round). **Developer settings**; not present in release builds.
+- Editor tab "Control Panel" (`game/addons/control_panel/`, ADR-0032): mechanics, match rules, character stats, hit
+  feel table, effect settings; the in-game F1 panel stays for runtime toggles.
 
 ## D. Character editor
 

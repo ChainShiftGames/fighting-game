@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Sim.Data.Sources;
 
-namespace FightingGame.Addons.CharacterEditor.Documents;
+namespace FightingGame.Debug;
 
 /// <summary>
 /// The data on disk with the editor's unsaved files laid over it, and its deleted files hidden, so Sim.Data can

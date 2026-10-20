@@ -27,14 +27,14 @@ public sealed class ComboLimitsModule
     public string Name => "combo_limits";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<ComboLimitsConfig>(
-        new ModuleConfigField("damageProrationPermille", 0, 1000),
-        new ModuleConfigField("minimumDamagePermille", 0, 1000),
-        new ModuleConfigField("hitstunDecayFrames", 0, 999),
-        new ModuleConfigField("maximumHitstunDecayFrames", 0, 999),
-        new ModuleConfigField("minimumHitstunFrames", 0, 999),
-        new ModuleConfigField("gravityScalingPermille", 0, 10000),
-        new ModuleConfigField("maximumGravityPermille", 0, 10000),
-        new ModuleConfigField("otgHits", 0, 99));
+        new ModuleConfigField("damageProrationPermille", 0, 1000, "Damage taken off each hit per earlier hit in the combo, in thousandths (100 = 10 % less per hit)."),
+        new ModuleConfigField("minimumDamagePermille", 0, 1000, "The least a prorated hit still does, in thousandths of its damage (300 = 30 %)."),
+        new ModuleConfigField("hitstunDecayFrames", 0, 999, "Hitstun frames taken off each hit per earlier hit in the combo."),
+        new ModuleConfigField("maximumHitstunDecayFrames", 0, 999, "The most hitstun decay can take off one hit."),
+        new ModuleConfigField("minimumHitstunFrames", 0, 999, "Decay never brings a hit's hitstun below this."),
+        new ModuleConfigField("gravityScalingPermille", 0, 10000, "Extra gravity on a juggled defender per hit, in thousandths of their own (50 = 5 % per hit)."),
+        new ModuleConfigField("maximumGravityPermille", 0, 10000, "The most extra gravity scaling adds, in thousandths of the defender's own."),
+        new ModuleConfigField("otgHits", 0, 99, "Hits a knocked-down defender can take per combo; later OTG hits whiff."));
 
     /// <summary>Ends the combo of a fighter that can act again, and notes who is knocked down for the OTG rule.</summary>
     public void AfterStateMachines(ModuleContext context)

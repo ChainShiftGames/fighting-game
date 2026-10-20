@@ -13,7 +13,7 @@ public sealed class ControllerRumbleTests
 
     public ControllerRumbleTests()
     {
-        _rumble = new ControllerRumble(_motor);
+        _rumble = new ControllerRumble(_motor, TestEffectSettings.Standard.Rumble);
     }
 
     [Fact]

@@ -76,7 +76,9 @@ public partial class MatchView : Node2D
         _impacts.Build(projectileArt);
         _sparkDrawnElsewhere = _impacts.HasArt;
         _sparkLooks = new HitSparkLooks(
-            characters, System.Array.ConvertAll(characters, c => FighterArtChoice.ReadSettings(c.Id)?.Sparks));
+            characters,
+            System.Array.ConvertAll(characters, c => FighterArtChoice.ReadSettings(c.Id)?.Sparks),
+            effects.Settings.Sparks);
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             CreateFighter(player);
