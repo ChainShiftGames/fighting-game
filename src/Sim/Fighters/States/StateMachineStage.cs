@@ -12,7 +12,8 @@ namespace Sim.Fighters.States;
 /// be taken (<see cref="CancelPermission"/>); without, every window can. Every fighter's started move category is
 /// cleared before the step and its move lock after it, whether or not it advanced
 /// (<see cref="FighterState.StartedMoveCategory"/>, <see cref="FighterState.LockedMoveCategories"/>). A move's cost
-/// (ADR-0023) is checked against the fighter's meter as the step starts and paid right after the step.
+/// (ADR-0023) is checked against the fighter's meter as the step starts and paid right after the step. Each machine
+/// is told which way its opponent stands as the step starts (<see cref="FaceOpponent"/>), to turn as a reaction ends.
 /// </remarks>
 public sealed class StateMachineStage : ITickStage
 {
@@ -60,16 +61,18 @@ public sealed class StateMachineStage : ITickStage
         player2.StartedMoveCategory = MoveCategory.None;
         AvailableMeter player1Meter = MeterOf(ref state, 0);
         AvailableMeter player2Meter = MeterOf(ref state, 1);
+        int player1Toward = FaceOpponent.FacingFor(in player1, in player2);
+        int player2Toward = FaceOpponent.FacingFor(in player2, in player1);
         if (activity.Advances(0))
         {
             _player1Machine.Advance(
-                ref player1, in state.Inputs[0], _player1, CancelsFor(ref state, 0), in player1Meter);
+                ref player1, in state.Inputs[0], _player1, CancelsFor(ref state, 0), in player1Meter, player1Toward);
         }
 
         if (activity.Advances(1))
         {
             _player2Machine.Advance(
-                ref player2, in state.Inputs[1], _player2, CancelsFor(ref state, 1), in player2Meter);
+                ref player2, in state.Inputs[1], _player2, CancelsFor(ref state, 1), in player2Meter, player2Toward);
         }
 
         PayCost(ref state, 0, in player1, _player1);

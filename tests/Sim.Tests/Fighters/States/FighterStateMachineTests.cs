@@ -251,6 +251,51 @@ public sealed class FighterStateMachineTests
         Assert.Equal(FighterAction.Landing, driver.Frame().Action);
     }
 
+    // The opponent crossed over during the stun: still facing right, the fighter turns left only as the stun ends,
+    // before reading its input, so holding left (toward the opponent) walks forward.
+    [Theory]
+    [InlineData(FighterAction.Hitstun)]
+    [InlineData(FighterAction.Blockstun)]
+    public void StunEndsFacingTheOpponentBeforeReadingTheInput(FighterAction stun)
+    {
+        var driver = new FighterDriver(_character) { OpponentFacing = -1 };
+        MoveEntry.EnterStun(ref driver.Fighter, stun, 4, _character);
+
+        driver.Frames(4, InputWord.Left);
+        Assert.Equal((stun, 1), (driver.Action, driver.Fighter.Facing));
+        driver.Frame(InputWord.Left);
+        Assert.Equal((FighterAction.WalkForward, -1), (driver.Action, driver.Fighter.Facing));
+    }
+
+    // Turned when it gets up, and again as the wake-up ends if the opponent crossed over meanwhile.
+    [Fact]
+    public void AFighterGetsUpFacingTheOpponentAndTurnsAgainAsTheWakeUpEnds()
+    {
+        var driver = new FighterDriver(_character) { OpponentFacing = -1 };
+        MoveEntry.EnterBasic(ref driver.Fighter, FighterAction.Knockdown, _character);
+
+        driver.Frames(KnockdownFrames - 1);
+        Assert.Equal((FighterAction.Knockdown, 1), (driver.Action, driver.Fighter.Facing));
+        driver.Frame();
+        Assert.Equal((FighterAction.WakeUp, -1), (driver.Action, driver.Fighter.Facing));
+
+        driver.OpponentFacing = 1;
+        driver.Frames(WakeUpFrames - 1);
+        Assert.Equal((FighterAction.WakeUp, -1), (driver.Action, driver.Fighter.Facing));
+        driver.Frame(InputWord.Right);
+        Assert.Equal((FighterAction.WalkForward, 1), (driver.Action, driver.Fighter.Facing));
+    }
+
+    [Fact]
+    public void WithoutAnOpponentNothingTurns()
+    {
+        var driver = new FighterDriver(_character);
+        MoveEntry.EnterStun(ref driver.Fighter, FighterAction.Hitstun, 2, _character);
+
+        driver.Frames(3, InputWord.Left);
+        Assert.Equal((FighterAction.WalkBack, 1), (driver.Action, driver.Fighter.Facing));
+    }
+
     [Fact]
     public void KnockdownLeadsToWakeUpThenNeutral()
     {

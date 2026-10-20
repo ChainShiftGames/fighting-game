@@ -1,5 +1,6 @@
 using Sim.Characters;
 using Sim.Events;
+using Sim.Fighters;
 using Sim.Modules;
 using Sim.Pipeline;
 using Sim.Rules;
@@ -13,7 +14,8 @@ namespace Sim.Combat;
 /// (<see cref="Guarding"/>: stand or crouch block, air block through a module), else a hit, with its counter hit bonus when it caught the defender attacking
 /// (<see cref="CounterHits"/>), as the modules adjust it (<see cref="IHitAdjustmentHook"/>; a hit they make whiff
 /// doesn't connect). The attacker's move records the outcome (for its cancel windows, and so it
-/// can't connect again); the defender takes the hit or block (<see cref="HitReactions"/>); both fighters get the
+/// can't connect again); the defender turns to face the attacker, takes the hit or block (<see cref="HitReactions"/>)
+/// and is pushed away from where the attacker stands (<see cref="HitDirection"/>); both fighters get the
 /// hit's hitstop, the longer one if two hits trade. Hitstop counts from the next frame (<see cref="TimeControl"/>).
 /// Same-frame exchanges (<see cref="HitContacts.IsSameFrameExchange"/>, which counts projectile touches too) follow
 /// <see cref="MatchRules.TradeRule"/>; projectiles resolve after this stage (<c>Sim.Entities</c>).
@@ -79,8 +81,9 @@ public sealed class HitResolutionStage : ITickStage
 
         MarkAttacker(ref player1, in byPlayer1);
         MarkAttacker(ref player2, in byPlayer2);
-        React(ref player2, in byPlayer1, _player2, player1.Facing);
-        React(ref player1, in byPlayer2, _player1, player2.Facing);
+        // Each attacker as the step started: a reaction that turns one fighter can't change the other's.
+        React(ref player2, in byPlayer1, _player2, in state.Fighters[0]);
+        React(ref player1, in byPlayer2, _player1, in state.Fighters[1]);
         int hitstop = Longer(HitstopOf(in byPlayer1), HitstopOf(in byPlayer2));
         Hitstop.Extend(ref player1.Timing, hitstop);
         Hitstop.Extend(ref player2.Timing, hitstop);
@@ -168,21 +171,27 @@ public sealed class HitResolutionStage : ITickStage
         }
     }
 
-    private void React(ref FighterState defender, in Connection connection, CharacterData character, int attackFacing)
+    // The defender turns to face the attacker (a crossup's hit or block turns it around) and is sent away from it.
+    private void React(
+        ref FighterState defender, in Connection connection, CharacterData character, in FighterState attacker)
     {
+        if (!connection.IsMade)
+        {
+            return;
+        }
+
+        int direction = HitDirection.AwayFromAttacker(in defender, in attacker);
+        FaceOpponent.Turn(ref defender, in attacker);
         if (connection.Outcome == HitOutcome.Hit)
         {
-            HitReactions.TakeHit(ref defender, connection.Hit, character, attackFacing, _flagsClearedWhenHit);
+            HitReactions.TakeHit(ref defender, connection.Hit, character, direction, _flagsClearedWhenHit);
         }
-        else if (connection.Outcome == HitOutcome.Block)
+        else
         {
             HitReactions.Block(ref defender, connection.Hit, connection.Stance, character);
         }
 
-        if (connection.IsMade)
-        {
-            _pushback.Start(ref defender, connection.Hit.Pushback, attackFacing, pushesAttacker: true);
-        }
+        _pushback.Start(ref defender, connection.Hit.Pushback, direction, pushesAttacker: true);
     }
 
     private static int HitstopOf(in Connection connection) => connection.IsMade ? connection.Hit.Hitstop : 0;

@@ -123,6 +123,53 @@ public sealed class EntityHitResolutionStageTests
         Assert.Equal(isBlocked ? FighterAction.Blockstun : FighterAction.Hitstun, state.Fighters[1].Action);
     }
 
+    // A projectile pushes the defender along its flight, whichever side it touches from: one from behind (at x =
+    // 120000, flying right) pushes P2 right, though P1 stands on its left. P2 holds back to block as well as not.
+    [Theory]
+    [InlineData(80_000, 0)]
+    [InlineData(120_000, 0)]
+    [InlineData(120_000, InputWord.Right)]
+    public void AProjectilePushesTheDefenderAlongItsFlight(int projectileX, ushort defenderInput)
+    {
+        EntityStages stages = new(pushbackFrames: 8);
+        MatchState state = Fighters();
+        state.Inputs[1].Record(new InputWord(defenderInput));
+        state.Entities.Slots[0] = Entity(0, projectileX);
+
+        stages.Hit(ref state);
+
+        PushbackSlide slide = state.Fighters[1].Pushback;
+        Assert.Equal((1, FireballHit.Pushback, 0), (slide.Direction, slide.DistanceLeft, slide.PushesAttacker));
+    }
+
+    [Fact]
+    public void AProjectileFlyingAgainstItsFacingPushesTheWayItFlies()
+    {
+        EntityStages stages = new(pushbackFrames: 8);
+        MatchState state = Fighters();
+        state.Entities.Slots[0] = Entity(0, TouchingP2) with { Velocity = new IntVector2(-FireballSpeed, 0) };
+
+        stages.Hit(ref state);
+
+        Assert.Equal(-1, state.Fighters[1].Pushback.Direction);
+    }
+
+    // P2 faces away from P1 (P1 crossed over it): the projectile's hit or block turns it toward P1, its owner.
+    [Theory]
+    [InlineData(0, FighterAction.Hitstun)]
+    [InlineData(InputWord.Right, FighterAction.Blockstun)]
+    public void AProjectileHitOrBlockTurnsTheDefenderToFaceTheOwner(ushort defenderInput, FighterAction reaction)
+    {
+        MatchState state = Fighters();
+        state.Fighters[1].Facing = 1;
+        state.Inputs[1].Record(new InputWord(defenderInput));
+        state.Entities.Slots[0] = Entity(0, TouchingP2);
+
+        _stages.Hit(ref state);
+
+        Assert.Equal((reaction, -1), (state.Fighters[1].Action, state.Fighters[1].Facing));
+    }
+
     [Fact]
     public void AnInvulnerableDefenderIsNotTouched()
     {

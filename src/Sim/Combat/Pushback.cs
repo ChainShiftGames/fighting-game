@@ -14,7 +14,7 @@ public sealed class Pushback
         _frames = frames;
     }
 
-    /// <param name="direction">The way the attack faced: +1 pushes the defender right.</param>
+    /// <param name="direction">The way the hit sends the defender (<see cref="HitDirection"/>): +1 pushes it right.</param>
     /// <param name="pushesAttacker">The wall passes what it stops on to the attacker (not for projectiles).</param>
     public void Start(ref FighterState defender, int distance, int direction, bool pushesAttacker)
     {
