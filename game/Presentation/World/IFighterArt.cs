@@ -7,6 +7,9 @@ namespace FightingGame.Presentation.World;
 /// <remarks>Reads only; called once per displayed frame, so it must not allocate.</remarks>
 public interface IFighterArt
 {
+    /// <summary>Whether the art shows the fighter's attacks itself; if not, readouts draw hitboxes as limbs.</summary>
+    bool HasLimbs { get; }
+
     /// <param name="pose">The fighter's move and frame of it: the animation frame, never elapsed time.</param>
     /// <param name="position">The fighter's logic position, in subpixels.</param>
     /// <param name="facing">1 facing right, -1 facing left.</param>

@@ -7,10 +7,10 @@ using Sim.Math;
 namespace FightingGame.Presentation;
 
 /// <summary>
-/// Readouts drawn over a fighter's 3D model: its attack's hitboxes as the "limb" while active, a strip showing the
-/// move's frame data phase and progress, and the move label.
+/// Readouts drawn over a fighter's 3D model: its attack's hitboxes as the "limb" while active (for art without
+/// limbs), a strip showing the move's frame data phase and progress, and the move label.
 /// </summary>
-/// <remarks>The body itself is 3D (<see cref="World.IFighterArt"/>, ADR-0027); these stay until final art has limbs.</remarks>
+/// <remarks>The body itself is 3D (<see cref="World.IFighterArt"/>, ADR-0027).</remarks>
 public static class FighterReadoutArt
 {
     private const float StripHeight = 5f;
@@ -27,7 +27,7 @@ public static class FighterReadoutArt
     private static readonly Color _labelColor = new(0.9f, 0.9f, 0.95f);
 
     public static void Draw(
-        CanvasItem canvas, StageCamera camera, FighterPose pose, List<WorldBox> boxes, Color color)
+        CanvasItem canvas, StageCamera camera, FighterPose pose, List<WorldBox> boxes, Color color, bool drawLimbs)
     {
         AxisAlignedBox body = FighterBoxes.Body(boxes);
         if (body.IsEmpty)
@@ -36,7 +36,7 @@ public static class FighterReadoutArt
         }
 
         Rect2 bodyRect = camera.ToScreen(body);
-        if (pose.Phase == MovePhase.Active)
+        if (drawLimbs && pose.Phase == MovePhase.Active)
         {
             DrawLimbs(canvas, camera, boxes, color.Lightened(0.35f));
         }

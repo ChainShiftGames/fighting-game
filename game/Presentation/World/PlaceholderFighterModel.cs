@@ -32,6 +32,9 @@ public partial class PlaceholderFighterModel : Node3D, IFighterArt
         AddChild(_nose);
     }
 
+    // A block body: the readouts draw the attack.
+    public bool HasLimbs => false;
+
     public void ShowPose(FighterPose pose, IntVector2 position, int facing, List<WorldBox> boxes)
     {
         AxisAlignedBox body = FighterBoxes.Body(boxes);

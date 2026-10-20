@@ -59,6 +59,8 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         _mixer.Tree.Active = true;
     }
 
+    public bool HasLimbs => true;
+
     public void ShowPose(FighterPose pose, IntVector2 position, int facing, List<WorldBox> boxes)
     {
         Position = WorldScale.ToWorld(position);

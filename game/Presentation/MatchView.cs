@@ -197,7 +197,8 @@ public partial class MatchView : Node2D
         ref readonly MatchState state = ref _driver.State;
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
-            DrawReadouts(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
+            bool drawLimbs = !_fighterArt[player]!.HasLimbs;
+            DrawReadouts(camera, in state.Fighters[player], _characters[player], _fighterColors[player], drawLimbs);
         }
     }
 
@@ -218,10 +219,11 @@ public partial class MatchView : Node2D
         FighterBoxes.Collect(character, in fighter, _boxes);
     }
 
-    private void DrawReadouts(StageCamera camera, in FighterState fighter, CharacterData character, Color color)
+    private void DrawReadouts(
+        StageCamera camera, in FighterState fighter, CharacterData character, Color color, bool drawLimbs)
     {
         CollectBoxes(in fighter, character);
-        FighterReadoutArt.Draw(this, camera, FighterPose.Of(character, in fighter), _boxes, color);
+        FighterReadoutArt.Draw(this, camera, FighterPose.Of(character, in fighter), _boxes, color, drawLimbs);
         if (_hitboxOverlay!.Enabled)
         {
             BoxOverlayArt.Draw(this, camera, _boxes);
