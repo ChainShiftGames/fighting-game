@@ -1,0 +1,59 @@
+{
+  "labVersion": 1,
+  "title": "Hit spark (standard, all characters)",
+  "brief": "The standard hit spark, after Guilty Gear Strive: light hits burst (a star with a white heart, yellow body and orange rim, biggest on its first frame), heavy hits and specials tear (a long tapered streak along the attack's direction, through and behind the defender). Both throw impact lines and debris along the attack. Strength (weight) scales size, debris and length. The impact kind picks the tone: hit, block, clash, and the Lab's fizzle shows the counter tone. In game, the card is turned the way the attack travels; here +X is that way.",
+  "style": {
+    "character": "all",
+    "motifs": "Hard-edged flat colour, no soft glow. Frame 0 a white flash at full size, then the shape thins, hollows and rips apart; held on 2s after the first two frames.",
+    "palette": { "hit_core": "#fffeed", "hit_body": "#ffcc38", "hit_rim": "#ff610f" }
+  },
+  "timing": {
+    "chargeFrames": 0,
+    "flightFrames": 1,
+    "impactFrames": 24,
+    "restFrames": 12,
+    "spawnX": 45,
+    "spawnY": 70,
+    "speed": 0,
+    "hitboxSize": 30,
+    "fighterWidth": 55,
+    "fighterHeight": 115
+  },
+  "rounds": [
+    {
+      "id": "draft",
+      "name": "Round 1: the in-game draft by strength",
+      "note": "The shader's defaults at four strengths and both styles. Tune the shared look here (palettes, sizes, debris), then copy the values into hit_spark.gdshader's defaults.",
+      "variants": [
+        {
+          "id": "light_burst",
+          "name": "Light burst (5A, weight 0)",
+          "pitch": "A jab: a small star, a few lines, a little debris.",
+          "impact": { "shader": "res://Assets/Effects/hit_spark.gdshader", "card": [5.2, 2.8], "centre": [1.2, 0], "spin": 0 },
+          "values": { "style": 0, "weight": 0.0, "seed": 0.21 }
+        },
+        {
+          "id": "medium_burst",
+          "name": "Medium burst (5B, weight 0.2)",
+          "pitch": "A mid normal: a bigger star with more debris.",
+          "extends": "light_burst",
+          "values": { "weight": 0.2, "seed": 0.57 }
+        },
+        {
+          "id": "heavy_tear",
+          "name": "Heavy tear (623C, weight 0.5)",
+          "pitch": "A special: the tear through and behind the defender, with a small burst at the contact.",
+          "extends": "light_burst",
+          "values": { "style": 1, "weight": 0.5, "seed": 0.33 }
+        },
+        {
+          "id": "super_tear",
+          "name": "Super tear (236236D counter, weight 1.3)",
+          "pitch": "The heaviest it gets: a counter hit on a super.",
+          "extends": "light_burst",
+          "values": { "style": 1, "weight": 1.3, "seed": 0.74 }
+        }
+      ]
+    }
+  ]
+}

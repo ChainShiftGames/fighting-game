@@ -70,5 +70,19 @@
   // the spawn point, and the impact where it hits, is blocked, clashes or runs out.
   "projectiles": {
     "236c": { "flight": "dark_fireball", "charge": "dark_fireball_charge", "impact": "dark_fireball_impact" }
+  },
+  // Hit sparks (HitSparkLooks), one entry per hit: the way the attack travels in degrees from forward (90 up, -90
+  // down), an offset in pixels, burst or tear, and a size. Moves left out get sparks from their hit data: light hits
+  // burst forward, heavy hits and specials tear, launchers point along the launch.
+  "sparks": {
+    // Overhand: the arm comes down across the body.
+    "5d": [{ "angle": -50, "style": "tear" }],
+    // Air chop: straight down through the defender.
+    "j_c": [{ "angle": -70 }],
+    // Rising arm swing: up and away.
+    "623c": [{ "angle": 65 }],
+    // Slide: low along the floor.
+    "2c": [{ "angle": 8, "offset": { "x": 0, "y": -10 } }],
+    "236236d": [{ "angle": 15, "scale": 1.3 }]
   }
 }

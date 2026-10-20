@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FightingGame.Presentation.World.Projectiles;
+using FightingGame.Presentation.World.Sparks;
 
 namespace FightingGame.Presentation.World;
 
@@ -111,6 +112,18 @@ public static class FighterArtFile
             }
         }
 
+        foreach (KeyValuePair<string, List<SparkJson>> entry in file.Sparks)
+        {
+            for (int hit = 0; hit < entry.Value.Count; hit++)
+            {
+                string problem = CheckSpark(entry.Value[hit]);
+                if (problem.Length > 0)
+                {
+                    return $"sparks.{entry.Key}[{hit}]: {problem}";
+                }
+            }
+        }
+
         for (int i = 0; i < file.Transitions.Count; i++)
         {
             string problem = CheckTransition(file.Transitions[i]);
@@ -138,6 +151,16 @@ public static class FighterArtFile
         return projectile.Impact is { } impact && !ProjectileEffects.ImpactExists(impact)
             ? $"no impact effect is called '{impact}'"
             : string.Empty;
+    }
+
+    private static string CheckSpark(SparkJson spark)
+    {
+        if (spark.Angle is < -360f or > 360f)
+        {
+            return $"angle {spark.Angle} must be from -360 to 360 degrees";
+        }
+
+        return spark.Scale <= 0f ? $"scale {spark.Scale} must be above 0" : string.Empty;
     }
 
     private static string CheckTransition(TransitionJson transition)
@@ -217,6 +240,7 @@ public static class FighterArtFile
             CameraTurnDegrees = file.CameraTurnDegrees,
             HoldFrames = file.HoldFrames,
             Projectiles = ToSettings(file.Projectiles),
+            Sparks = ToSettings(file.Sparks),
         };
     }
 
@@ -226,6 +250,19 @@ public static class FighterArtFile
         foreach (KeyValuePair<string, ProjectileJson> entry in projectiles)
         {
             settings[entry.Key] = new ProjectileArtSettings(entry.Value.Flight, entry.Value.Charge, entry.Value.Impact);
+        }
+
+        return settings;
+    }
+
+    private static Dictionary<string, IReadOnlyList<HitSparkSettings>> ToSettings(
+        Dictionary<string, List<SparkJson>> sparks)
+    {
+        var settings = new Dictionary<string, IReadOnlyList<HitSparkSettings>>(System.StringComparer.Ordinal);
+        foreach (KeyValuePair<string, List<SparkJson>> entry in sparks)
+        {
+            settings[entry.Key] = entry.Value.ConvertAll(spark => new HitSparkSettings(
+                spark.Angle, spark.Offset?.X ?? 0f, spark.Offset?.Y ?? 0f, spark.Style, spark.Scale));
         }
 
         return settings;
@@ -268,6 +305,8 @@ public static class FighterArtFile
 
         public Dictionary<string, ProjectileJson> Projectiles { get; init; } = [];
 
+        public Dictionary<string, List<SparkJson>> Sparks { get; init; } = [];
+
         public int CrossfadeFrames { get; init; }
 
         public int TurnFrames { get; init; }
@@ -285,6 +324,26 @@ public static class FighterArtFile
         public string? Charge { get; init; }
 
         public string? Impact { get; init; }
+    }
+
+    private sealed class SparkJson
+    {
+        public float? Angle { get; init; }
+
+        public OffsetJson? Offset { get; init; }
+
+        public HitSparkStyle? Style { get; init; }
+
+        public float Scale { get; init; } = 1f;
+    }
+
+    private sealed class OffsetJson
+    {
+        [JsonRequired]
+        public float X { get; init; }
+
+        [JsonRequired]
+        public float Y { get; init; }
     }
 
     private sealed class TransitionJson

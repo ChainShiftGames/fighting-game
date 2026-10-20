@@ -14,7 +14,7 @@ public enum FrameEventKind
 
     /// <summary>
     /// An attack hit. Fighter: the attacker. Position: the centre of the overlap of the first hitbox and hurtbox
-    /// that touched. Detail: the move.
+    /// that touched. Detail: the move and which of its hits connected (<see cref="HitEventDetail"/>).
     /// </summary>
     Hit = 1,
 
@@ -32,7 +32,8 @@ public enum FrameEventKind
 
     /// <summary>
     /// Both attacks connected on the same frame and cancelled out (<c>TradeRule.Clash</c>); one event per fighter.
-    /// Fighter: an attacker. Position: where its hitbox met the other's hurtbox. Detail: its move.
+    /// Fighter: an attacker. Position: where its hitbox met the other's hurtbox. Detail: its move and hit, as for
+    /// <see cref="Hit"/>.
     /// </summary>
     Clash = 5,
 
