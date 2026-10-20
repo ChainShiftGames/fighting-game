@@ -62,6 +62,25 @@ public sealed class FighterBoxesTests
         Assert.True(FighterBoxes.Body([]).IsEmpty);
     }
 
+    [Fact]
+    public void TheHeightRunsFromTheFeetToTheTopOfTheHurtAndPushboxes()
+    {
+        WorldBox[] boxes =
+        [
+            new(BoxKind.Push, new AxisAlignedBox(0, 210_000, 10, 300_000)),
+            new(BoxKind.Hurt, new AxisAlignedBox(0, 210_000, 10, 320_000)),
+            new(BoxKind.Hit, new AxisAlignedBox(0, 300_000, 10, 400_000)),
+        ];
+
+        VerticalSpan height = FighterBoxes.Height(new IntVector2(0, 200_000), [.. boxes]);
+
+        Assert.Equal(new VerticalSpan(200_000, 320_000), height);
+    }
+
+    [Fact]
+    public void WithoutABodyTheHeightIsJustTheFeet() =>
+        Assert.Equal(new VerticalSpan(50_000, 50_000), FighterBoxes.Height(new IntVector2(0, 50_000), []));
+
     private static List<WorldBox> Collect(in FighterState fighter)
     {
         List<WorldBox> boxes = [];

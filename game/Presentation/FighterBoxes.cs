@@ -34,6 +34,22 @@ public static class FighterBoxes
         return body.IsEmpty ? Union(boxes, BoxKind.Hurt) : body;
     }
 
+    /// <summary>The fighter's height: from its feet (its position) to the top of its hurt- and pushboxes.</summary>
+    /// <remarks>Hitboxes are left out, so an attack's reach never moves the camera. Neither box: just its feet.</remarks>
+    public static VerticalSpan Height(IntVector2 position, List<WorldBox> boxes)
+    {
+        int top = position.Y;
+        foreach (WorldBox box in boxes)
+        {
+            if ((box.Kind == BoxKind.Hurt || box.Kind == BoxKind.Push) && !box.Area.IsEmpty)
+            {
+                top = System.Math.Max(top, box.Area.MaxY);
+            }
+        }
+
+        return new VerticalSpan(position.Y, top);
+    }
+
     private static AxisAlignedBox Union(List<WorldBox> boxes, BoxKind kind)
     {
         AxisAlignedBox union = default;

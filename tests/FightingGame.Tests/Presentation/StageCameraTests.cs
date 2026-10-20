@@ -76,6 +76,69 @@ public sealed class StageCameraTests
     }
 
     [Fact]
+    public void TheGroundViewIs228WorldPixelsWithTheFloor12PercentUp()
+    {
+        VerticalSpan ground = StageCamera.GroundView(_viewport, _screen);
+
+        Assert.Equal(new VerticalSpan(-27_360, 200_640), ground);
+    }
+
+    [Fact]
+    public void ShowingTheGroundViewFitsAsTheRoundStartCamera()
+    {
+        StageCamera roundStart = StageCamera.Fit(_viewport, _screen, focusX: 50_000);
+
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, 50_000, StageCamera.GroundView(_viewport, _screen));
+
+        Assert.Equal(roundStart.PixelsPerSubpixel, camera.PixelsPerSubpixel, 6);
+        Assert.Equal(roundStart.FloorCentre.X, camera.FloorCentre.X, 3);
+        Assert.Equal(roundStart.FloorCentre.Y, camera.FloorCentre.Y, 3);
+    }
+
+    [Fact]
+    public void ARaisedViewMovesTheFloorDownTheScreen()
+    {
+        var raised = new VerticalSpan(100_000, 328_000);
+
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 0, raised);
+
+        Assert.Equal(_viewport.Y, camera.ToScreen(new IntVector2(0, raised.Bottom)).Y, 3);
+        Assert.Equal(0f, camera.ToScreen(new IntVector2(0, raised.Top)).Y, 3);
+        Assert.True(camera.ToScreen(new IntVector2(0, 0)).Y > _viewport.Y, "the floor is below the screen");
+    }
+
+    [Fact]
+    public void ATallerViewZoomsOutFromTheBottomOfTheScreenToTheTop()
+    {
+        var tall = new VerticalSpan(-8_000, 448_000);
+
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 0, tall);
+
+        Assert.Equal(_viewport.Y / 456_000f, camera.PixelsPerSubpixel, 6);
+        Assert.Equal(_viewport.Y, camera.ToScreen(new IntVector2(0, tall.Bottom)).Y, 3);
+        Assert.Equal(0f, camera.ToScreen(new IntVector2(0, tall.Top)).Y, 3);
+    }
+
+    [Fact]
+    public void AShorterViewNeverZoomsIn()
+    {
+        StageCamera ground = StageCamera.Fit(_viewport, _screen, focusX: 0);
+
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 0, new VerticalSpan(0, 100_000));
+
+        Assert.Equal(ground.PixelsPerSubpixel, camera.PixelsPerSubpixel, 6);
+    }
+
+    [Fact]
+    public void ZoomedOutItStillStopsWhenAWallReachesTheScreenEdge()
+    {
+        StageCamera camera = StageCamera.Fit(_viewport, _screen, focusX: 590_000, new VerticalSpan(0, 456_000));
+
+        // 16 world pixels beyond the wall show, now at 1 screen pixel each.
+        Assert.Equal(_viewport.X - 16f, camera.ToScreen(new IntVector2(_walls.Right, 0)).X, 3);
+    }
+
+    [Fact]
     public void ZoomsOutWhenTheViewportIsTooNarrowForTheLogicScreen()
     {
         var narrow = new Vector2(700f, 456f);
