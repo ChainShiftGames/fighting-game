@@ -1,0 +1,28 @@
+# A knocked-down fighter gets up facing its opponent. p1's back throw lands p2 behind it (frame 10), still facing
+# left, away from p1. p2 turns right as its wake-up starts (frame 58), so its 623c input toward p1 during the wake-up
+# reads forward. The reversal comes out on p2's first free frame (70): its invulnerability (move frames 1-8) beats
+# p1's meaty 5c (active on frames 70-73), and it hits p1 in 5c's recovery for a punish counter.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 4a+b                         # back throw
+frames 40-45: p1 6                       # walk up to p2: forward is left once p1 has turned
+frame 61: p1 5c                          # meaty: active on frames 70-73
+frame 67: p2 6, 2, 3c
+
+frame 10: expect p1 event throw_hit
+frame 10: expect p2 x = -105000
+frame 10: expect p2 state = knockdown
+frames 10-57: expect p2 facing = left
+frame 39: expect p1 facing = left
+frame 58: expect p2 state = wake_up
+frames 58-80: expect p2 facing = right
+frame 70: expect p2 move = 623c
+frame 70: expect p1 move = 5c
+frame 70: expect p1 move_frame = 10      # 5c's first active frame
+frames 58-80: expect p2 damage = 1200    # the meaty never lands
+frame 75: expect p2 event hit
+frame 75: expect p2 event punish_counter
+frame 75: expect p1 damage = 1680

@@ -1,0 +1,23 @@
+# A crossup pushes the defender away from where the attacker stands, not the way the attacker faces. p1's forward
+# jump passes p2 on frame 37 and its j.C, still facing right (nobody turns in the air), hits p2 from behind on
+# frame 38. Once the hitstop (11) ends p2 slides left, away from p1; pushed the way p1 faces, it would slide right,
+# through p1.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -75500
+setup: p2 x = 70000
+
+frames 1-5: p1 9
+frame 31: p1 5c                          # j.C, active on frames 38-42
+
+frame 37: expect p1 x = 73000            # past p2
+frame 38: expect p1 event hit
+frame 38: expect p1 facing = right
+frame 38: expect p2 facing = right       # toward p1
+frames 38-49: expect p2 x = 70000        # hitstop
+frame 50: expect p2 x = 68750            # the first slice of the 10000 pushback (1250), to the left
+# From frame 51 p1 comes down into p2's pushbox on its right and pushes it further left.
+frames 51-70: expect p2 x < 68750
+frames 57-70: expect p2 x = 49500
+frames 57-70: expect p2 facing = right
+frames 60-70: expect p1 x = 119500

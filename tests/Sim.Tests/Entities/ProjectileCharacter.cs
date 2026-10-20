@@ -39,6 +39,7 @@ internal static class ProjectileCharacter
         Hitstun = 16,
         Blockstun = 12,
         Hitstop = 10,
+        Pushback = 10_000,
     };
 
     public static readonly HitData SturdyHit = FireballHit with { Damage = 900, Hitstop = 12 };

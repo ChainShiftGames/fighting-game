@@ -20,8 +20,12 @@ internal sealed class CombatStages
 
     /// <param name="counterHit">The match rules' default counter hit bonus; none by default.</param>
     /// <param name="punishCounter">The match rules' default punish counter bonus; none by default.</param>
+    /// <param name="pushbackFrames">The match rules' pushback slide length; 0 (no pushback) by default.</param>
     public CombatStages(
-        TradeRule tradeRule = TradeRule.Trade, CounterBonus counterHit = default, CounterBonus punishCounter = default)
+        TradeRule tradeRule = TradeRule.Trade,
+        CounterBonus counterHit = default,
+        CounterBonus punishCounter = default,
+        int pushbackFrames = 0)
     {
         CharacterData character = CombatCharacter.Create();
         Contacts = new HitContacts();
@@ -40,7 +44,7 @@ internal sealed class CombatStages
             new CounterHits(in rules),
             new ShortcutDamage(in rules),
             new Guarding(lineup),
-            new Pushback(rules.PushbackFrames));
+            new Pushback(pushbackFrames));
     }
 
     public HitContacts Contacts { get; }

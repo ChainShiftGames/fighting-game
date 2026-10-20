@@ -26,13 +26,18 @@ internal sealed class EntityStages
     private readonly SpawnRequestStage _spawnRequests;
 
     /// <param name="counterHit">The match rules' default counter hit bonus; none by default.</param>
+    /// <param name="pushbackFrames">The match rules' pushback slide length; 0 (no pushback) by default.</param>
     public EntityStages(
-        int entitiesPerPlayer = 4, TradeRule tradeRule = TradeRule.Trade, CounterBonus counterHit = default)
+        int entitiesPerPlayer = 4,
+        TradeRule tradeRule = TradeRule.Trade,
+        CounterBonus counterHit = default,
+        int pushbackFrames = 0)
     {
         CharacterData character = ProjectileCharacter.Create();
         MatchRules rules = default;
         rules.EntitiesPerPlayer = entitiesPerPlayer;
         rules.CounterHit = counterHit;
+        rules.PushbackFrames = pushbackFrames;
         rules.Modules[ModuleSlot].Module = new ModuleId(1);
         var lineup = new ModuleLineup(new ModuleCatalog([new CountingModule(1)]), in rules.Modules, Requests);
         var owners = new OwnerCharacters(character, character);
