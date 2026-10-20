@@ -92,6 +92,18 @@ public partial class ControlPanelScreen : VBoxContainer
     /// <summary>True while there are edits not on disk.</summary>
     public bool HasUnsavedChanges => _document?.HasChanges == true;
 
+    /// <summary>The unsaved edits as text, for keeping them across a hot reload (<see cref="PanelEditStash"/>).</summary>
+    public Dictionary<string, string> TakeEdits() => _document is null ? [] : PanelEditStash.Take(_document);
+
+    /// <summary>Puts edits taken before a hot reload back, so a code rebuild doesn't lose tuning in progress.</summary>
+    public void RestoreEdits(IReadOnlyDictionary<string, string> edits)
+    {
+        if (_document is not null && edits.Count > 0)
+        {
+            PanelEditStash.Restore(_document, edits);
+        }
+    }
+
     /// <param name="dataRoot">Full path of <c>data/</c>; null when there is none (nothing to edit).</param>
     /// <param name="gameRoot">Full path of the Godot project, <c>game/</c>.</param>
     public void Build(string? dataRoot, string gameRoot)
