@@ -7,7 +7,8 @@ namespace FightingGame.Presentation.World;
 /// </summary>
 /// <remarks>
 /// Logic frames count from 1 and the clip's first key is time 0, so move frame 1 shows the first key. Each logic frame
-/// shows the start of its share of a span; a span the move doesn't have (0 frames) is skipped.
+/// shows the start of its share of a span; a span the move doesn't have (0 frames) is skipped. Poses on 2s or 3s are
+/// held within each phase, so every phase starts on its own first pose.
 /// </remarks>
 public static class AnimationRetiming
 {
@@ -19,7 +20,7 @@ public static class AnimationRetiming
     /// <summary>The clip position, in animation frames from its first key, for <paramref name="pose"/>.</summary>
     public static float FrameAt(FighterPose pose, AnimationClipTiming clip)
     {
-        FighterPose held = pose with { Frame = Held(pose.Frame, clip.HoldFrames) };
+        FighterPose held = pose with { Frame = Held(pose, clip.HoldFrames) };
         float frame;
         if (clip.Fit && pose.TotalFrames > 0)
         {
@@ -37,9 +38,30 @@ public static class AnimationRetiming
         return clip.StartFrame + Fit(frame, clip);
     }
 
-    // On 2s, frames 1-2 show frame 1's pose, 3-4 frame 3's: the pose steps instead of moving every frame.
-    private static int Held(int frame, int holdFrames) =>
-        holdFrames <= 1 || frame < 1 ? frame : 1 + ((frame - 1) / holdFrames * holdFrames);
+    // On 2s, frames 1-2 show frame 1's pose, 3-4 frame 3's: the pose steps instead of moving every frame. Each phase
+    // of the frame data holds from its own first frame, so the first active frame shows the contact pose whatever the
+    // startup's length, instead of the last startup pose held a frame into the hit.
+    private static int Held(FighterPose pose, int holdFrames)
+    {
+        if (holdFrames <= 1 || pose.Frame < 1)
+        {
+            return pose.Frame;
+        }
+
+        int phaseStart = PhaseStart(pose);
+        return phaseStart + ((pose.Frame - phaseStart) / holdFrames * holdFrames);
+    }
+
+    // The first frame of the phase the pose is in; 1 for a move without active frames.
+    private static int PhaseStart(FighterPose pose)
+    {
+        if (pose.FirstActiveFrame <= 0 || pose.Frame < pose.FirstActiveFrame)
+        {
+            return 1;
+        }
+
+        return pose.Frame <= pose.LastActiveFrame ? pose.FirstActiveFrame : pose.LastActiveFrame + 1;
+    }
 
     /// <summary>
     /// The clip position for frame <paramref name="frameInTransition"/> (from 1) of a transition squeezed into
