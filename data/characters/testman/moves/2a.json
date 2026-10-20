@@ -22,6 +22,14 @@
     }
   ],
   "hits": [
-    { "damage": 254, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 11, "hitstop": 12, "pushback": 11000 }
+    {
+      "damage": 254,
+      "chipDamage": 0,
+      "guard": "mid",
+      "hitstun": 13,
+      "blockstun": 11,
+      "hitstop": 12,
+      "pushback": 11000
+    }
   ]
 }

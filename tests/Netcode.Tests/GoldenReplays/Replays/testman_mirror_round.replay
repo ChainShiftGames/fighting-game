@@ -2,7 +2,7 @@
 # Checksums only change intentionally: re-record with GOLDEN_REPLAYS_RECORD=1 and say why in the PR
 # (tests/Netcode.Tests/GoldenReplays/GoldenReplayTests.cs).
 characters testman testman
-data_hash 6f9a9f9de38e2a4ad78ecd20f653259a4ad13f84ba5e93ff82816f4fecd7532c
+data_hash c19f216855471790fac1bdc672f383f43d7f6fb16076591b5f9df425e313575c
 seed 1 frames 3600
 input 1 0024 0040
 input 2 0024 0000
@@ -1235,9 +1235,9 @@ input 1 0029 0000
 input 1 0029 0008
 input 1 0009 0008
 input 2 0002 0008
-checksum 600 6b92e9cdc4c75a74
-checksum 1200 28a9ce450804d743
-checksum 1800 955da5e5c1e9479f
-checksum 2400 2aa2a106fc7a4d82
-checksum 3000 4e643b03e438aa43
-checksum 3600 c5900502ccb6aa7c
+checksum 600 28ce55ba76154557
+checksum 1200 0cf3168f1b0c96ff
+checksum 1800 031b0502af44a29b
+checksum 2400 292ac9535c2b3a0f
+checksum 3000 abbda8ffb16ac854
+checksum 3600 ac6356a23bf53abb

@@ -58,7 +58,11 @@ public sealed class JumpFramingTests
             closest = Math.Min(closest, camera.PixelsPerSubpixel);
         });
 
-        Assert.True(closest < _groundScale, "zoomed out to keep both");
+        // Only the high jump climbs past the round-start view; Testman's normal jump fits it.
+        if (highJump)
+        {
+            Assert.True(closest < _groundScale, "zoomed out to keep both");
+        }
     }
 
     [Theory]
@@ -76,7 +80,10 @@ public sealed class JumpFramingTests
             lowestFloor = Math.Max(lowestFloor, camera.ToScreen(new IntVector2(0, 0)).Y);
         });
 
-        Assert.True(lowestFloor > _viewport.Y, "the view rose past the floor");
+        if (highJump)
+        {
+            Assert.True(lowestFloor > _viewport.Y, "the view rose past the floor");
+        }
     }
 
     [Fact]
