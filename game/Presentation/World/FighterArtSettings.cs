@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FightingGame.Presentation.World.Projectiles;
+using FightingGame.Presentation.World.Sparks;
 
 namespace FightingGame.Presentation.World;
 
@@ -33,6 +34,13 @@ public sealed record FighterArtSettings(
     /// <summary>How each move's projectiles are drawn, by the move ID that spawns them; a move missing here has no effects.</summary>
     public IReadOnlyDictionary<string, ProjectileArtSettings> Projectiles { get; init; } =
         new Dictionary<string, ProjectileArtSettings>();
+
+    /// <summary>
+    /// How each move's hit sparks are drawn, by move ID: one entry per hit, in the move's hit order. A move or hit
+    /// missing here gets the sparks its hit data implies (<see cref="HitSparkLooks"/>).
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<HitSparkSettings>> Sparks { get; init; } =
+        new Dictionary<string, IReadOnlyList<HitSparkSettings>>();
 
     /// <summary>Frames each pose is shown for, for every move without its own setting: 1, or 2-3 for animation on 2s or 3s.</summary>
     public int HoldFrames { get; init; } = 1;

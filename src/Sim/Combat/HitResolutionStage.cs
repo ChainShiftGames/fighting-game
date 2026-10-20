@@ -154,7 +154,8 @@ public sealed class HitResolutionStage : ITickStage
             int hit = character.HitIndexAt(in character.Moves[attacker.Move], attacker.MoveFrame);
             attacker.MoveOutcome |= CancelOn.Clash;
             attacker.HitsConnected |= hit >= 0 ? 1 << hit : 0;
-            state.Events.Emit(state.Frame, FrameEventKind.Clash, fighter, _contacts.PointOf(fighter), attacker.Move);
+            state.Events.Emit(
+                state.Frame, FrameEventKind.Clash, fighter, _contacts.PointOf(fighter), HitEventDetail.Of(attacker.Move, hit));
         }
     }
 
@@ -193,7 +194,8 @@ public sealed class HitResolutionStage : ITickStage
         if (connection.IsMade)
         {
             FrameEventKind kind = connection.Outcome == HitOutcome.Hit ? FrameEventKind.Hit : FrameEventKind.Block;
-            state.Events.Emit(state.Frame, kind, attacker, _contacts.PointOf(attacker), connection.Move);
+            int detail = HitEventDetail.Of(connection.Move, connection.HitIndex);
+            state.Events.Emit(state.Frame, kind, attacker, _contacts.PointOf(attacker), detail);
             CounterHitEvent.Emit(ref state, connection.Counter, attacker, _contacts.PointOf(attacker));
         }
     }

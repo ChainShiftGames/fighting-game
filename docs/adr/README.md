@@ -31,5 +31,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0028](0028-fighter-models-and-contact-frames.md) | *Proposed*: `RiggedFighterModel` seeks clips named after move IDs to the logic frame; per-character art file in `game/Assets/Characters/<id>/` picks placeholder or model and holds contact frames (not in data, not hashed); per-phase retiming |
 | [0029](0029-vfx-lab.md) | *Proposed*: dev-only VFX Lab scene: sheets of effect variants in rounds, controls generated from shader uniforms, feedback file and forks, live reload |
 | [0030](0030-stage-art-pipeline.md) | *Proposed*: stages use the perspective camera; depth layers (Front, Floor, Middle, Back, Sky, Effects, Lighting); AI key art at the game's framing, split by depth and projected; fighters own the value extremes; per-stage folder copied from `game/Assets/Stages/_template/` |
+| [0031](0031-hit-sparks.md) | *Proposed*: hit events carry the hit index; spark looks derived from hit data (weight from hitstop, angle from launch, tear for specials/heavies), per-hit `angle`/`offset`/`style`/`scale` overrides in the art file; one seeded shader, no Godot particles |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

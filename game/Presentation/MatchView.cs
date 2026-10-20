@@ -3,6 +3,7 @@ using FightingGame.Debug;
 using FightingGame.Presentation.Events;
 using FightingGame.Presentation.World;
 using FightingGame.Presentation.World.Projectiles;
+using FightingGame.Presentation.World.Sparks;
 using Godot;
 using Netcode.Drivers;
 using Sim.Characters;
@@ -16,8 +17,8 @@ namespace FightingGame.Presentation;
 
 /// <summary>
 /// Shows a match of the real game logic from the driver's state: the 3D stage and fighters on the gameplay plane
-/// (ADR-0027), and over them hit sparks, the hitbox overlay when it is on, fighter readouts and the HUD, all shaken by
-/// the screen shake. Reads the state only (ARCHITECTURE.md §9).
+/// (ADR-0027) with the hit sparks over them, then the hitbox overlay when it is on, fighter readouts and the HUD, all
+/// shaken by the screen shake. Reads the state only (ARCHITECTURE.md §9).
 /// </summary>
 public partial class MatchView : Node2D
 {
@@ -31,6 +32,8 @@ public partial class MatchView : Node2D
     private readonly ProjectileViews _projectiles = new();
     private readonly ChargeViews _charges = new();
     private readonly ImpactViews _impacts = new();
+    private readonly HitSparkViews _sparks = new();
+    private HitSparkLooks? _sparkLooks;
     private readonly Node3D?[] _fighterNodes = new Node3D?[MatchState.PlayerCount];
     private readonly IFighterArt?[] _fighterArt = new IFighterArt?[MatchState.PlayerCount];
     private IMatchDriver<MatchState>? _driver;
@@ -72,6 +75,8 @@ public partial class MatchView : Node2D
         _charges.Build(characters, projectileArt);
         _impacts.Build(projectileArt);
         _sparkDrawnElsewhere = _impacts.HasArt;
+        _sparkLooks = new HitSparkLooks(
+            characters, System.Array.ConvertAll(characters, c => FighterArtChoice.ReadSettings(c.Id)?.Sparks));
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
             CreateFighter(player);
@@ -144,6 +149,7 @@ public partial class MatchView : Node2D
         AddChild(_charges);
         AddChild(_projectiles);
         AddChild(_impacts);
+        AddChild(_sparks);
         AddChild(_hud);
     }
 
@@ -176,6 +182,7 @@ public partial class MatchView : Node2D
         _projectiles.ShowFrame(in state.Entities);
         int latestFrame = state.Frame - 1;
         _impacts.ShowFrame(_effects.Impacts.Live(latestFrame), latestFrame, in state.Fighters);
+        _sparks.ShowFrame(_effects.Sparks.Live(latestFrame, in state.Fighters), _sparkLooks!, _sparkDrawnElsewhere);
 
         QueueRedraw();
     }
@@ -192,9 +199,6 @@ public partial class MatchView : Node2D
         {
             DrawReadouts(camera, in state.Fighters[player], _characters[player], _fighterColors[player]);
         }
-
-        int latestFrame = state.Frame - 1;
-        HitSparkArt.Draw(this, camera, _effects!.Sparks.Live(latestFrame), latestFrame, _sparkDrawnElsewhere);
     }
 
     // The stage brings its own environment; the grade is laid over it once the stage is in the scene.

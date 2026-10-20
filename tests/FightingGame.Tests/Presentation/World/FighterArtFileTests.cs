@@ -1,5 +1,6 @@
 using FightingGame.Presentation.World;
 using FightingGame.Presentation.World.Projectiles;
+using FightingGame.Presentation.World.Sparks;
 using Xunit;
 
 namespace FightingGame.Tests.Presentation.World;
@@ -284,6 +285,41 @@ public sealed class FighterArtFileTests
     public void RefusesProjectileEffectsThatDoNotExist(string projectile, string reason)
     {
         string json = $$"""{ "artVersion": 1, "art": "placeholder", "projectiles": { "236c": {{projectile}} } }""";
+
+        FighterArtSettings? settings = FighterArtFile.Read(json, out string error);
+
+        Assert.Null(settings);
+        Assert.Contains(reason, error);
+    }
+
+    [Fact]
+    public void ReadsEachHitsSpark()
+    {
+        const string Json = """
+            {
+              "artVersion": 1,
+              "art": "placeholder",
+              "sparks": {
+                "5d": [{ "angle": -45, "offset": { "x": 4, "y": -10 }, "style": "tear", "scale": 1.2 }, {}]
+              }
+            }
+            """;
+
+        FighterArtSettings? settings = FighterArtFile.Read(Json, out string error);
+
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(
+            [new HitSparkSettings(-45f, 4f, -10f, HitSparkStyle.Tear, 1.2f), new HitSparkSettings()],
+            settings!.Sparks["5d"]);
+    }
+
+    [Theory]
+    [InlineData("""{ "angle": 400 }""", "angle")]
+    [InlineData("""{ "scale": 0 }""", "scale")]
+    [InlineData("""{ "style": "swirl" }""", "")]
+    public void RefusesInvalidSparks(string spark, string reason)
+    {
+        string json = $$"""{ "artVersion": 1, "art": "placeholder", "sparks": { "5a": [{{spark}}] } }""";
 
         FighterArtSettings? settings = FighterArtFile.Read(json, out string error);
 
