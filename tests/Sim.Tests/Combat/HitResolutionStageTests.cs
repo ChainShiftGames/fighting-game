@@ -346,6 +346,60 @@ public sealed class HitResolutionStageTests
         Assert.Equal(Mirror(original.Fighters[1]), swapped.Fighters[0]);
     }
 
+    // A crossup: P1 still faces right, the side it jumped from, but stands just right of P2, which still faces left
+    // toward where P1 came from. P1's hitbox (20000 to 60000 in front) reaches back over P2's hurtbox.
+    [Theory]
+    [InlineData(0, FighterAction.Hitstun)]
+    [InlineData(InputWord.Left, FighterAction.Blockstun)]
+    public void AHitOrBlockFromBehindTurnsTheDefenderToFaceTheAttacker(ushort defenderInput, FighterAction reaction)
+    {
+        MatchState state = P1Attacks(Mid, At(-32_000, -1), new InputWord(defenderInput));
+
+        _stages.Run(ref state);
+
+        Assert.Equal((reaction, 1), (state.Fighters[1].Action, state.Fighters[1].Facing));
+    }
+
+    [Fact]
+    public void ACrossupPushesAndLaunchesTheDefenderAwayFromTheAttackerNotTheWayItFaces()
+    {
+        CombatStages stages = new(pushbackFrames: 8);
+        MatchState state = P1Attacks(Launcher, At(-32_000, -1));
+
+        stages.Run(ref state);
+
+        FighterState defender = state.Fighters[1];
+        Assert.Equal(new IntVector2(-LauncherHit.Launch.X, LauncherHit.Launch.Y), defender.Velocity);
+        Assert.Equal((-1, LauncherHit.Pushback, 1), (defender.Pushback.Direction, defender.Pushback.DistanceLeft,
+            defender.Pushback.PushesAttacker));
+    }
+
+    [Fact]
+    public void AHitFromTheFrontPushesAndLaunchesTheDefenderTheWayTheAttackerFaces()
+    {
+        CombatStages stages = new(pushbackFrames: 8);
+        MatchState state = P1Attacks(Launcher, At(30_000, -1));
+
+        stages.Run(ref state);
+
+        FighterState defender = state.Fighters[1];
+        Assert.Equal(LauncherHit.Launch, defender.Velocity);
+        Assert.Equal((1, -1), (defender.Pushback.Direction, defender.Facing));
+    }
+
+    // Nothing tells the sides apart at the same x: the attacker's facing sends the defender, which keeps its own.
+    [Fact]
+    public void AtTheSameXTheAttackersFacingDecidesAndTheDefenderDoesNotTurn()
+    {
+        CombatStages stages = new(pushbackFrames: 8);
+        MatchState state = P1Attacks(Launcher, At(-30_000, 1));
+
+        stages.Run(ref state);
+
+        FighterState defender = state.Fighters[1];
+        Assert.Equal((LauncherHit.Launch.X, 1, 1), (defender.Velocity.X, defender.Pushback.Direction, defender.Facing));
+    }
+
     [Fact]
     public void ResolvingHitsBlocksAndTradesAllocatesNothing()
     {

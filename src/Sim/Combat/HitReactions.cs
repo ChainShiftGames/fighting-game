@@ -13,7 +13,8 @@ namespace Sim.Combat;
 /// air hitstun and is knocked down on landing. Either way a KO'd fighter stays down until the next round (the state
 /// machine doesn't wake it up). Every hit also sets the knockdown length and the bounces of the juggle it starts or
 /// continues, so the last hit taken decides them. Hitstop is not applied here: it freezes both fighters, so
-/// <see cref="HitResolutionStage"/> applies it.
+/// <see cref="HitResolutionStage"/> applies it. Neither is the turn to face the attacker, which needs to know where
+/// the attacker stands (the resolution stages do it first).
 /// </remarks>
 public static class HitReactions
 {
@@ -22,10 +23,13 @@ public static class HitReactions
     /// air hitstun (a knockdown on landing), knockdown, KO and OTG hits on the ground knock down straight away, and
     /// other hits go to standing or crouching hitstun after the defender's posture.
     /// </summary>
-    /// <param name="attackFacing">The attacker's (or projectile's) facing: launches send the defender that way.</param>
+    /// <param name="direction">
+    /// The way the hit sends the defender, +1 right (<see cref="HitDirection"/>; a throw passes its thrower's facing):
+    /// a launch goes that way.
+    /// </param>
     /// <param name="flagsClearedWhenHit">Fighter flags a hit takes away (<c>MatchRules.FlagsClearedWhenHit</c>).</param>
     public static void TakeHit(
-        ref FighterState defender, in HitData hit, CharacterData character, int attackFacing, int flagsClearedWhenHit)
+        ref FighterState defender, in HitData hit, CharacterData character, int direction, int flagsClearedWhenHit)
     {
         defender.Health = LoseHealth(defender.Health, hit.Damage);
         defender.Flags &= ~flagsClearedWhenHit;
@@ -36,7 +40,7 @@ public static class HitReactions
         if (isAirborne ? hit.HasAirLaunch != 0 || hit.HasLaunch != 0 : hit.HasLaunch != 0)
         {
             IntVector2 launch = isAirborne && hit.HasAirLaunch != 0 ? hit.AirLaunch : hit.Launch;
-            defender.Velocity = new IntVector2(launch.X * attackFacing, launch.Y);
+            defender.Velocity = new IntVector2(launch.X * direction, launch.Y);
             defender.IsAirborne = 1;
             MoveEntry.EnterStun(ref defender, FighterAction.AirHitstun, hit.Hitstun, character);
         }

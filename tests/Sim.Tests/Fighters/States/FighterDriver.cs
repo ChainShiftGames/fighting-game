@@ -23,13 +23,25 @@ internal sealed class FighterDriver
 
     public FighterState Fighter;
 
+    /// <summary>The facing toward the opponent the machine is given each frame; null gives none (no turning).</summary>
+    public int? OpponentFacing { get; set; }
+
     public FighterAction Action => Fighter.Action;
 
     /// <summary>One frame: records the input, then advances the state machine.</summary>
     public FighterDriver Frame(ushort input = 0)
     {
         _history.Record(new InputWord(input));
-        _machine.Advance(ref Fighter, in _history, _character);
+        if (OpponentFacing is int opponentFacing)
+        {
+            _machine.Advance(
+                ref Fighter, in _history, _character, CancelPermission.EveryWindow, AvailableMeter.Unlimited,
+                opponentFacing);
+        }
+        else
+        {
+            _machine.Advance(ref Fighter, in _history, _character);
+        }
         return this;
     }
 

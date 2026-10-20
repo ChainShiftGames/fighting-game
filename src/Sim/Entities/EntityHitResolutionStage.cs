@@ -1,6 +1,7 @@
 using Sim.Characters;
 using Sim.Combat;
 using Sim.Events;
+using Sim.Fighters;
 using Sim.Math;
 using Sim.Modules;
 using Sim.Pipeline;
@@ -20,7 +21,9 @@ namespace Sim.Entities;
 /// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the owner, as
 ///   against any attack, even when the projectile comes from behind, and in the air only through a module,
 ///   <see cref="Guarding"/>; <see cref="HitReactions"/> for damage, chip,
-///   stun and knockdown), against the defender as fighter attacks left it this frame. A hit that catches the
+///   stun and knockdown), against the defender as fighter attacks left it this frame. The defender turns to face the
+///   owner, as against its attacks, and is pushed (or launched) along the projectile's flight
+///   (<see cref="HitDirection.AlongFlight"/>), so one from behind pushes it toward the owner. A hit that catches the
 ///   defender attacking is a counter hit or punish counter, as a fighter's is (<see cref="CounterHits"/>; the
 ///   counter hit event follows the hit event). Only the defender gets the
 ///   projectile's hitstop (<see cref="Hitstop"/>); the owner isn't in contact, so it keeps acting, and its move
@@ -121,8 +124,9 @@ public sealed class EntityHitResolutionStage : ITickStage
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
         HitData hit = _shortcutDamage.Apply(_characters.ProjectileOf(in entity).Hit, entity.IsShortcut != 0);
+        int direction = HitDirection.AlongFlight(in entity);
         CounterHitKind counter = Defend(
-            ref state, defender, in hit, entity.Owner, entity.Facing, out bool isBlocked, out bool whiffs);
+            ref state, defender, in hit, entity.Owner, direction, out bool isBlocked, out bool whiffs);
         if (whiffs)
         {
             return;
@@ -143,15 +147,16 @@ public sealed class EntityHitResolutionStage : ITickStage
         }
     }
 
-    // The defender takes the hit or block and the projectile's hitstop; returns whether a hit was a counter.
-    // A hit the modules make whiff changes nothing, and the projectile flies on.
-    // Projectile pushback never moves the owner, however far away it is: the wall just stops the slide.
+    // The defender turns to face the owner, takes the hit or block and the projectile's hitstop, and is sent along the
+    // projectile's flight; returns whether a hit was a counter. A hit the modules make whiff changes nothing, and the
+    // projectile flies on. Projectile pushback never moves the owner, however far away it is: the wall just stops the
+    // slide.
     private CounterHitKind Defend(
         ref MatchState state,
         int defender,
         in HitData hit,
         int owner,
-        int facing,
+        int direction,
         out bool isBlocked,
         out bool whiffs)
     {
@@ -167,9 +172,10 @@ public sealed class EntityHitResolutionStage : ITickStage
             HitData blocked = hit;
             _modules.AdjustBlock(ref state, new FighterContact(owner, defender), ref blocked);
             defenderState = ref state.Fighters[defender];
+            FaceOpponent.Turn(ref defenderState, in state.Fighters[owner]);
             HitReactions.Block(ref defenderState, in blocked, stance, character);
             Hitstop.Extend(ref defenderState.Timing, blocked.Hitstop);
-            _pushback.Start(ref defenderState, blocked.Pushback, facing, pushesAttacker: false);
+            _pushback.Start(ref defenderState, blocked.Pushback, direction, pushesAttacker: false);
             return CounterHitKind.None;
         }
 
@@ -181,9 +187,10 @@ public sealed class EntityHitResolutionStage : ITickStage
             return CounterHitKind.None;
         }
 
-        HitReactions.TakeHit(ref defenderState, in landed, character, facing, _flagsClearedWhenHit);
+        FaceOpponent.Turn(ref defenderState, in state.Fighters[owner]);
+        HitReactions.TakeHit(ref defenderState, in landed, character, direction, _flagsClearedWhenHit);
         Hitstop.Extend(ref defenderState.Timing, landed.Hitstop);
-        _pushback.Start(ref defenderState, landed.Pushback, facing, pushesAttacker: false);
+        _pushback.Start(ref defenderState, landed.Pushback, direction, pushesAttacker: false);
         return counter;
     }
 

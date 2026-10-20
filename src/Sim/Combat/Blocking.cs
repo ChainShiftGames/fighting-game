@@ -1,5 +1,5 @@
 using Sim.Characters;
-using Sim.Collision;
+using Sim.Fighters;
 using Sim.Fighters.States;
 using Sim.Input;
 using Sim.State;
@@ -58,9 +58,6 @@ public static class Blocking
     /// +1 when the attacker is to the right, -1 when left (at the same x, the defender's facing): the facing to read
     /// the defender's input with, so that back (<see cref="NumpadDirection.IsBack"/>) is away from the attacker.
     /// </summary>
-    public static int TowardAttacker(in FighterState defender, in FighterState attacker)
-    {
-        int side = FighterSides.Of(in defender, in attacker);
-        return side == 0 ? defender.Facing : -side;
-    }
+    public static int TowardAttacker(in FighterState defender, in FighterState attacker) =>
+        FaceOpponent.FacingFor(in defender, in attacker);
 }

@@ -12,7 +12,7 @@ namespace Sim.Tests.Combat;
 /// Basic moves: <see cref="Idle"/> (every basic state) and <see cref="Crouch"/> (the crouching states), with a lower
 /// hurtbox. Attacks are 10 frames, active on frames 2–3, with a hitbox from 20000 to 60000 in front; the low one hits
 /// near the floor and the overhead from above a crouching hurtbox. <see cref="Invulnerable"/> has no hitbox and
-/// can't be hit on any of its frames.
+/// can't be hit on any of its frames. <see cref="Launcher"/> is a mid with a launch and pushback.
 /// </remarks>
 internal static class CombatCharacter
 {
@@ -25,6 +25,7 @@ internal static class CombatCharacter
     public const int Knockdown = 6;
     public const int HeavyMid = 7;
     public const int Invulnerable = 8;
+    public const int Launcher = 9;
 
     public const int Health = 10_000;
     public const int ActiveFrame = 2;
@@ -48,6 +49,13 @@ internal static class CombatCharacter
     public static readonly HitData KnockdownHit = MidHit with { Reaction = HitReaction.Knockdown };
 
     public static readonly HitData HeavyMidHit = MidHit with { Damage = 900, Hitstop = 15 };
+
+    public static readonly HitData LauncherHit = MidHit with
+    {
+        Pushback = 10_000,
+        HasLaunch = 1,
+        Launch = new IntVector2(3_000, 20_000),
+    };
 
     private static readonly AxisAlignedBox _standingHurtbox = new(-25_000, 0, 25_000, 120_000);
     private static readonly AxisAlignedBox _crouchingHurtbox = new(-25_000, 0, 25_000, 70_000);
@@ -73,6 +81,7 @@ internal static class CombatCharacter
             {
                 Category = MoveCategory.Normal, TotalFrames = 10, InvulnerableFirstFrame = 1, InvulnerableLastFrame = 10,
             },
+            Attack(boxes, hits, _midHitbox, LauncherHit),
         ];
         int[] basicStateMoves = new int[Enum.GetValues<BasicState>().Length];
         basicStateMoves[(int)BasicState.Crouch] = Crouch;
@@ -80,7 +89,8 @@ internal static class CombatCharacter
         basicStateMoves[(int)BasicState.CrouchBlockstun] = Crouch;
         return new CharacterData(
             "combat", "Combat", new CharacterStats { Health = Health },
-            ["idle", "crouch", "mid", "low", "overhead", "unblockable", "knockdown", "heavy_mid", "invulnerable"],
+            ["idle", "crouch", "mid", "low", "overhead", "unblockable", "knockdown", "heavy_mid", "invulnerable",
+                "launcher"],
             moves, boxes.ToArray(), [], [], hits.ToArray(), [], basicStateMoves);
     }
 

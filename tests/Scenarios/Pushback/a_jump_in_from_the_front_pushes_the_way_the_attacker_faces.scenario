@@ -1,0 +1,19 @@
+# Regression: without a crossup nothing changes. p2's jump-in j.C hits p1 from the front on frame 37, and once the
+# hitstop (11) ends p1 slides exactly the hit's pushback (10000) the way p2 faces, left; the fighters never touch.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -70000
+setup: p2 x = 158500
+
+frames 1-5: p2 9
+frame 30: p2 5c                          # j.C, active on frames 37-41
+
+frame 37: expect p2 event hit
+frame 37: expect p2 x = 10000            # in front of p1
+frame 37: expect p2 facing = left
+frames 37-48: expect p1 x = -70000       # hitstop
+frame 49: expect p1 x = -71250
+frames 56-62: expect p1 x = -80000
+frames 37-62: expect p1 facing = right
+frame 57: expect p2 state = landing
+frame 57: expect p2 x = -26000

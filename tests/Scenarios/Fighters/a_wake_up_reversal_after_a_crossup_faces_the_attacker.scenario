@@ -1,0 +1,24 @@
+# A fighter whose wake-up ends turns to face its opponent before it reads a buffered reversal. p1 sweeps p2 (2c,
+# knockdown) and air-dashes over it while it gets up (wake-up on frames 61-72): p1 is still in front when the wake-up
+# starts and passes p2 on frame 64, above its pushbox. p2 can't turn during the wake-up and inputs a 623c toward p1,
+# to its right: 4, 2, 1 relative to its old facing. On its first free frame (73) it turns right first, and the 623c
+# comes out toward p1.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -20000
+setup: p2 x = 20000
+
+frame 1: p1 2c
+frame 49: p1 9
+frame 58: p1 dash                        # air dash, at 90000 up
+frame 70: p2 4, 2, 1c                    # right, down, down-right + c: a 623c toward p1
+
+frame 9: expect p2 state = knockdown
+frame 61: expect p2 state = wake_up
+frame 61: expect p1 x = 19000            # in front of p2 (43000)
+frame 64: expect p1 x = 52000            # past p2
+frames 61-72: expect p2 state = wake_up
+frames 61-72: expect p2 facing = left
+frame 73: expect p2 move = 623c
+frame 73: expect p2 facing = right
+frame 74: expect p2 x = 48000            # 623c moves forward 2500 per frame: right, toward p1

@@ -1,0 +1,22 @@
+# A crossup next to the corner pushes the defender out of the corner, away from the attacker, and the wall passes
+# nothing to the attacker. p1 stands 8000 from the left wall (its pushbox from -592000); p2 jumps over it and its
+# j.C, still facing left, hits p1 from the wall side on frame 38. Pushed the way p2 faces, p1 would slide into the
+# wall behind it and the wall would hand the rest of the push to p2, toward p1: the corner rule the wrong way round.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -572000
+setup: p2 x = -423500
+
+frames 1-5: p2 9
+frame 31: p2 5c                          # j.C, active on frames 38-42
+
+frame 38: expect p2 event hit
+frame 38: expect p2 x = -576500          # between p1 and the wall
+frame 38: expect p2 facing = left
+frame 38: expect p1 facing = left        # toward p2
+frames 38-49: expect p1 x = -572000      # hitstop
+frame 50: expect p1 x = -570750          # the first slice (1250), out of the corner
+# p2 comes down at the wall, which holds it there, so the pushboxes push p1 the rest of the way out.
+frames 50-75: expect p2 x = -580000
+frames 57-75: expect p1 x = -532500
+frames 57-75: expect p1 facing = left

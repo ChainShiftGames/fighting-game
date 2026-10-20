@@ -1,0 +1,25 @@
+# A hit turns the defender to face its attacker. p2 whiffs 5a, so it can't turn when p1's forward jump passes over
+# it on frame 37; p1's j.C hits it from behind on frame 38, in 5a's recovery (a punish counter), and p2 turns right,
+# toward p1. Its hitstun ends facing p1, so its buffered 623c comes out toward p1 and hits it.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -75500
+setup: p2 x = 70000
+
+frames 1-5: p1 9
+frame 31: p1 5c                          # j.C, active on frames 38-42
+frame 28: p2 5a                          # frames 28-43
+frame 73: p2 6, 2, 3c
+
+frame 37: expect p1 x = 73000            # past p2
+frame 37: expect p2 move = 5a
+frame 37: expect p2 facing = left
+frame 38: expect p1 event punish_counter
+frame 38: expect p2 state = hitstun
+frame 38: expect p2 facing = right
+frames 38-75: expect p2 facing = right
+frame 54: expect p2 x = 68750            # pushed left, away from p1
+frame 75: expect p2 state = hitstun
+frame 76: expect p2 move = 623c
+frame 77: expect p2 x = 54500            # moving right, toward p1
+frame 81: expect p2 event hit

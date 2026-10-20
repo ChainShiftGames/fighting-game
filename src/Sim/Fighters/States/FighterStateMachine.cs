@@ -16,8 +16,11 @@ namespace Sim.Fighters.States;
 /// through their data windows where the <see cref="CancelPermission"/> allows it (into moves first, then a jump)
 /// and end into a free action. Jumps go through <see cref="JumpActions"/>. A thrown fighter is held until the throw
 /// stages let it go (<c>Sim.Throws</c>); a throw tech ends into a free action. A KO'd fighter
-/// (<see cref="KnockOut"/>) never wakes up from a knockdown. The machine reads only the fighter's own state, input
-/// and character data, so both fighters are treated alike.
+/// (<see cref="KnockOut"/>) never wakes up from a knockdown. A fighter getting up, and one whose hitstun, blockstun or
+/// wake-up ends (also in the air), first turns to face its opponent (<see cref="FaceOpponent"/>), so a reversal
+/// buffered after a crossup is read toward the opponent; free fighters turn later in the frame
+/// (<c>Sim.Collision.SideSwitch</c>), too late for that. The machine reads only the fighter's own state, input and
+/// character data, plus the facing toward its opponent it is given, so both fighters are treated alike.
 /// </remarks>
 public sealed class FighterStateMachine
 {
@@ -26,6 +29,9 @@ public sealed class FighterStateMachine
     private readonly JumpActions _jumps;
     private readonly int _shortcutCooldownFrames;
     private readonly bool _airRecovery;
+
+    // The facing toward the opponent as this step started (FaceOpponent.FacingFor), set by each Advance.
+    private int _opponentFacing;
 
     /// <param name="shortcutCooldownFrames">
     /// Fighter frames after a shortcut move starts before the next one can (<c>MatchRules.ShortcutCooldownFrames</c>).
@@ -41,7 +47,7 @@ public sealed class FighterStateMachine
     }
 
     /// <summary>
-    /// The last <see cref="Advance(ref FighterState, in InputHistory, CharacterData, CancelPermission, in AvailableMeter)"/>
+    /// The last <see cref="Advance(ref FighterState, in InputHistory, CharacterData, CancelPermission, in AvailableMeter, int)"/>
     /// started an action from a press (a move, dash, air dash or double jump), so the caller uses the fighter's presses
     /// up (ADR-0033). A jump from held up or a held run uses no press.
     /// </summary>
@@ -55,16 +61,32 @@ public sealed class FighterStateMachine
         ref FighterState fighter, in InputHistory history, CharacterData character, CancelPermission cancels) =>
         Advance(ref fighter, in history, character, cancels, AvailableMeter.Unlimited);
 
+    /// <summary>Advances without an opponent to turn to: the fighter keeps its facing (unit tests).</summary>
     /// <param name="meter">The fighter's meter per channel as the step starts, for move costs (ADR-0023).</param>
     public void Advance(
         ref FighterState fighter,
         in InputHistory history,
         CharacterData character,
         CancelPermission cancels,
-        in AvailableMeter meter)
+        in AvailableMeter meter) =>
+        Advance(ref fighter, in history, character, cancels, in meter, fighter.Facing);
+
+    /// <param name="meter">The fighter's meter per channel as the step starts, for move costs (ADR-0023).</param>
+    /// <param name="opponentFacing">
+    /// The facing toward the opponent as the step starts (<see cref="FaceOpponent.FacingFor"/>): the fighter turns to
+    /// it when it gets up or its stun or wake-up ends.
+    /// </param>
+    public void Advance(
+        ref FighterState fighter,
+        in InputHistory history,
+        CharacterData character,
+        CancelPermission cancels,
+        in AvailableMeter meter,
+        int opponentFacing)
     {
         _moves.Meter = meter;
         HasUsedPress = false;
+        _opponentFacing = opponentFacing;
         // A takeoff is only this frame's request to movement.
         fighter.Takeoff = Takeoff.None;
         if (fighter.ShortcutCooldownLeft > 0)
@@ -91,8 +113,11 @@ public sealed class FighterStateMachine
                 break;
             case FighterAction.Thrown:
                 break;
-            case FighterAction.Landing or FighterAction.Backdash or FighterAction.WakeUp or FighterAction.ThrowTech:
+            case FighterAction.Landing or FighterAction.Backdash or FighterAction.ThrowTech:
                 EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
+                break;
+            case FighterAction.WakeUp:
+                AdvanceWakeUp(ref fighter, in history, character, in move);
                 break;
             case FighterAction.Dash:
                 AdvanceDash(ref fighter, in history, character, in move);
@@ -297,6 +322,7 @@ public sealed class FighterStateMachine
     {
         if (fighter.StunFramesLeft == 0)
         {
+            fighter.Facing = _opponentFacing;
             EnterFree(ref fighter, in history, character);
             return;
         }
@@ -343,23 +369,44 @@ public sealed class FighterStateMachine
     // A KO'd fighter stays down on the knockdown's last frame until the next round resets it; others wake up after
     // the knockdown move, or after the last hit's own knockdown length (ADR-0022), counted in stun frames while the
     // move holds its last frame.
-    private static void AdvanceKnockdown(ref FighterState fighter, CharacterData character, in MoveData move)
+    private void AdvanceKnockdown(ref FighterState fighter, CharacterData character, in MoveData move)
     {
         if (fighter.StunFramesLeft > 0 && !KnockOut.IsKnockedOut(in fighter))
         {
             fighter.MoveFrame = fighter.MoveFrame > move.TotalFrames ? move.TotalFrames : fighter.MoveFrame;
             if (--fighter.StunFramesLeft == 0)
             {
-                MoveEntry.EnterBasic(ref fighter, FighterAction.WakeUp, character);
+                EnterWakeUp(ref fighter, character);
             }
         }
         else if (!KnockOut.IsKnockedOut(in fighter))
         {
-            EndAfter(ref fighter, move.TotalFrames, FighterAction.WakeUp, character);
+            if (fighter.MoveFrame > move.TotalFrames)
+            {
+                EnterWakeUp(ref fighter, character);
+            }
         }
         else if (fighter.MoveFrame > move.TotalFrames)
         {
             fighter.MoveFrame = move.TotalFrames;
+        }
+    }
+
+    // The fighter gets up facing its opponent, which may have crossed over it while it was down.
+    private void EnterWakeUp(ref FighterState fighter, CharacterData character)
+    {
+        fighter.Facing = _opponentFacing;
+        MoveEntry.EnterBasic(ref fighter, FighterAction.WakeUp, character);
+    }
+
+    // It turns again as the wake-up ends, in case the opponent crossed over meanwhile, before a buffered move is read.
+    private void AdvanceWakeUp(
+        ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
+    {
+        if (fighter.MoveFrame > move.TotalFrames)
+        {
+            fighter.Facing = _opponentFacing;
+            EnterFree(ref fighter, in history, character);
         }
     }
 
@@ -393,14 +440,6 @@ public sealed class FighterStateMachine
         {
             fighter.IsShortcutMove = 1;
             fighter.ShortcutCooldownLeft = _shortcutCooldownFrames;
-        }
-    }
-
-    private static void EndAfter(ref FighterState fighter, int frames, FighterAction next, CharacterData character)
-    {
-        if (fighter.MoveFrame > frames)
-        {
-            MoveEntry.EnterBasic(ref fighter, next, character);
         }
     }
 

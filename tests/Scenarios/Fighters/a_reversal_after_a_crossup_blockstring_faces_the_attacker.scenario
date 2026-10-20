@@ -1,0 +1,28 @@
+# Sides switch during blockstun: the defender turns to face the attacker as its blockstun ends, before it reads a
+# buffered reversal. p1's jump-in j.C is blocked from the front on frame 37; p1 then carries on over p2 and lands
+# behind it. p2 can't turn in blockstun, so it still faces left when it inputs a 623c toward p1, to its right: 4, 2,
+# 1 relative to that facing. On its first free frame (64) it turns right first, so the motion reads 6, 2, 3: the
+# 623c comes out toward p1 and hits it. Read with the old facing it would be no motion at all.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -81500
+setup: p2 x = 70000
+
+frames 1-5: p1 9
+frame 30: p1 5c                          # j.C, active on frames 37-41
+frame 37: p2 4                           # stand block, holding away from p1
+frame 61: p2 4, 2, 1c                    # right, down, down-right + c: a 623c toward p1
+
+frame 37: expect p1 event block
+frame 37: expect p1 x = 67000            # in front of p2
+frame 37: expect p2 x = 73200
+frame 50: expect p1 x = 76000            # past p2 (75700) on its way down
+frame 57: expect p1 state = landing
+frame 57: expect p1 facing = left
+frames 37-63: expect p2 state = blockstun
+frames 37-63: expect p2 facing = left
+frame 64: expect p2 move = 623c
+frame 64: expect p2 facing = right
+frame 65: expect p2 x = 69975            # 623c moves forward 2500 per frame: right, toward p1
+frame 69: expect p2 event hit
+frame 69: expect p1 damage = 1400
