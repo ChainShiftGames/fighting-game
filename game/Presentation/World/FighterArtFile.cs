@@ -88,6 +88,15 @@ public static class FighterArtFile
             return $"cameraTurnDegrees {file.CameraTurnDegrees} must be from 0 to 90";
         }
 
+        for (int i = 0; i < file.OtherModels.Count; i++)
+        {
+            ModelJson other = file.OtherModels[i];
+            if (string.IsNullOrWhiteSpace(other.Model) || other.Scale <= 0f)
+            {
+                return $"otherModels[{i}]: name its model file, with a scale above 0";
+            }
+        }
+
         foreach (KeyValuePair<string, AnimationJson> entry in file.Animations)
         {
             string problem = CheckAnimation(entry.Value);
@@ -217,6 +226,8 @@ public static class FighterArtFile
             CameraTurnDegrees = file.CameraTurnDegrees,
             HoldFrames = file.HoldFrames,
             Projectiles = ToSettings(file.Projectiles),
+            OtherModels = file.OtherModels.ConvertAll(
+                other => new FighterModelVariant(other.Model, other.Scale, other.TurnDegrees)),
         };
     }
 
@@ -260,6 +271,8 @@ public static class FighterArtFile
 
         public float TurnDegrees { get; init; }
 
+        public List<ModelJson> OtherModels { get; init; } = [];
+
         public Dictionary<string, AnimationJson> Animations { get; init; } = [];
 
         public List<TransitionJson> Transitions { get; init; } = [];
@@ -275,6 +288,16 @@ public static class FighterArtFile
         public float CameraTurnDegrees { get; init; }
 
         public int HoldFrames { get; init; } = 1;
+    }
+
+    private sealed class ModelJson
+    {
+        [JsonRequired]
+        public string Model { get; init; } = string.Empty;
+
+        public float Scale { get; init; } = 1f;
+
+        public float TurnDegrees { get; init; }
     }
 
     private sealed class ProjectileJson

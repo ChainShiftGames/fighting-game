@@ -37,6 +37,37 @@ public sealed class FighterArtFileTests
     }
 
     [Fact]
+    public void SwitchesToItsOtherModelsInTurnKeepingTheClips()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "main.glb", "scale": 1.75, "turnDegrees": 90,
+              "otherModels": [ { "model": "other.glb", "scale": 1.0, "turnDegrees": -90 } ],
+              "animations": { "5a": { "clip": "Punch" } }
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out _)!;
+        FighterArtSettings other = settings.WithModel(1);
+
+        Assert.Same(settings, settings.WithModel(0));
+        Assert.Equal(("other.glb", 1.0f, -90f), (other.Model, other.Scale, other.TurnDegrees));
+        Assert.Equal("Punch", other.ClipFor("5a"));
+        Assert.Equal("main.glb", settings.WithModel(2).Model);
+    }
+
+    [Fact]
+    public void RefusesAnOtherModelWithoutAFile()
+    {
+        const string Json = """
+            { "artVersion": 1, "art": "model", "model": "main.glb", "otherModels": [ { "model": " " } ] }
+            """;
+
+        Assert.Null(FighterArtFile.Read(Json, out string error));
+        Assert.Contains("otherModels[0]", error, System.StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadsClipsKeptInTheirOwnFiles()
     {
         const string Json = """

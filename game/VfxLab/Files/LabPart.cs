@@ -6,6 +6,10 @@ namespace FightingGame.VfxLab.Files;
 /// <param name="Spin">How far the shader's <c>spin</c> turns per frame, in radians.</param>
 /// <param name="GrowFrames">Flight only: frames to grow from <paramref name="StartScale"/> to full size.</param>
 /// <param name="StartScale">Flight only: its size on its first frame; the charge's seed grows to this.</param>
+/// <param name="Model">Optional: a <c>res://</c> path to a 1 m model drawn in front of the card (a
+/// <see cref="Presentation.World.Projectiles.ProjectileModel"/>), as the game's art nodes do; null for none.</param>
+/// <param name="ModelSize">The model's width at full size, in metres.</param>
+/// <param name="ModelRoll">How far the model rolls about the camera's axis per frame, in radians.</param>
 public sealed record LabPart(
     string Shader,
     float CardWidth,
@@ -14,4 +18,7 @@ public sealed record LabPart(
     float CentreY,
     float Spin,
     float GrowFrames,
-    float StartScale);
+    float StartScale,
+    string? Model = null,
+    float ModelSize = 0f,
+    float ModelRoll = 0f);

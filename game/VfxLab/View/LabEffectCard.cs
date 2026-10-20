@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FightingGame.Presentation.World;
 using FightingGame.Presentation.World.Projectiles;
 using FightingGame.VfxLab.Files;
 using Godot;
@@ -20,7 +21,14 @@ public partial class LabEffectCard : Node3D
     private static readonly StringName _lifetime = "lifetime";
     private static readonly StringName _cardCentre = "card_centre";
 
+    // Developer settings (presentation): a part's model sits this far before its card, and a charge's model forms
+    // over the startup after this share of it, glowing as it does; as the ice orb's art nodes.
+    private const float ModelInFront = 0.12f;
+    private const float ModelFormsFrom = 0.6f;
+    private const float FormingFlare = 0.8f;
+
     private readonly ShaderCard _card = new();
+    private ProjectileModel? _model;
     private readonly Dictionary<string, UniformSpec> _uniforms = new(StringComparer.Ordinal);
     private Shader _shader = null!;
     private LabPart _part = null!;
@@ -47,6 +55,13 @@ public partial class LabEffectCard : Node3D
         }
 
         AddChild(_card);
+        if (part.Model is { } model && ResourceLoader.Exists(model))
+        {
+            _model = new ProjectileModel { Position = new Vector3(0f, 0f, kind == LabPartKind.Flight ? ModelInFront : 0f) };
+            _model.Build(model);
+            AddChild(_model);
+        }
+
         Resize();
     }
 
@@ -80,13 +95,18 @@ public partial class LabEffectCard : Node3D
         switch (Kind)
         {
             case LabPartKind.Charge:
+                float progress = DarkFireballChargeArt.ProgressAt(moment.PhaseFrame, timing.Charge + 1);
                 _card.SetClock(moment.PhaseFrame, spin);
-                _card.SetParameter(_progress, DarkFireballChargeArt.ProgressAt(moment.PhaseFrame, timing.Charge + 1));
+                _card.SetParameter(_progress, progress);
                 _card.SetParameter(_spawnSize, spawnSize);
+                float forming = Mathf.Clamp((progress - ModelFormsFrom) / (1f - ModelFormsFrom), 0f, 1f);
+                ShowModel(moment.PhaseFrame, _part.ModelSize * spawnSize * forming, FormingFlare * (1f - forming));
                 break;
             case LabPartKind.Flight:
+                float size = SizeAt(moment.PhaseFrame);
                 _card.SetClock(moment.PhaseFrame, spin);
-                _card.SetParameter(_size, SizeAt(moment.PhaseFrame));
+                _card.SetParameter(_size, size);
+                ShowModel(moment.PhaseFrame, _part.ModelSize * size, 0f);
                 break;
             default:
                 _card.SetClock(moment.PhaseFrame, spin);
@@ -96,6 +116,9 @@ public partial class LabEffectCard : Node3D
                 break;
         }
     }
+
+    private void ShowModel(int frame, float across, float flare) => _model?.ShowFrame(
+        across, frame * _part.ModelRoll, (frame - 1) / AnimationRetiming.FramesPerSecond, flare);
 
     /// <summary>The value of <paramref name="setting"/> for this part, the devs' changes included.</summary>
     public float Setting(LabPartSetting setting) => LabPartSettings.Read(setting, Kind, _part, _values);

@@ -42,6 +42,7 @@ public partial class MatchView : Node2D
     private System.Func<Sim.Events.FrameEvent, bool>? _sparkDrawnElsewhere;
     private readonly BackdropBlur _backdropBlur = new();
     private LookToggles? _look;
+    private int _modelVariant;
     private AnimeGrade? _grade;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
@@ -73,11 +74,56 @@ public partial class MatchView : Node2D
         _sparkDrawnElsewhere = _impacts.HasArt;
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
-            _fighterNodes[player] =
-                FighterArtChoice.Create(characters[player], _fighterColors[player], out IFighterArt art);
-            _fighterArt[player] = art;
+            CreateFighter(player);
         }
     }
+
+    /// <summary>
+    /// Redraws both fighters with model <paramref name="variant"/> of their art files (developer setting, see
+    /// <see cref="FighterArtSettings.WithModel"/>), in place, so models can be compared mid-match.
+    /// </summary>
+    /// <returns>P1's model file now shown; empty for a placeholder.</returns>
+    public string ShowModel(int variant)
+    {
+        if (variant != _modelVariant)
+        {
+            SwapModels(variant);
+        }
+
+        return _characters.Length == 0
+            ? string.Empty
+            : FighterArtChoice.ReadSettings(_characters[0].Id)?.WithModel(variant).Model ?? string.Empty;
+    }
+
+    private void SwapModels(int variant)
+    {
+        _modelVariant = variant;
+        for (int player = 0; player < MatchState.PlayerCount && _characters.Length > 0; player++)
+        {
+            Node3D? old = _fighterNodes[player];
+            CreateFighter(player);
+            if (old is null)
+            {
+                continue;
+            }
+
+            if (!old.IsInsideTree())
+            {
+                // Not shown yet: _Ready adds the new one.
+                old.Free();
+                continue;
+            }
+
+            int index = old.GetIndex();
+            old.QueueFree();
+            AddChild(_fighterNodes[player]);
+            MoveChild(_fighterNodes[player]!, index);
+        }
+    }
+
+    private void CreateFighter(int player) =>
+        _fighterNodes[player] = FighterArtChoice.Create(
+            _characters[player], _fighterColors[player], _modelVariant, out _fighterArt[player]);
 
     /// <summary>The whole-screen looks to follow (developer settings); without them the stage shows its own look.</summary>
     public void FollowLook(LookToggles look) => _look = look;

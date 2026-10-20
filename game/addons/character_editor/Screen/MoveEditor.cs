@@ -10,7 +10,7 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 
 /// <summary>
 /// Edits the selected move: category, frame data with its timeline, boxes frame by frame, input, hit and other
-/// properties, and cancel windows. Velocity and projectiles are shown in the file view below.
+/// properties (including velocity and projectiles), and cancel windows, with the resulting file shown below.
 /// </summary>
 [Tool]
 public partial class MoveEditor : VBoxContainer
@@ -57,8 +57,7 @@ public partial class MoveEditor : VBoxContainer
         _moveControls.AddRange(
         [
             header, Section("Frame data"), _frames, _timeline, Section("Boxes"), _boxes, _inputTitle, _input, Section("Properties"), _properties,
-            Section("Cancel windows"), _cancels, Section("File (velocity and projectiles: edit the file for now)"),
-            _json,
+            Section("Cancel windows"), _cancels, Section("File"), _json,
         ]);
         foreach (Control control in _moveControls)
         {
@@ -68,8 +67,9 @@ public partial class MoveEditor : VBoxContainer
         _category.ItemSelected += index => ChangeCategory(_category.GetItemText((int)index));
         _frames.FramesChanged += () =>
         {
-            // Boxes and cancel windows may have moved with their phase.
+            // Boxes, cancel windows, velocity ranges and projectile spawns may have moved with their phase.
             _boxes.ShowMove(_move!.Root, _context!.MoveSchema);
+            ShowProperties();
             _cancels.ShowMove(_move.Root, _context.MoveSchema, _cancelTargets);
             OnChanged(listChanged: false);
         };
@@ -85,12 +85,12 @@ public partial class MoveEditor : VBoxContainer
     /// <summary>The move's file changed; <c>true</c> when the move list's label for it may have changed too.</summary>
     public event Action<bool>? Edited;
 
-    /// <summary>Shows the move; nothing when null (no move selected, or its file is missing).</summary>
-    /// <param name="cancelTargets">Move ids a cancel window can go into: the character's attacks.</param>
     /// <summary>Shows the character's model behind the boxes, when it has one.</summary>
     public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds) =>
         _boxes.ShowCharacter(characterId, moveIds);
 
+    /// <summary>Shows the move; nothing when null (no move selected, or its file is missing).</summary>
+    /// <param name="cancelTargets">Move ids a cancel window can go into: the character's attacks.</param>
     public void ShowMove(EditedFile? move, EditingContext? context, IReadOnlyList<string> cancelTargets)
     {
         _move = move;
@@ -114,10 +114,17 @@ public partial class MoveEditor : VBoxContainer
         _boxes.ShowMove(root, context.MoveSchema);
         _inputTitle.Visible = _input.Visible = !isBasic;
         _input.ShowMove(root, context.ButtonIds, context.MoveSchema.FieldNames);
-        _properties.Show(root, context.MoveSchema, field => !_ownPanelFields.Contains(field)
-            && (!isBasic || !_attackOnlyFields.Contains(field) || root.ContainsKey(field)));
+        ShowProperties();
         _cancels.ShowMove(root, context.MoveSchema, cancelTargets);
         ShowDerived();
+    }
+
+    private void ShowProperties()
+    {
+        JsonObject root = _move!.Root;
+        bool isBasic = JsonNodeValue.Text(root[MoveFields.Category]) == MoveFields.BasicCategory;
+        _properties.Show(root, _context!.MoveSchema, field => !_ownPanelFields.Contains(field)
+            && (!isBasic || !_attackOnlyFields.Contains(field) || root.ContainsKey(field)));
     }
 
     private static Label Section(string title) => new() { Text = title, ThemeTypeVariation = "HeaderSmall" };

@@ -1,0 +1,88 @@
+{
+  "labVersion": 1,
+  "title": "Ice orb (testman 236C, the Tripo elf)",
+  "brief": "The elf sorceress's fireball: her Tripo ice ring, spinning like a sawblade, on a fast projectile (13 px a frame) with a long 33-frame startup. It must read instantly as cold and dangerous at match zoom over the pale Royal Plaza, look expensive (the model, light and particles together), and stay clear of the fighters' silhouettes. Round 1: really different directions on the same parts; pick and fork the strongest.",
+  "style": {
+    "character": "testman (Tripo elf sorceress)",
+    "motifs": "The spiked ice ring with a glowing vortex heart; a frost halo; a six-fold frost sigil; snowflakes, tumbling shards and speed streaks in a misty trail; glints on the rim; cold air shimmering. Impacts flash white then cyan, burst ice spikes, crack a frost shockwave and throw falling shards; blocks crack a hexagonal frost shield; fizzles melt into falling snow.",
+    "palette": {
+      "deep_color": "#0a2a6b",
+      "glow_color": "#52d1ff",
+      "frost_color": "#e6faff",
+      "aether_color": "#40ffdb"
+    }
+  },
+  "timing": {
+    "chargeFrames": 32,
+    "flightFrames": 60,
+    "impactFrames": 30,
+    "restFrames": 20,
+    "spawnX": 45,
+    "spawnY": 55,
+    "speed": 13,
+    "hitboxSize": 30,
+    "fighterWidth": 55,
+    "fighterHeight": 115
+  },
+  "rounds": [
+    {
+      "id": "directions",
+      "name": "Round 1: directions",
+      "note": "Seven takes on the same ring, charge and impact, by look settings only: rate them, pick the ones worth pushing, and fork any you tweak. Every slider under 'frost' and 'look' works on all three parts.",
+      "variants": [
+        {
+          "id": "frost_halo",
+          "name": "Frost Halo",
+          "pitch": "The first balanced take: a glowing halo, the sigil turning slowly behind the ring, a medium misty trail with snowflakes and shards, glints on the rim and a faint cold shimmer. Its values are spelled out, since the shaders' defaults are now the Blizzard Comet pick.",
+          "charge": { "shader": "res://Assets/Effects/ice_orb_charge.gdshader", "card": [2.6, 2.6], "spin": 0.2, "model": "res://Assets/Effects/ice_orb/ice_orb.glb", "modelSize": 0.6 },
+          "flight": { "shader": "res://Assets/Effects/ice_orb.gdshader", "card": [2.4, 1.3], "centre": [-0.6, 0], "spin": 0.1, "growFrames": 10, "startScale": 0.2, "model": "res://Assets/Effects/ice_orb/ice_orb.glb", "modelSize": 0.6, "modelRoll": -0.14 },
+          "impact": { "shader": "res://Assets/Effects/ice_orb_impact.gdshader", "card": [2.8, 2.8], "spin": 0 },
+          "values": { "intensity": 1.4, "halo": 1.0, "sigil": 1.0, "trail": 1.0, "flakes": 1.0, "glints": 1.0, "shimmer": 0.6, "cel": 0.0, "sigil_size": 1.15, "sigil_turn": -0.35, "shards": 1.0, "spikes": 1.0, "gravity": 5.0 }
+        },
+        {
+          "id": "blizzard_comet",
+          "name": "Blizzard Comet (in game)",
+          "pitch": "Picked and tweaked in round 1: a packed snowflake trail, strong cold shimmer, a faint halo and almost no sigil, a slow-turning, bigger flight that grows in over 25 frames, a bigger charge and a smaller, harder impact with more shards and spikes. These are now the shaders' defaults and the art nodes' settings.",
+          "extends": "frost_halo",
+          "values": { "cel": 0.137, "charge.scale": 1.3, "charge.spin": 0.32, "flakes": 2, "flight.cardWidth": 3.2, "flight.growFrames": 25, "flight.scale": 1.15, "flight.spin": 0.015, "flight.startScale": 0.16, "glints": 1.179, "gravity": 12, "halo": 0.787, "impact.scale": 0.84, "impact.spin": 0.27, "intensity": 0.534, "shards": 2, "shimmer": 1.999, "sigil": 0.082, "sigil_size": 0.926, "sigil_turn": -0.521, "spikes": 2, "trail": 0.788 }
+        },
+        {
+          "id": "glacial_sigil",
+          "name": "Glacial Sigil",
+          "pitch": "Arcane first: a big bright sigil wheeling against the ring's spin, a wide halo and only a short trail. The most 'sorceress' read; the sigil also leads the charge and the impact.",
+          "extends": "frost_halo",
+          "values": { "sigil": 1.8, "sigil_size": 1.65, "sigil_turn": -0.9, "halo": 1.5, "trail": 0.35, "flakes": 0.4 }
+        },
+        {
+          "id": "diamond_dust",
+          "name": "Diamond Dust",
+          "pitch": "Sparkle: dozens of glints and drifting snowflakes round a crisp ring, a thin halo and no shimmer. Elegant and precious, like the palace behind it.",
+          "extends": "frost_halo",
+          "values": { "glints": 2.0, "flakes": 1.6, "halo": 0.45, "shimmer": 0.0, "intensity": 1.8, "trail": 0.8, "sigil": 0.6 }
+        },
+        {
+          "id": "aether_frost",
+          "name": "Aether Frost",
+          "pitch": "The region's Aether turquoise instead of pure ice blue: the halo, mist and sigil glow mint-teal like the plaza's roofs. Ties the elf to the setting; check it still reads against the stage.",
+          "extends": "frost_halo",
+          "values": { "glow_color": "#3dffd6", "deep_color": "#063f4a", "aether_color": "#b8fff0", "sigil": 1.3, "intensity": 1.6 }
+        },
+        {
+          "id": "heavy_glacier",
+          "name": "Heavy Glacier",
+          "pitch": "Weight: a bigger ring rolling slowly, a dark deep-blue halo, heavy mist and a strong cold shimmer. The most threatening silhouette; the slowest read.",
+          "extends": "frost_halo",
+          "flight": { "modelSize": 0.8, "modelRoll": -0.06 },
+          "values": { "deep_color": "#04153d", "halo": 1.8, "trail": 1.3, "shimmer": 1.6, "intensity": 1.1, "flight.scale": 1.2 }
+        },
+        {
+          "id": "cel_frost",
+          "name": "Cel Frost",
+          "pitch": "Flat cel bands on the halo and mist, no shimmer, fewer particles: a cleaner, more graphic read closer to the toon effects, with the painted ring in the middle.",
+          "extends": "frost_halo",
+          "values": { "cel": 1.0, "shimmer": 0.0, "flakes": 0.6, "glints": 0.5, "intensity": 1.2 }
+        }
+      ]
+    }
+  ]
+}

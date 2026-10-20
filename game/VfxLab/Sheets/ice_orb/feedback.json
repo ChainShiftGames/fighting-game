@@ -1,0 +1,44 @@
+{
+  "feedbackVersion": 1,
+  "variants": {
+    "blizzard_comet": {
+      "pick": false,
+      "rating": 0,
+      "hidden": false,
+      "note": "",
+      "values": {
+        "cel": 0.137,
+        "charge.scale": 1.3,
+        "charge.spin": 0.32,
+        "flakes": 2,
+        "flight.cardWidth": 3.2,
+        "flight.growFrames": 25,
+        "flight.scale": 1.15,
+        "flight.spin": 0.015,
+        "flight.startScale": 0.16,
+        "glints": 1.179,
+        "gravity": 12,
+        "halo": 0.787,
+        "impact.scale": 0.84,
+        "impact.spin": 0.27,
+        "intensity": 0.534,
+        "shards": 2,
+        "shimmer": 1.999,
+        "sigil": 0.082,
+        "sigil_size": 0.926,
+        "sigil_turn": -0.521,
+        "spikes": 2,
+        "trail": 0.788
+      },
+      "isEmpty": false
+    }
+  },
+  "forks": [],
+  "timing": {
+    "chargeFrames": 33,
+    "flightFrames": 30,
+    "impactFrames": 27,
+    "restFrames": 28,
+    "speed": 13
+  }
+}

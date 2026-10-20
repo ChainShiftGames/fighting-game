@@ -20,6 +20,18 @@ uniform vec4 shade_tint : source_color = vec4(0.72, 0.64, 0.84, 1.0);
 // Bends normals towards the camera, so a face's shading reads flat instead of round (Xrd edits face normals).
 uniform float normal_flatten : hint_range(0.0, 1.0) = 0.0;
 
+// Set by the stage (FighterStageLight), neutral by default: its light's colour on the lit and shade tones, and a rim
+// of its sky colour round the silhouette, so the fighters sit in the stage while keeping their own fixed light.
+global uniform vec4 stage_light_tint;
+global uniform vec4 stage_shade_tint;
+global uniform vec4 stage_rim_color;
+// Set by a glowing effect near the fighters (EffectLighting), off by default: where it is (xyz) and how far it
+// reaches (w, 0 = no light), and its colour. Its side of the fighter catches it in one hard band, plus a rim.
+global uniform vec4 effect_light_position;
+global uniform vec4 effect_light_color;
+// Rim width: where the surface turns this far from the camera (0 = facing it, 1 = edge-on) the rim starts.
+uniform float rim_start : hint_range(0.0, 1.0) = 0.55;
+
 void fragment() {
 	vec4 texel = texture(lit_texture, UV);
 	// Culled parts only ever show their outside, but a mirrored fighter (facing left) reports it as a back face, so
@@ -36,7 +48,16 @@ void fragment() {
 	// fwidth keeps the hard border one pixel soft, so it doesn't stair-step.
 	float softness = max(mix(1.0 - shading_toony, 0.0, shade_hardness), fwidth(shading));
 	float lit = smoothstep(-softness, softness, shading);
-	ALBEDO = texel.rgb * mix(shade_color.rgb * shade_tint.rgb, lit_color.rgb, lit);
+	vec3 shade_tone = shade_color.rgb * shade_tint.rgb * stage_shade_tint.rgb;
+	vec3 tone = mix(shade_tone, lit_color.rgb * stage_light_tint.rgb, lit);
+	float rim = smoothstep(rim_start, 1.0, 1.0 - abs(view_normal.z));
+	vec3 world_position = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec3 to_effect = effect_light_position.xyz - world_position;
+	float reach = effect_light_position.w;
+	float near = reach > 0.0 ? pow(1.0 - clamp(length(to_effect) / reach, 0.0, 1.0), 2.0) : 0.0;
+	float towards = smoothstep(0.1, 0.2, dot(world_normal, normalize(to_effect + vec3(0.0, 0.0, 1e-4))));
+	vec3 effect = effect_light_color.rgb * near * ((0.8 * towards) + rim);
+	ALBEDO = texel.rgb * (tone + (stage_rim_color.rgb * rim) + effect);
 	ALPHA = texel.a * lit_color.a;
 	ALPHA_SCISSOR_THRESHOLD = alpha_cutoff;
 }

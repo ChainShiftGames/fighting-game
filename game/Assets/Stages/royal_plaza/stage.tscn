@@ -1,22 +1,50 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=17 format=3]
 
-[ext_resource type="Shader" path="res://Assets/Shaders/stage_toon.gdshader" id="1_toon"]
+[ext_resource type="Shader" path="res://Assets/Shaders/stage_projection_shadowed.gdshader" id="1_floor"]
+[ext_resource type="Shader" path="res://Assets/Shaders/stage_card.gdshader" id="2_card"]
+[ext_resource type="Texture2D" path="res://Assets/Stages/royal_plaza/floor/floor_key_art.png" id="3_floor"]
+[ext_resource type="Texture2D" path="res://Assets/Stages/royal_plaza/middle/middle_colonnades.png" id="4_middle"]
+[ext_resource type="Texture2D" path="res://Assets/Stages/royal_plaza/back/back_palace.png" id="5_back"]
+[ext_resource type="Texture2D" path="res://Assets/Stages/royal_plaza/sky/sky_aurora.png" id="6_sky"]
+[ext_resource type="Script" path="res://Presentation/World/FighterStageLight.cs" id="7_fighter_light"]
 
 [sub_resource type="Environment" id="Environment_stage"]
 background_mode = 1
-background_color = Color(0.08, 0.08, 0.1, 1)
+background_color = Color(0.72, 0.84, 0.9, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.5, 0.5, 0.55, 1)
+ambient_light_color = Color(0.62, 0.7, 0.78, 1)
 fog_enabled = true
-fog_light_color = Color(0.5, 0.55, 0.65, 1)
-fog_density = 0.008
+fog_light_color = Color(0.78, 0.86, 0.92, 1)
+fog_density = 0.0005
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
-size = Vector2(24, 8)
+size = Vector2(30, 13.431)
 
 [sub_resource type="ShaderMaterial" id="Material_floor"]
-shader = ExtResource("1_toon")
-shader_parameter/albedo_color = Color(0.35, 0.35, 0.4, 1)
+shader = ExtResource("1_floor")
+shader_parameter/key_art = ExtResource("3_floor")
+shader_parameter/art_height = 1.1718
+
+[sub_resource type="QuadMesh" id="QuadMesh_middle"]
+size = Vector2(27.131, 5.287)
+
+[sub_resource type="ShaderMaterial" id="Material_middle"]
+shader = ExtResource("2_card")
+shader_parameter/card_texture = ExtResource("4_middle")
+
+[sub_resource type="QuadMesh" id="QuadMesh_back"]
+size = Vector2(63.545, 15.464)
+
+[sub_resource type="ShaderMaterial" id="Material_back"]
+shader = ExtResource("2_card")
+shader_parameter/card_texture = ExtResource("5_back")
+
+[sub_resource type="QuadMesh" id="QuadMesh_sky"]
+size = Vector2(191.856, 40.324)
+
+[sub_resource type="ShaderMaterial" id="Material_sky"]
+shader = ExtResource("2_card")
+shader_parameter/card_texture = ExtResource("6_sky")
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall"]
 size = Vector3(0.05, 6, 0.05)
@@ -29,31 +57,60 @@ shading_mode = 0
 albedo_color = Color(1, 0.2, 0.6, 1)
 
 [node name="Stage" type="Node3D"]
-editor_description = "Royal Plaza (stage 1, P4-D). Layers are empty groups at the origin: give their children real positions. Folder rules: Stages/_template/README.md."
+editor_description = "Royal Plaza (stage 1, P4-D), from reference/royal_plaza_key_art_v2.png. source/build_layers.py cuts the floor texture and cards and prints their positions and sizes; re-run it and copy the numbers here when the key art or the fit changes. Folder rules: Stages/_template/README.md."
 
 [node name="Lighting" type="Node3D" parent="."]
-editor_description = "Key light, environment, fog, the stage's grade."
+editor_description = "Key light, environment, fog, the stage's grade. The key light only casts the fighters' shadows on the painted floor (stage_projection_shadowed); it comes from the left but almost overhead, so each shadow pools under its fighter's feet."
 
 [node name="KeyLight" type="DirectionalLight3D" parent="Lighting"]
-transform = Transform3D(0.8660254, 0.38302222, -0.32139382, 0, 0.64278764, 0.76604444, 0.5, -0.66341394, 0.5566704, 0, 0, 0)
+transform = Transform3D(-0.4327311, 0.866112, -0.2501877, 0, 0.2775167, 0.9607208, 0.9015231, 0.4157337, -0.1200901, 0, 0, 0)
+light_color = Color(1, 0.95, 0.86, 1)
+shadow_enabled = true
+directional_shadow_max_distance = 25.0
+
+[node name="FighterStageLight" type="Node" parent="Lighting"]
+editor_description = "The plaza's light on the fighters: soft daylight on their lit side, the blue sky in their shade and round their edges."
+script = ExtResource("7_fighter_light")
+LitTint = Color(1, 0.98, 0.95, 1)
+ShadowTint = Color(0.86, 0.93, 1, 1)
+Rim = Color(0.3, 0.42, 0.5, 1)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
 environment = SubResource("Environment_stage")
 
 [node name="Sky" type="Node3D" parent="."]
-editor_description = "z about -150 (inside the camera's 200 m far plane): gradient and a painted card, unshaded."
+editor_description = "The sky and aurora, with the buildings in front of it filled in, so the camera's travel never shows a hole."
+
+[node name="SkyAurora" type="MeshInstance3D" parent="Sky"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.88, -149.654)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_sky")
+surface_material_override/0 = SubResource("Material_sky")
 
 [node name="Back" type="Node3D" parent="."]
-editor_description = "z -20 to -120: painted cards cut from the key art, unshaded, faded by fog. Wider the further back."
+editor_description = "The palace, the bridge and the valley through the arch, the sky cut out."
+
+[node name="BackPalace" type="MeshInstance3D" parent="Back"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.033, -44.654)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_back")
+surface_material_override/0 = SubResource("Material_back")
 
 [node name="Middle" type="Node3D" parent="."]
-editor_description = "z -3 to -20: simple 3D shapes, toon-shaded or with the key art projected on them."
+editor_description = "The balustrade and both colonnades, standing on the floor's far edge (z = -10.43), so the floor seam is hidden behind the balustrade. Widened by mirroring the painting's edges (build_layers.py) until the key art is panned wider."
+
+[node name="MiddleColonnades" type="MeshInstance3D" parent="Middle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.535, -10.431)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_middle")
+surface_material_override/0 = SubResource("Material_middle")
 
 [node name="Floor" type="Node3D" parent="."]
-editor_description = "z +3 to -3: the modelled floor, top at y = 0 (the logic floor). The most polished part."
+editor_description = "The plaza floor, top at y = 0 (the logic floor), from z = +3 to the balustrade at z = -10.43: the key art's painted floor projected from the round-start camera, receiving the fighters' shadows."
 
-[node name="FloorPlaceholder" type="MeshInstance3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+[node name="PlazaFloor" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.7155)
+cast_shadow = 0
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("Material_floor")
 

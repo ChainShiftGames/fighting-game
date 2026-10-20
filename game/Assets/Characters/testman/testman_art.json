@@ -1,15 +1,22 @@
 {
-  // Test setup: the VRoid test model (game/Assets/Characters/vroid_test) with Quaternius' Universal Animation Library
-  // 1 and 2 (CC0, game/Assets/Animations), retargeted at import through Godot's humanoid bone maps. VRoid models face
-  // +Z, so turn 90°; at 1.75 m she already stands the height of testman's 120 px idle hurtbox.
+  // Test setup: the Tripo test model (game/Assets/Characters/tripo_elf, Tripo's rigged FBX through
+  // tools/Blender/tripo_to_glb.py) with Quaternius' Universal Animation Library 1 and 2 (CC0, game/Assets/Animations),
+  // retargeted at import through Godot's humanoid bone maps. Tripo models are 1 m tall and face +Z: scale to 1.75 m,
+  // the height of testman's 120 px idle hurtbox, and turn 90°.
   // Godot drops a clip's "_Loop" suffix on import (and makes it loop). The pack has few fighting moves, so several
   // moves borrow the nearest clip; see game/Assets/Animations/README.md for the measurements.
   // Contact frames: measured peak hand or foot reach in each clip, contact just before it.
   "artVersion": 1,
   "art": "model",
-  "model": "res://Assets/Characters/vroid_test/vroid_test.glb",
+  "model": "res://Assets/Characters/tripo_elf/tripo_elf.glb",
   "turnDegrees": 90,
-  "scale": 1.0,
+  "scale": 1.75,
+  // Models to compare on the same clips, switched with the debug panel's "Switch fighter model" (F1): the Tripo
+  // armor model (50 parts joined, textures atlased by tripo_to_glb.py) and the VRoid model.
+  "otherModels": [
+    { "model": "res://Assets/Characters/tripo_armor/tripo_armor.glb", "scale": 1.67, "turnDegrees": 90 },
+    { "model": "res://Assets/Characters/vroid_test/vroid_test.glb", "scale": 1.0, "turnDegrees": 90 }
+  ],
   // Look settings: basic moves fade in over 4 frames, a side switch turns over 6, poses on 2s (the hand-animated,
   // Guilty Gear look; 1 = every frame), and she stands turned 30° toward the camera so her face and chest show
   // (developer setting: tune it in the debug panel, F1).
@@ -69,6 +76,6 @@
   // How each projectile-throwing move's projectiles are drawn (ProjectileEffects): in flight, the startup charge at
   // the spawn point, and the impact where it hits, is blocked, clashes or runs out.
   "projectiles": {
-    "236c": { "flight": "dark_fireball", "charge": "dark_fireball_charge", "impact": "dark_fireball_impact" }
+    "236c": { "flight": "ice_orb", "charge": "ice_orb_charge", "impact": "ice_orb_impact" }
   }
 }

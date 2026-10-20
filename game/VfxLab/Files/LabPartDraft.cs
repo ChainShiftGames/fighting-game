@@ -7,6 +7,7 @@ public sealed record LabPartDraft
     private const float DefaultCardSize = 2.6f;
     private const float DefaultGrowFrames = 12f;
     public const float DefaultStartScale = 0.2f;
+    private const float DefaultModelSize = 0.6f;
 
     public string? Shader { get; init; }
 
@@ -22,6 +23,13 @@ public sealed record LabPartDraft
 
     public float? StartScale { get; init; }
 
+    /// <summary>A <c>res://</c> path to a model drawn in front of the card; see <see cref="LabPart.Model"/>.</summary>
+    public string? Model { get; init; }
+
+    public float? ModelSize { get; init; }
+
+    public float? ModelRoll { get; init; }
+
     /// <summary>This draft's fields, with <paramref name="below"/>'s where this one has none.</summary>
     public LabPartDraft Over(LabPartDraft? below) => below is null ? this : new LabPartDraft
     {
@@ -31,6 +39,9 @@ public sealed record LabPartDraft
         Spin = Spin ?? below.Spin,
         GrowFrames = GrowFrames ?? below.GrowFrames,
         StartScale = StartScale ?? below.StartScale,
+        Model = Model ?? below.Model,
+        ModelSize = ModelSize ?? below.ModelSize,
+        ModelRoll = ModelRoll ?? below.ModelRoll,
     };
 
     /// <summary>The finished part, or null when no shader was named.</summary>
@@ -42,5 +53,8 @@ public sealed record LabPartDraft
         Centre is [_, float y, ..] ? y : 0f,
         Spin ?? 0f,
         GrowFrames ?? DefaultGrowFrames,
-        StartScale ?? DefaultStartScale);
+        StartScale ?? DefaultStartScale,
+        Model,
+        ModelSize ?? DefaultModelSize,
+        ModelRoll ?? 0f);
 }

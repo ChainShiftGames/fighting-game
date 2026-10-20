@@ -49,6 +49,8 @@ same style as the character's existing effects.
 - New effects start in the Lab: brief → style → wide round → picks and forks → deeper rounds → promote.
 - The dark fireball's sheet is the first content; its flight shaders gain `hint_range` and `group_uniforms` so the
   Lab shows sensible sliders. No visual change in the game.
+- A part can also show a 1 m model in front of its card (`model`, `modelSize`, `modelRoll`), drawn by the game's
+  `ProjectileModel` (first use: the ice orb sheet).
 - Not decided: reading timing straight from the move's data file (the sheet copies it for now), sound in the Lab, and
   effects that are not projectiles (hit sparks, supers, traps that aren't projectiles): add parts when the first one
   needs it.
