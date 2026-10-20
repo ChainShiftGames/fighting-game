@@ -12,6 +12,21 @@
       },
       "isEmpty": false
     },
+    "eclipse": {
+      "pick": false,
+      "rating": 0,
+      "hidden": false,
+      "note": "",
+      "values": {
+        "accent_color": "#557745",
+        "aura": 0.3,
+        "bend": 0.533,
+        "comets": 1,
+        "particles": 0,
+        "trail": 0.299
+      },
+      "isEmpty": false
+    },
     "void_vortex": {
       "pick": false,
       "rating": 0,
