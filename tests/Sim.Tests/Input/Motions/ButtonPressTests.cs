@@ -1,3 +1,4 @@
+using Sim.Input;
 using Sim.Input.Motions;
 using Sim.State;
 using Xunit;
@@ -57,5 +58,28 @@ public sealed class ButtonPressTests
         InputHistory history = new InputSequence().Press(5, A).Hold(5, 1).History;
 
         Assert.False(ButtonPress.IsPressedWithin(in history, A, buffer: 0));
+    }
+
+    [Fact]
+    public void AUsedPressNoLongerCountsForStartingAnAction()
+    {
+        InputHistory history = new InputSequence().Press(5, A).History;
+        history.UsePresses();
+        history.Record(new InputWord(A));
+
+        Assert.False(ButtonPress.IsUnusedPressWithin(in history, A, Buffer));
+        Assert.False(ButtonPress.IsUnusedPressAt(in history, A, framesAgo: 1));
+        Assert.True(ButtonPress.IsPressedWithin(in history, A, Buffer));
+    }
+
+    [Fact]
+    public void APressAfterTheUsedOneCounts()
+    {
+        InputHistory history = new InputSequence().Press(5, A).History;
+        history.UsePresses();
+        history.Record(InputWord.Neutral);
+        history.Record(new InputWord(A));
+
+        Assert.True(ButtonPress.IsUnusedPressWithin(in history, A, Buffer));
     }
 }

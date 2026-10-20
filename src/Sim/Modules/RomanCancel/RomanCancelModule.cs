@@ -16,9 +16,9 @@ namespace Sim.Modules.RomanCancel;
 /// Runs after input, so its requests apply before this frame's state machines: a cancel into neutral
 /// (<see cref="CancelRequest.Neutral"/>), the end of its own hitstop, a global freeze and the opponent's time scale,
 /// then a module event whose
-/// code is the variant. The freeze also keeps the input from starting a move: by the time the fighter runs again, the
-/// presses are older than the button buffer. Not while hit, knocked down, thrown, frozen or with a cancel already
-/// pending. Meter goes through the core (<see cref="ModuleContext.TrySpendMeter"/>), so with a cost it needs a meter
+/// code is the variant. The core uses up the presses with the cancel request (ADR-0033), so the buttons don't also
+/// start a move (5a, a throw) once the fighter runs again; a press made during the freeze still does. Not while hit,
+/// knocked down, thrown, frozen or with a cancel already pending. Meter goes through the core (<see cref="ModuleContext.TrySpendMeter"/>), so with a cost it needs a meter
 /// module. Stateless: it only reads the state and its config.
 /// </remarks>
 public sealed class RomanCancelModule : IMechanicModule, IAfterInputHook

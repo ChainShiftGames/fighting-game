@@ -77,7 +77,8 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   236a (`rekka_1` → `rekka_2` → `rekka_3`, follow-up windows on frames 8-21), a stance (214b `stance_enter` sets
   it; in it 5c is `stance_c`, which leaves it; outside it the plain `5c`), and an install: 214d `install` costs 5000
   of the main meter (needs `module meter`) and starts its `install` mechanic (30 frames, slice `[0]` = frames left),
-  during which 6c is `install_c`.
+  during which 6c is `install_c`. Its `5b` hits on its first frame (6 hitstop) and has a follow-up into `5b_2`
+  (5 + b) from its frame 2 on hit or block, for input consumption (ADR-0033).
 - **Character mechanics** (ADR-0023): a character's data switches its mechanic on, so no setup line; read its slice
   with `p1 mechanic <i>`. `gauge_dummy` (`Fixtures/data/characters/gauge_dummy/`) runs `character_gauge` on channel
   1: starts at 100, +1 per frame, +50 per hit and +20 per block of its own `5a` (scenario_dummy's).

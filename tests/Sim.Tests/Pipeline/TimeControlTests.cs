@@ -48,17 +48,16 @@ public sealed class TimeControlTests
     }
 
     [Fact]
-    public void AGlobalFreezeStillAgesTheFrozenFightersInput()
+    public void AGlobalFreezeMarksTheFrozenFighterOnly()
     {
-        // The Roman Cancel module relies on its freeze using up the button press that started it.
+        // The press that started a freeze is used up instead (ADR-0033), so the freeze needn't age it.
         MatchState state = default;
         state.Freeze = new FreezeState { FramesLeft = 1, ExemptFighters = 1 << Player2 };
-        state.Fighters[Player2].Timing.HitstopFramesLeft = 1;
 
         Frame(ref state);
 
-        Assert.False(state.Inputs[Player1].IsSkipped(0));
-        Assert.True(state.Inputs[Player2].IsSkipped(0));
+        Assert.True(state.Inputs[Player1].IsSkipped(0));
+        Assert.False(state.Inputs[Player2].IsSkipped(0));
     }
 
     [Fact]

@@ -124,6 +124,18 @@ public sealed class CoreCapabilityTests
     }
 
     [Fact]
+    public void AnAcceptedCancelUsesUpThatFightersPresses()
+    {
+        // ADR-0033: the press the module accepted can't also start a move once the cancel is taken.
+        var module = OnFrame(0, context => context.RequestCancel(
+            Player1, new CancelRequest { TargetMove = CancelRequest.Neutral }));
+        MatchState state = Run(new TickStages(), frames: 1, module);
+
+        Assert.True(state.Inputs[Player1].IsUsed(0));
+        Assert.False(state.Inputs[Player2].IsUsed(0));
+    }
+
+    [Fact]
     public void TheHighestPriorityCancelWinsAndTiesGoToTheEarlierSlot()
     {
         var low = OnFrame(0, context => context.RequestCancel(

@@ -46,6 +46,13 @@ public sealed class FighterStateMachine
         _shortcutCooldownFrames = shortcutCooldownFrames;
     }
 
+    /// <summary>
+    /// The last <see cref="Advance(ref FighterState, in InputHistory, CharacterData, CancelPermission, in AvailableMeter, int)"/>
+    /// started an action from a press (a move, dash, air dash or double jump), so the caller uses the fighter's presses
+    /// up (ADR-0033). A jump from held up or a held run uses no press.
+    /// </summary>
+    public bool HasUsedPress { get; private set; }
+
     /// <summary>Advances with every data cancel window usable, as when no modules are involved (unit tests).</summary>
     public void Advance(ref FighterState fighter, in InputHistory history, CharacterData character) =>
         Advance(ref fighter, in history, character, CancelPermission.EveryWindow);
@@ -78,6 +85,7 @@ public sealed class FighterStateMachine
         int opponentFacing)
     {
         _moves.Meter = meter;
+        HasUsedPress = false;
         _opponentFacing = opponentFacing;
         // A takeoff is only this frame's request to movement.
         fighter.Takeoff = Takeoff.None;
@@ -199,6 +207,7 @@ public sealed class FighterStateMachine
 
         if (fighter.IsAirborne != 0 && _jumps.TryStartAirAction(ref fighter, in history, character))
         {
+            HasUsedPress = true;
             return;
         }
 
@@ -256,6 +265,8 @@ public sealed class FighterStateMachine
             return false;
         }
 
+        // In the air it is a double jump from an up press; on the ground a jump from held up.
+        HasUsedPress = fighter.IsAirborne != 0;
         _jumps.StartJumpCancel(ref fighter, in history, character);
         return true;
     }
@@ -424,6 +435,7 @@ public sealed class FighterStateMachine
     private void StartAttack(ref FighterState fighter, int move, CharacterData character)
     {
         MoveEntry.EnterAttack(ref fighter, move, character);
+        HasUsedPress = true;
         if (_moves.PickedByShortcut)
         {
             fighter.IsShortcutMove = 1;
@@ -448,12 +460,17 @@ public sealed class FighterStateMachine
     {
         if (_input.IsDashTriggered(in history, fighter.Facing))
         {
+            HasUsedPress = true;
             return FighterAction.Dash;
         }
 
-        return _input.IsBackdashTriggered(in history, fighter.Facing)
-            ? FighterAction.Backdash
-            : NeutralFor(in fighter, in history);
+        if (_input.IsBackdashTriggered(in history, fighter.Facing))
+        {
+            HasUsedPress = true;
+            return FighterAction.Backdash;
+        }
+
+        return NeutralFor(in fighter, in history);
     }
 
     // Movement sets the airborne flag on the takeoff frame, after this step, so the state machine first sees a jump

@@ -16,6 +16,8 @@ namespace Sim.Input.Motions;
 /// <item>The buffer and windows count the fighter's own frames: frames it skipped (hitstop, slowdown) don't age the
 /// input (<see cref="InputHistory.OldestFrameWithin"/>), so a motion or press made during hitstop still comes out
 /// once it ends.</item>
+/// <item>A trigger on a frame whose presses already started an action doesn't count (ADR-0033); the directions
+/// before it still do, so one motion can feed two specials with two presses.</item>
 /// <item>Directions are read with the fighter's current facing.</item>
 /// </list>
 /// Built once at match start; checks never allocate.
@@ -67,7 +69,7 @@ public sealed class MotionParser
     public bool IsInput(int motion, in InputHistory history, int facing, int buttonMask)
     {
         int oldestTrigger = history.OldestFrameWithin(0, _buttonBuffer);
-        for (int trigger = 0; trigger <= oldestTrigger; trigger++)
+        for (int trigger = 0; trigger <= oldestTrigger && !history.IsUsed(trigger); trigger++)
         {
             if (IsInputAt(motion, in history, facing, buttonMask, trigger))
             {
@@ -84,7 +86,7 @@ public sealed class MotionParser
     public int FindFirst(MotionMask candidates, in InputHistory history, int facing, int buttonMask)
     {
         // Perf: almost no frame has a fresh press, and without one no motion with a button can match.
-        if (buttonMask != 0 && !ButtonPress.IsPressedWithin(in history, buttonMask, _buttonBuffer))
+        if (buttonMask != 0 && !ButtonPress.IsUnusedPressWithin(in history, buttonMask, _buttonBuffer))
         {
             return MotionSet.NoMotion;
         }

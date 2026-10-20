@@ -1,0 +1,14 @@
+# ADR-0033: a press starts one move. mechanics_dummy's 5b hits on its first frame and opens a follow-up into 5b_2
+# (also 5 + b) from its frame 2 on hit. The 6 frames of hitstop don't age the frame-1 press, so it is still in the
+# button buffer when the window opens on frame 8; it already started 5b, so 5b_2 doesn't come out.
+setup: p1 character mechanics_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5b
+
+frame 1: expect p1 event hit
+frames 1-6: expect p1 hitstop > 0
+frame 7: expect p1 move_frame = 1
+frame 8: expect p1 move_frame = 2
+frames 1-20: expect p1 move = 5b

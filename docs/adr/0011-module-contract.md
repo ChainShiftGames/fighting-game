@@ -34,6 +34,7 @@ in before it's built, and it must already support what Roman Cancel and the open
 - **Global freeze with exemptions:** super flash, Roman Cancel freeze; chosen fighters/entities keep running.
 - **Cancel from any state:** a cancel request with priority that the state machine honours; its target is a move or
   (P3-18) `CancelRequest.Neutral`, which makes the fighter free at once, a buffered press starting its move.
+  Accepting it uses up the fighter's presses so far (ADR-0033), so the press behind it starts nothing else.
 - **Per-fighter hitstop override.**
 - **Entity spawning:** projectiles and module objects through the entity pool (P1-21).
 - **Per-fighter gravity scale** (P3-12): extra gravity in thousandths, kept until the next request (combo limits).

@@ -18,7 +18,7 @@ motions. A first draft named a shortcut direction per move; Lukas chose one GBVS
 2. **The special button is input data:** `movementInputs.specialButton` names a button of the button set. Without
    it, shortcuts never trigger. **Developer setting.**
 3. **Trigger:** a move whose motion has a shortcut starts when the special button and the move's own button(s) are
-   pressed together within the button buffer (`ButtonPress.IsPressedAt(history, special | move buttons, f)`) while
+   pressed together within the button buffer (`ButtonPress.IsUnusedPressAt(history, special | move buttons, f)`, ADR-0033) while
    the shortcut direction is held on that frame `f`. 5 + special + C gives 236C; 5 + special + A gives 236A. Stance,
    move lock and cooldown rules apply as for motions.
 4. **Priority** (free moves and cancels): a move input by a real motion (more than one step, e.g. 236C) beats the

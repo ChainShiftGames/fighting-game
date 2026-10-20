@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../../../../data/schema/move.schema.json",
+  "schemaVersion": 3,
+  "id": "5b",
+  "category": "normal",
+  "usableIn": "ground",
+  "input": { "motion": "5", "button": "b" },
+  "frameData": { "startup": 1, "active": 2, "recovery": 13 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 15, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 15, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
+    { "kind": "hit", "firstFrame": 1, "lastFrame": 2, "x": 25000, "y": 80000, "width": 40000, "height": 15000 }
+  ],
+  "cancels": [
+    { "firstFrame": 2, "lastFrame": 15, "on": ["hit", "block"], "into": ["5b_2"], "followUp": true }
+  ],
+  "hits": [
+    { "damage": 300, "chipDamage": 0, "guard": "mid", "hitstun": 20, "blockstun": 15, "hitstop": 6, "pushback": 0 }
+  ]
+}

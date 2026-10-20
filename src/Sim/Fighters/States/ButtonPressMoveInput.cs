@@ -57,9 +57,10 @@ public sealed class ButtonPressMoveInput : IMoveInput
 
     public bool IsAirJumpTriggered(in InputHistory history, int facing) => IsPressed(in history, InputWord.Up);
 
-    // Held this frame but not the one before; a mask of 0 is never pressed.
+    // Held this frame but not the one before, and not used yet (ADR-0033); a mask of 0 is never pressed.
     private static bool IsPressed(in InputHistory history, int mask) =>
-        mask != 0 && (history.FramesAgo(0).Bits & mask) != 0 && (history.FramesAgo(1).Bits & mask) == 0;
+        mask != 0 && !history.IsUsed(0) && (history.FramesAgo(0).Bits & mask) != 0 &&
+        (history.FramesAgo(1).Bits & mask) == 0;
 
     private static bool MatchesDirection(int motion, int direction) => motion switch
     {
