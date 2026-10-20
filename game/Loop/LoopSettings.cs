@@ -12,5 +12,17 @@ public readonly record struct LoopSettings
     /// </summary>
     public required int MaxCatchUpFrames { get; init; }
 
-    public static LoopSettings Default => new() { FramesPerSecond = 60, MaxCatchUpFrames = 4 };
+    /// <summary>
+    /// How far, in thousandths of a logic frame, a displayed frame may land on the wrong side of a logic-frame
+    /// boundary and still run exactly one logic frame, while the display runs at about the logic rate. Absorbs
+    /// frame-callback timing jitter so the count doesn't flip between 0 and 2 (stutter). From 0 (off) to below 500.
+    /// </summary>
+    public required int JitterTolerancePermille { get; init; }
+
+    public static LoopSettings Default => new()
+    {
+        FramesPerSecond = 60,
+        MaxCatchUpFrames = 4,
+        JitterTolerancePermille = 250,
+    };
 }
