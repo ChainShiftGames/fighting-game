@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "screenShake": {
-    "lifetimeFrames": 8,
-    "hitPixels": 3,
+    "lifetimeFrames": 9,
+    "hitPixels": 11,
     "counterPixels": 5,
     "throwPixels": 4,
     "knockOutPixels": 8,

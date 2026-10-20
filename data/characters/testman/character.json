@@ -9,7 +9,7 @@
     "walkBackSpeed": 3200,
     "dashStyle": "run",
     "prejumpFrames": 4,
-    "jumpVelocity": 20000,
+    "jumpVelocity": 12400,
     "highJumpVelocity": 25000,
     "jumpForwardSpeed": 4500,
     "jumpBackSpeed": 4000,
