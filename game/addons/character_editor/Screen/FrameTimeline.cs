@@ -1,5 +1,6 @@
 #if TOOLS
 using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Addons.CharacterEditor.Screen.Look;
 using Godot;
 
 namespace FightingGame.Addons.CharacterEditor.Screen;
@@ -12,17 +13,16 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 [Tool]
 public partial class FrameTimeline : Control
 {
-    private const float LabelWidth = SchemaForm.LabelWidth;
+    // 1× design pixels (MapLook); the drawer is narrow, so labels get less room than in a form.
+    private const float LabelWidth = 92f;
     private const float CellWidth = 10f;
     private const float CellGap = 1f;
     private const float RowHeight = 16f;
     private const float RowGap = 3f;
     private const float HeaderHeight = 16f;
-    private const int FontSize = 12;
+    private const float FontSize = 11f;
     private const int FrameNumberEvery = 5;
 
-    private static readonly Color _emptyCell = new(0.18f, 0.18f, 0.2f);
-    private static readonly Color _textColor = new(0.85f, 0.85f, 0.9f);
     private static readonly Color _outsideMove = new(1f, 1f, 1f, 0.35f);
     private static readonly Color _marker = new(1f, 1f, 1f, 0.8f);
 
@@ -35,10 +35,7 @@ public partial class FrameTimeline : Control
     public void ShowTimeline(MoveTimeline? timeline)
     {
         _timeline = timeline;
-        int rows = timeline?.Rows.Count ?? 0;
-        int frames = timeline?.FrameCount ?? 0;
-        CustomMinimumSize = new Vector2(
-            LabelWidth + (frames * (CellWidth + CellGap)), HeaderHeight + (rows * (RowHeight + RowGap)));
+        FitSize();
         QueueRedraw();
     }
 
@@ -47,6 +44,15 @@ public partial class FrameTimeline : Control
     {
         _markedFrame = frame;
         QueueRedraw();
+    }
+
+    public override void _Notification(int what)
+    {
+        // The scale comes from the screen's theme, which this control only sees once it is under the screen.
+        if (what == NotificationThemeChanged)
+        {
+            FitSize();
+        }
     }
 
     public override void _GuiInput(InputEvent @event)
@@ -66,28 +72,31 @@ public partial class FrameTimeline : Control
             return;
         }
 
+        MapLook look = MapLook.Of(this);
         if (_markedFrame >= 1 && _markedFrame <= _timeline.FrameCount)
         {
-            DrawRect(new Rect2(CellLeft(_markedFrame) - CellGap, HeaderHeight - RowGap, CellWidth + (2f * CellGap),
-                Size.Y - HeaderHeight + RowGap), _marker, filled: false, width: 1f);
+            float top = look.Px(HeaderHeight - RowGap);
+            DrawRect(new Rect2(CellLeft(look, _markedFrame) - look.Px(CellGap), top,
+                look.Px(CellWidth + (2f * CellGap)), Size.Y - top), _marker, filled: false, width: look.Px(1f));
         }
 
         for (int frame = 1; frame <= _timeline.FrameCount; frame++)
         {
             if (frame == 1 || frame % FrameNumberEvery == 0)
             {
-                DrawText(frame.ToString(System.Globalization.CultureInfo.InvariantCulture), CellLeft(frame), 0f);
+                DrawText(look, look.Mono, MapPalette.Muted,
+                    frame.ToString(System.Globalization.CultureInfo.InvariantCulture), CellLeft(look, frame), 0f);
             }
         }
 
         int moveFrames = _timeline.Phases?.TotalFrames ?? 0;
         for (int row = 0; row < _timeline.Rows.Count; row++)
         {
-            float top = HeaderHeight + (row * (RowHeight + RowGap));
-            DrawText(_timeline.Rows[row].Label, 0f, top);
+            float top = look.Px(HeaderHeight + (row * (RowHeight + RowGap)));
+            DrawText(look, look.Body, MapPalette.TextSoft, _timeline.Rows[row].Label, 0f, top);
             for (int frame = 1; frame <= _timeline.FrameCount; frame++)
             {
-                DrawRect(Cell(frame, top), _emptyCell);
+                DrawRect(Cell(look, frame, top), MapPalette.Raised);
             }
 
             foreach (TimelineSpan span in _timeline.Rows[row].Spans)
@@ -99,11 +108,11 @@ public partial class FrameTimeline : Control
                         continue;
                     }
 
-                    DrawRect(Cell(frame, top), ColorOf(span.Kind));
+                    DrawRect(Cell(look, frame, top), ColorOf(span.Kind));
                     if (frame > moveFrames)
                     {
                         // Past the move's last frame: validation reports it; the outline shows where.
-                        DrawRect(Cell(frame, top), _outsideMove, filled: false, width: 1f);
+                        DrawRect(Cell(look, frame, top), _outsideMove, filled: false, width: look.Px(1f));
                     }
                 }
             }
@@ -114,33 +123,48 @@ public partial class FrameTimeline : Control
 
     private int? FrameAt(Vector2 position)
     {
-        int frame = (int)((position.X - LabelWidth) / (CellWidth + CellGap)) + 1;
-        return _timeline is not null && position.X >= LabelWidth && frame <= _timeline.FrameCount ? frame : null;
+        MapLook look = MapLook.Of(this);
+        int frame = (int)((position.X - look.Px(LabelWidth)) / look.Px(CellWidth + CellGap)) + 1;
+        return _timeline is not null && position.X >= look.Px(LabelWidth) && frame <= _timeline.FrameCount
+            ? frame
+            : null;
     }
 
-    private static float CellLeft(int frame) => LabelWidth + ((frame - 1) * (CellWidth + CellGap));
+    private void FitSize()
+    {
+        MapLook look = MapLook.Of(this);
+        int rows = _timeline?.Rows.Count ?? 0;
+        int frames = _timeline?.FrameCount ?? 0;
+        CustomMinimumSize = new Vector2(look.Px(LabelWidth + (frames * (CellWidth + CellGap))),
+            look.Px(HeaderHeight + (rows * (RowHeight + RowGap))));
+    }
 
-    private static Rect2 Cell(int frame, float top) => new(CellLeft(frame), top, CellWidth, RowHeight);
+    private static float CellLeft(MapLook look, int frame) =>
+        look.Px(LabelWidth + ((frame - 1) * (CellWidth + CellGap)));
 
-    private void DrawText(string text, float left, float top) => DrawString(
-        ThemeDB.FallbackFont, new Vector2(left, top + FontSize), text, HorizontalAlignment.Left, -1f, FontSize, _textColor);
+    private static Rect2 Cell(MapLook look, int frame, float top) =>
+        new(CellLeft(look, frame), top, look.Px(CellWidth), look.Px(RowHeight));
 
-    // Phases use the training frame meter's colours (FrameMeterBar), so both read the same way.
+    private void DrawText(MapLook look, Font font, Color color, string text, float left, float top) => DrawString(
+        font, new Vector2(left, top + look.Px(FontSize + 1f)), text, HorizontalAlignment.Left, -1f,
+        look.FontSize(FontSize), color);
+
+    // Phases use the editor's phase colours, so the timeline, the frame strip and the map cards read the same way.
     private static Color ColorOf(TimelineSpanKind kind) => kind switch
     {
-        TimelineSpanKind.Startup => new Color(0.2f, 0.75f, 0.35f),
-        TimelineSpanKind.Active => new Color(0.9f, 0.25f, 0.25f),
-        TimelineSpanKind.Recovery => new Color(0.25f, 0.45f, 0.95f),
-        TimelineSpanKind.Loop => new Color(0.55f, 0.45f, 0.75f),
+        TimelineSpanKind.Startup => MapPalette.Windup,
+        TimelineSpanKind.Active => MapPalette.Active,
+        TimelineSpanKind.Recovery => MapPalette.Recovery,
+        TimelineSpanKind.Loop => MapPalette.Loop,
         TimelineSpanKind.Invulnerable => new Color(1f, 1f, 1f),
         TimelineSpanKind.HurtBox => new Color(0.3f, 0.7f, 0.95f),
         TimelineSpanKind.HitBox => new Color(0.95f, 0.3f, 0.3f),
         TimelineSpanKind.PushBox => new Color(0.95f, 0.85f, 0.3f),
         TimelineSpanKind.ThrowBox => new Color(0.85f, 0.4f, 0.9f),
-        TimelineSpanKind.Cancel => new Color(0.3f, 0.85f, 0.75f),
+        TimelineSpanKind.Cancel => MapPalette.Glow,
         TimelineSpanKind.Velocity => new Color(0.95f, 0.6f, 0.2f),
         TimelineSpanKind.ProjectileSpawn => new Color(1f, 0.5f, 0.7f),
-        _ => new Color(0.6f, 0.6f, 0.6f),
+        _ => MapPalette.Muted,
     };
 }
 #endif

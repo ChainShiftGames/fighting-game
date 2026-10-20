@@ -87,6 +87,15 @@ public partial class MoveMapCanvas : Control
         }
     }
 
+    /// <summary>Shows an empty map, e.g. when the character can't be opened.</summary>
+    public void Clear()
+    {
+        _placement = null;
+        _cards = [];
+        _links = [];
+        Select(null);
+    }
+
     /// <summary>Lights the move's arrows; null for none.</summary>
     public void Select(string? selected)
     {

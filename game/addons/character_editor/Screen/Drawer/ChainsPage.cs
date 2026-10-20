@@ -81,12 +81,17 @@ public partial class ChainsPage : VBoxContainer, IDrawerPage
         }
     }
 
-    private static Button Chip(string text) => new()
+    private static Button Chip(string text)
     {
-        Text = text,
-        ThemeTypeVariation = MapTheme.Chip,
-        FocusMode = FocusModeEnum.None,
-        MouseFilter = MouseFilterEnum.Ignore,
-    };
+        var chip = new Button
+        {
+            Text = text,
+            ThemeTypeVariation = MapTheme.Chip,
+            FocusMode = FocusModeEnum.None,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        chip.AddThemeColorOverride("font_color", MapPalette.Glow);
+        return chip;
+    }
 }
 #endif

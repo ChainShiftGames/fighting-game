@@ -1,7 +1,8 @@
 # Handoff: character editor rebuild as the Move map (option C)
 
-Status: **in progress.** The new pieces are merged but not wired in yet, so the Character tab still shows the old
-editor. Everything builds, `dotnet format` is clean and all tests pass.
+Status: **in progress.** The Character tab now runs the move map (steps 1–3 done, branch `p3-move-map-wiring`), but
+it has **never been opened in the editor**: step 4 is next. Everything builds, `dotnet format` is clean, all tests
+pass and the headless editor build is clean.
 
 - Design: option C in [mockups/character-editor-options.html](mockups/character-editor-options.html) (open it in a
   browser). The user asked for **C, 1:1 visually and functionally**.
@@ -44,28 +45,13 @@ Godot side (`#if TOOLS`, compiles; **never run in the editor yet**):
 
 ## Left to do
 
-1. **Rewrite `Screen/CharacterEditorScreen`** around the new parts. Keep its public surface
-   (`Build(dataRoot)`, `UnsavedCharacter`) so `CharacterEditorPlugin` stays unchanged:
-   - `Theme = MapTheme.Build(EditorInterface.Singleton.GetEditorScale())` on the root.
-   - Layout: `MapTopBar` on top. Below it an `HSplitContainer`: left a VBox with `MoveMapCanvas` (expand) and
-     `FrameStrip`, right the `MoveDrawer`, about 340 px at 1× and resizable.
-   - Settings: `MoveMapSettings.Parse(File.ReadAllText(ProjectSettings.GlobalizePath("res://addons/character_editor/move_map.json")))`.
-   - On open or any edit: `links = MoveChains.Of(doc)`, `layout = MoveMapLayout.Of(doc, settings, lens, links)`,
-     `categories` (shown id → category), `new MapPlacement(layout, categories)`, `MapCards.Of(...)`, then
-     `canvas.ShowMap(...)`. Refit only for a new character or lens.
-   - Selection: canvas `MoveSelected` → `drawer.ShowMove(new DrawerMove(...))`, `strip.ShowMove(name, root)`,
-     `canvas.Select(id)`. Start on the first card of the first column.
-   - Frames: `drawer.FrameShown` → `strip.MarkFrame`; `strip.FrameClicked` → `drawer.SelectFrame`.
-   - Edits: `drawer.Edited` → rebuild the cards and strip, update the top bar state, and queue one deferred
-     `saver.Validate(doc)` that feeds the chip, `ProblemPopup` and the cards' problem dots.
-   - Top bar: `CharacterChosen` (with the old unsaved-changes discard dialog), `LensChosen`, `ProblemsPressed` →
-     `ProblemPopup.OpenUnder`, `SavePressed` → `saver.Save`. Menu and card menu → `MoveFileActions`
-     (`AskNew`/`AskDuplicate`/`AskDelete`, then select the id at `Done`'s index), priority via
-     `doc.SwapMoves(i, i ± 1)`, `CharacterFile` → `drawer.ShowCharacterFile`, `Reload`.
-   - `drawer.ShowCharacter(id, moveIds)` once per opened character (it loads the model).
-2. Delete `MoveList`, `MoveEditor`, `CharacterToolbar`, `FrameDataPanel` once nothing uses them.
-3. Restyle `FrameTimeline` to `MapPalette` phase colours and the theme font, and give `ChainsPage` chips the
-   glow text colour.
+1. Done: `CharacterEditorScreen` wires the new parts as planned. Notes for step 4: the first `Open` is deferred
+   (the plugin adds the screen after `Build`, and drawn controls read their scale from its theme); edits only
+   redraw the strip, not the drawer, so the page being edited keeps focus; `MoveMapCanvas.Clear()` was added
+   for a character that can't be opened.
+2. Done: `MoveList`, `MoveEditor`, `CharacterToolbar`, `FrameDataPanel` deleted.
+3. Done: `FrameTimeline` uses `MapPalette` phase colours, `MapLook` fonts and scale and a narrower label column;
+   `ChainsPage` chips use `MapPalette.Glow`.
 4. **Verify in the Godot editor** (open this repo's `game/`; the godot-ai MCP can screenshot the Character tab).
    Compare with mock C and check:
    - On Testman, change 5B's frame data and 236C's projectile "Appears on frame" and "Speed forward".
