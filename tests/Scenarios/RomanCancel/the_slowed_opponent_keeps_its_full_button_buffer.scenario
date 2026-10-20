@@ -1,0 +1,18 @@
+# Slowdown doesn't shorten the button buffer: it counts the slowed fighter's own frames. After p1's red Roman Cancel
+# (frame 6, freeze 6-11), p2 runs at half speed, getting its own frames on 13, 15, 17… It leaves blockstun on frame
+# 47; its 5a pressed on frame 43 is 4 match frames old then but only 2 of its own, so it comes out as a reversal.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+setup: module meter 5000 0 0 0 10000 0
+setup: module roman_cancel 112 3 3 5000 15 6 40 1 2
+frame 1: p1 5a
+frames 1-40: p2 4
+frame 6: p1 5a+b+c
+frame 43: p2 5a
+
+frame 6: expect p1 event module
+frame 46: expect p2 state = blockstun
+frame 47: expect p2 move = 5a
+frame 47: expect p2 move_frame = 1

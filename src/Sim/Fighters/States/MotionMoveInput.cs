@@ -11,8 +11,9 @@ namespace Sim.Fighters.States;
 /// Moves go through <see cref="MoveInputMatcher"/> (motion priority among the character's moves). Dashes are their
 /// data motions (66/44) or the dash button; a move's shortcut is its motion's shortcut direction held as the special
 /// button and the move's button are pressed together, within the button buffer (ADR-0020); a high jump is its data
-/// motion, asked on the frame a prejump starts; a double jump is a fresh up press in the air. Built once per fighter
-/// at match start; checks never allocate.
+/// motion, asked on the frame a prejump starts; a double jump is a fresh up press in the air. Presses count the
+/// fighter's own frames (<see cref="InputHistory.OldestFrameWithin"/>): "this frame" includes frames it skipped
+/// since it last advanced. Built once per fighter at match start; checks never allocate.
 /// </remarks>
 public sealed class MotionMoveInput : IMoveInput
 {
@@ -57,7 +58,8 @@ public sealed class MotionMoveInput : IMoveInput
 
         // The direction counts as it was on the frame of the press, so a buffered press keeps its direction.
         int buttons = _specialButton | move.ButtonMask;
-        for (int framesAgo = 0; framesAgo <= _parser.ButtonBuffer; framesAgo++)
+        int oldest = history.OldestFrameWithin(0, _parser.ButtonBuffer);
+        for (int framesAgo = 0; framesAgo <= oldest; framesAgo++)
         {
             if (ButtonPress.IsPressedAt(in history, buttons, framesAgo) &&
                 NumpadDirection.Of(history.FramesAgo(framesAgo), facing) == shortcut)
@@ -87,11 +89,12 @@ public sealed class MotionMoveInput : IMoveInput
     public bool IsHighJumpTriggered(in InputHistory history, int facing) =>
         _parser.IsInput(_highJump, in history, facing, buttonMask: 0);
 
+    // A fresh press since the fighter last advanced, so one made during hitstop or slowdown isn't lost.
     public bool IsAirJumpTriggered(in InputHistory history, int facing) =>
-        history.FramesAgo(0).IsHeld(InputWord.Up) && !history.FramesAgo(1).IsHeld(InputWord.Up);
+        ButtonPress.IsPressedWithin(in history, InputWord.Up, buffer: 0);
 
     private bool IsDashButtonPressed(in InputHistory history) =>
-        _dashButton != 0 && ButtonPress.IsPressedAt(in history, _dashButton, framesAgo: 0);
+        _dashButton != 0 && ButtonPress.IsPressedWithin(in history, _dashButton, buffer: 0);
 
     private static bool IsHoldingBack(in InputHistory history, int facing) =>
         NumpadDirection.IsBack(NumpadDirection.Of(history.FramesAgo(0), facing));

@@ -65,6 +65,9 @@ Matching rules (`src/Sim/Input/Motions/MotionParser.cs`); every leniency is in t
   inclusive. The trigger is the button press; for a motion used without a button (dashes) it is the frame its last
   direction was entered. The motion must be complete by the press.
 - The trigger counts while it is at most `buttonBuffer` frames old: with 2, a press 2 frames ago counts, 3 doesn't.
+- Window and buffer count the fighter's own frames: frames it spends in hitstop, or skips while slowed, don't age
+  a press or a motion, so a 236C finished in hitstop still cancels right after it. Global freeze frames do age them
+  (the Roman Cancel freeze uses up its own press).
 - Single directions are motions too, with `"window": 1` (direction on the press frame). `5` accepts any direction,
   so jump normals work with the stick held; anything more specific listed earlier wins.
 - **Priority:** list order. When several motions match on one frame, the first wins, but only among motions the
