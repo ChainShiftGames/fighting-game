@@ -55,6 +55,12 @@ public sealed class CharacterData
         Mechanic = mechanic;
     }
 
+    /// <summary>The same character with other stats; the moves and boxes are shared, since neither ever changes.</summary>
+    /// <remarks>For tests that pin the stats a mechanic is checked with, so tuning the character can't break them.</remarks>
+    public CharacterData WithStats(CharacterStats stats) => new(
+        Id, DisplayName, stats, _moveIds, _moves, _boxes, _cancels, _cancelTargets, _hits, _velocities, _basicStateMoves,
+        _projectiles, _moveRoles, Mechanic);
+
     public string Id { get; }
 
     /// <summary>For menus only; not part of the data hash.</summary>

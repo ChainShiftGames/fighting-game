@@ -37,6 +37,19 @@ public sealed class ScenarioRunnerTests
     }
 
     [Fact]
+    public void APinnedStatChangesOnlyThatPlayer()
+    {
+        ScenarioResult result = InlineScenario.Run(
+            "setup: p1 stat jump_velocity 30000",
+            "frames 1-5: p1 8",
+            "frames 1-5: p2 8",
+            "frame 14: expect p1 y > 230000",
+            "frame 14: expect p2 y < 180000");
+
+        Assert.True(result.Passed, result.Report);
+    }
+
+    [Fact]
     public void OnlyTheFirstFailureIsReported()
     {
         ScenarioResult result = InlineScenario.Run(
