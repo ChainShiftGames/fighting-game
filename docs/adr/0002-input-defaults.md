@@ -15,7 +15,8 @@ consistently. Buffering decides how early a button press may come and still coun
    left + right together), so local play, online, replays and bots all use exactly one rule. Changing it needs a
    code change and an ADR.
 3. **Button buffer:** 2 frames by default. **Motion-input window:** a motion (236, 623, …) must be completed within
-   12 frames by default; separate from the button buffer and adjustable per motion.
+   12 frames by default; separate from the button buffer and adjustable per motion. Both count the fighter's own
+   frames: frames it spends in hitstop or skips under slowdown don't age input (a global freeze still does).
 4. **Button buffer and motion windows are developer settings** in configuration data, easy to tweak during
    development (no rebuild). They live in `MatchRules` (ADR-0011) and are compared in the online handshake, so
    both players resolve inputs identically.

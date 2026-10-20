@@ -1,0 +1,18 @@
+# Hitstop doesn't age a buffered press: it isn't the fighter's own time. Testman's 5a hits on frame 5 and both
+# fighters sit in 8 hitstop frames (6-13). 236c, finished on frame 7 (the second hitstop frame), is still in the
+# button buffer when p1 runs again and cancels 5a (its special cancel window) on frame 14, the first frame after.
+setup: module gatlings
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 5: p1 2, 3, 6c
+
+frame 5: expect p1 event hit
+frame 5: expect p1 hitstop = 8
+frame 13: expect p1 move = 5a
+frame 13: expect p1 hitstop = 0
+frame 14: expect p1 move = 236c
+frame 14: expect p1 move_frame = 1

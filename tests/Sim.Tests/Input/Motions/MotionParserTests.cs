@@ -95,6 +95,50 @@ public sealed class MotionParserTests
         Assert.Equal(expected, IsInput(236, history, 1, C));
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void MotionSpreadAcrossSkippedFramesStaysWithinTheWindow(bool isSkipped, bool expected)
+    {
+        // 21 match frames from the 2 to the press, but only 11 of the fighter's own when the 3 is in its hitstop.
+        var sequence = new InputSequence().Directions("2").Hold(5, 4);
+        sequence = isSkipped ? sequence.Skipped(3, 10) : sequence.Hold(3, 10);
+        InputHistory history = sequence.Hold(6, 5).Press(6, C).History;
+
+        Assert.Equal(expected, IsInput(236, history, 1, C));
+    }
+
+    [Theory]
+    [InlineData(TestMotions.Window, true)]
+    [InlineData(TestMotions.Window + 1, false)]
+    public void WindowCountsTheOwnFramesAroundSkippedOnes(int ownFramesFromFirstStepToPress, bool expected)
+    {
+        InputHistory history = new InputSequence()
+            .Directions("23").Skipped(6, 5).Hold(6, ownFramesFromFirstStepToPress - 3).Press(6, C).History;
+
+        Assert.Equal(expected, IsInput(236, history, 1, C));
+    }
+
+    [Theory]
+    [InlineData(TestMotions.Buffer, true)]
+    [InlineData(TestMotions.Buffer + 1, false)]
+    public void PressAgesOnlyOnTheFightersOwnFrames(int ownFramesSincePress, bool expected)
+    {
+        InputHistory history = new InputSequence()
+            .Directions("23").Press(6, C).Skipped(5, 10, C).Hold(5, ownFramesSincePress, C).History;
+
+        Assert.Equal(expected, IsInput(236, history, 1, C));
+        Assert.Equal(expected, _parser.FindFirst(MotionMask.None.With(Index(236)), in history, 1, C) == Index(236));
+    }
+
+    [Fact]
+    public void DashSurvivesSkippedFrames()
+    {
+        InputHistory history = new InputSequence().Directions("656").Skipped(6, 8).Hold(6, TestMotions.Buffer).History;
+
+        Assert.True(IsInput(66, history, 1, NoButton));
+    }
+
     [Fact]
     public void BufferIsReadFromTheMatchRules()
     {
@@ -201,5 +245,7 @@ public sealed class MotionParserTests
         new InputSequence(facing).Directions(directions[..^1]).Press(directions[^1] - '0', C).History;
 
     private bool IsInput(int notation, InputHistory history, int facing, int buttonMask) =>
-        _parser.IsInput(TestMotions.IndexOf(_parser.Motions, notation), in history, facing, buttonMask);
+        _parser.IsInput(Index(notation), in history, facing, buttonMask);
+
+    private int Index(int notation) => TestMotions.IndexOf(_parser.Motions, notation);
 }

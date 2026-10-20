@@ -11,10 +11,16 @@ public static class ButtonPress
         return history.FramesAgo(framesAgo).IsHeld(mask) && !history.FramesAgo(framesAgo + 1).IsHeld(mask);
     }
 
-    /// <summary>Pressed on any of the newest <paramref name="buffer"/> + 1 frames.</summary>
+    /// <summary>Pressed on any of the fighter's newest <paramref name="buffer"/> + 1 own frames.</summary>
+    /// <remarks>
+    /// Frames the fighter skipped (hitstop, slowdown) don't age a press
+    /// (<see cref="InputHistory.OldestFrameWithin"/>): with a buffer of 0, a press made since the fighter last
+    /// advanced still counts.
+    /// </remarks>
     public static bool IsPressedWithin(in InputHistory history, int buttonMask, int buffer)
     {
-        for (int framesAgo = 0; framesAgo <= buffer; framesAgo++)
+        int oldest = history.OldestFrameWithin(0, buffer);
+        for (int framesAgo = 0; framesAgo <= oldest; framesAgo++)
         {
             if (IsPressedAt(in history, buttonMask, framesAgo))
             {

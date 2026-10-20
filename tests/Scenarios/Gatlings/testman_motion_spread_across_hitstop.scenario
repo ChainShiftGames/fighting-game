@@ -1,0 +1,18 @@
+# The motion window counts the fighter's own frames, so a motion may run through hitstop. Testman's 5a hits on
+# frame 5 (hitstop 6-13): 2 on frame 3, 3 in the hitstop (frame 10), 6c on frame 16. That is 14 match frames, more
+# than the 12-frame window, but only 6 of p1's own frames, so 236c cancels 5a on frame 16.
+setup: module gatlings
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 3: p1 2
+frame 10: p1 3
+frame 16: p1 6c
+
+frame 5: expect p1 event hit
+frame 15: expect p1 move = 5a
+frame 16: expect p1 move = 236c
+frame 16: expect p1 move_frame = 1

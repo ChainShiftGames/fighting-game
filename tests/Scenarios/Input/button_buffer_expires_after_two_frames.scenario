@@ -1,0 +1,16 @@
+# Outside hitstop the 2-frame button buffer counts every frame. Testman's whiffed 5a frees p1 on frame 16: a 5b
+# pressed on frame 13 is 3 frames old by then and is dropped, so p1 goes idle. The next 5a (frame 20) frees p1 on
+# frame 35, and its 5b pressed on frame 33, 2 frames old, comes out.
+setup: p1 character testman
+setup: p2 character testman
+
+frame 1: p1 5a
+frame 13: p1 5b
+frame 20: p1 5a
+frame 33: p1 5b
+
+frame 15: expect p1 move = 5a
+frames 16-19: expect p1 state = idle
+frame 34: expect p1 move = 5a
+frame 35: expect p1 move = 5b
+frame 35: expect p1 move_frame = 1
