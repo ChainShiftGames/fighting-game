@@ -1,0 +1,22 @@
+{
+  "normalColumns": [
+    { "title": "Light", "hint": "fast, short reach", "buttons": ["a"] },
+    { "title": "Medium", "hint": "the middle ground", "buttons": ["b"] },
+    { "title": "Heavy", "hint": "slow, strong", "buttons": ["c", "d"] }
+  ],
+  "buttonNames": { "a": "Light", "b": "Medium", "c": "Heavy" },
+  "stanceNames": { "air": "Jumping", "5": "Standing", "2": "Crouching", "1": "Crouching", "3": "Crouching", "6": "Forward", "4": "Back" },
+  "specialNames": {
+    "236": "Quarter-circle",
+    "214": "Reverse quarter-circle",
+    "623": "Uppercut",
+    "236236": "Double quarter-circle",
+    "41236": "Half-circle",
+    "63214": "Reverse half-circle",
+    "632146": "Full half-circle",
+    "22": "Double down"
+  },
+  "movementStates": [
+    "idle", "crouch", "walkForward", "walkBack", "prejump", "jump", "landing", "dash", "backdash", "airDash", "airBackdash"
+  ]
+}
