@@ -1,0 +1,741 @@
+<title>Character Editor Rebuild</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a dark gallery page; each option is a full app window drawn at 1280×780 and scaled to fit. */
+:root {
+  color-scheme: dark;
+  --page: #0b0d13;
+  --page-2: #12151e;
+  --fg: #e8ebf2;
+  --muted: #8a92a6;
+  --line: #232838;
+  --aether: #6fd6e8;
+  --gold: #d9b56c;
+  --windup: #f2b04a;
+  --active: #ff5a6e;
+  --recover: #5f8dff;
+  --good: #4fd18b;
+  --warn: #f2b04a;
+  --display: "Marcellus", "Palatino Linotype", Georgia, serif;
+  --body: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 48px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--aether); }
+h1 { font: 400 clamp(32px, 5vw, 52px)/1.08 var(--display); margin: 14px 0 14px; text-wrap: balance; }
+.lede { max-width: 66ch; color: #b9c0d0; font-size: 17px; margin: 0; }
+.jump { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.jump a { display: flex; gap: 10px; align-items: center; padding: 10px 16px 10px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--fg); text-decoration: none; background: var(--page-2); }
+.jump a:hover, .jump a:focus-visible { border-color: var(--aether); outline: none; }
+.jump b { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--fg); color: var(--page); font: 700 13px var(--body); }
+section.opt { margin-top: 72px; }
+.opt-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px; margin-bottom: 18px; }
+.opt-head .letter { font: 400 64px/0.9 var(--display); color: var(--gold); }
+.opt-head h2 { font: 400 32px/1.1 var(--display); margin: 0; }
+.opt-head p { flex-basis: 100%; margin: 0; color: #b9c0d0; max-width: 72ch; }
+.fit { position: relative; width: 100%; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px -30px #000, 0 0 0 1px var(--line); }
+.fit > .app { position: absolute; top: 0; left: 0; width: 1280px; height: 780px; transform-origin: 0 0; }
+.notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 32px; margin-top: 22px; }
+.notes h3 { font: 600 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.notes p { margin: 0; color: #c9cfdc; }
+@media (max-width: 760px) { .notes { grid-template-columns: 1fr; } }
+.shared { margin-top: 88px; padding-top: 36px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; }
+.shared h2 { font: 400 30px/1.15 var(--display); margin: 0; text-wrap: balance; }
+.shared ul { margin: 0; padding-left: 18px; display: grid; gap: 10px; color: #c9cfdc; }
+.shared li b { color: var(--fg); }
+@media (max-width: 760px) { .shared { grid-template-columns: 1fr; } }
+.terms { overflow-x: auto; margin-top: 18px; }
+.terms table { border-collapse: collapse; font-size: 14px; min-width: 520px; }
+.terms td, .terms th { text-align: left; padding: 7px 18px 7px 0; border-bottom: 1px solid var(--line); }
+.terms th { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.terms td:last-child { color: var(--muted); font-family: var(--mono); font-size: 13px; }
+
+/* ---------- shared app atoms ---------- */
+.app { font-family: var(--body); font-size: 13px; line-height: 1.35; overflow: hidden; }
+.app button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.app button:focus-visible, .app input:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+.kc { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; font: 700 12px var(--mono); }
+.arrows { font: 700 14px var(--mono); letter-spacing: -1px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- A · Studio ---------- */
+.mA { --bg: #101218; --p1: #161922; --p2: #1c2030; --ln: #262b3b; --tx: #e6e9f1; --mu: #8189a0; background: var(--bg); color: var(--tx);
+  display: grid; grid-template-columns: 248px 1fr 312px; grid-template-rows: 52px 1fr 220px; }
+.mA .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 16px; border-bottom: 1px solid var(--ln); background: var(--p1); }
+.mA .brand { display: flex; align-items: center; gap: 10px; font: 400 17px var(--display); }
+.mA .crumbs { color: var(--mu); display: flex; gap: 8px; align-items: center; margin-left: 18px; }
+.mA .crumbs b { color: var(--tx); font-weight: 600; }
+.mA .sp { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 8px; font-weight: 600; font-size: 12px; }
+.mA .ok { background: #173226; color: var(--good); }
+.mA .ghostbtn { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--ln) !important; color: var(--tx); display: inline-flex; gap: 8px; align-items: center; }
+.mA .primary { height: 32px; padding: 0 16px; border-radius: 8px; background: var(--aether) !important; color: #06222a !important; font-weight: 700 !important; }
+.mA .toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--mu); font-size: 12px; }
+.sw { width: 30px; height: 17px; border-radius: 9px; background: #2b3144; position: relative; }
+.sw::after { content: ""; position: absolute; left: 2px; top: 2px; width: 13px; height: 13px; border-radius: 50%; background: #8189a0; }
+.mA .side { grid-row: 2 / 4; border-right: 1px solid var(--ln); background: var(--p1); padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.mA .search { height: 34px; border-radius: 8px; background: var(--bg); border: 1px solid var(--ln); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--mu); margin-bottom: 8px; }
+.mA .grp { font: 600 11px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--mu); padding: 12px 8px 6px; display: flex; justify-content: space-between; }
+.mA .row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px; }
+.mA .row.sel { background: var(--p2); box-shadow: inset 2px 0 0 var(--aether); }
+.mA .row .nm { font-weight: 600; }
+.mA .row .mt { color: var(--mu); font-size: 11.5px; }
+.mA .row .ins { margin-left: auto; display: flex; gap: 4px; align-items: center; color: var(--mu); }
+.mA .kc { background: #252a3a; color: var(--tx); box-shadow: inset 0 -2px 0 #0007; }
+.mA .stage { position: relative; background: radial-gradient(ellipse 70% 60% at 50% 40%, #1b2335 0%, #101218 75%); overflow: hidden; }
+.mA .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mA .ovl { position: absolute; display: flex; gap: 6px; align-items: center; }
+.mA .layer { height: 28px; padding: 0 10px; border-radius: 8px; background: #0d0f15cc !important; border: 1px solid var(--ln) !important; display: inline-flex; gap: 7px; align-items: center; font-size: 12px; font-weight: 600; }
+.mA .layer i { width: 10px; height: 10px; border-radius: 3px; }
+.mA .layer[aria-pressed="false"] { opacity: .45; }
+.mA .readout { left: 18px; bottom: 16px; flex-direction: column; align-items: flex-start; gap: 4px; }
+.mA .readout .big { font: 700 34px/1 var(--mono); }
+.mA .readout .big span { color: var(--mu); font-size: 16px; }
+.phasechip { height: 24px; padding: 0 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; color: #0b0d13; }
+.mA .tl { border-top: 1px solid var(--ln); background: var(--p1); display: flex; flex-direction: column; }
+.mA .tl-bar { height: 40px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-bottom: 1px solid var(--ln); }
+.mA .tbtn { width: 30px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: var(--tx); }
+.mA .tbtn:hover { background: var(--p2); }
+.mA .tbtn.play { background: var(--p2); }
+.mA .tracks { position: relative; flex: 1; padding: 6px 0; }
+.mA .trk { display: grid; grid-template-columns: 132px 1fr; height: 27px; align-items: center; }
+.mA .trk .lb { padding: 0 12px; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 7px; }
+.mA .trk .lb small { color: var(--mu); font-weight: 400; }
+.mA .lane { position: relative; height: 20px; }
+.mA .seg { position: absolute; top: 2px; bottom: 2px; border-radius: 5px; font-size: 11px; font-weight: 700; padding: 0 7px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; color: #0b0d13; }
+.mA .ruler .seg { background: none; color: var(--mu); font: 500 10px var(--mono); justify-content: center; padding: 0; }
+.mA .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--tx); pointer-events: none; }
+.mA .playhead::before { content: ""; position: absolute; top: 0; left: -5px; width: 12px; height: 10px; background: var(--tx); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.mA .scrub { position: absolute; top: 0; height: 100%; cursor: ew-resize; }
+.mA .insp { grid-row: 2 / 4; border-left: 1px solid var(--ln); background: var(--p1); padding: 18px; display: flex; flex-direction: column; gap: 18px; overflow: hidden; }
+.mA .insp h3 { font: 400 24px/1.1 var(--display); margin: 0; }
+.mA .insp .sub { color: var(--mu); margin-top: 4px; }
+.mA .lbl { font: 600 11px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--mu); margin-bottom: 8px; display: flex; justify-content: space-between; }
+.mA .howto { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--ln); }
+.mA .howto .kc { height: 30px; min-width: 30px; font-size: 14px; }
+.mA .tbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; }
+.mA .tnums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.mA .tnums div { display: flex; flex-direction: column; gap: 1px; }
+.mA .tnums b { font: 700 18px var(--mono); }
+.mA .tnums span { font-size: 12px; font-weight: 600; }
+.mA .tnums small { color: var(--mu); font-size: 11px; }
+.mA .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mA .tile { background: var(--bg); border: 1px solid var(--ln); border-radius: 10px; padding: 9px 10px; }
+.mA .tile .t { color: var(--mu); font-size: 11.5px; }
+.mA .tile .v { display: flex; align-items: baseline; justify-content: space-between; margin-top: 3px; }
+.mA .tile .v b { font: 700 17px var(--mono); }
+.mA .tile .v small { color: var(--mu); font-size: 11px; }
+.mA .meter { height: 4px; border-radius: 2px; background: #262b3b; margin-top: 7px; overflow: hidden; }
+.mA .meter i { display: block; height: 100%; background: var(--aether); }
+.mA .verdict { display: grid; gap: 8px; }
+.mA .vd { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; }
+.mA .vd b { font: 700 20px var(--mono); min-width: 38px; }
+.mA .vd span { font-size: 12.5px; }
+.mA .vd small { display: block; opacity: .75; }
+
+/* ---------- B · Move sheet ---------- */
+.mB { --bg: #edf0f5; --sf: #ffffff; --ink: #161c33; --mu: #646d86; --ln: #dce1ea; --acc: #0f7d88; --acc-2: #e3f3f4; --gold-2: #a87a2c;
+  background: var(--bg); color: var(--ink); display: grid; grid-template-columns: 236px 1fr 456px; grid-template-rows: 60px 1fr; }
+.mB .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; padding: 0 22px; background: var(--sf); border-bottom: 1px solid var(--ln); }
+.mB .who { display: flex; align-items: center; gap: 10px; font: 400 19px var(--display); }
+.mB .av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(140deg, #0f7d88, #161c33); display: grid; place-items: center; color: #fff; font: 400 15px var(--display); }
+.mB .tabs { display: flex; gap: 4px; margin-left: 16px; }
+.mB .tabs button { padding: 8px 14px; border-radius: 8px; font-weight: 600; color: var(--mu); }
+.mB .tabs .on { background: var(--bg); color: var(--ink); }
+.mB .sp { flex: 1; }
+.mB .saved { color: var(--mu); display: flex; align-items: center; gap: 8px; }
+.mB .dot { width: 8px; height: 8px; border-radius: 50%; background: #2fae6b; }
+.mB .primary { height: 36px; padding: 0 18px; border-radius: 10px; background: var(--ink) !important; color: #fff !important; font-weight: 700 !important; }
+.mB .try { height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--ln) !important; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.mB .rail { padding: 16px 12px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; border-right: 1px solid var(--ln); }
+.mB .rail h4 { margin: 10px 6px 4px; font: 600 11px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--mu); }
+.mB .mc { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; padding: 6px; border-radius: 12px; }
+.mB .mc.sel { background: var(--sf); box-shadow: 0 1px 0 var(--ln), 0 6px 16px -10px #16203a55; }
+.mB .mc .th { width: 42px; height: 42px; border-radius: 10px; background: #e2e7ef; overflow: hidden; }
+.mB .mc.sel .th { background: var(--acc-2); }
+.mB .mc b { display: block; font-size: 13px; }
+.mB .mc small { color: var(--mu); }
+.mB .addmove { margin: 8px 6px 0; padding: 9px; border: 1.5px dashed #c5ccd9 !important; border-radius: 12px; color: var(--mu); font-weight: 600; }
+.mB .main { padding: 26px 36px; overflow: hidden; position: relative; }
+.mB .main::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(transparent, var(--bg)); pointer-events: none; }
+.mB .bc { color: var(--mu); font-size: 12.5px; }
+.mB h3 { font: 400 40px/1.05 var(--display); margin: 6px 0 14px; }
+.mB .sentence { font-size: 18.5px; line-height: 1.85; max-width: 600px; position: relative; }
+.mB .tok { display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; border-radius: 8px; background: var(--sf); border: 1px solid var(--ln); font-weight: 700; line-height: 30px; }
+.mB .tok.focus { border-color: var(--acc); box-shadow: 0 0 0 3px #0f7d8822; }
+.mB .tok .kc { background: var(--ink); color: #fff; height: 20px; min-width: 20px; font-size: 11px; }
+.mB .pop { position: absolute; left: 248px; top: 104px; width: 300px; background: var(--ink); color: #fff; border-radius: 14px; padding: 14px; font-size: 13px; line-height: 1.45; box-shadow: 0 20px 40px -16px #16203a99; z-index: 2; }
+.mB .pop::before { content: ""; position: absolute; top: -6px; left: 40px; width: 12px; height: 12px; background: var(--ink); transform: rotate(45deg); }
+.mB .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.mB .stepper button { width: 32px; height: 32px; border-radius: 8px; background: #ffffff1a !important; font-size: 18px !important; }
+.mB .stepper b { font: 700 22px var(--mono); }
+.mB .scale { display: flex; justify-content: space-between; font-size: 11px; color: #aab3c9; margin-top: 8px; }
+.mB .scalebar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #4fd18b, #f2b04a, #ff5a6e); position: relative; }
+.mB .scalebar i { position: absolute; top: -4px; width: 4px; height: 14px; border-radius: 2px; background: #fff; }
+.mB .steps { margin-top: 26px; display: grid; gap: 14px; }
+.mB .card { background: var(--sf); border-radius: 16px; padding: 18px 20px; box-shadow: 0 1px 0 var(--ln); }
+.mB .card h5 { margin: 0 0 4px; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+.mB .card h5 .n { width: 22px; height: 22px; border-radius: 50%; background: var(--acc-2); color: var(--acc); display: grid; place-items: center; font-size: 12px; }
+.mB .card p { margin: 0 0 14px; color: var(--mu); }
+.mB .tline { display: flex; gap: 3px; height: 38px; }
+.mB .tline div { border-radius: 8px; color: #fff; font-weight: 700; font-size: 12px; padding: 0 10px; display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
+.mB .tline small { font-weight: 500; opacity: .85; }
+.mB .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mB .st { border: 1px solid var(--ln); border-radius: 12px; padding: 10px 12px; }
+.mB .st .t { font-weight: 700; font-size: 12.5px; }
+.mB .st .v { font: 700 22px var(--mono); margin: 2px 0; }
+.mB .st .v small { font: 500 12px var(--body); color: var(--mu); }
+.mB .st .h { color: var(--mu); font-size: 11.5px; }
+.mB .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mB .ch { height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--ln); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.mB .ch.add { border-style: dashed; color: var(--mu); }
+.mB .side { padding: 22px 22px 22px 0; display: flex; flex-direction: column; gap: 14px; }
+.mB .pv { background: var(--sf); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 0 var(--ln); }
+.mB .pv .stagewrap { height: 330px; position: relative; background: radial-gradient(ellipse 80% 70% at 50% 35%, #ffffff, #e4e9f1 80%); }
+.mB .pv svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mB .pv .ctl { padding: 12px 16px 14px; display: grid; gap: 10px; }
+.mB .legend { display: flex; gap: 14px; font-size: 12px; color: var(--mu); font-weight: 600; }
+.mB .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.mB .range { display: flex; align-items: center; gap: 12px; }
+.mB input[type=range] { flex: 1; accent-color: var(--acc); }
+.mB .vds { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mB .vd { border-radius: 16px; padding: 14px 16px; background: var(--sf); box-shadow: 0 1px 0 var(--ln); }
+.mB .vd .k { font-size: 12px; font-weight: 700; color: var(--mu); text-transform: uppercase; letter-spacing: .1em; }
+.mB .vd .big { font: 400 26px var(--display); margin: 4px 0 2px; }
+.mB .vd p { margin: 0; color: var(--mu); font-size: 12.5px; }
+
+/* ---------- C · Move map ---------- */
+.mC { --bg: #0d0e21; --p1: #14152c; --p2: #1b1d3a; --ln: #2a2c50; --tx: #eceefe; --mu: #8e92bd; --glow: #7fe3f0;
+  background: var(--bg); color: var(--tx); display: grid; grid-template-columns: 1fr 340px; grid-template-rows: 54px 1fr 132px; }
+.mC .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 18px; border-bottom: 1px solid var(--ln); background: var(--p1); }
+.mC .ttl { font: 400 18px var(--display); }
+.mC .ttl span { color: var(--mu); }
+.mC .seg3 { display: flex; background: var(--bg); border: 1px solid var(--ln); border-radius: 10px; padding: 3px; margin-left: 18px; }
+.mC .seg3 button { padding: 6px 14px; border-radius: 7px; color: var(--mu); font-weight: 600; }
+.mC .seg3 .on { background: var(--p2); color: var(--tx); }
+.mC .sp { flex: 1; }
+.mC .primary { height: 34px; padding: 0 16px; border-radius: 9px; background: linear-gradient(135deg, #7fe3f0, #a59cff) !important; color: #10112a !important; font-weight: 700 !important; }
+.mC .canvas { position: relative; overflow: hidden; background-color: var(--bg); background-image: radial-gradient(#2a2c50 1px, transparent 1.2px); background-size: 22px 22px; }
+.mC .canvas svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mC .colh { position: absolute; top: 18px; font: 600 11px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--mu); }
+.mC .colh small { display: block; letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 11.5px; color: #6b6f99; margin-top: 3px; }
+.mC .node { position: absolute; width: 176px; padding: 10px 12px; border-radius: 14px; background: #181a36e6; border: 1px solid var(--ln); box-shadow: 0 10px 24px -14px #000; }
+.mC .node .r1 { display: flex; align-items: center; gap: 6px; }
+.mC .node b { font-size: 13px; }
+.mC .node .r1 .ins { margin-left: auto; display: flex; gap: 3px; align-items: center; color: var(--mu); }
+.mC .kc { background: #282b52; color: var(--tx); height: 20px; min-width: 20px; font-size: 11px; }
+.mC .node .meta { color: var(--mu); font-size: 11.5px; margin: 4px 0 7px; }
+.mC .mini { display: flex; gap: 2px; height: 6px; }
+.mC .mini i { border-radius: 3px; }
+.mC .node.sel { border-color: var(--glow); box-shadow: 0 0 0 4px #7fe3f022, 0 0 40px -6px #7fe3f066; }
+.mC .node.dim { opacity: .55; }
+.mC .group { position: absolute; border: 1.5px dashed #4b4f86; border-radius: 20px; }
+.mC .group span { position: absolute; top: -10px; left: 16px; padding: 0 8px; background: var(--bg); color: var(--mu); font-size: 11.5px; font-weight: 600; }
+.mC .legendC { position: absolute; left: 18px; bottom: 14px; display: flex; gap: 16px; color: var(--mu); font-size: 12px; background: #0d0e21cc; padding: 6px 10px; border-radius: 8px; }
+.mC .legendC svg { vertical-align: middle; margin-right: 6px; }
+.mC .zoom { position: absolute; right: 16px; bottom: 14px; display: flex; gap: 4px; }
+.mC .zoom button { width: 30px; height: 30px; border-radius: 8px; background: var(--p1) !important; border: 1px solid var(--ln) !important; }
+.mC .drawer { grid-row: 2 / 4; border-left: 1px solid var(--ln); background: var(--p1); display: flex; flex-direction: column; overflow: hidden; }
+.mC .dpv { height: 236px; position: relative; background: radial-gradient(ellipse 80% 70% at 50% 35%, #232659, #14152c 80%); }
+.mC .dpv svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mC .dbody { padding: 16px 18px; display: grid; gap: 14px; }
+.mC .dbody h3 { margin: 0; font: 400 24px var(--display); }
+.mC .dbody .sub { color: var(--mu); margin-top: 2px; }
+.mC .dtabs { display: flex; gap: 16px; border-bottom: 1px solid var(--ln); }
+.mC .dtabs button { padding: 0 0 9px; color: var(--mu); font-weight: 600; }
+.mC .dtabs .on { color: var(--tx); box-shadow: inset 0 -2px 0 var(--glow); }
+.mC .facts { display: grid; gap: 9px; }
+.mC .fact { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #22244a; }
+.mC .fact span { color: #c3c6e6; }
+.mC .fact small { display: block; color: var(--mu); font-size: 11px; }
+.mC .fact b { font: 700 15px var(--mono); }
+.mC .strip { border-top: 1px solid var(--ln); background: var(--p1); padding: 14px 18px; display: grid; gap: 10px; }
+.mC .strip .hd { display: flex; align-items: center; gap: 12px; }
+.mC .strip .hd b { font-weight: 700; }
+.mC .strip .hd span { color: var(--mu); }
+.mC .cells { display: grid; gap: 2px; height: 34px; }
+.mC .cells i { border-radius: 4px; position: relative; }
+.mC .cells i.hit::after { content: ""; position: absolute; left: 3px; right: 3px; bottom: 3px; height: 4px; border-radius: 2px; background: #fff; }
+.mC .cells i.cur { outline: 2px solid #fff; outline-offset: 1px; }
+.mC .cellnums { display: grid; gap: 2px; color: var(--mu); font: 500 10px var(--mono); text-align: center; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Testman · Character editor rebuild</div>
+  <h1>Three ways to rebuild the character editor</h1>
+  <p class="lede">Every option is drawn with Testman's real data, and each one is shown on Standing Medium (5B). Each one explains a move the way you'd explain it to someone who has never played a fighting game: how you do it, how long it takes, where it hits, and what happens next. Drag the playhead in A and the slider in B. In C, the arrows show which moves can chain into which.</p>
+  <nav class="jump" aria-label="Options">
+    <a href="#studio"><b>A</b>Studio · timeline</a>
+    <a href="#sheet"><b>B</b>Move sheet · guided</a>
+    <a href="#map"><b>C</b>Move map · graph</a>
+  </nav>
+
+  <!-- ================= A ================= -->
+  <section class="opt" id="studio">
+    <div class="opt-head">
+      <span class="letter">A</span><h2>Studio</h2>
+      <p>A video-editor layout: big preview in the middle, a frame timeline underneath, settings on the right. Every frame is a column you can scrub through. Hit areas, the body and cancel windows each get their own track.</p>
+    </div>
+    <div class="fit"><div class="app mA" id="appA">
+      <div class="top">
+        <div class="brand"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2l7 10-7 10-7-10z" fill="none" stroke="#6fd6e8" stroke-width="1.8"/><path d="M12 6l4 6-4 6-4-6z" fill="#6fd6e8" opacity=".35"/></svg>Character Studio</div>
+        <div class="crumbs">Testman <span>›</span> Attacks <span>›</span> <b>Standing Medium</b></div>
+        <div class="sp"></div>
+        <span class="toggle"><span class="sw"></span>Show fighting-game terms</span>
+        <span class="chip ok">✓ Everything checks out</span>
+        <button class="ghostbtn" type="button">▶ Try it in a match</button>
+        <button class="primary" type="button">Save</button>
+      </div>
+      <aside class="side">
+        <div class="search">⌕ Find a move</div>
+        <div class="grp">Attacks <span>9</span></div>
+        <div class="row"><div><div class="nm">Standing Light</div><div class="mt">Fast jab · 15 frames</div></div><div class="ins"><span class="kc">A</span></div></div>
+        <div class="row sel"><div><div class="nm">Standing Medium</div><div class="mt">Mid punch · 23 frames</div></div><div class="ins"><span class="kc">B</span></div></div>
+        <div class="row"><div><div class="nm">Standing Heavy</div><div class="mt">Big swing · 33 frames</div></div><div class="ins"><span class="kc">C</span></div></div>
+        <div class="row"><div><div class="nm">Crouching Light</div><div class="mt">Low poke · 15 frames</div></div><div class="ins"><span class="arrows">↓</span><span class="kc">A</span></div></div>
+        <div class="row"><div><div class="nm">Crouching Heavy</div><div class="mt">Sweep · 36 frames</div></div><div class="ins"><span class="arrows">↓</span><span class="kc">C</span></div></div>
+        <div class="grp">Special moves <span>3</span></div>
+        <div class="row"><div><div class="nm">Fireball</div><div class="mt">Throws a projectile</div></div><div class="ins"><span class="arrows">↓↘→</span><span class="kc">C</span></div></div>
+        <div class="row"><div><div class="nm">Rising Uppercut</div><div class="mt">Anti-air · 43 frames</div></div><div class="ins"><span class="arrows">→↓↘</span><span class="kc">C</span></div></div>
+        <div class="row"><div><div class="nm">Super</div><div class="mt">3000 damage</div></div><div class="ins"><span class="arrows">↓↘→↓↘→</span><span class="kc">D</span></div></div>
+        <div class="grp">Moving <span>9</span></div>
+        <div class="row"><div><div class="nm">Walk forward</div><div class="mt">4 px per frame</div></div></div>
+        <div class="row"><div><div class="nm">Dash</div><div class="mt">Run style</div></div><div class="ins"><span class="arrows">→→</span></div></div>
+        <div class="grp">Reactions (automatic) <span>11</span></div>
+        <div class="row"><div><div class="nm">Getting hit</div><div class="mt">Plays when stunned</div></div></div>
+      </aside>
+      <div class="stage" id="stageA">
+        <svg id="svgA" viewBox="0 0 720 508" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="ovl" style="left:16px;top:14px" id="layersA">
+          <button class="layer" type="button" aria-pressed="true" data-l="hit"><i style="background:#ff5a6e"></i>Hits here</button>
+          <button class="layer" type="button" aria-pressed="true" data-l="hurt"><i style="background:#4fd18b"></i>Can be hit</button>
+          <button class="layer" type="button" aria-pressed="true" data-l="push"><i style="background:#c9cfdc"></i>Body</button>
+          <button class="layer" type="button" aria-pressed="true" data-l="ghost"><i style="background:transparent;border:1.5px dashed #8189a0"></i>Opponent</button>
+        </div>
+        <div class="ovl" style="right:16px;top:14px"><span class="chip" style="background:#0d0f15cc;border:1px solid #262b3b">↔ Side view</span><span class="chip" style="background:#0d0f15cc;border:1px solid #262b3b">100%</span></div>
+        <div class="ovl readout"><span class="phasechip" id="phaseA">Hitting</span><div class="big mono" id="frameA">08<span> / 23</span></div><div style="color:#8189a0" id="secA">frame 8 · 0.13 s into the move</div></div>
+      </div>
+      <div class="tl">
+        <div class="tl-bar">
+          <button class="tbtn" type="button" id="prevA" aria-label="Previous frame">◀</button>
+          <button class="tbtn play" type="button" id="playA" aria-label="Play">▶</button>
+          <button class="tbtn" type="button" id="nextA" aria-label="Next frame">▶▏</button>
+          <span style="color:#8189a0;margin-left:8px">Speed</span><span class="chip" style="background:#1c2030">¼×</span>
+          <div style="flex:1"></div>
+          <span style="color:#8189a0">Drag the edge of a coloured bar to make it longer or shorter</span>
+        </div>
+        <div class="tracks" id="tracksA"></div>
+      </div>
+      <aside class="insp">
+        <div><h3>Standing Medium</h3><div class="sub">Attack · usable on the ground</div></div>
+        <div>
+          <div class="lbl">How to do it</div>
+          <div class="howto"><span class="kc">B</span><div><b>Press B</b> with no direction held<div style="color:#8189a0;font-size:12px">B is the medium attack button</div></div></div>
+        </div>
+        <div>
+          <div class="lbl">Timing <span class="mono" style="letter-spacing:0">23 frames · 0.38 s</span></div>
+          <div class="tbar"><i style="flex:6;background:var(--windup)"></i><i style="flex:3;background:var(--active)"></i><i style="flex:14;background:var(--recover)"></i></div>
+          <div class="tnums">
+            <div><b style="color:var(--windup)">7</b><span>Wind-up</span><small>until it can hit</small></div>
+            <div><b style="color:var(--active)">3</b><span>Hitting</span><small>frames it can hit</small></div>
+            <div><b style="color:var(--recover)">14</b><span>Cool-down</span><small>can't act yet</small></div>
+          </div>
+        </div>
+        <div>
+          <div class="lbl">When it hits</div>
+          <div class="tiles">
+            <div class="tile"><div class="t">Damage</div><div class="v"><b>500</b><small>5% of health</small></div><div class="meter"><i style="width:17%"></i></div></div>
+            <div class="tile"><div class="t">Stuns opponent</div><div class="v"><b>18</b><small>frames</small></div><div class="meter"><i style="width:45%"></i></div></div>
+            <div class="tile"><div class="t">Impact freeze</div><div class="v"><b>10</b><small>frames</small></div><div class="meter"><i style="width:40%"></i></div></div>
+            <div class="tile"><div class="t">Pushes back</div><div class="v"><b>15</b><small>px</small></div><div class="meter"><i style="width:30%"></i></div></div>
+          </div>
+          <div class="howto" style="margin-top:8px;justify-content:space-between"><span>Blocked by</span><b>Standing or crouching ▾</b></div>
+        </div>
+        <div>
+          <div class="lbl">What happens next</div>
+          <div class="verdict">
+            <div class="vd" style="background:#163024;color:#7fe0aa"><b>+2</b><span>If it hits, Testman can act 2 frames before the opponent.<small>Safe to keep attacking.</small></span></div>
+            <div class="vd" style="background:#33281a;color:#f4c47a"><b>−2</b><span>If it's blocked, the opponent acts 2 frames first.<small>A small risk. Only very fast moves can punish it.</small></span></div>
+          </div>
+        </div>
+      </aside>
+    </div></div>
+    <div class="notes">
+      <div><h3>Feels like</h3><p>Premiere, After Effects, Spine. Professional, dense, very fast once you know it.</p></div>
+      <div><h3>Best for</h3><p>Tuning frame data and hit areas precisely. You see when every box is on, frame by frame, and what it does to the opponent.</p></div>
+      <div><h3>Trade-off</h3><p>A lot on screen at once. Newcomers need the plain-language labels and the verdict panel to know where to look.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section class="opt" id="sheet">
+    <div class="opt-head">
+      <span class="letter">B</span><h2>Move sheet</h2>
+      <p>The editor writes a move out as a sentence you can edit. Each underlined part is a control, and each section answers one question in order. Every number comes with a hint for what counts as fast or slow, big or small.</p>
+    </div>
+    <div class="fit"><div class="app mB" id="appB">
+      <div class="top">
+        <div class="who"><span class="av">T</span>Testman</div>
+        <div class="tabs"><button class="on" type="button">Moves</button><button type="button">Movement &amp; stats</button><button type="button">Look &amp; animation</button></div>
+        <div class="sp"></div>
+        <span class="saved"><span class="dot"></span>All changes checked · not saved yet</span>
+        <button class="try" type="button">▶ Try it</button>
+        <button class="primary" type="button">Save</button>
+      </div>
+      <nav class="rail">
+        <h4>Attacks</h4>
+        <div class="mc"><div class="th" data-thumb="4"></div><div><b>Standing Light</b><small>A · quick jab</small></div></div>
+        <div class="mc sel"><div class="th" data-thumb="8"></div><div><b>Standing Medium</b><small>B · mid punch</small></div></div>
+        <div class="mc"><div class="th" data-thumb="9"></div><div><b>Standing Heavy</b><small>C · big swing</small></div></div>
+        <div class="mc"><div class="th" data-thumb="3" data-crouch="1"></div><div><b>Crouching Medium</b><small>↓ B · low kick</small></div></div>
+        <h4>Special moves</h4>
+        <div class="mc"><div class="th" data-thumb="7"></div><div><b>Fireball</b><small>↓↘→ C</small></div></div>
+        <div class="mc"><div class="th" data-thumb="9"></div><div><b>Rising Uppercut</b><small>→↓↘ C</small></div></div>
+        <div class="mc"><div class="th" data-thumb="8"></div><div><b>Super</b><small>↓↘→↓↘→ D</small></div></div>
+        <button class="addmove" type="button">+ New move</button>
+      </nav>
+      <main class="main">
+        <div class="bc">Moves › Attacks</div>
+        <h3>Standing Medium</h3>
+        <div class="sentence">
+          Press <span class="tok"><span class="kc">B</span>Medium</span> while <span class="tok">standing ▾</span> to throw a punch that hits <span class="tok">mid-height ▾</span>.
+          It takes <span class="tok focus">7 frames</span> to come out, can hit for <span class="tok">3 frames</span>, then Testman needs <span class="tok">14 frames</span> to recover.
+        </div>
+        <div class="pop">
+          <div class="stepper"><button type="button" aria-label="Fewer">−</button><b>7</b><span>frames · 0.12 s</span><button type="button" aria-label="More">+</button></div>
+          How long before the punch can hit. Fewer frames make it harder to react to.
+          <div style="margin-top:12px" class="scalebar"><i style="left:32%"></i></div>
+          <div class="scale"><span>4 · very fast</span><span>7 · normal medium</span><span>20+ · slow</span></div>
+        </div>
+        <div class="steps">
+          <div class="card">
+            <h5><span class="n">1</span>How long it takes</h5>
+            <p>Drag the edges. The whole move lasts 23 frames, about four tenths of a second.</p>
+            <div class="tline">
+              <div style="flex:6;background:#d4932e">Wind-up<small>7</small></div>
+              <div style="flex:3;background:#e2465b">Hits<small>3</small></div>
+              <div style="flex:14;background:#4b74e0">Recovering<small>14 frames · can't block or move</small></div>
+            </div>
+          </div>
+          <div class="card">
+            <h5><span class="n">2</span>What happens when it connects</h5>
+            <p>For comparison, Testman's other medium does 450 damage and stuns for 17.</p>
+            <div class="stats">
+              <div class="st"><div class="t">Damage</div><div class="v">500 <small>/ 10 000</small></div><div class="h">20 of these to win a round</div></div>
+              <div class="st"><div class="t">Stun</div><div class="v">18 <small>frames</small></div><div class="h">opponent can't move</div></div>
+              <div class="st"><div class="t">Impact pause</div><div class="v">10 <small>frames</small></div><div class="h">brief freeze that sells the hit</div></div>
+              <div class="st"><div class="t">Knock back</div><div class="v">15 <small>px</small></div><div class="h">slides them away</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h5><span class="n">3</span>What it can turn into</h5>
+            <p>While it's hitting and shortly after, if it touched the opponent (hit or blocked), the player can interrupt it with:</p>
+            <div class="chips">
+              <span class="ch">Standing Heavy <span class="kc" style="background:#161c33;color:#fff">C</span></span>
+              <span class="ch">Crouching Heavy</span><span class="ch">Standing D</span>
+              <span class="ch">A jump</span><span class="ch">Any special move</span><span class="ch">Any super</span>
+              <span class="ch add">+ Add</span>
+            </div>
+          </div>
+          <div class="card"><h5><span class="n">4</span>Where it hits and where it can be hit</h5><p>Shown on the model to the right.</p></div>
+        </div>
+      </main>
+      <aside class="side">
+        <div class="pv">
+          <div class="stagewrap"><svg id="svgB" viewBox="0 0 456 330" preserveAspectRatio="xMidYMid meet"></svg></div>
+          <div class="ctl">
+            <div class="legend"><span><i style="background:#e2465b"></i>Hits here</span><span><i style="background:#2fae6b"></i>Can be hit</span><span><i style="background:#9aa3b8"></i>Body</span></div>
+            <div class="range"><label for="rangeB" class="mono" style="font-weight:700" id="labB">Frame 8</label><input id="rangeB" type="range" min="1" max="23" value="8"><span id="phB" class="phasechip">Hits</span></div>
+          </div>
+        </div>
+        <div class="vds">
+          <div class="vd"><div class="k" style="color:#2fae6b">If it hits</div><div class="big">Your turn</div><p>Testman recovers 2 frames before the opponent and can keep attacking.</p></div>
+          <div class="vd"><div class="k" style="color:#c88a1e">If it's blocked</div><div class="big">Slight risk</div><p>The opponent is free 2 frames earlier. Only their fastest moves can punish it.</p></div>
+        </div>
+      </aside>
+    </div></div>
+    <div class="notes">
+      <div><h3>Feels like</h3><p>Notion, Linear, a game's own in-world character builder. Calm, readable, works for designers and writers too.</p></div>
+      <div><h3>Best for</h3><p>Onboarding, and anyone who doesn't play fighting games. It explains every number while you edit it.</p></div>
+      <div><h3>Trade-off</h3><p>Slower for bulk tuning. Frame-by-frame box editing still needs a detailed view, which could be option A's timeline as a section.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section class="opt" id="map">
+    <div class="opt-head">
+      <span class="letter">C</span><h2>Move map</h2>
+      <p>The whole character on one canvas. Moves are cards and arrows show what can chain into what, so combos are visible at a glance. Click a card and the drawer edits it, with a frame strip along the bottom.</p>
+    </div>
+    <div class="fit"><div class="app mC" id="appC">
+      <div class="top">
+        <div class="ttl">Testman <span>· move map</span></div>
+        <div class="seg3"><button class="on" type="button">Combos</button><button type="button">Special moves</button><button type="button">Everything</button></div>
+        <div class="sp"></div>
+        <span class="chip" style="background:#1b1d3a;color:#8be9b3">✓ 35 moves, no problems</span>
+        <button class="primary" type="button">Save</button>
+      </div>
+      <div class="canvas" id="canvasC">
+        <svg class="edges" id="edgesC" viewBox="0 0 940 594" preserveAspectRatio="none"></svg>
+        <div class="colh" style="left:28px">Light<small>fast, short reach</small></div>
+        <div class="colh" style="left:246px">Medium<small>the middle ground</small></div>
+        <div class="colh" style="left:464px">Heavy<small>slow, strong</small></div>
+        <div class="colh" style="left:700px">Specials &amp; super<small>button + motion</small></div>
+        <div id="nodesC"></div>
+        <div class="legendC">
+          <span><svg width="34" height="10"><path d="M2 5h26" stroke="#7fe3f0" stroke-width="2"/><path d="M26 1l6 4-6 4z" fill="#7fe3f0"/></svg>can interrupt into (selected move)</span>
+          <span><svg width="34" height="10"><path d="M2 5h26" stroke="#4b4f86" stroke-width="2"/><path d="M26 1l6 4-6 4z" fill="#4b4f86"/></svg>other chains</span>
+        </div>
+        <div class="zoom"><button type="button" aria-label="Zoom out">−</button><button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Fit">⤢</button></div>
+      </div>
+      <aside class="drawer">
+        <div class="dpv"><svg id="svgC" viewBox="0 0 340 236" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="dbody">
+          <div><h3>Standing Medium</h3><div class="sub">Press <span class="kc" style="vertical-align:1px">B</span> · ground attack</div></div>
+          <div class="dtabs"><button class="on" type="button">Overview</button><button type="button">Timing</button><button type="button">Hit areas</button><button type="button">Chains</button></div>
+          <div class="facts">
+            <div class="fact"><span>Comes out after<small>wind-up</small></span><b>7 f</b></div>
+            <div class="fact"><span>Damage<small>5% of Testman's health</small></span><b>500</b></div>
+            <div class="fact"><span>Opponent is stunned for<small>on hit / when blocked</small></span><b>18 / 14 f</b></div>
+            <div class="fact"><span>Who moves first after<small>on hit / when blocked</small></span><b><span style="color:#8be9b3">+2</span> / <span style="color:#f4c47a">−2</span></b></div>
+            <div class="fact"><span>Chains into<small>if it touched the opponent</small></span><b>6</b></div>
+          </div>
+        </div>
+      </aside>
+      <div class="strip">
+        <div class="hd"><b>Standing Medium · 23 frames</b><span>Click a frame to see it. The white bar marks frames that can hit.</span></div>
+        <div class="cells" id="cellsC"></div>
+        <div class="cellnums" id="numsC"></div>
+      </div>
+    </div></div>
+    <div class="notes">
+      <div><h3>Feels like</h3><p>Figma, Blender's node editor, a skill tree. Looks the least like a Godot inspector.</p></div>
+      <div><h3>Best for</h3><p>Seeing the character as a whole: which moves lead where, where combos dead-end, and whether a new move fits the set.</p></div>
+      <div><h3>Trade-off</h3><p>Editing one move in depth happens in a narrow drawer. Reactions and movement states need their own view or the map gets crowded.</p></div>
+    </div>
+  </section>
+
+  <div class="shared">
+    <div><div class="eyebrow">Whichever you pick</div><h2>What all three share</h2></div>
+    <div>
+      <ul>
+        <li><b>Plain names first.</b> Fighting-game terms sit behind a toggle for the two of us.</li>
+        <li><b>Frames come with time.</b> “7 frames · 0.12 s”, plus a hint for what counts as fast or slow for that kind of move.</li>
+        <li><b>A verdict, not just numbers.</b> On-hit and on-block advantage is worked out and said in a sentence.</li>
+        <li><b>Problems show up inline</b> on the field that's wrong, not in a list at the bottom. Save stays blocked until the data is valid, same as now.</li>
+        <li><b>The 3D model is the preview</b>, with hit areas drawn on it, scrubbed by frame number.</li>
+        <li><b>Its own look:</b> custom theme, the game's Marcellus headings, custom-drawn timeline and canvas. No stock inspector widgets.</li>
+      </ul>
+      <div class="terms"><table>
+        <thead><tr><th>On screen</th><th>Means</th><th>Data field</th></tr></thead>
+        <tbody>
+          <tr><td>Wind-up / Hitting / Cool-down</td><td>startup / active / recovery</td><td>frameData</td></tr>
+          <tr><td>Hits here · Can be hit · Body</td><td>hitbox · hurtbox · pushbox</td><td>boxes[].kind</td></tr>
+          <tr><td>Stuns opponent · Impact freeze</td><td>hitstun · hitstop</td><td>hits[].hitstun / hitstop</td></tr>
+          <tr><td>Can interrupt into</td><td>cancel</td><td>cancels[]</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Testman 5B, straight from data/characters/testman/moves/5b.json (1 px = 1000 units).
+  const TOTAL = 23, START = 7, ACTIVE_END = 9;
+  const BOXES = [
+    { kind: "hurt", f0: 1, f1: 23, x: -25, y: 0, w: 50, h: 120 },
+    { kind: "hurt", f0: 7, f1: 11, x: 20, y: 60, w: 45, h: 20 },
+    { kind: "push", f0: 1, f1: 23, x: -20, y: 0, w: 40, h: 110 },
+    { kind: "hit",  f0: 7, f1: 9,  x: 20, y: 60, w: 55, h: 20 }
+  ];
+  const phase = f => f < START ? "windup" : f <= ACTIVE_END ? "active" : "recover";
+  const PH = { windup: ["Wind-up", "#f2b04a"], active: ["Hitting", "#ff5a6e"], recover: ["Cool-down", "#5f8dff"] };
+  const lerp = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t));
+  function fistX(f) {
+    if (f < START) return lerp(16, 6, (f - 1) / 5);
+    if (f <= 11) return 66;
+    return lerp(66, 16, (f - 11) / 7);
+  }
+
+  // Draws the mannequin and the boxes for one frame. k = screen px per game px.
+  function scene(f, o) {
+    const k = o.k, cx = o.cx, gy = o.gy;
+    const X = x => cx + x * k, Y = y => gy - y * k;
+    const id = o.id, t = o.theme;
+    const body = t.body, edge = t.edge;
+    let s = `<defs><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.g0}"/><stop offset="1" stop-color="${t.g1}"/></linearGradient>
+      <radialGradient id="${id}sh"><stop offset="0" stop-color="${t.shadow}" stop-opacity=".55"/><stop offset="1" stop-color="${t.shadow}" stop-opacity="0"/></radialGradient></defs>`;
+    if (o.floor) {
+      s += `<line x1="0" y1="${gy}" x2="2000" y2="${gy}" stroke="${t.floor}" stroke-width="1"/>`;
+      for (let i = -20; i <= 20; i++) s += `<line x1="${cx + i * 40}" y1="${gy}" x2="${cx + i * 90}" y2="${gy + 140}" stroke="${t.floor}" stroke-opacity=".5"/>`;
+    }
+    s += `<ellipse cx="${X(4)}" cy="${gy + 3}" rx="${40 * k}" ry="${6 * k}" fill="url(#${id}sh)"/>`;
+    if (o.ghost) {
+      s += `<g fill="none" stroke="${t.ghost}" stroke-width="1.5" stroke-dasharray="5 5">
+        <rect x="${X(68)}" y="${Y(118)}" width="${48 * k}" height="${118 * k}" rx="${14 * k}"/>
+      </g><text x="${X(92)}" y="${Y(124)}" fill="${t.ghost}" font-size="${Math.max(10, 4.6 * k)}" font-family="Hanken Grotesk, sans-serif" text-anchor="middle">opponent, close</text>`;
+    }
+    const crouch = o.crouch ? 0.72 : 1;
+    const hipY = 54 * crouch, shY = 92 * crouch, hdY = 108 * crouch;
+    const fx = o.pose ? fistX(f) : 14;
+    const lean = phase(f) === "active" ? 4 : 0;
+    s += `<g stroke-linecap="round" stroke-linejoin="round">`;
+    // back leg, front leg
+    s += `<path d="M${X(-4)} ${Y(hipY)} L${X(-14)} ${Y(hipY * .5)} L${X(-20)} ${Y(0)}" stroke="${t.limb2}" stroke-width="${10 * k}" fill="none"/>`;
+    s += `<path d="M${X(4)} ${Y(hipY)} L${X(14)} ${Y(hipY * .48)} L${X(16)} ${Y(0)}" stroke="${body}" stroke-width="${11 * k}" fill="none"/>`;
+    // back arm
+    s += `<path d="M${X(-6 + lean)} ${Y(shY - 2)} L${X(-10)} ${Y(shY - 20)} L${X(4)} ${Y(shY - 26)}" stroke="${t.limb2}" stroke-width="${8 * k}" fill="none"/>`;
+    // torso
+    s += `<path d="M${X(-13 + lean)} ${Y(shY + 2)} Q${X(0 + lean)} ${Y(shY + 8)} ${X(13 + lean)} ${Y(shY + 2)} L${X(10)} ${Y(hipY)} Q${X(0)} ${Y(hipY - 6)} ${X(-11)} ${Y(hipY)} Z" fill="url(#${id}g)" stroke="${edge}" stroke-width="1.2"/>`;
+    // head
+    s += `<circle cx="${X(3 + lean)}" cy="${Y(hdY)}" r="${11 * k}" fill="url(#${id}g)" stroke="${edge}" stroke-width="1.2"/>`;
+    // front arm (the punch)
+    const ex = (8 + lean + fx) / 2 - (fx > 40 ? 0 : 6), ey = shY - (fx > 40 ? 18 : 24);
+    s += `<path d="M${X(8 + lean)} ${Y(shY - 2)} L${X(ex)} ${Y(ey)} L${X(fx)} ${Y(70 * crouch)}" stroke="${body}" stroke-width="${8.5 * k}" fill="none"/>`;
+    s += `<circle cx="${X(fx)}" cy="${Y(70 * crouch)}" r="${6 * k}" fill="${t.fist}"/>`;
+    s += `</g>`;
+    if (o.layers) {
+      const col = { hit: t.hit, hurt: t.hurt, push: t.push };
+      const order = ["push", "hurt", "hit"];
+      for (const kind of order) {
+        if (!o.layers[kind]) continue;
+        for (const b of BOXES) {
+          if (b.kind !== kind || f < b.f0 || f > b.f1) continue;
+          const dash = kind === "push" ? ` stroke-dasharray="6 4"` : "";
+          const fillOp = kind === "push" ? 0 : kind === "hit" ? .32 : .14;
+          s += `<rect x="${X(b.x)}" y="${Y(b.y + b.h)}" width="${b.w * k}" height="${b.h * k}" fill="${col[kind]}" fill-opacity="${fillOp}" stroke="${col[kind]}" stroke-width="${kind === "hit" ? 2 : 1.5}"${dash} rx="2"/>`;
+        }
+      }
+    }
+    return s;
+  }
+
+  const DARK = { body: "#c9d6ee", limb2: "#7f8cab", edge: "#e8f3ff", g0: "#e9f4ff", g1: "#7d93c4", fist: "#ffffff", shadow: "#000", floor: "#2a3248", ghost: "#7a829a", hit: "#ff5a6e", hurt: "#4fd18b", push: "#c9cfdc" };
+  const LIGHT = { body: "#2a3456", limb2: "#7a85a6", edge: "#161c33", g0: "#5a6890", g1: "#161c33", fist: "#161c33", shadow: "#16203a", floor: "#cfd6e2", ghost: "#9aa3b8", hit: "#e2465b", hurt: "#2fae6b", push: "#8f98ae" };
+  const INDIGO = { body: "#cfd2ff", limb2: "#7d82c4", edge: "#eef0ff", g0: "#f1f2ff", g1: "#8a8ff0", fist: "#ffffff", shadow: "#000", floor: "#2f3266", ghost: "#7d82c4", hit: "#ff6b8a", hurt: "#7fe3a8", push: "#b8bce8" };
+
+  // ---------- A ----------
+  const A = { f: 8, layers: { hit: true, hurt: true, push: true, ghost: true }, timer: null };
+  const svgA = document.getElementById("svgA");
+  const tracksA = document.getElementById("tracksA");
+  function trackHTML() {
+    const lane = (segs) => `<div class="lane">${segs}</div>`;
+    const seg = (f0, f1, bg, label, extra = "") => `<div class="seg" style="left:calc(${(f0 - 1) / TOTAL * 100}% + 1px);width:calc(${(f1 - f0 + 1) / TOTAL * 100}% - 2px);background:${bg};${extra}">${label}</div>`;
+    let ruler = ""; for (let i = 1; i <= TOTAL; i++) ruler += seg(i, i, "none", i);
+    const rows = [
+      ["", "", ruler, "ruler"],
+      ["Timing", "", seg(1, 6, "#f2b04a", "Wind-up · 7") + seg(7, 9, "#ff5a6e", "Hitting · 3") + seg(10, 23, "#5f8dff", "Cool-down · 14")],
+      ["<i style='width:9px;height:9px;border-radius:2px;background:#ff5a6e'></i>Hits here", "", seg(7, 9, "#ff5a6e55", "", "border:1.5px solid #ff5a6e")],
+      ["<i style='width:9px;height:9px;border-radius:2px;background:#4fd18b'></i>Can be hit", "<small>body</small>", seg(1, 23, "#4fd18b33", "", "border:1.5px solid #4fd18b")],
+      ["", "<small style='padding-left:16px'>arm</small>", seg(7, 11, "#4fd18b33", "", "border:1.5px solid #4fd18b")],
+      ["<i style='width:9px;height:9px;border-radius:2px;border:1.5px dashed #c9cfdc'></i>Body", "", seg(1, 23, "transparent", "", "border:1.5px dashed #c9cfdc")],
+      ["Can interrupt", "", seg(7, 14, "#6fd6e8", "→ Heavy · Jump · Specials · Super")]
+    ];
+    let h = "";
+    for (const r of rows) h += `<div class="trk ${r[3] || ""}"><div class="lb">${r[0]}${r[1]}</div>${lane(r[2])}</div>`;
+    h += `<div class="scrub" id="scrubA" style="left:132px;right:0"><div class="playhead" id="headA"></div></div>`;
+    tracksA.innerHTML = h;
+  }
+  function drawA() {
+    svgA.innerHTML = scene(A.f, { k: 2.9, cx: 270, gy: 430, id: "a", theme: DARK, floor: true, pose: true, ghost: A.layers.ghost, layers: A.layers });
+    const p = PH[phase(A.f)];
+    const chip = document.getElementById("phaseA"); chip.textContent = p[0]; chip.style.background = p[1];
+    document.getElementById("frameA").innerHTML = String(A.f).padStart(2, "0") + "<span> / 23</span>";
+    document.getElementById("secA").textContent = `frame ${A.f} · ${(A.f / 60).toFixed(2)} s into the move`;
+    const head = document.getElementById("headA");
+    if (head) head.style.left = `calc(${(A.f - 0.5) / TOTAL * 100}% - 1px)`;
+  }
+  trackHTML(); drawA();
+  const scrub = document.getElementById("scrubA");
+  function scrubTo(e) {
+    const r = scrub.getBoundingClientRect();
+    A.f = Math.max(1, Math.min(TOTAL, Math.floor((e.clientX - r.left) / r.width * TOTAL) + 1)); drawA();
+  }
+  scrub.addEventListener("pointerdown", e => { scrub.setPointerCapture(e.pointerId); scrubTo(e); });
+  scrub.addEventListener("pointermove", e => { if (e.buttons) scrubTo(e); });
+  document.getElementById("prevA").onclick = () => { A.f = A.f > 1 ? A.f - 1 : TOTAL; drawA(); };
+  document.getElementById("nextA").onclick = () => { A.f = A.f < TOTAL ? A.f + 1 : 1; drawA(); };
+  const playA = document.getElementById("playA");
+  playA.onclick = () => {
+    if (A.timer) { clearInterval(A.timer); A.timer = null; playA.textContent = "▶"; return; }
+    playA.textContent = "❚❚";
+    A.timer = setInterval(() => { A.f = A.f < TOTAL ? A.f + 1 : 1; drawA(); }, 66);
+  };
+  document.querySelectorAll("#layersA .layer").forEach(b => b.onclick = () => {
+    const l = b.dataset.l; A.layers[l] = !A.layers[l]; b.setAttribute("aria-pressed", A.layers[l]); drawA();
+  });
+
+  // ---------- B ----------
+  const svgB = document.getElementById("svgB"), rangeB = document.getElementById("rangeB");
+  function drawB() {
+    const f = +rangeB.value;
+    svgB.innerHTML = scene(f, { k: 2.1, cx: 170, gy: 296, id: "b", theme: LIGHT, floor: true, pose: true, ghost: true, layers: { hit: true, hurt: true, push: true } });
+    document.getElementById("labB").textContent = "Frame " + f;
+    const ph = phase(f), el = document.getElementById("phB");
+    el.textContent = { windup: "Wind-up", active: "Hits", recover: "Recovering" }[ph];
+    el.style.background = { windup: "#d4932e", active: "#e2465b", recover: "#4b74e0" }[ph]; el.style.color = "#fff";
+  }
+  rangeB.addEventListener("input", drawB); drawB();
+  document.querySelectorAll("#appB .th").forEach((el, i) => {
+    el.innerHTML = `<svg viewBox="0 0 42 42" width="42" height="42">${scene(+el.dataset.thumb, { k: .27, cx: 15, gy: 38, id: "t" + i, theme: LIGHT, pose: true, crouch: !!el.dataset.crouch })}</svg>`;
+  });
+
+  // ---------- C ----------
+  const SPEED = (s, a, r) => `<div class="mini"><i style="flex:${s - 1};background:#f2b04a"></i><i style="flex:${a};background:#ff5a6e"></i><i style="flex:${r};background:#5f8dff"></i></div>`;
+  const N = {
+    "5a": { x: 28, y: 92, name: "Standing Light", ins: `<span class="kc">A</span>`, meta: "300 dmg · 15 f", fd: [5, 3, 8] },
+    "2a": { x: 28, y: 236, name: "Crouching Light", ins: `<span class="arrows">↓</span><span class="kc">A</span>`, meta: "250 dmg · 15 f", fd: [5, 2, 9] },
+    "5b": { x: 246, y: 92, name: "Standing Medium", ins: `<span class="kc">B</span>`, meta: "500 dmg · 23 f", fd: [7, 3, 14] },
+    "2b": { x: 246, y: 236, name: "Crouching Medium", ins: `<span class="arrows">↓</span><span class="kc">B</span>`, meta: "450 dmg · 22 f", fd: [7, 3, 13] },
+    "5c": { x: 464, y: 60, name: "Standing Heavy", ins: `<span class="kc">C</span>`, meta: "800 dmg · 33 f", fd: [10, 4, 20] },
+    "2c": { x: 464, y: 186, name: "Crouching Heavy", ins: `<span class="arrows">↓</span><span class="kc">C</span>`, meta: "900 dmg · 36 f", fd: [9, 3, 25] },
+    "5d": { x: 464, y: 312, name: "Standing D", ins: `<span class="kc">D</span>`, meta: "700 dmg · 40 f", fd: [20, 3, 18] },
+    "jmp": { x: 246, y: 420, name: "Jump", ins: `<span class="arrows">↑</span>`, meta: "cancels into the air", fd: null },
+    "236c": { x: 712, y: 82, name: "Fireball", ins: `<span class="arrows">↓↘→</span><span class="kc">C</span>`, meta: "projectile · 600 dmg", fd: [33, 1, 32] },
+    "623c": { x: 712, y: 206, name: "Rising Uppercut", ins: `<span class="arrows">→↓↘</span><span class="kc">C</span>`, meta: "1400 dmg · 43 f", fd: [6, 8, 30] },
+    "super": { x: 712, y: 380, name: "Super", ins: `<span class="arrows">↓↘→↓↘→</span><span class="kc">D</span>`, meta: "3000 dmg · 51 f", fd: [8, 4, 40] }
+  };
+  const NH = 78, NW = 176;
+  let nodes = "";
+  for (const [id, n] of Object.entries(N)) {
+    const cls = id === "5b" ? "sel" : ["5a", "2a"].includes(id) ? "dim" : "";
+    nodes += `<div class="node ${cls}" style="left:${n.x}px;top:${n.y}px"><div class="r1"><b>${n.name}</b><span class="ins">${n.ins}</span></div><div class="meta">${n.meta}</div>${n.fd ? SPEED(...n.fd) : `<div class="mini"><i style="flex:1;background:#7fe3f0"></i></div>`}</div>`;
+  }
+  nodes += `<div class="group" style="left:700px;top:66px;width:200px;height:232px"><span>Any special move</span></div>`;
+  document.getElementById("nodesC").innerHTML = nodes;
+  const R = id => [N[id].x + NW, N[id].y + NH / 2], L = id => [N[id].x, N[id].y + NH / 2];
+  function curve(a, b) { const dx = Math.max(40, (b[0] - a[0]) / 2); return `M${a[0]} ${a[1]} C${a[0] + dx} ${a[1]} ${b[0] - dx} ${b[1]} ${b[0] - 6} ${b[1]}`; }
+  let e = `<defs><marker id="arrH" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7fe3f0"/></marker><marker id="arrD" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4b4f86"/></marker><filter id="gl"><feGaussianBlur stdDeviation="3"/></filter></defs>`;
+  const dim = (a, b) => `<path d="${curve(a, b)}" fill="none" stroke="#3b3e72" stroke-width="1.6" marker-end="url(#arrD)"/>`;
+  const hot = (a, b) => `<path d="${curve(a, b)}" fill="none" stroke="#7fe3f0" stroke-width="5" opacity=".25" filter="url(#gl)"/><path d="${curve(a, b)}" fill="none" stroke="#7fe3f0" stroke-width="2" marker-end="url(#arrH)"/>`;
+  for (const s of ["5a", "2a"]) for (const t of ["5b", "2b"]) e += dim(R(s), L(t));
+  e += `<path d="M${N["5a"].x + 60} ${N["5a"].y + NH} L${N["2a"].x + 60} ${N["2a"].y - 6}" stroke="#3b3e72" stroke-width="1.6" marker-end="url(#arrD)"/><path d="M${N["2a"].x + 116} ${N["2a"].y} L${N["5a"].x + 116} ${N["5a"].y + NH + 6}" stroke="#3b3e72" stroke-width="1.6" marker-end="url(#arrD)"/>`;
+  for (const t of ["5c", "2c", "5d"]) e += dim(R("2b"), L(t));
+  for (const t of ["5c", "2c", "5d"]) e += hot(R("5b"), L(t));
+  e += hot(R("5b"), [700, 182]);
+  e += hot(R("5b"), L("super"));
+  e += `<path d="M${N["5b"].x + 88} ${N["5b"].y + NH} C${N["5b"].x + 88} 300 ${N["5b"].x + 30} 330 ${N["jmp"].x + 40} ${N["jmp"].y - 6}" fill="none" stroke="#7fe3f0" stroke-width="2" marker-end="url(#arrH)"/>`;
+  document.getElementById("edgesC").innerHTML = e;
+  document.getElementById("svgC").innerHTML = scene(8, { k: 1.5, cx: 130, gy: 214, id: "c", theme: INDIGO, floor: true, pose: true, ghost: true, layers: { hit: true, hurt: true, push: true } });
+  const cells = document.getElementById("cellsC"), nums = document.getElementById("numsC");
+  cells.style.gridTemplateColumns = nums.style.gridTemplateColumns = `repeat(${TOTAL}, 1fr)`;
+  let ch = "", nh = "";
+  for (let f = 1; f <= TOTAL; f++) {
+    const c = { windup: "#f2b04a", active: "#ff5a6e", recover: "#5f8dff" }[phase(f)];
+    ch += `<i class="${f >= 7 && f <= 9 ? "hit" : ""} ${f === 8 ? "cur" : ""}" style="background:${c}${f === 8 ? "" : "cc"}"></i>`;
+    nh += `<span>${f}</span>`;
+  }
+  cells.innerHTML = ch; nums.innerHTML = nh;
+
+  // ---------- scale each 1280×780 window to its column ----------
+  const fits = document.querySelectorAll(".fit");
+  function fit() { fits.forEach(w => { const s = w.clientWidth / 1280; w.firstElementChild.style.transform = `scale(${s})`; w.style.height = 780 * s + "px"; }); }
+  fit();
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.body); else window.addEventListener("resize", fit);
+})();
+</script>

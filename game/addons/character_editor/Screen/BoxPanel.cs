@@ -11,6 +11,10 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// A move's hit, hurt, push and throw boxes, one frame at a time: pick the frame, draw and drag boxes on the
 /// <see cref="BoxCanvas"/>, edit the selected box's fields, and copy a frame's boxes onto another frame.
 /// </summary>
+/// <remarks>
+/// The panel drives <see cref="Canvas"/> but doesn't hold it, so the owner can show it elsewhere (the drawer's
+/// preview); the frame this panel picks is the frame the canvas shows.
+/// </remarks>
 [Tool]
 public partial class BoxPanel : VBoxContainer
 {
@@ -28,6 +32,12 @@ public partial class BoxPanel : VBoxContainer
 
     private readonly SpinBox _copyTo = new() { MinValue = 1, Step = 1, Rounded = true };
     private readonly BoxCanvas _canvas = new();
+    private readonly Label _hint = new()
+    {
+        Text = "Click a box to select it. Pick a kind and drag on empty space to draw one. Right-drag pans, the wheel zooms; hold Alt to place edges off the pixel grid.",
+        AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        ThemeTypeVariation = Look.MapTheme.MutedLabel,
+    };
     private readonly Label _selectedTitle = new();
     private readonly SchemaForm _selectedForm = new();
     private readonly Button _removeFromFrame = new() { Text = "Remove from this frame" };
@@ -37,14 +47,16 @@ public partial class BoxPanel : VBoxContainer
 
     public BoxPanel()
     {
-        AddChild(Row(
-            new Label { Text = "Frame" }, Step("<", -1), _frame, Step(">", 1), _frameCount,
-            new Label { Text = "Draw" }, _drawKind, _thisFrameOnly));
+        AddChild(_hint);
+        AddChild(Row(new Label { Text = "Frame" }, Step("‹", -1), _frame, Step("›", 1), _frameCount));
+        AddChild(Row(new Label { Text = "Draw" }, _drawKind, _thisFrameOnly));
         var copy = new Button { Text = "Copy this frame's boxes to frame" };
         copy.Pressed += CopyFrame;
         AddChild(Row(copy, _copyTo));
-        AddChild(_canvas);
-        AddChild(Row(_selectedTitle, _removeFromFrame, _delete));
+        _selectedTitle.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _selectedTitle.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        AddChild(_selectedTitle);
+        AddChild(Row(_removeFromFrame, _delete));
         AddChild(_selectedForm);
 
         _frame.ValueChanged += _ => ShowFrame();
@@ -73,6 +85,9 @@ public partial class BoxPanel : VBoxContainer
 
     public int Frame => (int)_frame.Value;
 
+    /// <summary>The canvas this panel draws on; the owner adds it where it should appear.</summary>
+    public BoxCanvas Canvas => _canvas;
+
     /// <summary>Shows the character's model behind the boxes, when it has one.</summary>
     public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds) =>
         _canvas.ShowCharacter(characterId, moveIds);
@@ -95,9 +110,9 @@ public partial class BoxPanel : VBoxContainer
     /// <summary>Shows a frame picked elsewhere, e.g. on the timeline.</summary>
     public void SelectFrame(int frame) => _frame.Value = frame;
 
-    private static HBoxContainer Row(params Control[] controls)
+    private static HFlowContainer Row(params Control[] controls)
     {
-        var row = new HBoxContainer();
+        var row = new HFlowContainer();
         foreach (Control control in controls)
         {
             row.AddChild(control);

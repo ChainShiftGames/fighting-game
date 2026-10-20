@@ -15,7 +15,11 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// placeholder body when it has none, every box on the frame in the hitbox overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
 /// new box of <see cref="DrawKind"/> on empty space; right- or middle-drag pans; the wheel zooms.
 /// </summary>
-/// <remarks>Edges snap to whole pixels; hold Alt to place them on any subpixel.</remarks>
+/// <remarks>
+/// Edges snap to whole pixels; hold Alt to place them on any subpixel. While not <see cref="Editable"/> a left click
+/// only raises <see cref="Clicked"/> (the drawer then opens its hit areas tab); panning and zooming still work. An
+/// opponent standing at point blank (<see cref="Opponent"/>) is outlined, so the reach of hit boxes shows.
+/// </remarks>
 [Tool]
 public partial class BoxCanvas : Control
 {
@@ -25,19 +29,33 @@ public partial class BoxCanvas : Control
     private const float MinZoom = 0.25f;
     private const float MaxZoom = 12f;
     private const float ZoomStep = 1.15f;
-    private const float FloorFromTop = 0.85f;
+    private const float FloorFromTop = 0.88f;
+    private const float OriginFromLeft = 0.4f;
+    // Developer setting (editor look): the height in pixels a reset view fits, a standing body with headroom.
+    private const float FittedHeight = 150f;
     private const float HandleSize = 7f;
     private const float FillAlpha = 0.2f;
     private const float OutlineWidth = 1.5f;
     private const float SelectedWidth = 3f;
 
-    private static readonly Color _background = new(0.12f, 0.12f, 0.14f);
-    private static readonly Color _axis = new(1f, 1f, 1f, 0.25f);
+    private static readonly Color _axis = new(1f, 1f, 1f, 0.07f);
+    private static readonly Color _opponent = Look.MapPalette.Muted with { A = 0.75f };
     private static readonly Color _body = new(0.55f, 0.55f, 0.6f, 0.45f);
     private static readonly Color _unknownKind = new(0.6f, 0.6f, 0.6f);
     private static readonly Color _handle = new(1f, 1f, 1f);
 
     private readonly ModelPreview _preview = new();
+    private readonly GradientTexture2D _backdrop = new()
+    {
+        Gradient = new Gradient
+        {
+            Colors = [Look.MapPalette.PreviewCentre, Look.MapPalette.Panel],
+            Offsets = [0f, 1f],
+        },
+        Fill = GradientTexture2D.FillEnum.Radial,
+        FillFrom = new Vector2(0.5f, 0.35f),
+        FillTo = new Vector2(1.05f, 0.95f),
+    };
     private JsonObject _move = [];
     private IReadOnlyList<string> _fieldOrder = [];
     private int _frame = 1;
@@ -54,11 +72,13 @@ public partial class BoxCanvas : Control
 
     public BoxCanvas()
     {
-        CustomMinimumSize = new Vector2(0f, 360f);
         ClipContents = true;
         FocusMode = FocusModeEnum.Click;
         AddChild(_preview);
     }
+
+    /// <summary>Clicked while not <see cref="Editable"/>.</summary>
+    public event Action? Clicked;
 
     /// <summary>The selected box changed (null: none).</summary>
     public event Action<JsonObject?>? SelectionChanged;
@@ -74,10 +94,24 @@ public partial class BoxCanvas : Control
     /// <summary>Dragging a box that spans several frames first splits this frame out of it.</summary>
     public bool ThisFrameOnly { get; set; } = true;
 
+    /// <summary>Left-drags select, move and draw boxes; otherwise the canvas only shows them.</summary>
+    public bool Editable { get; set; } = true;
+
+    /// <summary>Hurt boxes of an opponent at point blank, outlined behind the move's boxes; empty for none.</summary>
+    public IReadOnlyList<BoxArea> Opponent { get; set; } = [];
+
     /// <summary>Shows the character's model behind the boxes, when its art file has one; null for none.</summary>
     public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds)
     {
         _preview.ShowCharacter(characterId, moveIds);
+        QueueRedraw();
+    }
+
+    /// <summary>Forgets panning and zooming: the body fits the canvas height again, standing on its floor.</summary>
+    public void ResetView()
+    {
+        _origin = null;
+        _zoom = Mathf.Clamp(Size.Y * FloorFromTop / FittedHeight, MinZoom, MaxZoom);
         QueueRedraw();
     }
 
@@ -93,10 +127,14 @@ public partial class BoxCanvas : Control
 
     public override void _Draw()
     {
-        DrawRect(new Rect2(Vector2.Zero, Size), _background);
+        DrawTextureRect(_backdrop, new Rect2(Vector2.Zero, Size), tile: false);
         Vector2 origin = Origin();
-        DrawLine(new Vector2(0f, origin.Y), new Vector2(Size.X, origin.Y), _axis);
-        DrawLine(new Vector2(origin.X, 0f), new Vector2(origin.X, Size.Y), _axis);
+        DrawLine(new Vector2(0f, origin.Y), new Vector2(Size.X, origin.Y), Look.MapPalette.Line, 1.5f);
+        DrawLine(new Vector2(origin.X, 0f), new Vector2(origin.X, origin.Y), _axis);
+        foreach (BoxArea area in Opponent)
+        {
+            Look.ShapeArt.Dashed(this, ToScreen(area), 6f * _zoom, _opponent, 1.5f, 5f);
+        }
         if (_preview.HasModel)
         {
             _preview.ShowFrame(_move, _frame, Size, origin, _zoom / Subpixels);
@@ -139,6 +177,13 @@ public partial class BoxCanvas : Control
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Right or MouseButton.Middle } pan:
                 _panning = pan.Pressed;
+                AcceptEvent();
+                break;
+            case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } when !Editable:
+                Clicked?.Invoke();
+                AcceptEvent();
+                break;
+            case InputEventMouseButton { ButtonIndex: MouseButton.Left } when !Editable:
                 AcceptEvent();
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left } click:
@@ -301,7 +346,7 @@ public partial class BoxCanvas : Control
         QueueRedraw();
     }
 
-    private Vector2 Origin() => _origin ?? new Vector2(Size.X / 2f, Size.Y * FloorFromTop);
+    private Vector2 Origin() => _origin ?? new Vector2(Size.X * OriginFromLeft, Size.Y * FloorFromTop);
 
     // Data y points up, screen y down; a box's top (Y + Height) is its rectangle's top edge.
     private Rect2 ToScreen(BoxArea area) => new(

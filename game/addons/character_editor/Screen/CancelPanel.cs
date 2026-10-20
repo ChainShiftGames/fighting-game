@@ -15,7 +15,7 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 public partial class CancelPanel : VBoxContainer
 {
     private readonly VBoxContainer _windows = new();
-    private readonly Button _add = new() { Text = "Add cancel window" };
+    private readonly Button _add = new() { Text = "+ Add a chain window" };
     private JsonObject _move = [];
     private SchemaObject _moveSchema = SchemaObject.Empty;
     private IReadOnlyList<string> _targets = [];
@@ -31,6 +31,9 @@ public partial class CancelPanel : VBoxContainer
             Callable.From(Rebuild).CallDeferred();
         };
     }
+
+    /// <summary>How a target move is labelled; its id when unset.</summary>
+    public Func<string, string>? NameOf { get; set; }
 
     /// <summary>A window changed, or one was added or removed.</summary>
     public event Action? Changed;
@@ -63,7 +66,12 @@ public partial class CancelPanel : VBoxContainer
     private void AddWindow(int number, JsonObject window, SchemaObject windowSchema)
     {
         var header = new HBoxContainer();
-        header.AddChild(new Label { Text = $"Cancel {number}", SizeFlagsHorizontal = SizeFlags.ExpandFill });
+        header.AddChild(new Label
+        {
+            Text = $"Window {number}",
+            ThemeTypeVariation = Look.MapTheme.FactLabel,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        });
         var remove = new Button { Text = "Remove" };
         remove.Pressed += () =>
         {
@@ -97,7 +105,7 @@ public partial class CancelPanel : VBoxContainer
         {
             var check = new CheckBox
             {
-                Text = target,
+                Text = NameOf is null ? target : $"{NameOf(target)} · {target}",
                 ButtonPressed = JsonStringList.Contains(window, MoveFields.Into, target),
             };
             check.Toggled += on =>
