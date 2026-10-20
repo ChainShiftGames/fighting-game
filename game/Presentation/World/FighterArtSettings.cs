@@ -37,6 +37,25 @@ public sealed record FighterArtSettings(
     /// <summary>Frames each pose is shown for, for every move without its own setting: 1, or 2-3 for animation on 2s or 3s.</summary>
     public int HoldFrames { get; init; } = 1;
 
+    /// <summary>Models to compare with <see cref="Model"/>, playing the same clips; picked with <see cref="WithModel"/>.</summary>
+    public IReadOnlyList<FighterModelVariant> OtherModels { get; init; } = [];
+
+    /// <summary>
+    /// These settings drawn with model <paramref name="variant"/>: 0 is <see cref="Model"/>, 1 on the other models in
+    /// order, counting round past the last.
+    /// </summary>
+    public FighterArtSettings WithModel(int variant)
+    {
+        int index = variant % (OtherModels.Count + 1);
+        if (index <= 0)
+        {
+            return this;
+        }
+
+        FighterModelVariant other = OtherModels[index - 1];
+        return this with { Model = other.Model, Scale = other.Scale, TurnDegrees = other.TurnDegrees };
+    }
+
     public static FighterArtSettings Placeholder { get; } =
         new(FighterArtKind.Placeholder, string.Empty, 1f, 0f, new Dictionary<string, AnimationSettings>(), []);
 

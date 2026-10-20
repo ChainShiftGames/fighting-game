@@ -63,6 +63,7 @@ would need per-layer scroll scripts.
   sideways the further back they stand.
 - The castle hall stays as the code-built test stage until stage 1 replaces it in `stage_art.json`.
 - Shared stage shaders in `game/Assets/Shaders/`: `stage_toon` (banded, fogged), `stage_projection` (key art from the
-  round-start camera; `StageProjectionTests` fail when the camera settings move away from it), `stage_card`.
+  round-start camera; `StageProjectionTests` fail when the camera settings move away from it; `_shadowed` for floors),
+  `stage_card`.
 - Changing the camera's field of view, visible height or floor line re-frames every stage's key art.
 - Next: a decision on Git LFS before large layered or `.blend` source files are committed.

@@ -25,11 +25,13 @@ in order; each ends with a checkpoint in the running game.
 - Fill in `reference/notes.md` first: palette, image model, style reference.
 - Prompt: [art-prompts.md](world/art-prompts.md), Aristocratic Region + Stage blocks. Use the camera guide
   (`camera_guide_clean.png`) as the image-to-image or structure input.
-- A concept made without the guide can be fitted afterwards: crop it to the game's horizon and check it with the
-  fighters laid over it (`concept_plaza_01_game_frame.png`, `_guide_overlay.png`).
+- A concept made without the guide can be fitted afterwards by matching its horizon to the camera's eye level
+  (how, for this stage: `royal_plaza/reference/notes.md`, "Fit"). Keep the horizon near mid-height as in the guide:
+  a low horizon leaves the top of the painting out of view.
 - Key art also needs: nothing standing on or in front of the floor line where fighters play; no foreground foliage
   across the bottom (corners at most); a floor a little darker than near-white; and widened evenly sideways to about
-  2.75:1 so the back layers cover the camera's travel to both walls.
+  2.75:1 so the back layers cover the camera's travel to both walls. A painted floor projected near the fighters
+  needs ~6.6:1 (Royal Plaza's notes.md, "Fit").
 
 - Generate several, choose one with strong edge framing, a simple floor, and a background that doesn't compete with
   the fighters. Don't use published games' art as an input (ADR-0030 §4).

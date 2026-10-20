@@ -101,7 +101,7 @@ public sealed class OnlineMatchStartup
             effects.Observe(lineup.RecordedSimulation(recorder)), settings, delay, opponent.Transport, handshake);
         var connection = new ConnectionMeter(driver, opponent.Transport.Link, Stopwatch.Frequency);
         var view = new MatchView();
-        view.Show(driver, lineup.Characters, lineup.Screen, _hitboxOverlay, effects);
+        view.Show(driver, lineup.Characters, lineup.Simulation.Rules, lineup.Screen, _hitboxOverlay, effects);
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);

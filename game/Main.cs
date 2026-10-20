@@ -66,6 +66,7 @@ public partial class Main : Node2D
     private readonly DeveloperToggle _pause = new("Pause (frame stepping)", Key.F5);
     private readonly EffectToggles _effectToggles = new();
     private readonly LookToggles _lookToggles = new();
+    private readonly FighterModelSwitch _modelSwitch = new();
 
     // Developer setting until there is a replay menu (ADR-0018 §5): every match's replay goes to ReplaysPath.
     private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
@@ -132,6 +133,8 @@ public partial class Main : Node2D
         networkSimulator.Build(_networkSimulation);
         _debugPanel.AddSection("Network simulator (developer settings, act at once)", networkSimulator);
         AddFighterLookSection(_debugPanel);
+        _modelSwitch.Switched += variant => _modelSwitch.ShowName(_match?.View.ShowModel(variant) ?? string.Empty);
+        _debugPanel.AddSection("Fighter model (developer setting, not saved)", _modelSwitch);
         AddChild(_debugPanel);
         _networkReadout = new NetworkReadout(_networkSimulation);
 
@@ -427,6 +430,7 @@ public partial class Main : Node2D
         _match = match;
         GD.Print($"Match: {match.Description}");
         match.View.FollowLook(_lookToggles);
+        _modelSwitch.ShowName(match.View.ShowModel(_modelSwitch.Variant));
         AddChild(match.View);
         MoveChild(match.View, 0);
         _matchmakingMenu!.Visible = false;

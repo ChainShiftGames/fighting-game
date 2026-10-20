@@ -36,6 +36,10 @@ Step-by-step walkthrough (first stage): [docs/testingstage.md](../../../../docs/
     round-start camera. Its defaults fit a painting made over the camera guide; a painting widened evenly sideways
     only needs the new file. Paint the guide in a 16:9 window (the default 1152×648 is).
   - **`stage_card`**: `QuadMesh` cards in `Back` and `Sky`, with optional scroll, sway and flicker.
+  - **`stage_projection_shadowed`**: the same projection for a painted floor, darkened where the key light's
+    shadow falls, so fighters cast shadows on it.
+- **`FighterStageLight`** (node under `Lighting`): tints the fighters' toon light with the stage's sun, sky and a rim,
+  so they sit in the stage. Without it the fighters look as in every other stage.
 - **Guides** (hidden node): logic walls and two fighter-sized boxes at the round start. Turn them on while building,
   off before saving.
 - Behind the plane, the camera sees wider than the walls (x = ±8.57 m): the further back a layer stands, the further

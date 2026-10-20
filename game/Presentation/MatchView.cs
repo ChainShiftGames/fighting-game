@@ -8,6 +8,7 @@ using Netcode.Drivers;
 using Sim.Characters;
 using Sim.Collision;
 using Sim.Math;
+using Sim.Rules;
 using Sim.State;
 using LogicScreen = Sim.Camera.CameraFraming;
 
@@ -41,15 +42,18 @@ public partial class MatchView : Node2D
     private System.Func<Sim.Events.FrameEvent, bool>? _sparkDrawnElsewhere;
     private readonly BackdropBlur _backdropBlur = new();
     private LookToggles? _look;
+    private int _modelVariant;
     private AnimeGrade? _grade;
 
     /// <param name="characters">P1's and P2's character, for their boxes and move names.</param>
+    /// <param name="rules">The match rules, for the HUD's round count and gauges.</param>
     /// <param name="screen">The logic camera's width and the stage walls, from the match rules.</param>
     /// <param name="hitboxOverlay">Draws every box when on (developer setting).</param>
     /// <param name="effects">The match's event effects; its sounds join the scene as a child of this view.</param>
     public void Show(
         IMatchDriver<MatchState> driver,
         CharacterData[] characters,
+        in MatchRules rules,
         LogicScreen screen,
         DeveloperToggle hitboxOverlay,
         MatchEffects effects)
@@ -60,7 +64,7 @@ public partial class MatchView : Node2D
         _hitboxOverlay = hitboxOverlay;
         _effects = effects;
         AddChild(effects.Sounds);
-        _hud.Show(driver, characters);
+        _hud.Show(driver, characters, in rules);
         _stage.Build(screen.Stage);
         _worldCamera.UsePerspective = _stage.WantsPerspective;
         ProjectileArtSettings?[][] projectileArt = ProjectileArtLookup.Of(characters);
@@ -70,11 +74,56 @@ public partial class MatchView : Node2D
         _sparkDrawnElsewhere = _impacts.HasArt;
         for (int player = 0; player < MatchState.PlayerCount; player++)
         {
-            _fighterNodes[player] =
-                FighterArtChoice.Create(characters[player], _fighterColors[player], out IFighterArt art);
-            _fighterArt[player] = art;
+            CreateFighter(player);
         }
     }
+
+    /// <summary>
+    /// Redraws both fighters with model <paramref name="variant"/> of their art files (developer setting, see
+    /// <see cref="FighterArtSettings.WithModel"/>), in place, so models can be compared mid-match.
+    /// </summary>
+    /// <returns>P1's model file now shown; empty for a placeholder.</returns>
+    public string ShowModel(int variant)
+    {
+        if (variant != _modelVariant)
+        {
+            SwapModels(variant);
+        }
+
+        return _characters.Length == 0
+            ? string.Empty
+            : FighterArtChoice.ReadSettings(_characters[0].Id)?.WithModel(variant).Model ?? string.Empty;
+    }
+
+    private void SwapModels(int variant)
+    {
+        _modelVariant = variant;
+        for (int player = 0; player < MatchState.PlayerCount && _characters.Length > 0; player++)
+        {
+            Node3D? old = _fighterNodes[player];
+            CreateFighter(player);
+            if (old is null)
+            {
+                continue;
+            }
+
+            if (!old.IsInsideTree())
+            {
+                // Not shown yet: _Ready adds the new one.
+                old.Free();
+                continue;
+            }
+
+            int index = old.GetIndex();
+            old.QueueFree();
+            AddChild(_fighterNodes[player]);
+            MoveChild(_fighterNodes[player]!, index);
+        }
+    }
+
+    private void CreateFighter(int player) =>
+        _fighterNodes[player] = FighterArtChoice.Create(
+            _characters[player], _fighterColors[player], _modelVariant, out _fighterArt[player]);
 
     /// <summary>The whole-screen looks to follow (developer settings); without them the stage shows its own look.</summary>
     public void FollowLook(LookToggles look) => _look = look;

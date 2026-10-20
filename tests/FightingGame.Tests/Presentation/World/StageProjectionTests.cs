@@ -18,7 +18,7 @@ public sealed class StageProjectionTests
 {
     private static readonly Vector2 _guideViewport = new(1920f, 1080f);
     private static readonly string _shader = File.ReadAllText(Path.Combine(
-        TestGameData.RepositoryRoot, "game", "Assets", "Shaders", "stage_projection.gdshader"));
+        TestGameData.RepositoryRoot, "game", "Assets", "Shaders", "stage_projection.gdshaderinc"));
 
     private static CameraFraming RoundStart()
     {

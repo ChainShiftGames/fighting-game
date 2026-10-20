@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://Assets/Shaders/toon_double_sided.gdshader" id="toon"]
+[ext_resource type="Texture2D" path="res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01_007_01_lit.png" id="texture"]
+[ext_resource type="Shader" path="res://Assets/Shaders/toon_outline.gdshader" id="outline_shader"]
+
+[sub_resource type="ShaderMaterial" id="outline"]
+shader = ExtResource("outline_shader")
+shader_parameter/lit_texture = ExtResource("texture")
+shader_parameter/outline_color = Color(0.2745, 0.0902, 0.1255, 1.0000)
+shader_parameter/alpha_cutoff = 0.5000
+
+[resource]
+shader = ExtResource("toon")
+next_pass = SubResource("outline")
+shader_parameter/lit_texture = ExtResource("texture")
+shader_parameter/lit_color = Color(0.1766, 0.1291, 0.1699, 1.0000)
+shader_parameter/shade_color = Color(1.0000, 1.0000, 1.0000, 1.0000)
+shader_parameter/shading_shift = -0.1133
+shader_parameter/shading_toony = 0.9533
+shader_parameter/alpha_cutoff = 0.5000

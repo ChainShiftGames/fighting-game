@@ -25,6 +25,20 @@ def clean_name(name):
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
+def part_names(materials):
+    # Two VRoid garment slots can carry the same part name ("N00_007_01_Tops_01_..." and "N00_002_03_Tops_01_...");
+    # those keep their slot number so neither overwrites the other's files.
+    names = {m: clean_name(m.name) for m in materials}
+    counts = {}
+    for name in names.values():
+        counts[name] = counts.get(name, 0) + 1
+    for material, name in names.items():
+        slot = re.match(r"^N\d+_(\d+)_(\d+)_", material.name)
+        if counts[name] > 1 and slot:
+            names[material] = f"{name}_{slot.group(1)}_{slot.group(2)}"
+    return names
+
+
 def res_path(path):
     # Godot path of a file inside the project that holds project.godot.
     root = os.path.abspath(path)
@@ -98,8 +112,9 @@ def main():
                 ob.modifiers.remove(mod)
     used = {m for ob in bpy.data.objects if ob.type == "MESH" for m in ob.data.materials if m}
 
+    names = part_names(used)
     for material in sorted(used, key=lambda m: m.name):
-        name = clean_name(material.name)
+        name = names[material]
         texture_path = os.path.join(out_dir, f"{char_id}_{name}_lit.png")
         save_png(material.vrm_addon_extension.mtoon1.pbr_metallic_roughness.base_color_texture.index.source, texture_path)
         tres_path = os.path.join(out_dir, f"{char_id}_{name}.tres")

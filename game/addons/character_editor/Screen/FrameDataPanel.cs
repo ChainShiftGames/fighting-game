@@ -43,10 +43,14 @@ public partial class FrameDataPanel : VBoxContainer
     {
         _move = move;
         _fieldOrder = fieldOrder;
+        // The total label is kept: freeing it with the spin boxes made every later move fail to show.
         foreach (Node child in _fields.GetChildren())
         {
             _fields.RemoveChild(child);
-            child.QueueFree();
+            if (child != _total)
+            {
+                child.QueueFree();
+            }
         }
 
         _fields.AddChild(_total);

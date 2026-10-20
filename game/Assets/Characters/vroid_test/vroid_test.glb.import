@@ -71,6 +71,11 @@ _subresources={
 "use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_facebrow_00_face.tres",
 "use_external/path": "res://Assets/Characters/vroid_test/vroid_test_facebrow_00_face.tres"
 },
+"faceeyelash_00_face": {
+"use_external/enabled": true,
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_faceeyelash_00_face.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_faceeyelash_00_face.tres"
+},
 "faceeyeline_00_face": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_faceeyeline_00_face.tres",
@@ -91,50 +96,40 @@ _subresources={
 "use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_hairback_00_hair.tres",
 "use_external/path": "res://Assets/Characters/vroid_test/vroid_test_hairback_00_hair.tres"
 },
-"onepiece_00_cloth_01": {
+"tops_01_cloth_01_002_03": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_01.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_01.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01_002_03.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01_002_03.tres"
 },
-"onepiece_00_cloth_02": {
+"tops_01_cloth_01_007_01": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_02.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_02.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01_007_01.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01_007_01.tres"
 },
-"onepiece_00_cloth_03": {
+"tops_01_cloth_02_002_03": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_03.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_03.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02_002_03.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02_002_03.tres"
 },
-"onepiece_00_cloth_04": {
+"tops_01_cloth_02_007_01": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_04.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_onepiece_00_cloth_04.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02_007_01.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02_007_01.tres"
 },
-"shoes_01_cloth_01": {
+"tops_01_cloth_03": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_shoes_01_cloth_01.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_shoes_01_cloth_01.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_03.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_03.tres"
 },
-"shoes_01_cloth_02": {
+"tops_01_cloth_04": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_shoes_01_cloth_02.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_shoes_01_cloth_02.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_04.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_04.tres"
 },
-"tops_01_cloth": {
+"tops_01_cloth_05": {
 "use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth.tres"
-},
-"tops_01_cloth_01": {
-"use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_01.tres"
-},
-"tops_01_cloth_02": {
-"use_external/enabled": true,
-"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02.tres",
-"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_02.tres"
+"use_external/fallback_path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_05.tres",
+"use_external/path": "res://Assets/Characters/vroid_test/vroid_test_tops_01_cloth_05.tres"
 }
 },
 "nodes": {

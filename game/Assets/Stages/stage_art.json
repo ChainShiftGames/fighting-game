@@ -1,8 +1,9 @@
 {
-  // Test stage (P4-D): the castle hall, built from shaders and simple meshes; perspective so its depth shows.
+  // Stage 1 (P4-D): the Royal Plaza, layered cards cut from its key art over a modelled floor (ADR-0030).
+  // Back to the code-built test stage: "scene": "res://Presentation/World/Stages/CastleHall/CastleHallSet.tscn".
   // For the old picture instead: "background": "waterfall.webp", "groundLine": 0.22, "depth": 4, "parallax": 0.6,
   // "floor": true (and no scene).
   "artVersion": 1,
-  "scene": "res://Presentation/World/Stages/CastleHall/CastleHallSet.tscn",
+  "scene": "royal_plaza/stage.tscn",
   "perspective": true
 }

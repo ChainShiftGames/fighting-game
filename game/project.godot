@@ -26,3 +26,26 @@ project/solution_directory=".."
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/character_editor/plugin.cfg", "res://addons/godot_ai/plugin.cfg")
+
+[shader_globals]
+
+stage_light_tint={
+"type": "color",
+"value": Color(1, 1, 1, 1)
+}
+stage_shade_tint={
+"type": "color",
+"value": Color(1, 1, 1, 1)
+}
+stage_rim_color={
+"type": "color",
+"value": Color(0, 0, 0, 1)
+}
+effect_light_position={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+effect_light_color={
+"type": "color",
+"value": Color(0, 0, 0, 1)
+}

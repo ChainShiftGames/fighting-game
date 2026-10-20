@@ -14,5 +14,12 @@ public static class HudText
     public static string Timer(int framesLeft, int framesPerSecond) =>
         ((Math.Max(framesLeft, 0) + framesPerSecond - 1) / framesPerSecond).ToString(CultureInfo.InvariantCulture);
 
+    /// <summary>Share of one meter segment filled, 0 to 1, when the meter is split into equal segments filled in order.</summary>
+    public static float MeterSegmentFill(int meter, int segment, int segments, int fullMeter)
+    {
+        float perSegment = (float)fullMeter / segments;
+        return Math.Clamp((meter - (segment * perSegment)) / perSegment, 0f, 1f);
+    }
+
     public static string Round(int round) => string.Create(CultureInfo.InvariantCulture, $"ROUND {round}");
 }

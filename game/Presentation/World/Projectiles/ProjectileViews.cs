@@ -6,7 +6,7 @@ namespace FightingGame.Presentation.World.Projectiles;
 
 /// <summary>
 /// Shows every live projectile with the flight effect its owner's art file names for the move that spawned it. One
-/// without an effect shows only in the hitbox overlay.
+/// without an effect shows only in the hitbox overlay. The first shown effect that gives light lights the fighters.
 /// </summary>
 /// <remarks>
 /// Effect nodes are made at match start, one per entity slot a projectile could take, so a frame never allocates.
@@ -17,6 +17,7 @@ public partial class ProjectileViews : Node3D
     private Node3D?[][][] _nodes = [];
     private IProjectileArt?[][][] _art = [];
     private CharacterData[] _characters = [];
+    private readonly EffectLighting _lighting = new();
 
     /// <summary>Makes the effect nodes for P1's and P2's projectiles; call once, before the view joins the scene.</summary>
     /// <param name="arts">Per owner and projectile index, from <see cref="ProjectileArtLookup"/>.</param>
@@ -55,6 +56,7 @@ public partial class ProjectileViews : Node3D
     /// <summary>Shows the projectiles in <paramref name="entities"/> and hides every other effect node.</summary>
     public void ShowFrame(in EntityPool entities)
     {
+        bool lit = false;
         for (int owner = 0; owner < _nodes.Length; owner++)
         {
             int first = EntityPool.FirstSlotOf(owner);
@@ -75,9 +77,19 @@ public partial class ProjectileViews : Node3D
                         Vector3 centre = ProjectileCentre.Of(
                             character, in character.Projectiles[projectile], entity.Position, entity.Facing, entity.Frame);
                         art.ShowFrame(entity.Frame, centre, entity.Facing);
+                        if (!lit && art is IEffectLightSource source && source.LightNow(out Vector3 at, out Color colour, out float reach))
+                        {
+                            _lighting.Show(at, colour, reach);
+                            lit = true;
+                        }
                     }
                 }
             }
+        }
+
+        if (!lit)
+        {
+            _lighting.Clear();
         }
     }
 }

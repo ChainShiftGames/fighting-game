@@ -12,10 +12,11 @@ public static class FighterArtChoice
 {
     /// <param name="color">The placeholder's colour.</param>
     /// <param name="art">The art to give poses to each frame; the returned node is the same object.</param>
+    /// <param name="modelVariant">Which of the art file's models to draw (<see cref="FighterArtSettings.WithModel"/>).</param>
     /// <returns>The node to add to the 3D scene.</returns>
-    public static Node3D Create(CharacterData character, Color color, out IFighterArt art)
+    public static Node3D Create(CharacterData character, Color color, int modelVariant, out IFighterArt art)
     {
-        if (CreateModel(character.Id, character.MoveIds.ToArray()) is { } fighter)
+        if (CreateModel(character.Id, character.MoveIds.ToArray(), modelVariant) is { } fighter)
         {
             art = fighter;
             return fighter;
@@ -31,10 +32,15 @@ public static class FighterArtChoice
     /// The character's rigged model when its art file asks for one and it loads; null for a placeholder. Also used
     /// by the character editor, which has the move list but not the compiled character.
     /// </summary>
-    public static RiggedFighterModel? CreateModel(string characterId, IReadOnlyList<string> moveIds)
+    public static RiggedFighterModel? CreateModel(string characterId, IReadOnlyList<string> moveIds, int modelVariant = 0)
     {
-        if (ReadSettings(characterId) is not { Art: FighterArtKind.Model } settings ||
-            LoadModel(characterId, settings) is not { } model)
+        if (ReadSettings(characterId) is not { Art: FighterArtKind.Model } fileSettings)
+        {
+            return null;
+        }
+
+        FighterArtSettings settings = fileSettings.WithModel(modelVariant);
+        if (LoadModel(characterId, settings) is not { } model)
         {
             return null;
         }

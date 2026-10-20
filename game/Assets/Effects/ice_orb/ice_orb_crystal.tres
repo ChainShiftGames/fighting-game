@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://Assets/Effects/ice_orb_crystal.gdshader" id="1_crystal"]
+[ext_resource type="Texture2D" path="res://Assets/Effects/ice_orb/ice_orb_basecolor.png" id="2_basecolor"]
+
+[resource]
+shader = ExtResource("1_crystal")
+shader_parameter/basecolor = ExtResource("2_basecolor")
