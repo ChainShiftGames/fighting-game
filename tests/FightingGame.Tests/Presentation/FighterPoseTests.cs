@@ -39,6 +39,21 @@ public sealed class FighterPoseTests
     }
 
     [Fact]
+    public void CarriesTheStunAndHitstopLeft()
+    {
+        FighterState hit = Fighter(FighterAction.Hitstun, "hitstun", 1) with
+        {
+            StunFramesLeft = 13,
+            Timing = new FighterTiming { HitstopFramesLeft = 8 },
+        };
+
+        FighterPose pose = FighterPose.Of(_character, hit);
+
+        Assert.Equal(13, pose.StunFramesLeft);
+        Assert.Equal(8, pose.HitstopFramesLeft);
+    }
+
+    [Fact]
     public void NamesTheActionOfABasicMove()
     {
         FighterPose pose = FighterPose.Of(_character, Fighter(FighterAction.WalkForward, "idle", 12));
