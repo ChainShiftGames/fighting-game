@@ -31,6 +31,15 @@ public readonly record struct FighterPose(
     /// <summary>The fighter is KO'd: the model plays its knockout clip from the frame it happened.</summary>
     public bool IsKnockedOut { get; init; }
 
+    /// <summary>
+    /// Hitstun or blockstun frames left (<c>FighterState.StunFramesLeft</c>): set anew by every hit or block and
+    /// counted down only on frames the fighter advances, so the model counts a reaction by it.
+    /// </summary>
+    public int StunFramesLeft { get; init; }
+
+    /// <summary>Hitstop frames the fighter still skips (<c>FighterTiming.HitstopFramesLeft</c>); every hit sets it.</summary>
+    public int HitstopFramesLeft { get; init; }
+
     public static FighterPose Of(CharacterData character, in FighterState fighter)
     {
         MoveData move = character.Moves[fighter.Move];
@@ -44,6 +53,8 @@ public readonly record struct FighterPose(
             move.LastActiveFrame)
         {
             IsKnockedOut = KnockOut.IsKnockedOut(in fighter),
+            StunFramesLeft = fighter.StunFramesLeft,
+            HitstopFramesLeft = fighter.Timing.HitstopFramesLeft,
         };
     }
 

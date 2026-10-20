@@ -4,7 +4,7 @@ namespace FightingGame.Presentation.World;
 
 /// <summary>
 /// Crossfades into a basic move's clip from the pose shown just before (ADR-0028), so walking, crouching or ending
-/// an attack doesn't pop. Attacks never fade in: their first frame shows exactly what the frame data says.
+/// an attack doesn't pop. Attacks and hit or block reactions never fade in (<see cref="MayFadeInto"/>).
 /// </summary>
 /// <remarks>
 /// Weighted by match frames, never elapsed time: paused or stepped, the blend holds. After a rollback or a rewound
@@ -25,7 +25,7 @@ public sealed class PoseFade
     public double FromSeconds { get; private set; }
 
     /// <param name="clip">The clip shown this frame, by <see cref="BoundClip.Id"/>.</param>
-    /// <param name="fadeIn">The clip may fade in when it starts: it belongs to a basic move.</param>
+    /// <param name="fadeIn">The clip may fade in when it starts (<see cref="MayFadeInto"/>).</param>
     public void Observe(int clip, double seconds, bool fadeIn, int matchFrame)
     {
         if (clip != _lastClip)
@@ -47,4 +47,13 @@ public sealed class PoseFade
     /// <summary>How much of the new clip shows: rising to 1 over <paramref name="frames"/> frames after it starts.</summary>
     public float Weight(int matchFrame, int frames) =>
         FromClip == None || frames <= 0 ? 1f : Math.Min(1f, (matchFrame - _startFrame + 1f) / (frames + 1f));
+
+    /// <summary>
+    /// Whether the clip shown for <paramref name="pose"/> may fade in. Attacks snap, so their first frame shows exactly
+    /// what the frame data says; so do hit and block reactions, so the frame a hit lands shows it, the snap that
+    /// makes hits read (as in Guilty Gear). A rule, not a look setting: a re-hit restarts the same clip, which can't
+    /// fade, so a reaction that faded in on the first hit would snap only on the next ones.
+    /// </summary>
+    public static bool MayFadeInto(in FighterPose pose) =>
+        pose.FirstActiveFrame == 0 && !HitReactionActions.Includes(pose.Action);
 }

@@ -53,13 +53,16 @@ the authored contact pose. Something has to say where that pose is, and which ch
    and counts frames by the match frame (`FighterPose.MatchFrame`), never elapsed time; after a rollback or a
    rewound replay the match frame goes back and the transition is skipped, a cosmetic loss. Looping clips of basic
    moves count on the same clock, so idle runs through its whole clip and a one-frame crouch still animates.
-   Looks only: logic and boxes change on the move's first frame.
+   Looks only: logic and boxes change on the move's first frame. Hit and block reactions (stun actions) don't use
+   the match clock: `HitReactionClock` counts them from each hit by the fighter's stun countdown, so a reaction
+   restarts on every hit of a combo and holds in hitstop and freezes (air hitstun: match frames after its hitstop).
 6. **Look settings, all by match frames:** a basic move's clip crossfades in from the pose before
-   (`crossfadeFrames`, per move or for the file; attacks always snap, so their first frame is the frame data's);
+   (`crossfadeFrames`, per move or for the file; attacks and hit/block reactions always snap, so an attack's first
+   frame is the frame data's and the frame a hit lands shows it);
    a facing switch turns the model through facing the camera, where the mirrored pose looks the same
    (`turnFrames`); `cameraTurnDegrees` (0-90) keeps the model turned that far toward the camera at rest, the 3/4
    view fighting games cheat with, so face and chest read and toon shading falls predictably; `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
-   file. Per move, `clipFrom`/`clipTo` play part of a clip, `fit` squeezes it into the move (a 4-frame prejump from
+   file, held within each frame data phase so the first active frame always shows the contact pose. Per move, `clipFrom`/`clipTo` play part of a clip, `fit` squeezes it into the move (a 4-frame prejump from
    a jump clip's wind-up) and `holdHeight` keeps the root bone's height for a clip that jumps by itself. Poses are
    mixed by an animation tree that never advances on its own.
    `speed` plays a clip faster so a walk cycle's feet keep up with the logic's walk speed. `knockOut` names the
