@@ -50,10 +50,10 @@ public partial class Main : Node2D
         "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
         "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | --replay <file> plays one | --training: Tab menu";
 
-	// Player setting: a shortcut for the options menu's vsync entry.
-	private const Key ToggleVsyncKey = Key.F2;
+    // Player setting: a shortcut for the options menu's vsync entry.
+    private const Key ToggleVsyncKey = Key.F2;
 
-	// Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
+    // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
     private const uint SteamAppId = 480;
 
     private readonly PlayerSettingsStore _settingsStore = new(PlayerSettingsPath);
@@ -68,11 +68,11 @@ public partial class Main : Node2D
     private readonly LookToggles _lookToggles = new();
     private readonly FighterModelSwitch _modelSwitch = new();
 
-	// Developer setting until there is a replay menu (ADR-0018 §5): every match's replay goes to ReplaysPath.
-	private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
-	private readonly List<DeveloperToggle> _toggles = [];
+    // Developer setting until there is a replay menu (ADR-0018 §5): every match's replay goes to ReplaysPath.
+    private readonly DeveloperToggle _saveReplays = new("Save replays", Key.F11, enabled: true);
+    private readonly List<DeveloperToggle> _toggles = [];
 
-	// Developer settings: this PC's simulated network conditions, changed from the debug panel mid-match (P2-11).
+    // Developer settings: this PC's simulated network conditions, changed from the debug panel mid-match (P2-11).
     private readonly LiveNetworkSimulation _networkSimulation = new();
 
     private JoypadWatcher? _joypadWatcher;
@@ -371,130 +371,130 @@ public partial class Main : Node2D
     private StartedMatch? CreateReplayMatch(string path) =>
         TryCreateMatch("replay", () => _replayStartup!.Create(_data!.Load(), path));
 
-	// Invalid or missing data, or a replay this build can't play, stops the match and says why on screen; it is never
-	// patched up.
-	private StartedMatch? TryCreateMatch(string kind, Func<StartedMatch> create)
-	{
-		try
-		{
-			StartedMatch match = create();
-			_matchError = string.Empty;
-			return match;
-		}
-		catch (Exception exception) when (
-			exception is DataValidationException or IOException or InvalidDataException or ReplayRejectedException)
-		{
-			GD.PushError(exception.Message);
-			_matchError = $"No {kind} match:\n{exception.Message}";
-			return null;
-		}
-	}
+    // Invalid or missing data, or a replay this build can't play, stops the match and says why on screen; it is never
+    // patched up.
+    private StartedMatch? TryCreateMatch(string kind, Func<StartedMatch> create)
+    {
+        try
+        {
+            StartedMatch match = create();
+            _matchError = string.Empty;
+            return match;
+        }
+        catch (Exception exception) when (
+            exception is DataValidationException or IOException or InvalidDataException or ReplayRejectedException)
+        {
+            GD.PushError(exception.Message);
+            _matchError = $"No {kind} match:\n{exception.Message}";
+            return null;
+        }
+    }
 
-	// Only where the art files are plain files on disk (editor and dev runs), not in an exported build.
-	private void AddFighterLookSection(DebugPanel panel)
-	{
-		string root = ProjectSettings.GlobalizePath(FighterArtFile.CharactersFolder);
-		DataFileSetting[] settings = ArtFileSettingList.CameraTurns(root);
-		if (settings.Length == 0)
-		{
-			return;
-		}
+    // Only where the art files are plain files on disk (editor and dev runs), not in an exported build.
+    private void AddFighterLookSection(DebugPanel panel)
+    {
+        string root = ProjectSettings.GlobalizePath(FighterArtFile.CharactersFolder);
+        DataFileSetting[] settings = ArtFileSettingList.CameraTurns(root);
+        if (settings.Length == 0)
+        {
+            return;
+        }
 
-		var look = new FighterLookControls();
-		look.Build(settings, root);
-		look.Saved += RestartLocalMatch;
-		panel.AddSection("Fighter look (art files, developer settings)", look);
-	}
+        var look = new FighterLookControls();
+        look.Build(settings, root);
+        look.Saved += RestartLocalMatch;
+        panel.AddSection("Fighter look (art files, developer settings)", look);
+    }
 
-	// After data was saved (debug panel, character editor): a local or training match starts over with the new data,
-	// an online one keeps running.
-	private void RestartLocalMatch()
-	{
-		// The data as it is now is what the next match loads, so the same save never restarts it twice.
-		_dataWatch?.Accept(Stopwatch.GetTimestamp());
-		if (_match is { IsOnline: true } || _launcher!.Matchmaking is not null)
-		{
-			GD.Print("Saved data applies to the next local match.");
-			return;
-		}
+    // After data was saved (debug panel, character editor): a local or training match starts over with the new data,
+    // an online one keeps running.
+    private void RestartLocalMatch()
+    {
+        // The data as it is now is what the next match loads, so the same save never restarts it twice.
+        _dataWatch?.Accept(Stopwatch.GetTimestamp());
+        if (_match is { IsOnline: true } || _launcher!.Matchmaking is not null)
+        {
+            GD.Print("Saved data applies to the next local match.");
+            return;
+        }
 
-		EndMatch();
-		if (CreateLocalMatch() is { } match)
-		{
-			StartMatch(match);
-		}
-	}
+        EndMatch();
+        if (CreateLocalMatch() is { } match)
+        {
+            StartMatch(match);
+        }
+    }
 
-	private void StartMatch(StartedMatch match)
-	{
-		_match = match;
-		GD.Print($"Match: {match.Description}");
-		match.View.FollowLook(_lookToggles);
-		_modelSwitch.ShowName(match.View.ShowModel(_modelSwitch.Variant));
-		AddChild(match.View);
-		MoveChild(match.View, 0);
-		_matchmakingMenu!.Visible = false;
-	}
+    private void StartMatch(StartedMatch match)
+    {
+        _match = match;
+        GD.Print($"Match: {match.Description}");
+        match.View.FollowLook(_lookToggles);
+        _modelSwitch.ShowName(match.View.ShowModel(_modelSwitch.Variant));
+        AddChild(match.View);
+        MoveChild(match.View, 0);
+        _matchmakingMenu!.Visible = false;
+    }
 
-	// Leaving a match saves what it recorded so far, unless its finished replay was saved already.
-	private void EndMatch()
-	{
-		if (_match is null)
-		{
-			return;
-		}
+    // Leaving a match saves what it recorded so far, unless its finished replay was saved already.
+    private void EndMatch()
+    {
+        if (_match is null)
+        {
+            return;
+        }
 
-		GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
-		LogConnection();
-		if (_match.Recording is { } recording && _saveReplays.Enabled)
-		{
-			SaveReplay(recording.TakeOnEnd(), recording.Kind);
-		}
+        GD.Print($"Match ended at frame {_match.Loop.CurrentFrame}.");
+        LogConnection();
+        if (_match.Recording is { } recording && _saveReplays.Enabled)
+        {
+            SaveReplay(recording.TakeOnEnd(), recording.Kind);
+        }
 
-		_match.Dispose();
-		_match = null;
-		_wasWaiting = true;
-		_shownConnection = ConnectionState.Connected;
-	}
+        _match.Dispose();
+        _match = null;
+        _wasWaiting = true;
+        _shownConnection = ConnectionState.Connected;
+    }
 
-	private void SaveReplay(Replay? replay, string kind)
-	{
-		if (replay is null)
-		{
-			return;
-		}
+    private void SaveReplay(Replay? replay, string kind)
+    {
+        if (replay is null)
+        {
+            return;
+        }
 
-		try
-		{
-			string file = _replays!.Save(replay, DateTime.Now, kind);
-			GD.Print($"Replay saved ({replay.Inputs.Count} frames): {file}");
-		}
-		catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-		{
-			GD.PushError($"Replay not saved: {exception.Message}");
-		}
-	}
+        try
+        {
+            string file = _replays!.Save(replay, DateTime.Now, kind);
+            GD.Print($"Replay saved ({replay.Inputs.Count} frames): {file}");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            GD.PushError($"Replay not saved: {exception.Message}");
+        }
+    }
 
-	// Online, the log gets the connection readings every so often and at the end, for the P0-22 measurements.
-	private void SampleConnection(long now)
-	{
-		if (_match!.Connection is { } connection && connection.Sample(now) &&
-			connection.SampleCount % ConnectionLogIntervalSeconds == 0)
-		{
-			LogConnection();
-		}
-	}
+    // Online, the log gets the connection readings every so often and at the end, for the P0-22 measurements.
+    private void SampleConnection(long now)
+    {
+        if (_match!.Connection is { } connection && connection.Sample(now) &&
+            connection.SampleCount % ConnectionLogIntervalSeconds == 0)
+        {
+            LogConnection();
+        }
+    }
 
-	private void LogConnection()
-	{
-		if (_match?.Connection is { } connection)
-		{
-			GD.Print($"Connection at frame {_match.Loop.CurrentFrame}: {connection.Describe(" | ")}");
-		}
-	}
+    private void LogConnection()
+    {
+        if (_match?.Connection is { } connection)
+        {
+            GD.Print($"Connection at frame {_match.Loop.CurrentFrame}: {connection.Describe(" | ")}");
+        }
+    }
 
-	private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
+    private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
 
-	private void ApplyVsync() =>
-		DisplayServer.WindowSetVsyncMode(_settings.Vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
+    private void ApplyVsync() =>
+        DisplayServer.WindowSetVsyncMode(_settings.Vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
 }
