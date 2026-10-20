@@ -17,9 +17,9 @@
     { "model": "res://Assets/Characters/tripo_armor/tripo_armor.glb", "scale": 1.67, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/vroid_test/vroid_test.glb", "scale": 1.0, "turnDegrees": 90 }
   ],
-  // Look settings: basic moves fade in over 4 frames, a side switch turns over 6, poses on 2s (the hand-animated,
-  // Guilty Gear look; 1 = every frame), and she stands turned 30° toward the camera so her face and chest show
-  // (developer setting: tune it in the debug panel, F1).
+  // Look settings: basic moves fade in over 4 frames (hit and block reactions snap in, as attacks do), a side switch
+  // turns over 6, poses on 2s (the hand-animated, Guilty Gear look; 1 = every frame), and she stands turned 30° toward
+  // the camera so her face and chest show (developer setting: tune it in the debug panel, F1).
   "crossfadeFrames": 4,
   "turnFrames": 6,
   "cameraTurnDegrees": 30,

@@ -144,6 +144,53 @@ public sealed class AnimationRetimingTests
         Assert.Equal(clipFrame, AnimationRetiming.FrameAt(Attack(frame) with { FirstActiveFrame = 0 }, onTwos), 4);
     }
 
+    [Theory]
+    [InlineData(5, 7)]
+    [InlineData(10, 13)]
+    public void ShowsTheContactPoseOnTheFirstActiveFrameOnTwosWhateverTheStartup(int firstActive, int lastActive)
+    {
+        // Odd (5a) and even (5c) startups: each phase holds from its own first frame.
+        var move = new FighterPose(FighterAction.Attack, "5c", firstActive, 34, MovePhase.Active, firstActive, lastActive);
+        AnimationClipTiming onTwos = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with { HoldFrames = 2 };
+
+        Assert.Equal(10f, AnimationRetiming.FrameAt(move, onTwos), 4);
+        Assert.Equal(10f, AnimationRetiming.FrameAt(move with { Frame = firstActive + 1 }, onTwos), 4);
+        Assert.Equal(16f, AnimationRetiming.FrameAt(move with { Frame = lastActive + 1 }, onTwos), 4);
+    }
+
+    [Fact]
+    public void HoldsTheLastStartupPoseOnlyUntilTheFirstActiveFrame()
+    {
+        // 9 startup frames before 5c's first active frame 10, over clip frames 0-10: frame 9 holds its own pose.
+        var move = new FighterPose(FighterAction.Attack, "5c", 9, 34, MovePhase.Startup, 10, 13);
+        AnimationClipTiming onTwos = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with { HoldFrames = 2 };
+
+        Assert.Equal(80f / 9f, AnimationRetiming.FrameAt(move, onTwos), 4);
+        Assert.Equal(0f, AnimationRetiming.FrameAt(move with { Frame = 2 }, onTwos), 4);
+    }
+
+    [Fact]
+    public void ShowsTheFirstKeyOnTheFrameAMoveIsCancelledInto()
+    {
+        AnimationClipTiming onTwos = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with { HoldFrames = 2 };
+
+        Assert.Equal(0f, AnimationRetiming.FrameAt(Attack(1), onTwos), 4);
+    }
+
+    [Theory]
+    [InlineData(35, 4f)]
+    [InlineData(36, 4f)]
+    [InlineData(37, 6f)]
+    public void HoldsALoopOnTwosFromItsFirstFrame(int frame, float clipFrame)
+    {
+        // Idle and walk have no phases: held from frame 1 as before, wrapping at the loop's end.
+        var walk = new FighterPose(FighterAction.WalkForward, "walk_forward", frame, 60, MovePhase.None);
+
+        float shown = AnimationRetiming.FrameAt(walk, new AnimationClipTiming(30f, Loops: true, HoldFrames: 2));
+
+        Assert.Equal(clipFrame, shown, 4);
+    }
+
     [Fact]
     public void PlaysAClipFasterAtItsSpeed()
     {

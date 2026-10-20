@@ -1,0 +1,14 @@
+# Hitstop only pauses the button buffer; hitstun is the fighter's own time and ages it. Testman's 5a hits p2 on
+# frame 5: 8 hitstop frames (6-13), then hitstun until p2 is free on frame 27. A 5a p2 pressed in its hitstop
+# (frame 10) is far older than the buffer by then, so it is no reversal: p2 just goes idle.
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+
+frame 1: p1 5a
+frame 10: p2 5a
+
+frame 5: expect p2 hitstop = 8
+frame 26: expect p2 state = hitstun
+frames 27-30: expect p2 state = idle

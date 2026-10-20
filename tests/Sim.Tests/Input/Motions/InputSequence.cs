@@ -44,6 +44,18 @@ internal sealed class InputSequence
     /// <summary>One frame of <paramref name="direction"/> with <paramref name="buttons"/> held.</summary>
     public InputSequence Press(int direction, ushort buttons) => Hold(direction, 1, buttons);
 
+    /// <summary>Like <see cref="Hold"/>, on frames the fighter skips (hitstop, slowdown): they don't age input.</summary>
+    public InputSequence Skipped(int direction, int frames, ushort buttons = 0)
+    {
+        for (int frame = 0; frame < frames; frame++)
+        {
+            _history.Record(Word(direction, buttons));
+            _history.MarkNewestSkipped();
+        }
+
+        return this;
+    }
+
     private InputWord Word(int direction, ushort buttons)
     {
         int column = (direction - 1) % 3;

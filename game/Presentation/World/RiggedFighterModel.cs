@@ -8,8 +8,9 @@ namespace FightingGame.Presentation.World;
 /// <summary>
 /// A fighter drawn as its rigged model (ADR-0028): each displayed frame it seeks the move's clip to the time
 /// <see cref="AnimationRetiming"/> gives for the logic's move frame, never advancing by elapsed time, and stands on the
-/// logic position, mirrored for facing. A move without a clip shows idle, with one warning. On top, by match frames:
-/// transition clips into listed moves, a crossfade into basic moves and a turn when the facing switches.
+/// logic position, mirrored for facing. A move without a clip shows idle, with one warning. Hit and block reactions
+/// count from each hit and snap in. On top, by match frames: transition clips into listed moves, a crossfade into other
+/// basic moves and a turn when the facing switches.
 /// </summary>
 public partial class RiggedFighterModel : Node3D, IFighterArt
 {
@@ -21,6 +22,7 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
     private readonly ClipMixer _mixer = new();
     private readonly MoveEntryTracker _entries = new();
     private readonly MoveEntryTracker _knockOut = new();
+    private readonly HitReactionClock _reaction = new();
     private readonly PoseFade _fade = new();
     private readonly FacingTurn _turn = new();
     private readonly Node3D _pivot = new();
@@ -68,6 +70,7 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         if (pose.MatchFrame > 0)
         {
             _entries.Observe(pose.MoveId, pose.MatchFrame);
+            _reaction.Observe(in pose);
         }
 
         (BoundClip Clip, double Seconds)? transition = KnockedOut(pose) ?? Transition(pose);
@@ -80,7 +83,7 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
 
         double seconds = transition?.Seconds ?? AnimationRetiming.SecondsAt(Timed(pose, clip), clip.Timing);
         int crossfade = _settings.CrossfadeFramesFor(pose.MoveId);
-        bool fadesIn = !isTransition && pose.FirstActiveFrame == 0 && crossfade > 0;
+        bool fadesIn = !isTransition && crossfade > 0 && PoseFade.MayFadeInto(in pose);
         if (pose.MatchFrame <= 0)
         {
             _mixer.Show(clip.Name, seconds, null, 0, 1f);
@@ -121,12 +124,24 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
             : null;
     }
 
-    // A basic move counts the frames since it began by the match clock, so a looping clip runs on through the move's
-    // own loop (idle restarts every 60 frames) and a one-frame move repeated (crouch, jump) still animates.
-    private FighterPose Timed(FighterPose pose, BoundClip clip) =>
-        pose.MatchFrame > 0 && pose.FirstActiveFrame == 0 && !clip.Timing.Fit
-            ? pose with { Frame = _entries.FramesInMove(pose.MatchFrame) }
-            : pose;
+    // A hit or block reaction counts from the hit that started it, by the fighter's own frames, so it holds in hitstop
+    // and starts over on every hit of a combo. Other basic moves count the frames since they began by the match clock,
+    // so a looping clip runs on through the move's own loop (idle restarts every 60 frames) and a one-frame move
+    // repeated (crouch, jump) still animates.
+    private FighterPose Timed(FighterPose pose, BoundClip clip)
+    {
+        if (pose.MatchFrame <= 0 || pose.FirstActiveFrame != 0)
+        {
+            return pose;
+        }
+
+        if (HitReactionActions.Includes(pose.Action))
+        {
+            return pose with { Frame = _reaction.FrameOf(in pose) };
+        }
+
+        return clip.Timing.Fit ? pose : pose with { Frame = _entries.FramesInMove(pose.MatchFrame) };
+    }
 
     // A KO plays the knockout clip from the frame it happened, whatever the logic's moves do meanwhile.
     private (BoundClip Clip, double Seconds)? KnockedOut(FighterPose pose)

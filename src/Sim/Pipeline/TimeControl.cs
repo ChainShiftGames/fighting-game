@@ -10,6 +10,11 @@ namespace Sim.Pipeline;
 ///   share of match frames. Its duration counts match frames the fighter isn't frozen for.
 /// - Hitstop counts the fighter's own frames, so a slowed fighter's hitstop lasts longer, as in slowdown.
 /// - A fighter advances on its own frames that aren't spent in hitstop.
+/// - A frame a running fighter skips (hitstop, or no own frame under a time scale) is marked in its input history
+///   (<see cref="InputHistory.MarkNewestSkipped"/>), so it doesn't age the fighter's buffered presses and motions:
+///   input made during hitstop or slowdown still comes out when the fighter acts again, as in SF6 and Strive.
+///   Frames held by a global freeze still age them, as before: the Roman Cancel module relies on its freeze using up
+///   the button press that started it.
 /// Counters set later in the frame (hits, requests applied after the state machines) start counting next frame.
 /// </remarks>
 public sealed class TimeControl
@@ -22,9 +27,18 @@ public sealed class TimeControl
         {
             int bit = 1 << fighter;
             bool isRunning = !isFrozen || (state.Freeze.ExemptFighters & bit) != 0;
-            if (isRunning && RunOwnClock(ref state.Fighters[fighter].Timing))
+            if (!isRunning)
+            {
+                continue;
+            }
+
+            if (RunOwnClock(ref state.Fighters[fighter].Timing))
             {
                 advancing |= bit;
+            }
+            else
+            {
+                state.Inputs[fighter].MarkNewestSkipped();
             }
         }
 

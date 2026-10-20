@@ -13,6 +13,9 @@ namespace Sim.Input.Motions;
 /// <item>Every step lies within the motion's window, counted back from the trigger frame (inclusive). Steps come in
 /// order but other directions may come between them, so 6236 also completes 623. The motion must be complete by
 /// the press; directions after it don't count.</item>
+/// <item>The buffer and windows count the fighter's own frames: frames it skipped (hitstop, slowdown) don't age the
+/// input (<see cref="InputHistory.OldestFrameWithin"/>), so a motion or press made during hitstop still comes out
+/// once it ends.</item>
 /// <item>Directions are read with the fighter's current facing.</item>
 /// </list>
 /// Built once at match start; checks never allocate.
@@ -53,7 +56,7 @@ public sealed class MotionParser
 
     public MotionSet Motions { get; }
 
-    /// <summary>Frames a button press stays valid (<see cref="MatchRules.ButtonBuffer"/>).</summary>
+    /// <summary>The fighter's own frames a button press stays valid (<see cref="MatchRules.ButtonBuffer"/>).</summary>
     public int ButtonBuffer => _buttonBuffer;
 
     /// <summary>The motion was input, with a press of every button in <paramref name="buttonMask"/>.</summary>
@@ -63,7 +66,8 @@ public sealed class MotionParser
     /// <param name="buttonMask">Input word bits; 0 for a motion without a button (e.g. a 66 dash).</param>
     public bool IsInput(int motion, in InputHistory history, int facing, int buttonMask)
     {
-        for (int trigger = 0; trigger <= _buttonBuffer; trigger++)
+        int oldestTrigger = history.OldestFrameWithin(0, _buttonBuffer);
+        for (int trigger = 0; trigger <= oldestTrigger; trigger++)
         {
             if (IsInputAt(motion, in history, facing, buttonMask, trigger))
             {
@@ -100,7 +104,7 @@ public sealed class MotionParser
     {
         ReadOnlySpan<MotionStep> steps = Motions.StepsOf(motion);
         int last = steps.Length - 1;
-        int oldestFrame = trigger + _windows[motion] - 1;
+        int oldestFrame = history.OldestFrameWithin(trigger, _windows[motion] - 1);
         if (buttonMask != 0)
         {
             return ButtonPress.IsPressedAt(in history, buttonMask, trigger) &&
