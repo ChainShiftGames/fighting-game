@@ -9,8 +9,9 @@ namespace FightingGame.Presentation;
 /// <summary>Turns world positions (subpixels, y up, origin on the floor at stage centre) into screen pixels.</summary>
 /// <remarks>
 /// The horizontal focus is the logic camera (<c>MatchState.Camera</c>, ADR-0004 §5); this only fits it to the
-/// viewport and stops at the walls. Zoom, shake and flashes stay here. The zoom always shows the whole logic screen
-/// (<c>MatchRules.MaxPlayerDistance</c>), since its edges hold fighters like walls.
+/// viewport and stops at the walls. Height, zoom, shake and flashes stay here. The zoom always shows the whole logic
+/// screen (<c>MatchRules.MaxPlayerDistance</c>), since its edges hold fighters like walls: a taller view
+/// (<see cref="VerticalFraming"/>) only zooms out.
 /// </remarks>
 /// <param name="FloorCentre">Where the world origin (stage centre, on the floor) is on screen.</param>
 public readonly record struct StageCamera(Vector2 FloorCentre, float PixelsPerSubpixel)
@@ -31,19 +32,25 @@ public readonly record struct StageCamera(Vector2 FloorCentre, float PixelsPerSu
     /// Zooms out further only when the viewport is too narrow for the logic screen (e.g. 16:10). Stops where a wall
     /// reaches the screen edge; a stage narrower than the view stays centred.
     /// </remarks>
-    public static StageCamera Fit(Vector2 size, LogicScreen screen, int focusX)
+    public static StageCamera Fit(Vector2 size, LogicScreen screen, int focusX) =>
+        Place(size, screen, focusX, GroundScale(size, screen), size.Y * FloorFromTop);
+
+    /// <summary>
+    /// The camera showing <paramref name="view"/> up from the bottom of the screen, zoomed out when it is taller than
+    /// the <see cref="GroundView"/>, never in: the ground view gives <see cref="Fit(Vector2, LogicScreen, int)"/>.
+    /// </summary>
+    public static StageCamera Fit(Vector2 size, LogicScreen screen, int focusX, VerticalSpan view)
     {
-        float byHeight = size.Y / (VisibleWorldHeight * SubpixelsPerPixel);
-        float byWidth = size.X / (screen.Width + (2f * ScreenEdgeMarginPixels * SubpixelsPerPixel));
-        float pixelsPerSubpixel = Math.Min(byHeight, byWidth);
-        StageWalls walls = screen.Stage;
-        float halfView = size.X / 2f / pixelsPerSubpixel;
-        float beyondWall = BeyondWallPixels * SubpixelsPerPixel;
-        float lowest = walls.Left - beyondWall + halfView;
-        float highest = walls.Right + beyondWall - halfView;
-        float centreX = lowest > highest ? (walls.Left + walls.Right) / 2f : Math.Clamp(focusX, lowest, highest);
-        return new StageCamera(
-            new Vector2((size.X / 2f) - (centreX * pixelsPerSubpixel), size.Y * FloorFromTop), pixelsPerSubpixel);
+        float pixelsPerSubpixel = Math.Min(GroundScale(size, screen), size.Y / view.Height);
+        return Place(size, screen, focusX, pixelsPerSubpixel, size.Y + (view.Bottom * pixelsPerSubpixel));
+    }
+
+    /// <summary>The world height shown at round start, with the floor <c>FloorFromTop</c> down the screen.</summary>
+    public static VerticalSpan GroundView(Vector2 size, LogicScreen screen)
+    {
+        float height = size.Y / GroundScale(size, screen);
+        int bottom = -(int)MathF.Round(height * (1f - FloorFromTop));
+        return new VerticalSpan(bottom, bottom + (int)MathF.Round(height));
     }
 
     public Vector2 ToScreen(IntVector2 world) =>
@@ -52,4 +59,23 @@ public readonly record struct StageCamera(Vector2 FloorCentre, float PixelsPerSu
     /// <summary>The box on screen; y flips, so the box's top (MaxY) becomes the rectangle's top edge.</summary>
     public Rect2 ToScreen(AxisAlignedBox box) =>
         new(ToScreen(new IntVector2(box.MinX, box.MaxY)), new Vector2(box.Width, box.Height) * PixelsPerSubpixel);
+
+    private static float GroundScale(Vector2 size, LogicScreen screen)
+    {
+        float byHeight = size.Y / (VisibleWorldHeight * SubpixelsPerPixel);
+        float byWidth = size.X / (screen.Width + (2f * ScreenEdgeMarginPixels * SubpixelsPerPixel));
+        return Math.Min(byHeight, byWidth);
+    }
+
+    private static StageCamera Place(
+        Vector2 size, LogicScreen screen, int focusX, float pixelsPerSubpixel, float floorY)
+    {
+        StageWalls walls = screen.Stage;
+        float halfView = size.X / 2f / pixelsPerSubpixel;
+        float beyondWall = BeyondWallPixels * SubpixelsPerPixel;
+        float lowest = walls.Left - beyondWall + halfView;
+        float highest = walls.Right + beyondWall - halfView;
+        float centreX = lowest > highest ? (walls.Left + walls.Right) / 2f : Math.Clamp(focusX, lowest, highest);
+        return new StageCamera(new Vector2((size.X / 2f) - (centreX * pixelsPerSubpixel), floorY), pixelsPerSubpixel);
+    }
 }

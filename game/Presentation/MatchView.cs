@@ -18,7 +18,8 @@ namespace FightingGame.Presentation;
 /// <summary>
 /// Shows a match of the real game logic from the driver's state: the 3D stage and fighters on the gameplay plane
 /// (ADR-0027) with the hit sparks over them, then the hitbox overlay when it is on, fighter readouts and the HUD, all
-/// shaken by the screen shake. Reads the state only (ARCHITECTURE.md §9).
+/// shaken by the screen shake. The camera rises and zooms out to keep high fighters in view
+/// (<see cref="VerticalFraming"/>). Reads the state only (ARCHITECTURE.md §9).
 /// </summary>
 public partial class MatchView : Node2D
 {
@@ -28,6 +29,7 @@ public partial class MatchView : Node2D
     private readonly List<WorldBox> _boxes = [];
     private readonly MatchHud _hud = new();
     private readonly MatchCamera _worldCamera = new();
+    private readonly VerticalFollow _heightFollow = new();
     private readonly StageSet _stage = new();
     private readonly ProjectileViews _projectiles = new();
     private readonly ChargeViews _charges = new();
@@ -165,7 +167,7 @@ public partial class MatchView : Node2D
 
         ref readonly MatchState state = ref _driver.State;
         Vector2 size = GetViewportRect().Size;
-        StageCamera fitted = StageCamera.Fit(size, _screen, state.Camera.X);
+        StageCamera fitted = StageCamera.Fit(size, _screen, state.Camera.X, FollowFighters(in state, size));
         StageCamera camera = fitted with { FloorCentre = fitted.FloorCentre + _effects!.Shake.Offset(state.Frame - 1) };
         _camera = camera;
         CameraFraming framing = CameraFraming.Of(camera, size);
@@ -213,6 +215,20 @@ public partial class MatchView : Node2D
         _grade?.Show(_look?.Grade.Enabled ?? false);
         bool blurred = (_look?.BackdropBlur.Enabled ?? false) && _worldCamera.Projection == Camera3D.ProjectionType.Perspective;
         _backdropBlur.Show(blurred, _worldCamera.PlaneDistance);
+    }
+
+    // The 2D layers and the 3D camera both take their framing from this one view, so they stay lined up (ADR-0027 §3).
+    private VerticalSpan FollowFighters(in MatchState state, Vector2 size)
+    {
+        System.Span<VerticalSpan> bodies = stackalloc VerticalSpan[MatchState.PlayerCount];
+        for (int player = 0; player < MatchState.PlayerCount; player++)
+        {
+            ref readonly FighterState fighter = ref state.Fighters[player];
+            CollectBoxes(in fighter, _characters[player]);
+            bodies[player] = FighterBoxes.Height(fighter.Position, _boxes);
+        }
+
+        return _heightFollow.Follow(state.Frame, StageCamera.GroundView(size, _screen), bodies);
     }
 
     private void CollectBoxes(in FighterState fighter, CharacterData character)
