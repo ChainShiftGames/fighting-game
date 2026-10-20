@@ -42,6 +42,9 @@ public sealed class SetupParser
             case "character":
                 SetCharacter(rest, player, setup, location);
                 break;
+            case "stat":
+                SetStat(rest, player, setup, location);
+                break;
             case "module":
                 RequireNoPlayer(hasPlayer, "modules are enabled for the whole match", location);
                 EnableModule(rest, setup, location);
@@ -94,6 +97,39 @@ public sealed class SetupParser
         }
 
         setup.SetCharacter(player, character!, location);
+    }
+
+    // Pins a stat a scenario's geometry depends on (jump arcs, walk distances), so tuning the character in data/ can't
+    // move the frames and positions it checks.
+    private static void SetStat(string[] words, int player, ScenarioSetup setup, ScenarioLocation location)
+    {
+        if (player == ScenarioPlayers.None || words.Length != 3
+            || !int.TryParse(words[2], NumberStyles.None, CultureInfo.InvariantCulture, out int value))
+        {
+            throw new ScenarioSyntaxException(location, "write 'setup: p1 stat <name> <n>', e.g. 'setup: p1 stat jump_velocity 20000'");
+        }
+
+        Func<CharacterStats, CharacterStats>? change = words[1] switch
+        {
+            "walk_forward_speed" => stats => stats with { WalkForwardSpeed = value },
+            "walk_back_speed" => stats => stats with { WalkBackSpeed = value },
+            "prejump_frames" => stats => stats with { PrejumpFrames = value },
+            "jump_velocity" => stats => stats with { JumpVelocity = value },
+            "high_jump_velocity" => stats => stats with { HighJumpVelocity = value },
+            "jump_forward_speed" => stats => stats with { JumpForwardSpeed = value },
+            "jump_back_speed" => stats => stats with { JumpBackSpeed = value },
+            "gravity" => stats => stats with { Gravity = value },
+            _ => null,
+        };
+        if (change is null)
+        {
+            throw new ScenarioSyntaxException(
+                location,
+                $"no stat '{words[1]}'; stats: walk_forward_speed, walk_back_speed, prejump_frames, jump_velocity, "
+                + "high_jump_velocity, jump_forward_speed, jump_back_speed, gravity");
+        }
+
+        setup.SetStats(player, change, location);
     }
 
     private void EnableModule(string[] words, ScenarioSetup setup, ScenarioLocation location)

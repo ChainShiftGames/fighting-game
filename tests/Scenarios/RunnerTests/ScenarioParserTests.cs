@@ -138,6 +138,25 @@ public sealed class ScenarioParserTests
         Assert.Equal(InputNotation.Parse("6a"), scenario.Inputs.Get(0, 2));
     }
 
+    [Fact]
+    public void UnknownStatListsTheStats()
+    {
+        string message = SyntaxError("setup: p1 stat jump_height 3", "frame 1: expect p1 x < 0");
+
+        Assert.StartsWith($"{InlineScenario.File}:3: no stat 'jump_height'", message);
+        Assert.Contains("jump_velocity", message);
+    }
+
+    [Fact]
+    public void StatBeforeTheCharacterIsRejected()
+    {
+        string message = Assert.Throws<ScenarioSyntaxException>(() => InlineScenario.ParseRaw(
+            "setup: p1 stat gravity 900\nsetup: p1 character scenario_dummy\nsetup: p2 character scenario_dummy\n"
+            + "frame 1: expect p1 x < 0")).Message;
+
+        Assert.Contains("set up p1's character before its stats", message);
+    }
+
     private static string SyntaxError(params string[] lines) =>
         Assert.Throws<ScenarioSyntaxException>(() => InlineScenario.Parse(lines)).Message;
 }

@@ -118,6 +118,10 @@ frame 2: expect p1 x < 0                  # = != < <= > >=
   `data/rules/match.json`: projectiles each player can have out at once (0 to 8).
 - **Screen width** (match rules): `setup: max_player_distance <subpixels>` overrides `maxPlayerDistance` from
   `data/rules/match.json`, for scenarios that need the fighters further apart than the shipped screen allows.
+- **Pinned stats**: `setup: p1 stat <name> <n>` (after the character line) overrides one of that player's stats:
+  `walk_forward_speed`, `walk_back_speed`, `prejump_frames`, `jump_velocity`, `high_jump_velocity`,
+  `jump_forward_speed`, `jump_back_speed`, `gravity`. Use it when a scenario's frames and positions depend on a stat
+  (crossups depend on the jump arc), so tuning the character in `data/` doesn't break a mechanic test.
 - **Module spawns**: the contract probe's config is `<hitstop> <spawn frame> <owner> <projectile>`; on that frame it
   requests the owner's projectile (index in the character's projectile list, as above), e.g.
   `setup: module contract_probe 0 3 1 0` spawns p2's `236c` fireball at the end of frame 3.

@@ -5,6 +5,8 @@
 # 623c comes out toward p1 and hits it. Read with the old facing it would be no motion at all.
 setup: p1 character testman
 setup: p2 character testman
+# The geometry below is Testman's long jump (jump velocity 20000); pinned so jump tuning in data/ can't move it.
+setup: p1 stat jump_velocity 20000
 setup: p1 x = -81500
 setup: p2 x = 70000
 

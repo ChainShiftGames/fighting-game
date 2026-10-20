@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sim.Characters;
 using Sim.Data.Motions;
@@ -92,6 +93,18 @@ public sealed class ScenarioSetup
         }
 
         _characters[player] = character;
+    }
+
+    /// <summary>Replaces one of a player's stats; the character must be set up first.</summary>
+    internal void SetStats(int player, Func<CharacterStats, CharacterStats> change, ScenarioLocation location)
+    {
+        if (_characters[player] is not CharacterData character)
+        {
+            throw new ScenarioSyntaxException(
+                location, $"set up {ScenarioPlayers.Label(player)}'s character before its stats");
+        }
+
+        _characters[player] = character.WithStats(change(character.Stats));
     }
 
     internal void EnableModule(EnabledModule module, ScenarioLocation location)

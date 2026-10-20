@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/module.schema.json",
   "schemaVersion": 1,
-  "enabled": false,
-  "unblockableAttacks": 1
+  "enabled": true,
+  "unblockableAttacks": 5
 }
