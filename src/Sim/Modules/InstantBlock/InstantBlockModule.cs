@@ -33,9 +33,9 @@ public sealed class InstantBlockModule : IMechanicModule, IOnBlockHook
     public string Name => "instant_block";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<InstantBlockConfig>(
-        new ModuleConfigField("windowFrames", 1, MaxHistoryFrames),
-        new ModuleConfigField("lockoutFrames", 0, MaxHistoryFrames),
-        new ModuleConfigField("blockstunReduction", 0, MaxBlockstunReduction));
+        new ModuleConfigField("windowFrames", 1, MaxHistoryFrames, "Back must be pressed at most this many frames before the hit (1 = on the frame it connects) for an instant block."),
+        new ModuleConfigField("lockoutFrames", 0, MaxHistoryFrames, "Anti-mash: no instant block if back was also held this many frames before the press. 0 = no lockout."),
+        new ModuleConfigField("blockstunReduction", 0, MaxBlockstunReduction, "Blockstun frames an instant block takes off."));
 
     public void OnBlock(ModuleContext context, in FighterContact contact)
     {

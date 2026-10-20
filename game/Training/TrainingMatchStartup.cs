@@ -4,6 +4,7 @@ using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using Netcode.Drivers;
 using Netcode.Drivers.Training;
 using Sim.Data;
@@ -58,7 +59,8 @@ public sealed class TrainingMatchStartup
     {
         MatchLineup lineup = MatchLineup.From(data);
         var timings = new TrainingTimings(GuardResetFrames, HealthRefillDelayFrames);
-        var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, [0, JoypadRumbleMotor.NoSlot]));
+        var effects = new MatchEffects(
+            _effectToggles, new JoypadRumbleMotor(_joypads, [0, JoypadRumbleMotor.NoSlot]), EffectSettingsChoice.Load());
 
         var meter = new FrameMeter();
         IMatchSimulation<MatchState> simulation = new FrameMeterSimulation(

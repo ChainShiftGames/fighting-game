@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using Sim.Characters;
 using Sim.Events;
 using Sim.Math;
@@ -17,27 +18,22 @@ namespace FightingGame.Presentation.World.Sparks;
 /// </remarks>
 public sealed class HitSparkLooks
 {
-    // Developer settings (presentation): the hitstop of the lightest and heaviest hits (weight 0 and 1), what a counter
-    // hit adds, what a block keeps, the weight a hit tears from without being told, and a throw tech's weight (it has
-    // no hit of its own).
-    private const int LightHitstop = 8;
-    private const int HeavyHitstop = 20;
-    private const float CounterWeight = 0.3f;
-    private const float BlockShare = 0.6f;
-    private const float TearFromWeight = 0.5f;
-    private const float TechWeight = 0.3f;
-
     private readonly CharacterData[] _characters;
+    private readonly SparkFeelSettings _feel;
 
     // Per player, per move index, per hit of that move: the art file's settings, or null.
     private readonly HitSparkSettings?[][][] _settings;
 
     /// <param name="characters">P1's and P2's character.</param>
     /// <param name="sparks">Per player, the art file's sparks by move ID (a list per hit); null for none.</param>
+    /// <param name="feel">How hit data maps to weight, and the size of all sparks (developer settings).</param>
     public HitSparkLooks(
-        CharacterData[] characters, IReadOnlyDictionary<string, IReadOnlyList<HitSparkSettings>>?[] sparks)
+        CharacterData[] characters,
+        IReadOnlyDictionary<string, IReadOnlyList<HitSparkSettings>>?[] sparks,
+        SparkFeelSettings feel)
     {
         _characters = characters;
+        _feel = feel;
         _settings = new HitSparkSettings?[characters.Length][][];
         for (int player = 0; player < characters.Length; player++)
         {
@@ -54,7 +50,7 @@ public sealed class HitSparkLooks
         if (!TryFindHit(in contact, out HitData hit, out MoveCategory category, out HitSparkSettings? settings))
         {
             return new HitSparkLook(
-                HitSparkStyle.Burst, tone, TechWeight, OnScreen(0f, facing), contact.Position, seed, 1f);
+                HitSparkStyle.Burst, tone, _feel.TechWeight, OnScreen(0f, facing), contact.Position, seed, _feel.Scale);
         }
 
         float weight = WeightOf(hit.Hitstop, tone);
@@ -64,7 +60,13 @@ public sealed class HitSparkLooks
             (int)MathF.Round((settings?.OffsetX ?? 0f) * facing * Subpixels.PerPixel),
             (int)MathF.Round((settings?.OffsetY ?? 0f) * Subpixels.PerPixel));
         return new HitSparkLook(
-            style, tone, weight, OnScreen(angle, facing), contact.Position + offset, seed, settings?.Scale ?? 1f);
+            style,
+            tone,
+            weight,
+            OnScreen(angle, facing),
+            contact.Position + offset,
+            seed,
+            (settings?.Scale ?? 1f) * _feel.Scale);
     }
 
     private static HitSparkSettings?[][] ByMove(
@@ -146,19 +148,20 @@ public sealed class HitSparkLooks
         return true;
     }
 
-    private static float WeightOf(int hitstop, HitSparkTone tone)
+    private float WeightOf(int hitstop, HitSparkTone tone)
     {
-        float weight = Math.Clamp((float)(hitstop - LightHitstop) / (HeavyHitstop - LightHitstop), 0f, 1f);
+        float weight = Math.Clamp(
+            (float)(hitstop - _feel.LightHitstop) / (_feel.HeavyHitstop - _feel.LightHitstop), 0f, 1f);
         return tone switch
         {
-            HitSparkTone.Counter => weight + CounterWeight,
-            HitSparkTone.Block => weight * BlockShare,
+            HitSparkTone.Counter => weight + _feel.CounterWeight,
+            HitSparkTone.Block => weight * _feel.BlockShare,
             _ => weight,
         };
     }
 
     // Blocks and throws burst; specials, supers and heavy hits tear.
-    private static HitSparkStyle DefaultStyle(float weight, MoveCategory category, HitSparkTone tone)
+    private HitSparkStyle DefaultStyle(float weight, MoveCategory category, HitSparkTone tone)
     {
         if (tone == HitSparkTone.Block || category == MoveCategory.Throw)
         {
@@ -166,7 +169,7 @@ public sealed class HitSparkLooks
         }
 
         bool special = (category & (MoveCategory.Special | MoveCategory.Super)) != 0;
-        return special || weight >= TearFromWeight ? HitSparkStyle.Tear : HitSparkStyle.Burst;
+        return special || weight >= _feel.TearFromWeight ? HitSparkStyle.Tear : HitSparkStyle.Burst;
     }
 
     // A launch sends the defender the way the attack travels; without one, the attack goes straight forward.

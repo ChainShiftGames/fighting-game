@@ -32,16 +32,16 @@ public sealed class BurstModule : IMechanicModule, IAfterInputHook, IOnHitHook
     public IReadOnlyList<string> MoveRoles { get; } = ["burst"];
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<BurstConfig>(
-        new ModuleConfigField("maxGauge", 1, 1_000_000),
-        new ModuleConfigField("startGauge", 0, 1_000_000),
-        new ModuleConfigField("gainPerFrame", 0, 1_000_000),
-        new ModuleConfigField("gainWhenHit", 0, 1_000_000),
-        new ModuleConfigField("burstCost", 1, 1_000_000),
-        new ModuleConfigField("usableInHitstun", 0, 1),
-        new ModuleConfigField("usableInBlockstun", 0, 1),
-        new ModuleConfigField("usableInNeutral", 0, 1),
-        new ModuleConfigField("triggerButtons", 1 << InputWord.FirstButtonBit, AllButtons),
-        new ModuleConfigField("cancelPriority", 0, 1_000_000));
+        new ModuleConfigField("maxGauge", 1, 1_000_000, "A full burst gauge; gains stop there."),
+        new ModuleConfigField("startGauge", 0, 1_000_000, "Burst gauge each fighter has when the match starts."),
+        new ModuleConfigField("gainPerFrame", 0, 1_000_000, "Burst gauge gained on every frame of a round being fought."),
+        new ModuleConfigField("gainWhenHit", 0, 1_000_000, "Burst gauge a fighter gains each time a hit lands on them."),
+        new ModuleConfigField("burstCost", 1, 1_000_000, "Burst gauge one burst needs and spends."),
+        new ModuleConfigField("usableInHitstun", 0, 1, "1: can burst while in hitstun (a combo breaker). 0: not."),
+        new ModuleConfigField("usableInBlockstun", 0, 1, "1: can burst while blocking. 0: not."),
+        new ModuleConfigField("usableInNeutral", 0, 1, "1: can burst from idle, walking or jumping. 0: not."),
+        new ModuleConfigField("triggerButtons", 1 << InputWord.FirstButtonBit, AllButtons, "Button bits: A 16, B 32, C 64, D 128, Special 256, Dash 512; add them up (240 = A+B+C+D). Pressing them together on one frame bursts."),
+        new ModuleConfigField("cancelPriority", 0, 1_000_000, "Which wins when another mechanic cancels the same fighter on the same frame; higher wins."));
 
     public void AfterInput(ModuleContext context)
     {

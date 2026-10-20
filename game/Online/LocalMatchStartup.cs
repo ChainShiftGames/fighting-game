@@ -3,6 +3,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using Netcode.Drivers;
 using Netcode.Replays;
 using Sim.Data;
@@ -49,7 +50,8 @@ public sealed class LocalMatchStartup
         var recorder = new ReplayRecorder(lineup.CreateReplayHeader(data));
 
         // Player n reads the joypad in slot n, so that is the one that rumbles.
-        var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, [0, 1]));
+        var effects = new MatchEffects(
+            _effectToggles, new JoypadRumbleMotor(_joypads, [0, 1]), EffectSettingsChoice.Load());
 
         // The effects observe the recorded logic: both wrappers see every frame (ADR-0018 §4).
         var driver = new LocalMatchDriver<MatchState>(effects.Observe(lineup.RecordedSimulation(recorder)));

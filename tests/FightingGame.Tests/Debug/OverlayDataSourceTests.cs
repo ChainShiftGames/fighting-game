@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Debug;
 using Sim.Data.Sources;
 using Xunit;
 
-namespace FightingGame.Tests.Addons.CharacterEditor;
+namespace FightingGame.Tests.Debug;
 
 /// <summary>Unsaved files look to Sim.Data exactly as if they had been saved.</summary>
 public sealed class OverlayDataSourceTests

@@ -28,7 +28,7 @@ public sealed class InstallModule : IMechanicModule, IAfterInputHook, IAfterStat
     public bool IsCharacterMechanic => true;
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<InstallConfig>(
-        new ModuleConfigField("durationFrames", 1, 99_999));
+        new ModuleConfigField("durationFrames", 1, 99_999, "How long an install lasts, in frames."));
 
     /// <summary>The move that starts the install.</summary>
     public IReadOnlyList<string> MoveRoles { get; } = ["install"];

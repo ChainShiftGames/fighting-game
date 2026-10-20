@@ -4,6 +4,7 @@ using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using FightingGame.Presentation.Events;
+using FightingGame.Presentation.Feel;
 using Godot;
 using Netcode.Drivers;
 using Netcode.Replays;
@@ -48,7 +49,8 @@ public sealed class ReplayMatchStartup
     {
         Replay replay = ReplayFolder.Load(ProjectSettings.GlobalizePath(path), data);
         MatchLineup lineup = MatchLineup.FromReplay(data, replay.Header);
-        var effects = new MatchEffects(_effectToggles, new JoypadRumbleMotor(_joypads, _noRumble));
+        var effects = new MatchEffects(
+            _effectToggles, new JoypadRumbleMotor(_joypads, _noRumble), EffectSettingsChoice.Load());
         var driver = new ReplayMatchDriver<MatchState>(
             effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), replay.Inputs);
         var view = new MatchView();

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Debug;
 using Sim.Data;
 using Sim.Data.Json;
 using Sim.Data.Sources;

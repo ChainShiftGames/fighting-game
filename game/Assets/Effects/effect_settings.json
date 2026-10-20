@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "screenShake": {
+    "lifetimeFrames": 8,
+    "hitPixels": 3,
+    "counterPixels": 5,
+    "throwPixels": 4,
+    "knockOutPixels": 8,
+    "verticalShare": 0.5
+  },
+  "hitSparks": {
+    "lightHitstop": 8,
+    "heavyHitstop": 20,
+    "counterWeight": 0.3,
+    "blockShare": 0.6,
+    "tearFromWeight": 0.5,
+    "techWeight": 0.3,
+    "scale": 1
+  },
+  "rumble": {
+    "heavyStrength": 0.8,
+    "lightStrength": 0.3,
+    "hitSeconds": 0.15,
+    "knockOutSeconds": 0.4
+  }
+}

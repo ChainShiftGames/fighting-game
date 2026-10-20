@@ -30,9 +30,9 @@ public sealed class NegativePenaltyModule : IMechanicModule, IAfterInputHook, IE
     public string Name => "negative_penalty";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<NegativePenaltyConfig>(
-        new ModuleConfigField("penaltyFrames", 1, MaxPenaltyFrames),
-        new ModuleConfigField("forwardRecovery", 0, MaxForwardRecovery),
-        new ModuleConfigField("meterLoss", 0, IMeterGauge.FullMeter));
+        new ModuleConfigField("penaltyFrames", 1, MaxPenaltyFrames, "Frames of retreating that build up to a penalty."),
+        new ModuleConfigField("forwardRecovery", 0, MaxForwardRecovery, "Retreat frames each frame of moving forward takes off again."),
+        new ModuleConfigField("meterLoss", 0, IMeterGauge.FullMeter, "Meter a penalty drains, in hundredths of a percent."));
 
     public void AfterInput(ModuleContext context)
     {

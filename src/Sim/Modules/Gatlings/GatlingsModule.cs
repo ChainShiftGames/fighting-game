@@ -19,7 +19,7 @@ public sealed class GatlingsModule : IMechanicModule, ICancelWindowHook
     public string Name => "gatlings";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<GatlingsConfig>(
-        new ModuleConfigField("closedCancels", 0, GatlingCancels.All));
+        new ModuleConfigField("closedCancels", 0, GatlingCancels.All, "Cancel kinds turned off even where move data allows them, added up: chains 1, into specials 2, into supers 4, into throws 8, into jumps 16. 0 = all work."));
 
     public bool CanCancel(ModuleContext context, in CancelCheck check)
     {

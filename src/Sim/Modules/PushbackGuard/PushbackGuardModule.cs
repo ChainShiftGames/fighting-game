@@ -39,12 +39,12 @@ public sealed class PushbackGuardModule :
     public string Name => "pushback_guard";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<PushbackGuardConfig>(
-        new ModuleConfigField("buttonMask", 1, ushort.MaxValue),
-        new ModuleConfigField("buttonCount", 1, MaxButtonCount),
-        new ModuleConfigField("pushbackPermille", 0, MaxPushbackPermille),
-        new ModuleConfigField("meterCost", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("drainPerFrame", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("noChip", 0, 1));
+        new ModuleConfigField("buttonMask", 1, ushort.MaxValue, "Button bits: A 16, B 32, C 64, D 128, Special 256, Dash 512; add them up (48 = A+B). The guard buttons held while blocking."),
+        new ModuleConfigField("buttonCount", 1, MaxButtonCount, "How many of the guard buttons must be held (2 = both)."),
+        new ModuleConfigField("pushbackPermille", 0, MaxPushbackPermille, "How far a guarded block pushes, in thousandths of the hit's pushback (2000 = twice as far)."),
+        new ModuleConfigField("meterCost", 0, IMeterGauge.FullMeter, "Meter each guarded block costs (hundredths of a percent). Without it, the block is a normal one."),
+        new ModuleConfigField("drainPerFrame", 0, IMeterGauge.FullMeter, "Meter drained per frame of guarding in blockstun."),
+        new ModuleConfigField("noChip", 0, 1, "1: guarded blocks take no chip damage. 0: chip as usual."));
 
     public void BeforeStateMachines(ModuleContext context)
     {

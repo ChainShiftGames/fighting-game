@@ -36,15 +36,15 @@ public sealed class RomanCancelModule : IMechanicModule, IAfterInputHook
     public string Name => "roman_cancel";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<RomanCancelConfig>(
-        new ModuleConfigField("buttonMask", 1, ushort.MaxValue),
-        new ModuleConfigField("buttonCount", 1, MaxButtonCount),
-        new ModuleConfigField("pressWindow", 1, MaxPressWindow),
-        new ModuleConfigField("meterCost", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("variants", 0, RomanCancelVariants.All),
-        new ModuleConfigField("freezeFrames", 1, MaxFreezeFrames),
-        new ModuleConfigField("slowdownFrames", 0, MaxSlowdownFrames),
-        new ModuleConfigField("slowdownNumerator", 1, MaxSlowdownRatio),
-        new ModuleConfigField("slowdownDenominator", 1, MaxSlowdownRatio));
+        new ModuleConfigField("buttonMask", 1, ushort.MaxValue, "Button bits: A 16, B 32, C 64, D 128, Special 256, Dash 512; add them up (112 = A+B+C). The buttons that make up a Roman Cancel."),
+        new ModuleConfigField("buttonCount", 1, MaxButtonCount, "How many of those buttons must be pressed together (3 = any three)."),
+        new ModuleConfigField("pressWindow", 1, MaxPressWindow, "Frames between the first and last press for them to count as together."),
+        new ModuleConfigField("meterCost", 0, IMeterGauge.FullMeter, "Meter a Roman Cancel costs, in hundredths of a percent (5000 = 50 %). 0 = free."),
+        new ModuleConfigField("variants", 0, RomanCancelVariants.All, "Which kinds are allowed, added up: red (on hit/block) 1, purple (whiff) 2, blue (neutral) 4, yellow (blockstun) 8."),
+        new ModuleConfigField("freezeFrames", 1, MaxFreezeFrames, "Frames the whole match freezes when a Roman Cancel starts."),
+        new ModuleConfigField("slowdownFrames", 0, MaxSlowdownFrames, "Frames the opponent is slowed after a red, purple or blue Roman Cancel. 0 = no slowdown."),
+        new ModuleConfigField("slowdownNumerator", 1, MaxSlowdownRatio, "While slowed, the opponent moves this many frames…"),
+        new ModuleConfigField("slowdownDenominator", 1, MaxSlowdownRatio, "…per this many match frames (1/2 = half speed)."));
 
     public void AfterInput(ModuleContext context)
     {

@@ -32,13 +32,13 @@ public sealed class MeterModule :
     public string Name => "meter";
 
     public ModuleConfigLayout ConfigLayout { get; } = ModuleConfigLayout.For<MeterConfig>(
-        new ModuleConfigField("superCost", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("hitGain", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("blockGain", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("forwardGain", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("roundStartMeter", 0, IMeterGauge.FullMeter),
-        new ModuleConfigField("carryOverRounds", 0, 1),
-        new ModuleConfigField("channel", 0, IMeterGauge.ChannelCount - 1));
+        new ModuleConfigField("superCost", 0, IMeterGauge.FullMeter, "Meter a super costs, in hundredths of a percent (5000 = 50 %). With less, supers can't start."),
+        new ModuleConfigField("hitGain", 0, IMeterGauge.FullMeter, "Meter the attacker gains each time their attack hits (hundredths of a percent)."),
+        new ModuleConfigField("blockGain", 0, IMeterGauge.FullMeter, "Meter the attacker gains each time their attack is blocked."),
+        new ModuleConfigField("forwardGain", 0, IMeterGauge.FullMeter, "Meter gained on each frame a fighter moves forward."),
+        new ModuleConfigField("roundStartMeter", 0, IMeterGauge.FullMeter, "Meter both fighters have at match start (and each round, unless carried over)."),
+        new ModuleConfigField("carryOverRounds", 0, 1, "1: meter carries over into the next round. 0: each round starts fresh."),
+        new ModuleConfigField("channel", 0, IMeterGauge.ChannelCount - 1, "Which meter channel this gauge is (ADR-0023); 0 is the main meter other mechanics spend."));
 
     public void AfterInput(ModuleContext context)
     {
