@@ -30,6 +30,7 @@ public sealed class MatchEffects : IEffectReset
     {
         Settings = settings;
         Shake = new ScreenShake(settings.Shake);
+        DefenderShake = new HitstopShake(settings.Shake, toggles.Shake);
         var effects = new EffectGroup(
             new ToggledEffect(toggles.Sparks, Sparks),
             new ToggledEffect(toggles.Sparks, Impacts),
@@ -48,6 +49,9 @@ public sealed class MatchEffects : IEffectReset
     public ProjectileImpacts Impacts { get; } = new();
 
     public ScreenShake Shake { get; }
+
+    /// <summary>Jitters the fighter being hit or blocking during hitstop; the view offsets its drawing by it.</summary>
+    public HitstopShake DefenderShake { get; }
 
     /// <summary>The host adds this node to the scene tree; sounds only play while it is there.</summary>
     public PlaceholderSounds Sounds { get; } = new();

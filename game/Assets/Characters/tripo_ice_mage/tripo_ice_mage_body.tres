@@ -1,0 +1,29 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://c2xspj2pr7ttq"]
+
+[ext_resource type="Shader" uid="uid://37iarb0qvhl5" path="res://Assets/Shaders/toon_outline.gdshader" id="outline_shader"]
+[ext_resource type="Texture2D" uid="uid://dbxi5bbrhm5px" path="res://Assets/Characters/tripo_ice_mage/tripo_ice_mage_body_lit.png" id="texture"]
+[ext_resource type="Shader" uid="uid://x1lektg06wnn" path="res://Assets/Shaders/toon.gdshader" id="toon"]
+
+[sub_resource type="ShaderMaterial" id="outline"]
+render_priority = 0
+shader = ExtResource("outline_shader")
+shader_parameter/lit_texture = ExtResource("texture")
+shader_parameter/outline_color = Color(0.36, 0.38, 0.46, 1)
+shader_parameter/outline_width_pixels = 3.0
+shader_parameter/alpha_cutoff = 0.5
+
+[resource]
+render_priority = 0
+next_pass = SubResource("outline")
+shader = ExtResource("toon")
+shader_parameter/lit_texture = ExtResource("texture")
+shader_parameter/lit_color = Color(1, 1, 1, 1)
+shader_parameter/shade_color = Color(0.86, 0.84, 0.92, 1)
+shader_parameter/shading_shift = -0.05
+shader_parameter/shading_toony = 0.95
+shader_parameter/light_direction = Vector3(-0.15, 0.6, 0.8)
+shader_parameter/alpha_cutoff = 0.5
+shader_parameter/shade_hardness = 1.0
+shader_parameter/shade_tint = Color(0.72, 0.64, 0.84, 1)
+shader_parameter/normal_flatten = 0.0
+shader_parameter/rim_start = 0.55

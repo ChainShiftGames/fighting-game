@@ -7,10 +7,12 @@ namespace FightingGame.Presentation.Feel;
 /// <param name="ThrowPixels">Starting strength of a throw's shake.</param>
 /// <param name="KnockOutPixels">Starting strength of the knock-out shake.</param>
 /// <param name="VerticalShare">Vertical movement as a share of the horizontal one.</param>
+/// <param name="DefenderPixels">How far a fighter being hit or blocking jitters sideways during hitstop.</param>
 public sealed record ShakeSettings(
     int LifetimeFrames,
     float HitPixels,
     float CounterPixels,
     float ThrowPixels,
     float KnockOutPixels,
-    float VerticalShare);
+    float VerticalShare,
+    float DefenderPixels);

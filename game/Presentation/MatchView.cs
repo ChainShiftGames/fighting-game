@@ -179,7 +179,8 @@ public partial class MatchView : Node2D
             ref readonly FighterState fighter = ref state.Fighters[player];
             CollectBoxes(in fighter, _characters[player]);
             FighterPose pose = FighterPose.Of(_characters[player], in fighter) with { MatchFrame = state.Frame };
-            _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
+            IntVector2 drawnAt = fighter.Position + _effects.DefenderShake.Offset(in pose);
+            _fighterArt[player]!.ShowPose(pose, drawnAt, fighter.Facing, _boxes);
         }
 
         _charges.ShowFrame(in state.Fighters);
