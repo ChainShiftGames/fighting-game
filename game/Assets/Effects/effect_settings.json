@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "screenShake": {
     "lifetimeFrames": 9,
-    "hitPixels": 11,
+    "hitPixels": 5.5,
     "counterPixels": 5,
     "throwPixels": 4,
     "knockOutPixels": 8,
@@ -10,13 +10,13 @@
     "defenderPixels": 3
   },
   "hitSparks": {
-    "lightHitstop": 8,
+    "lightHitstop": 7,
     "heavyHitstop": 20,
     "counterWeight": 0.3,
     "blockShare": 0.6,
-    "tearFromWeight": 0.5,
+    "tearFromWeight": 0.65,
     "techWeight": 0.3,
-    "scale": 1
+    "scale": 1.6
   },
   "rumble": {
     "heavyStrength": 0.8,

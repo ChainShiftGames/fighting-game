@@ -8,12 +8,12 @@
     "walkForwardSpeed": 4000,
     "walkBackSpeed": 3200,
     "dashStyle": "run",
-    "prejumpFrames": 4,
-    "jumpVelocity": 12400,
-    "highJumpVelocity": 25000,
+    "prejumpFrames": 2,
+    "jumpVelocity": 15500,
+    "highJumpVelocity": 18000,
     "jumpForwardSpeed": 4500,
     "jumpBackSpeed": 4000,
-    "gravity": 1000,
+    "gravity": 900,
     "airActions": 1
   },
   "moves": [
