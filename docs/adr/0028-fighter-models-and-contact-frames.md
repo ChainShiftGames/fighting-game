@@ -80,6 +80,10 @@ the authored contact pose. Something has to say where that pose is, and which ch
      type the clip frame for the picked frame. Edits retime the preview at once and rewrite only that move's
      `animations` entry in the art file on Save (`ArtTimingText`: comments and other entries kept); an edit the
      art file reader would refuse is not made. Keys are rewritten against the phases' lengths at that moment.
+   - **Projectiles in the preview:** each of the move's projectiles where the match moves it (offset on the spawn
+     frame, then on by its speed; the fighter standing at the origin): its hitbox, dashed before it spawns, and a
+     cross on its spawn point; the model preview draws the art file's charge and flight effects with it. Dragging
+     the cross or hitbox (Hit areas tab) moves the projectile's `offset` in the move's data file.
 8. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
 9. **Projectile art, named per move in the art file:**

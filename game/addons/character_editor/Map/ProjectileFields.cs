@@ -75,6 +75,19 @@ public static class ProjectileFields
             ? (x, y)
             : null;
 
+    /// <summary>Moves where it appears, keeping the offset's place in the file.</summary>
+    public static void SetOffset(JsonObject projectile, int x, int y)
+    {
+        if (projectile[Offset] is not JsonObject offset)
+        {
+            offset = [];
+            projectile[Offset] = offset;
+        }
+
+        offset[X] = x;
+        offset[Y] = y;
+    }
+
     private static JsonObject Velocity(JsonObject projectile)
     {
         if (projectile[MoveFields.Velocity] is not JsonObject velocity)
