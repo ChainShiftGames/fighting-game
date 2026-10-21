@@ -18,9 +18,12 @@ namespace Netcode.Tests.GoldenReplays;
 /// To re-record after an intentional gameplay or data change, run
 /// <c>GOLDEN_REPLAYS_RECORD=1 dotnet test --project tests/Netcode.Tests</c> and say why in the PR. Recording keeps
 /// each file's inputs (or generates them from its seed when it has none) and rewrites the data hash and checksums.
+/// On hold while testman's tuning changes often (ADR-0036): every replay is skipped.
 /// </remarks>
 public sealed class GoldenReplayTests
 {
+    // ADR-0036: set to false to check golden replays again (re-record them first).
+    private const bool OnHold = true;
     private const string RecordVariable = "GOLDEN_REPLAYS_RECORD";
     private const int CheckpointFrames = 600;
 
@@ -30,6 +33,11 @@ public sealed class GoldenReplayTests
     [MemberData(nameof(Files))]
     public void ReplayMatchesItsRecordedChecksums(string path)
     {
+        if (OnHold)
+        {
+            Assert.Skip("Golden replays are on hold (ADR-0036).");
+        }
+
         GoldenReplay replay = GoldenReplay.Read(path);
         if (Environment.GetEnvironmentVariable(RecordVariable) == "1")
         {

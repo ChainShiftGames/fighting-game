@@ -223,7 +223,8 @@ These rules apply to all code, and agents must follow them even when one big cla
 - Every PR: build, logic tests, scenario tests, SyncTest (determinism) and the speed benchmark must pass.
 - New gameplay behaviour comes with a **plain-text scenario test** (e.g. "P1 does 5A point blank → P2 is hit on
   frame 5").
-- Golden replay checksums only change intentionally, and the PR says why.
+- Golden replay checksums only change intentionally, and the PR says why. Golden replays and testman scenarios are
+  on hold for now ([ADR-0036](docs/adr/0036-golden-replays-and-testman-scenarios-on-hold.md)).
 
 ## 11. Working rules
 
