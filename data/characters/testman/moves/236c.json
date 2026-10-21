@@ -13,7 +13,7 @@
   "projectiles": [
     {
       "spawnFrame": 33,
-      "offset": { "x": 45000, "y": 55000 },
+      "offset": { "x": 45000, "y": 60000 },
       "velocity": { "x": 13000 },
       "lifetime": 120,
       "durability": 1,
