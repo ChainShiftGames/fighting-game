@@ -125,6 +125,17 @@ public sealed class PanelDocument
         Changed?.Invoke();
     }
 
+    /// <summary>Sets whole files' edited text as one edit, e.g. edits kept across a hot reload.</summary>
+    public void RestoreTexts(IEnumerable<(PanelFile File, string Text)> files)
+    {
+        foreach ((PanelFile file, string text) in files)
+        {
+            Put(file, text);
+        }
+
+        Changed?.Invoke();
+    }
+
     /// <summary>Drops every edit.</summary>
     public void RevertAll()
     {

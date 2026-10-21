@@ -4,6 +4,8 @@
 # wall behind it and the wall would hand the rest of the push to p2, toward p1: the corner rule the wrong way round.
 setup: p1 character testman
 setup: p2 character testman
+# The geometry below is Testman's long jump (jump velocity 20000); pinned so jump tuning in data/ can't move it.
+setup: p2 stat jump_velocity 20000
 setup: p1 x = -572000
 setup: p2 x = -423500
 

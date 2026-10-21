@@ -3,6 +3,8 @@
 setup: module air_block 1
 setup: p1 character testman
 setup: p2 character testman
+# The geometry below is Testman's long jump (jump velocity 20000); pinned so jump tuning in data/ can't move it.
+setup: p2 stat jump_velocity 20000
 # Room to back off: wider than the shipped screen.
 setup: max_player_distance 640000
 frame 1: p1 2, 3, 6c
