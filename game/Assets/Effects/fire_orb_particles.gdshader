@@ -9,7 +9,12 @@
 //   5 burst flames   - fireballs rolling out of an explosion, cooling as they swell
 //   6 burst smoke    - soot left hanging after an explosion, rising
 //   7 inward motes   - embers spiralling in to the centre (the charge)
-// Positions are in the node's metres, flying +X; the node mirrors and scales them.
+//   8 arc flames     - flame tongues licking up off the floor fire's crescent, where it has caught
+//   9 arc embers     - sparks spat off the burning crescent every way, many jumping toward the camera
+//  10 arc smoke      - soot rising off the burning crescent
+//  11 arc ignition   - a spray of sparks thrown up along the crescent as the sweep lights it (once)
+// Positions are in the node's metres, flying +X; the node mirrors and scales them. The arc kinds (8 to 11) start on
+// the crescent as the floor fire lays it down (arc_point), from the floor at the node's origin, +Z toward the camera.
 shader_type spatial;
 render_mode unshaded, blend_premul_alpha, depth_draw_never, cull_disabled, fog_disabled, skip_vertex_transform;
 
@@ -26,6 +31,11 @@ uniform float strength : hint_range(0.0, 3.0) = 1.0;
 uniform float burst_speed : hint_range(0.0, 3.0) = 1.0;
 // Seconds from the part's first frame; looping layers only show particles born after 0, so trails build up.
 uniform float t = 0.0;
+// The floor fire's crescent: metres across, its tilt up off the floor toward the camera (radians), and how long
+// the sweep takes to light it end to end; particles only start where it has caught.
+uniform float arc_size : hint_range(0.1, 4.0) = 1.8;
+uniform float arc_tilt : hint_range(0.0, 1.5) = 0.75;
+uniform float sweep_seconds : hint_range(0.01, 1.0) = 0.13;
 
 const float RING = 0.3;
 
@@ -39,6 +49,20 @@ vec3 sphere_dir(float a, float b) {
 	float angle = b * TAU;
 	float s = sqrt(max(1.0 - z * z, 0.0));
 	return vec3(s * cos(angle), s * sin(angle), z);
+}
+
+// A point on the floor fire's crescent, `s` 0 to 1 from its far horn round its back to its near one and `across`
+// -1 to 1 through its width (narrowing to the horns). Matches fire_crescent.gdshader's shape as the art node lays
+// it down: turned to open back toward the fighter, then tipped from upright to arc_tilt off the floor.
+vec3 arc_point(float s, float across) {
+	float angle = mix(0.6, TAU - 0.6, s);
+	float r = 0.39 + across * 0.07 * sin(s * 3.14159);
+	vec2 q = vec2(0.03 + r * cos(angle), r * sin(angle));
+	return arc_size * vec3(-q.x, q.y * sin(arc_tilt), -q.y * cos(arc_tilt));
+}
+
+float arc_swept(float seconds) {
+	return clamp(seconds / sweep_seconds, 0.0, 1.0);
 }
 
 // For a looping particle: its age in seconds (negative if not born yet) and its life share u.
@@ -85,6 +109,25 @@ vec3 place(int k, vec4 h, float age, float life) {
 	} else if (k == 6) {
 		float flown = (0.6 + 0.6 * h.z) * burst_speed * (1.0 - exp(-4.0 * a)) / 4.0;
 		return dir * (RING * 0.5 + flown) * vec3(1.0, 0.7, 1.0) + vec3(0.0, 0.55 * a, 0.0);
+	} else if (k == 8) {
+		vec3 start = arc_point(h.x, h.z * 2.0 - 1.0);
+		vec3 v = vec3((h.w - 0.5) * 0.35, 0.9 + 1.1 * h.y, (h.z - 0.5) * 0.25);
+		return start + v * a + vec3(sin(a * 9.0 + h.y * 20.0) * 0.04, 0.6 * a * a, 0.0);
+	} else if (k == 9) {
+		// Every way, more toward the camera than away: some jump well out of the floor's plane.
+		vec3 start = arc_point(h.x, h.z * 2.0 - 1.0);
+		vec3 v = vec3((h.y - 0.5) * 3.0, 1.6 + 3.4 * h.z * h.z, mix(-1.2, 4.2, h.w * h.w));
+		float drag = (1.0 - exp(-1.6 * a)) / 1.6;
+		return start + v * drag - vec3(0.0, 3.2 * a * a, 0.0);
+	} else if (k == 10) {
+		vec3 start = arc_point(h.x, h.z * 2.0 - 1.0) + vec3(0.0, 0.15, 0.0);
+		vec3 v = vec3((h.w - 0.5) * 0.3, 0.55 + 0.45 * h.y, (h.z - 0.5) * 0.2);
+		return start + v * a;
+	} else if (k == 11) {
+		vec3 start = arc_point(h.x, h.z * 2.0 - 1.0);
+		vec3 v = vec3((h.y - 0.5) * 5.0, 2.5 + 5.0 * h.z, mix(-2.0, 6.5, h.w)) * burst_speed;
+		float drag = (1.0 - exp(-3.0 * a)) / 3.0;
+		return start + v * drag - vec3(0.0, 2.6 * a * a, 0.0);
 	}
 	// 7: spiral in from far away, faster as it closes.
 	float u = clamp(a / life, 0.0, 1.0);
@@ -109,7 +152,10 @@ void vertex() {
 	float size;
 	float heat;
 	float alpha;
-	bool looping_kind = kind <= 3 || kind == 7;
+	bool looping_kind = kind <= 3 || (kind >= 7 && kind <= 10);
+	bool ember = kind == 0 || kind == 4 || kind == 9 || kind == 11;
+	bool puff = kind == 1 || kind == 5 || kind == 8;
+	bool smoke = kind == 2 || kind == 6 || kind == 10;
 	if (kind == 0) { life = 0.35 + 0.45 * h.w; }
 	else if (kind == 1) { life = 0.28 + 0.3 * h.w; }
 	else if (kind == 2) { life = 0.7 + 0.6 * h.w; }
@@ -117,28 +163,40 @@ void vertex() {
 	else if (kind == 4) { life = 0.3 + 0.55 * h.w; }
 	else if (kind == 5) { life = 0.25 + 0.3 * h.w; }
 	else if (kind == 6) { life = 0.6 + 0.5 * h.w; }
+	else if (kind == 8) { life = 0.3 + 0.35 * h.w; }
+	else if (kind == 9) { life = 0.6 + 0.7 * h.y; }
+	else if (kind == 10) { life = 0.8 + 0.7 * h.w; }
+	else if (kind == 11) { life = 0.5 + 0.6 * h.y; }
 	else { life = 0.35 + 0.35 * h.w; }
 
 	if (looping_kind) {
 		vec2 l = looping(effect_hash(vec2(float(INSTANCE_ID), 3.3)), life);
 		age = l.x;
 		u = l.y;
+	} else if (kind == 11) {
+		// Each spark leaves its spot on the arc as the sweep reaches it.
+		age = t - h.x * sweep_seconds;
+		u = age / life;
 	} else {
 		age = t;
 		u = t / life;
 	}
 	bool shown = float(INSTANCE_ID) < amount * float(count) && age >= 0.0 && u <= 1.0;
+	if (kind >= 8 && kind <= 10) {
+		// Only off the part of the arc that had caught when it was born.
+		shown = shown && h.x <= arc_swept(t - age);
+	}
 
-	if (kind == 0 || kind == 4) {
+	if (ember) {
 		streak = true;
 		size = (0.014 + 0.022 * h.z) * (1.0 - 0.6 * u);
 		heat = mix(1.0, 0.35, u * u);
 		alpha = (1.0 - u) * smoothstep(0.0, 0.05, u);
-	} else if (kind == 1 || kind == 5) {
+	} else if (puff) {
 		size = RING * mix(0.55, 1.35, sqrt(u)) * (0.7 + 0.6 * h.z);
 		heat = mix(1.05, 0.1, u);
 		alpha = smoothstep(0.0, 0.12, u) * (1.0 - smoothstep(0.4, 0.9, u)) * 0.75;
-	} else if (kind == 2 || kind == 6) {
+	} else if (smoke) {
 		size = RING * mix(0.6, 1.8, sqrt(u)) * (0.7 + 0.6 * h.z);
 		heat = 0.12 * (1.0 - u);
 		alpha = smoothstep(0.0, 0.25, u) * (1.0 - smoothstep(0.4, 1.0, u)) * 0.55;
@@ -173,15 +231,19 @@ void vertex() {
 		offset *= shown ? 1.0 : 0.0;
 	} else {
 		offset = fire_rotate(VERTEX.xy, h.y * TAU + t * (h.z - 0.5) * 3.0) * s;
+		if (kind == 8) {
+			// Tongues, not puffs: small, upright and tall, so the crescent's shape still reads through them.
+			offset = vec2(VERTEX.x * 0.45, VERTEX.y * 1.1) * s;
+		}
 	}
 	VERTEX = centre + vec3(offset, 0.0);
 
 	vec3 colour = fire_ramp(heat);
-	if (kind == 2 || kind == 6) {
+	if (smoke) {
 		// Soot: dark grey and covering, lit faintly red by the fire only while young.
 		colour = mix(vec3(0.16, 0.14, 0.14), colour, (1.0 - u) * 0.5);
 		v_colour = vec4(colour, 1.0) * alpha * strength;
-	} else if (kind == 1 || kind == 5) {
+	} else if (puff) {
 		// Fire: mostly light added, a little cover so it reads on a bright stage.
 		v_colour = vec4(colour * (1.0 + heat), 0.35) * alpha * strength;
 	} else {
@@ -193,12 +255,12 @@ void vertex() {
 void fragment() {
 	float r = length(v_corner) * 2.0;
 	float shape;
-	if (kind == 1 || kind == 5 || kind == 2 || kind == 6) {
+	if (kind == 1 || kind == 5 || kind == 8 || kind == 2 || kind == 6 || kind == 10) {
 		// A ragged puff: a soft disc eaten into by noise that churns as it ages.
 		float n = effect_fbm(v_corner * 3.5 + vec2(v_seed * 17.0, v_seed * 5.0 - v_age * 2.0));
 		shape = smoothstep(0.25, 0.75, (1.0 - r) * (0.5 + n * 1.1));
 		// Fire puffs burn hottest in the middle.
-		if (kind == 1 || kind == 5) {
+		if (kind == 1 || kind == 5 || kind == 8) {
 			shape *= 0.6 + 0.6 * n;
 		}
 	} else {

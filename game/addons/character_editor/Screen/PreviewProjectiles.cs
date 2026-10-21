@@ -65,7 +65,8 @@ public partial class PreviewProjectiles : Node3D
             else if (projectile.Index < _flights.Count && _flights[projectile.Index] is (Node3D node, IProjectileArt art))
             {
                 node.Visible = true;
-                art.ShowFrame(projectile.LifeFrame, centre, 1);
+                int lifetime = ProjectileFields.LifetimeOf(projectile.Projectile) ?? projectile.LifeFrame;
+                art.ShowFrame(projectile.LifeFrame, centre, 1, lifetime);
             }
         }
     }

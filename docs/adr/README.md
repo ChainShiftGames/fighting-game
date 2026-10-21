@@ -37,5 +37,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0034](0034-mixamo-prototype-character.md) | *Proposed*: Mixamo's Kachujin and Mixamo fighting clips as the prototype fighter; free for games, raw files never redistributed; clips packed in place into `<id>_moves.glb` by `tools/Blender/mixamo_clips_to_glb.py` |
 | [0035](0035-illustrated-brush-toon-look.md) | *Proposed*: fighters aim at an E's Laf++-style illustration: painted shade, dry-brush shade borders, light patches, wobbly thin ink outlines, inner ink lines pass; toggles in the debug panel |
 | [0036](0036-golden-replays-and-testman-scenarios-on-hold.md) | *Proposed*: golden replays and testman scenarios skipped while testman's tuning changes often; fixture-character scenarios still run |
+| [0037](0037-lingering-projectiles.md) | *Proposed*: projectile data `rehitInterval` (default 0 = gone on first hit): above 0 it stays out after landing and lands again after that many frames (floor fires, traps); entity `RehitCooldown` |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.

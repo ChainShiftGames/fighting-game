@@ -1,0 +1,18 @@
+# A lingering projectile (rehitInterval, ADR-0037): p1's 214a floor fire appears under crouching p2 and stays out
+# after it is blocked, landing again every 10 frames while p2 keeps blocking, until its lifetime ends.
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+frame 1: p1 2, 1, 4a
+frames 1-60: p2 1                        # down-back: crouch-blocks in place
+
+frame 15: expect p1 event projectile_block
+frame 15: expect p1 entities = 1
+frame 15: expect p2 state = crouch_blockstun
+frame 15: expect p2 damage = 30          # chip
+frame 24: expect p1 event projectile_block = 0
+frame 25: expect p1 event projectile_block
+frame 25: expect p2 damage = 60
+frame 35: expect p1 event projectile_block
+frames 15-50: expect p2 state = crouch_blockstun
+frame 55: expect p1 entities = 0

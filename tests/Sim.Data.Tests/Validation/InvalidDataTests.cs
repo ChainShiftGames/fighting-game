@@ -299,6 +299,14 @@ public sealed class InvalidDataTests
     }
 
     [Fact]
+    public void ProjectileWithANegativeRehitInterval()
+    {
+        _data.Replace(_move236C, "\"durability\": 2", "\"durability\": 2, \"rehitInterval\": -1");
+
+        AssertSingleError(_move236C, "projectiles[0].rehitInterval", "must be a whole number from 0 to 999, got -1");
+    }
+
+    [Fact]
     public void BasicMoveWithProjectiles()
     {
         string projectiles = Between(_data.GetText(_move236C), "\"projectiles\"", "\n}");

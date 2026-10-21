@@ -76,7 +76,8 @@ public partial class ProjectileViews : Node3D
                         CharacterData character = _characters[owner];
                         Vector3 centre = ProjectileCentre.Of(
                             character, in character.Projectiles[projectile], entity.Position, entity.Facing, entity.Frame);
-                        art.ShowFrame(entity.Frame, centre, entity.Facing);
+                        art.ShowFrame(
+                            entity.Frame, centre, entity.Facing, character.Projectiles[projectile].Lifetime);
                         if (!lit && art is IEffectLightSource source && source.LightNow(out Vector3 at, out Color colour, out float reach))
                         {
                             _lighting.Show(at, colour, reach);

@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../schema/move.schema.json",
+  "schemaVersion": 3,
+  "id": "214b",
+  "category": "special",
+  "usableIn": "ground",
+  "input": { "motion": "214", "button": "b" },
+  "frameData": { "startup": 17, "active": 4, "recovery": 28 },
+  "boxes": [
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 48, "x": -25000, "y": 0, "width": 50000, "height": 75000 },
+    { "kind": "hurt", "firstFrame": 17, "lastFrame": 24, "x": 20000, "y": 0, "width": 60000, "height": 18000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 48, "x": -20000, "y": 0, "width": 40000, "height": 70000 },
+    { "kind": "hit", "firstFrame": 17, "lastFrame": 20, "x": 15000, "y": 0, "width": 75000, "height": 20000 }
+  ],
+  "hits": [
+    {
+      "damage": 800,
+      "chipDamage": 80,
+      "guard": "low",
+      "hitstun": 30,
+      "blockstun": 16,
+      "hitstop": 12,
+      "pushback": 14000,
+      "reaction": "knockdown"
+    }
+  ],
+  "projectiles": [
+    {
+      "spawnFrame": 17,
+      "offset": { "x": 115000, "y": 0 },
+      "velocity": { "x": 0 },
+      "lifetime": 120,
+      "rehitInterval": 12,
+      "boxes": [
+        { "firstFrame": 1, "lastFrame": 120, "x": -45000, "y": 0, "width": 90000, "height": 28000 }
+      ],
+      "hit": {
+        "damage": 150,
+        "chipDamage": 30,
+        "guard": "mid",
+        "hitstun": 14,
+        "blockstun": 16,
+        "hitstop": 4,
+        "pushback": 3000
+      }
+    }
+  ]
+}

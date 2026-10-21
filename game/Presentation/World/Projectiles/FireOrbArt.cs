@@ -92,7 +92,7 @@ public partial class FireOrbArt : Node3D, IProjectileArt, IEffectLightSource
         AddChild(_pool);
     }
 
-    public void ShowFrame(int frame, Vector3 centre, int facing)
+    public void ShowFrame(int frame, Vector3 centre, int facing, int lifetime)
     {
         Position = centre;
 

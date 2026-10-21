@@ -6,7 +6,7 @@ namespace FightingGame.Addons.CharacterEditor.Map;
 
 /// <summary>
 /// The projectile settings the drawer edits directly: the frame it appears on, its speed forward and up (subpixels
-/// per frame), how long it lasts and how many clashes it survives. Written in place; validation checks the values.
+/// per frame), how long it lasts, how many clashes it survives and how soon it can hit again. Written in place; validation checks the values.
 /// </summary>
 public static class ProjectileFields
 {
@@ -15,6 +15,7 @@ public static class ProjectileFields
     private const string Y = "y";
     private const string Lifetime = "lifetime";
     private const string Durability = "durability";
+    private const string RehitInterval = "rehitInterval";
 
     /// <summary>The schema's durability when the field is left out.</summary>
     public const int DefaultDurability = 1;
@@ -68,6 +69,22 @@ public static class ProjectileFields
         JsonNodeValue.Int(projectile[Durability]) ?? DefaultDurability;
 
     public static void SetDurability(JsonObject projectile, int durability) => projectile[Durability] = durability;
+
+    /// <summary>Frames before it can land again; the schema's default 0 (gone on its first hit) when left out.</summary>
+    public static int RehitIntervalOf(JsonObject projectile) => JsonNodeValue.Int(projectile[RehitInterval]) ?? 0;
+
+    /// <summary>Writes the rehit interval; 0 removes the field, the way hand-written files leave it out.</summary>
+    public static void SetRehitInterval(JsonObject projectile, int frames)
+    {
+        if (frames == 0)
+        {
+            projectile.Remove(RehitInterval);
+        }
+        else
+        {
+            projectile[RehitInterval] = frames;
+        }
+    }
 
     /// <summary>Where it appears, forward and up from the fighter's origin; null when the file can't say.</summary>
     public static (int X, int Y)? OffsetOf(JsonObject projectile) =>

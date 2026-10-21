@@ -10,7 +10,7 @@ namespace Sim.Entities;
 /// that runs out this frame makes room for one spawned this frame, and a new one doesn't move on its spawn frame.
 /// An entity whose frame passes its lifetime disappears before moving (<see cref="FrameEventKind.ProjectileExpire"/>
 /// at its last position). Time: entities stop in a global freeze unless their owner keeps running (an exempt owner
-/// that advances this frame); they don't share their owner's hitstop or time scale. Entities don't stop at walls;
+/// that advances this frame); a rehit cooldown counts down only on frames the entity advances. They don't share their owner's hitstop or time scale. Entities don't stop at walls;
 /// their lifetime ends them. Each entity reads only itself and its data, so slot order can't matter.
 /// </remarks>
 public sealed class EntityMovementStage : ITickStage
@@ -37,6 +37,11 @@ public sealed class EntityMovementStage : ITickStage
     private EntityState Advance(ref MatchState state, EntityState entity)
     {
         entity.Frame++;
+        if (entity.RehitCooldown > 0)
+        {
+            entity.RehitCooldown--;
+        }
+
         if (entity.Frame <= _characters.ProjectileOf(in entity).Lifetime)
         {
             entity.Position += entity.Velocity;

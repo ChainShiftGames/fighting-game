@@ -11,6 +11,7 @@ public static class ProjectileEffects
     private static readonly Dictionary<string, Func<Node3D>> _flights = new(StringComparer.Ordinal)
     {
         ["dark_fireball"] = () => new DarkFireballArt(),
+        ["fire_crescent"] = () => new FireCrescentArt(),
         ["fire_orb"] = () => new FireOrbArt(),
         ["ice_orb"] = () => new IceOrbArt(),
     };

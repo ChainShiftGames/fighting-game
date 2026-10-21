@@ -11,6 +11,7 @@ namespace Sim.Tests.Entities;
 /// <see cref="Idle"/> is every basic state. <see cref="Fireball"/> spawns <see cref="FireballProjectile"/> and
 /// <see cref="Sturdy"/> spawns <see cref="SturdyProjectile"/>, both on move frame <see cref="SpawnFrame"/> at
 /// (40000, 50000) in front, with a 20000-square hitbox around their position. <see cref="Invulnerable"/> can't be hit.
+/// <see cref="LingeringProjectile"/> (no move spawns it) stands still and lands every <see cref="LingeringRehit"/> frames.
 /// </remarks>
 internal static class ProjectileCharacter
 {
@@ -21,6 +22,7 @@ internal static class ProjectileCharacter
 
     public const int FireballProjectile = 0;
     public const int SturdyProjectile = 1;
+    public const int LingeringProjectile = 2;
 
     public const int Health = 10_000;
     public const int SpawnFrame = 2;
@@ -28,6 +30,7 @@ internal static class ProjectileCharacter
     public const int FireballLifetime = 30;
     public const int SturdySpeed = 2_000;
     public const int SturdyDurability = 3;
+    public const int LingeringRehit = 10;
 
     public static readonly IntVector2 Offset = new(40_000, 50_000);
 
@@ -54,6 +57,7 @@ internal static class ProjectileCharacter
             Box(BoxKind.Hurt, 1, 60, _hurtbox),
             Box(BoxKind.Hit, 1, 200, _projectileHitbox),
             Box(BoxKind.Hit, 1, 200, _projectileHitbox),
+            Box(BoxKind.Hit, 1, 200, _projectileHitbox),
         ];
         MoveData[] moves =
         [
@@ -70,6 +74,7 @@ internal static class ProjectileCharacter
         [
             Projectile(FireballSpeed, FireballLifetime, durability: 1, boxStart: 1, FireballHit),
             Projectile(SturdySpeed, 200, SturdyDurability, boxStart: 2, SturdyHit),
+            Projectile(0, 200, durability: 1, boxStart: 3, FireballHit) with { RehitInterval = LingeringRehit },
         ];
         return new CharacterData(
             "projectile", "Projectile", new CharacterStats { Health = Health },
@@ -94,6 +99,12 @@ internal static class ProjectileCharacter
     {
         bool isSturdy = projectile == SturdyProjectile;
         int facing = owner == 0 ? 1 : -1;
+        int speed = projectile switch
+        {
+            SturdyProjectile => SturdySpeed,
+            LingeringProjectile => 0,
+            _ => FireballSpeed,
+        };
         return new EntityState
         {
             IsActive = 1,
@@ -101,7 +112,7 @@ internal static class ProjectileCharacter
             Projectile = projectile,
             Frame = frame,
             Position = new IntVector2(x, Offset.Y),
-            Velocity = new IntVector2(facing * (isSturdy ? SturdySpeed : FireballSpeed), 0),
+            Velocity = new IntVector2(facing * speed, 0),
             Facing = facing,
             Durability = isSturdy ? SturdyDurability : 1,
         };
