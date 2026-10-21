@@ -12,7 +12,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// <summary>
 /// The character's rigged model, posed for the frame on the <see cref="BoxCanvas"/> and drawn behind its boxes, so
 /// boxes can be fitted to the body (ADR-0028). Renders off-screen, framed to the canvas's own origin and zoom; a
-/// character drawn as a placeholder has no model and the canvas shows its body box instead.
+/// character drawn as a placeholder has no model and the canvas shows its body box instead. The move's projectile
+/// effects (charge, then flight) are drawn with it, where the match draws them.
 /// </summary>
 [Tool]
 public partial class ModelPreview : SubViewport
@@ -33,6 +34,7 @@ public partial class ModelPreview : SubViewport
         Current = true,
     };
 
+    private readonly PreviewProjectiles _projectiles = new();
     private RiggedFighterModel? _model;
 
     public ModelPreview()
@@ -41,6 +43,7 @@ public partial class ModelPreview : SubViewport
         TransparentBg = true;
         RenderTargetUpdateMode = UpdateMode.Always;
         AddChild(_camera);
+        AddChild(_projectiles);
         AddChild(new DirectionalLight3D { RotationDegrees = _lightAngles });
         AddChild(new WorldEnvironment
         {
@@ -71,6 +74,10 @@ public partial class ModelPreview : SubViewport
     {
         _model?.QueueFree();
         _model = characterId is null ? null : FighterArtChoice.CreateModel(characterId, moveIds);
+        _projectiles.ShowCharacter(
+            characterId is not null && _model is not null && FighterArtChoice.ReadSettings(characterId) is { } art
+                ? art.Projectiles
+                : new Dictionary<string, Presentation.World.Projectiles.ProjectileArtSettings>());
         if (_model is not null)
         {
             AddChild(_model);
@@ -89,6 +96,7 @@ public partial class ModelPreview : SubViewport
         if (_model is not null && MovePose.Of(move, frame) is { } pose)
         {
             _model.ShowPose(pose, new IntVector2(0, 0), 1, _noBoxes);
+            _projectiles.ShowFrame(move, frame);
         }
     }
 }

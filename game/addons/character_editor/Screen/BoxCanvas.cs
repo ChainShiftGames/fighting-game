@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
+using FightingGame.Addons.CharacterEditor.Map;
 using FightingGame.Presentation;
 using Godot;
 using Sim.Characters;
@@ -13,7 +14,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// <summary>
 /// One frame of a move, facing right: the character's model posed for the frame (<see cref="ModelPreview"/>), or the
 /// placeholder body when it has none, every box on the frame in the hitbox overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
-/// new box of <see cref="DrawKind"/> on empty space; right- or middle-drag pans; the wheel zooms.
+/// new box of <see cref="DrawKind"/> on empty space, or a projectile's spawn point (its cross or hitbox,
+/// <see cref="ProjectileOverlay"/>); right- or middle-drag pans; the wheel zooms.
 /// </summary>
 /// <remarks>
 /// Edges snap to whole pixels; hold Alt to place them on any subpixel. While not <see cref="Editable"/> a left click
@@ -45,6 +47,7 @@ public partial class BoxCanvas : Control
     private static readonly Color _handle = new(1f, 1f, 1f);
 
     private readonly ModelPreview _preview = new();
+    private readonly ProjectileOverlay _projectiles = new();
     private readonly GradientTexture2D _backdrop = new()
     {
         Gradient = new Gradient
@@ -69,6 +72,10 @@ public partial class BoxCanvas : Control
     private bool _moved;
     private Vector2I _dragStart;
     private BoxArea _startArea;
+
+    // A projectile whose spawn offset is being dragged, and its offset when the drag started.
+    private JsonObject? _projectileDragged;
+    private (int X, int Y) _startOffset;
 
     public BoxCanvas()
     {
@@ -161,6 +168,8 @@ public partial class BoxCanvas : Control
             DrawRect(rect, color, filled: false, width: box == Selected ? SelectedWidth : OutlineWidth);
         }
 
+        _projectiles.Show(_move, _frame);
+        _projectiles.Draw(this, ToScreen, ToScreen, _projectileDragged);
         if (SelectedArea() is BoxArea selected)
         {
             foreach (Vector2 corner in Corners(ToScreen(selected)))
@@ -213,6 +222,14 @@ public partial class BoxCanvas : Control
         _moved = false;
         _drawing = false;
         _handleDragged = HandleAt(position);
+        if (_handleDragged == BoxHandle.None && _projectiles.At(position, ToScreen, ToScreen) is JsonObject projectile
+            && ProjectileFields.OffsetOf(projectile) is { } offset)
+        {
+            _projectileDragged = projectile;
+            _startOffset = offset;
+            return;
+        }
+
         if (_handleDragged == BoxHandle.None)
         {
             JsonObject? box = BoxAt(_dragStart);
@@ -237,6 +254,12 @@ public partial class BoxCanvas : Control
         {
             _origin = Origin() + motion.Relative;
             QueueRedraw();
+            return;
+        }
+
+        if ((motion.ButtonMask & MouseButtonMask.Left) != 0 && _projectileDragged is not null)
+        {
+            DragProjectile(motion);
             return;
         }
 
@@ -277,10 +300,23 @@ public partial class BoxCanvas : Control
         }
 
         _handleDragged = BoxHandle.None;
+        _projectileDragged = null;
         _drawing = false;
         _moved = false;
         QueueRedraw();
     }
+
+    // The projectile's offset follows the pointer, in whole pixels unless Alt is held, like box edges.
+    private void DragProjectile(InputEventMouseMotion motion)
+    {
+        Vector2I moved = ToData(motion.Position) - _dragStart;
+        int snap = motion.AltPressed ? 1 : PixelSnap;
+        ProjectileFields.SetOffset(_projectileDragged!, Snap(_startOffset.X + moved.X, snap), Snap(_startOffset.Y + moved.Y, snap));
+        _moved = true;
+        QueueRedraw();
+    }
+
+    private static int Snap(int value, int snap) => (int)Math.Round(value / (double)snap, MidpointRounding.AwayFromZero) * snap;
 
     private void Select(JsonObject? box)
     {
@@ -355,6 +391,8 @@ public partial class BoxCanvas : Control
     private Rect2 ToScreen(BoxArea area) => new(
         Origin() + (new Vector2(area.X, -area.Top) / Subpixels * _zoom),
         new Vector2(area.Width, area.Height) / Subpixels * _zoom);
+
+    private Vector2 ToScreen(int x, int y) => Origin() + (new Vector2(x, -y) / Subpixels * _zoom);
 
     private Vector2I ToData(Vector2 position)
     {
