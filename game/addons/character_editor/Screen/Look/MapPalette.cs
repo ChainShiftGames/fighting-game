@@ -32,6 +32,10 @@ public static class MapPalette
     public static readonly Color Recovery = Color.FromHtml("5f8dff");
     public static readonly Color Loop = Color.FromHtml("a59cff");
 
+    // How a hit is blocked, for the map's guard tags.
+    public static readonly Color GuardLow = Color.FromHtml("6ea8ff");
+    public static readonly Color GuardOverhead = Color.FromHtml("ffa86b");
+
     public static readonly Color Good = Color.FromHtml("8be9b3");
     public static readonly Color Warn = Color.FromHtml("f4c47a");
     public static readonly Color Bad = Color.FromHtml("ff6b8a");
