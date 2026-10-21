@@ -15,7 +15,7 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// <summary>
 /// One frame of a move, facing right: the character's model posed for the frame (<see cref="ModelPreview"/>), or the
 /// placeholder body when it has none, every box on the frame in the hitbox overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
-/// new box of <see cref="DrawKind"/> on empty space, or a projectile's spawn point (its cross or hitbox,
+/// new box of <see cref="DrawKind"/> anywhere but on a box of that kind (other kinds can be drawn over), or a projectile's spawn point (its cross or hitbox,
 /// <see cref="ProjectileOverlay"/>), or the hit spark's star (<see cref="SparkMoved"/>); right- or middle-drag pans;
 /// the wheel zooms.
 /// </summary>
@@ -375,13 +375,15 @@ public partial class BoxCanvas : Control
         QueueRedraw();
     }
 
-    // The top-most box under the point: the last one drawn.
+    // The top-most box under the point: the last one drawn. While a kind is picked to draw, only boxes of that kind
+    // count, so a hit box can be drawn over the hurt box it usually overlaps.
     private JsonObject? BoxAt(Vector2I point)
     {
         IReadOnlyList<JsonObject> boxes = MoveBoxes.OnFrame(_move, _frame);
         for (int i = boxes.Count - 1; i >= 0; i--)
         {
-            if (BoxArea.Of(boxes[i]) is BoxArea area && area.Contains(point.X, point.Y))
+            bool pickable = DrawKind is null || JsonNodeValue.Text(boxes[i][MoveFields.Kind]) == DrawKind;
+            if (pickable && BoxArea.Of(boxes[i]) is BoxArea area && area.Contains(point.X, point.Y))
             {
                 return boxes[i];
             }

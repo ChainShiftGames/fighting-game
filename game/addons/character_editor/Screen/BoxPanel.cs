@@ -34,7 +34,7 @@ public partial class BoxPanel : VBoxContainer
     private readonly BoxCanvas _canvas = new();
     private readonly Label _hint = new()
     {
-        Text = "Click a box to select it. Pick a kind and drag on empty space to draw one. Right-drag pans, the wheel zooms; hold Alt to place edges off the pixel grid.",
+        Text = "Click a box to select it. Pick a kind and drag to draw one, even over boxes of other kinds (they can't be picked while drawing; pick \"(select only)\" to edit them). Right-drag pans, the wheel zooms; hold Alt to place edges off the pixel grid.",
         AutowrapMode = TextServer.AutowrapMode.WordSmart,
         ThemeTypeVariation = Look.MapTheme.MutedLabel,
     };
