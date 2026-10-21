@@ -12,9 +12,11 @@
   "turnDegrees": 90,
   "scale": 1.75,
   // Models to compare on the same clips, switched with the debug panel's "Switch fighter model" (F1): the Tripo
-  // armor model (50 parts joined, textures atlased by tripo_to_glb.py) and the VRoid model.
+  // armor model (50 parts joined, textures atlased by tripo_to_glb.py), the Tripo fighter (rig rebuilt in Blender:
+  // stance rest pose, solid right fist, ponytail/ribbon/sash bone chains the clips leave at rest) and the VRoid model.
   "otherModels": [
     { "model": "res://Assets/Characters/tripo_armor/tripo_armor.glb", "scale": 1.67, "turnDegrees": 90 },
+    { "model": "res://Assets/Characters/tripo_fighter/tripo_fighter.glb", "scale": 1.75, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/vroid_test/vroid_test.glb", "scale": 1.0, "turnDegrees": 90 }
   ],
   // Look settings: basic moves fade in over 4 frames (hit and block reactions snap in, as attacks do), a side switch
