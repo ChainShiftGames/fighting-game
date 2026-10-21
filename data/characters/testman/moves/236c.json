@@ -14,7 +14,7 @@
     {
       "spawnFrame": 16,
       "offset": { "x": 84000, "y": 77000 },
-      "velocity": { "x": 13000 },
+      "velocity": { "x": 6500 },
       "lifetime": 120,
       "durability": 1,
       "boxes": [

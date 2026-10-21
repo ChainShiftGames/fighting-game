@@ -82,18 +82,90 @@
         { "phase": "recovery", "frame": 7, "of": 7, "clip": 40 }
       ]
     },
-    "5b": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5b", "activeFrom": 22, "recoveryFrom": 28 },
-    "5c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5c", "activeFrom": 57, "recoveryFrom": 66 },
-    "5d": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5d", "activeFrom": 54, "recoveryFrom": 62 },
+    "5b": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5b", "activeFrom": 22, "recoveryFrom": 30,
+      "keys": [
+        { "phase": "startup", "frame": 2, "of": 6, "clip": 9 },
+        { "phase": "startup", "frame": 3, "of": 6, "clip": 16 },
+        { "phase": "startup", "frame": 5, "of": 6, "clip": 17 },
+        { "phase": "active", "frame": 3, "of": 3, "clip": 22 },
+        { "phase": "recovery", "frame": 3, "of": 6, "clip": 42 },
+        { "phase": "recovery", "frame": 4, "of": 6, "clip": 61 },
+        { "phase": "recovery", "frame": 5, "of": 6, "clip": 52 }
+      ]
+    },
+    "5c": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5c", "activeFrom": 57, "recoveryFrom": 59,
+      "keys": [
+        { "phase": "startup", "frame": 4, "of": 9, "clip": 13 },
+        { "phase": "startup", "frame": 5, "of": 9, "clip": 34 },
+        { "phase": "startup", "frame": 6, "of": 9, "clip": 41 },
+        { "phase": "startup", "frame": 7, "of": 9, "clip": 45 },
+        { "phase": "recovery", "frame": 9, "of": 12, "clip": 81 },
+        { "phase": "recovery", "frame": 12, "of": 12, "clip": 91 }
+      ]
+    },
+    "5d": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5d", "activeFrom": 57, "recoveryFrom": 62,
+      "keys": [
+        { "phase": "startup", "frame": 4, "of": 13, "clip": 21 },
+        { "phase": "startup", "frame": 6, "of": 13, "clip": 29 },
+        { "phase": "active", "frame": 3, "of": 3, "clip": 57 }
+      ]
+    },
     // A standing low kick: she rises out of the crouch for it.
-    "2a": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2a", "activeFrom": 16, "recoveryFrom": 22 },
+    "2a": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2a", "activeFrom": 22, "recoveryFrom": 22,
+      "keys": [
+        { "phase": "startup", "frame": 2, "of": 6, "clip": 11 },
+        { "phase": "startup", "frame": 3, "of": 6, "clip": 6 },
+        { "phase": "startup", "frame": 5, "of": 6, "clip": 10 },
+        { "phase": "active", "frame": 4, "of": 4, "clip": 21 },
+        { "phase": "recovery", "frame": 6, "of": 6, "clip": 35 }
+      ]
+    },
     // Peak reach: low hook 16 (no Mixamo clip yet: the downloaded one was a kick from the ground).
-    "2b": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_B", "activeFrom": 12, "recoveryFrom": 17 },
-    "2c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2c", "activeFrom": 76, "recoveryFrom": 88 },
+    "2b": {
+      "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_B", "activeFrom": 14, "recoveryFrom": 17,
+      "keys": [
+        { "phase": "startup", "frame": 3, "of": 8, "clip": 9 },
+        { "phase": "startup", "frame": 7, "of": 8, "clip": 12 },
+        { "phase": "active", "frame": 3, "of": 3, "clip": 14 },
+        { "phase": "recovery", "frame": 10, "of": 12, "clip": 32 }
+      ]
+    },
+    "2c": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2c", "activeFrom": 79, "recoveryFrom": 84,
+      "keys": [
+        { "phase": "startup", "frame": 3, "of": 8, "clip": 50 },
+        { "phase": "startup", "frame": 5, "of": 8, "clip": 62 },
+        { "phase": "startup", "frame": 6, "of": 8, "clip": 53 },
+        { "phase": "startup", "frame": 8, "of": 8, "clip": 91 },
+        { "phase": "active", "frame": 3, "of": 3, "clip": 79 },
+        { "phase": "recovery", "frame": 4, "of": 18, "clip": 89 },
+        { "phase": "recovery", "frame": 8, "of": 18, "clip": 95 },
+        { "phase": "recovery", "frame": 11, "of": 18, "clip": 102 },
+        { "phase": "recovery", "frame": 13, "of": 18, "clip": 106 },
+        { "phase": "recovery", "frame": 18, "of": 18, "clip": 125 }
+      ]
+    },
     // Both jump by themselves (hips up to 1.7 and 2.3 m): the logic's height wins.
-    "j_c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "j_c", "activeFrom": 22, "recoveryFrom": 32, "holdHeight": true },
+    "j_c": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "j_c", "holdHeight": true, "activeFrom": 25, "recoveryFrom": 28,
+      "keys": [
+        { "phase": "startup", "frame": 5, "of": 7, "clip": 15 },
+        { "phase": "startup", "frame": 7, "of": 7, "clip": 21 },
+        { "phase": "active", "frame": 5, "of": 5, "clip": 24 },
+        { "phase": "recovery", "frame": 12, "of": 12, "clip": 77 }
+      ]
+    },
     // Flying knee (highest at 58) into a punch (furthest at 80).
-    "623c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "623c", "activeFrom": 50, "recoveryFrom": 85, "holdHeight": true },
+    "623c": {
+      "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "623c", "holdHeight": true, "activeFrom": 83, "recoveryFrom": 85,
+      "keys": [
+        { "phase": "recovery", "frame": 30, "of": 30, "clip": 22 }
+      ]
+    },
     // Previous clip, with timing keys tuned to it:
     // "236c": {
     //   "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Spell_Simple_Enter", "activeFrom": 29, "recoveryFrom": 32,
@@ -122,7 +194,12 @@
     },
     // Ground sweep that ignites the floor (one clip, kachujin_new_moves.glb): right foot furthest at 40, swept
     // back through by 46, settled by 85.
-    "214a": { "file": "res://Assets/Characters/kachujin/kachujin_new_moves.glb", "clip": "214abc", "clipTo": 100, "activeFrom": 36, "recoveryFrom": 47 },
+    "214a": {
+      "file": "res://Assets/Characters/kachujin/kachujin_new_moves.glb", "clip": "214abc", "clipTo": 100, "activeFrom": 58, "recoveryFrom": 65,
+      "keys": [
+        { "phase": "recovery", "frame": 26, "of": 26, "clip": 100 }
+      ]
+    },
     "214b": { "file": "res://Assets/Characters/kachujin/kachujin_new_moves.glb", "clip": "214abc", "clipTo": 100, "activeFrom": 36, "recoveryFrom": 47 },
     "214c": { "file": "res://Assets/Characters/kachujin/kachujin_new_moves.glb", "clip": "214abc", "clipTo": 100, "activeFrom": 36, "recoveryFrom": 47 },
     "236236d": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "236236d", "activeFrom": 17, "recoveryFrom": 52 },
@@ -144,17 +221,21 @@
   // burst forward, heavy hits and specials tear, launchers point along the launch.
   "sparks": {
     // Spinning back kick: high and straight through.
-    "5d": [{ "angle": 10, "style": "tear" }],
+    "5d": [{ "offset": { "x": 33, "y": 31 }, "style": "tear" }],
     // Flying kick: forward and a little down.
-    "j_c": [{ "angle": -20 }],
+    "j_c": [{ "offset": { "x": -15, "y": -1 } }],
     // Flying knee: up and away.
     "623c": [{ "angle": 65 }],
     // Leg sweep: low along the floor.
-    "2c": [{ "angle": 8, "offset": { "x": 0, "y": -10 } }],
+    "2c": [{ "angle": 8, "offset": { "x": 36, "y": 22 } }],
     "236236d": [{ "angle": 15, "scale": 1.3 }],
     // Ignition sweep: low along the floor, like 2C.
     "214a": [{ "angle": 8, "offset": { "x": 0, "y": -10 } }],
     "214b": [{ "angle": 8, "offset": { "x": 0, "y": -10 } }],
-    "214c": [{ "angle": 8, "offset": { "x": 0, "y": -10 }, "style": "tear" }]
+    "214c": [{ "angle": 8, "offset": { "x": 0, "y": -10 }, "style": "tear" }],
+    "2a": [{ "offset": { "x": 16, "y": 5 } }],
+    "5b": [{ "angle": -20, "offset": { "x": 2, "y": 5 } }],
+    "2b": [{ "offset": { "x": 8, "y": 8 } }],
+    "5c": [{ "offset": { "x": 23, "y": 11 } }]
   }
 }

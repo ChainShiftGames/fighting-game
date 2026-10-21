@@ -18,11 +18,19 @@
       "firstFrame": 5,
       "lastFrame": 13,
       "on": ["hit", "block"],
-      "into": ["5a", "2a", "5b", "2b"],
+      "into": ["5a", "2a", "5b", "2b", "2c", "236236d", "623c", "236c", "214a", "214b", "214c", "5d", "5c"],
       "intoCategories": ["special", "super"]
     }
   ],
   "hits": [
-    { "damage": 306, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 11, "hitstop": 10, "pushback": 12000 }
+    {
+      "damage": 306,
+      "chipDamage": 0,
+      "guard": "mid",
+      "hitstun": 13,
+      "blockstun": 9,
+      "hitstop": 8,
+      "pushback": 12000
+    }
   ]
 }
