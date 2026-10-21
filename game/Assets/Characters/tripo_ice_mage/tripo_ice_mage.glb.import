@@ -44,7 +44,7 @@ _subresources={
 "body": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://Assets/Characters/tripo_ice_mage/tripo_ice_mage_body.tres",
-"use_external/path": "res://Assets/Characters/tripo_ice_mage/tripo_ice_mage_body.tres"
+"use_external/path": "uid://c2xspj2pr7ttq"
 }
 },
 "nodes": {

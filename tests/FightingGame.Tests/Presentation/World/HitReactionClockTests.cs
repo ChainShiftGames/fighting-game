@@ -108,6 +108,38 @@ public sealed class HitReactionClockTests
     }
 
     [Fact]
+    public void TellsAReHitFromAFirstHit()
+    {
+        var clock = new HitReactionClock();
+        clock.Observe(Idle(99));
+        clock.Observe(Reaction("hitstun", 100, stun: 13, hitstop: 8));
+        Assert.False(clock.IsReHit, "the first hit snaps in");
+
+        clock.Observe(Reaction("hitstun", 112, stun: 9));
+        Assert.False(clock.IsReHit);
+
+        clock.Observe(Reaction("hitstun", 113, stun: 18, hitstop: 10));
+        Assert.True(clock.IsReHit, "a gatling's next hit");
+
+        clock.Observe(Reaction("hitstun", 114, stun: 18, hitstop: 9));
+        Assert.False(clock.IsReHit, "only on the frame it lands");
+
+        clock.Observe(Air(130, hitstop: 8));
+        Assert.True(clock.IsReHit, "a launcher mid-combo");
+    }
+
+    [Fact]
+    public void IsNoReHitWhenTheMatchGoesBack()
+    {
+        var clock = new HitReactionClock();
+        clock.Observe(Reaction("hitstun", 100, stun: 13));
+        clock.Observe(Reaction("hitstun", 106, stun: 7));
+        clock.Observe(Reaction("hitstun", 103, stun: 10));
+
+        Assert.False(clock.IsReHit);
+    }
+
+    [Fact]
     public void TestmansGatlingStartsTheReactionOverOnEachHitAndHoldsItThroughHitstop()
     {
         // 5A cancelled into 5B point blank. The defender stays in testman's hitstun move, one frame long and looping,
@@ -126,6 +158,7 @@ public sealed class HitReactionClockTests
         Assert.True(match.PreviousReactionFrame > 2, "the reaction counted on until 5B hit");
         Assert.Equal("hitstun", match.Pose.MoveId);
         Assert.Equal(1, match.ReactionFrame);
+        Assert.True(match.IsReHit, "5B lands mid-reaction, so the model fades into it");
         match.TickThroughHitstop();
         match.Tick(InputWord.Neutral);
         Assert.Equal(2, match.ReactionFrame);
@@ -145,6 +178,9 @@ public sealed class HitReactionClockTests
             StunFramesLeft = stun,
             HitstopFramesLeft = hitstop,
         };
+
+    private static FighterPose Idle(int matchFrame) =>
+        new FighterPose(FighterAction.Idle, "idle", 1, 60, MovePhase.None) { MatchFrame = matchFrame };
 
     private static FighterPose Air(int matchFrame, int hitstop = 0) =>
         Reaction("air_hitstun", matchFrame, stun: 20, hitstop, FighterAction.AirHitstun);
@@ -176,6 +212,8 @@ public sealed class HitReactionClockTests
         public FighterPose Pose { get; private set; }
 
         public int ReactionFrame { get; private set; }
+
+        public bool IsReHit => _clock.IsReHit;
 
         /// <summary>The reaction frame shown on the frame before.</summary>
         public int PreviousReactionFrame { get; private set; }

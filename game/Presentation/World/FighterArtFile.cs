@@ -80,9 +80,9 @@ public static class FighterArtFile
             return $"scale {file.Scale} must be above 0";
         }
 
-        if (file.CrossfadeFrames < 0 || file.TurnFrames < 0 || file.HoldFrames < 1)
+        if (file.CrossfadeFrames < 0 || file.ReHitFadeFrames < 0 || file.TurnFrames < 0 || file.HoldFrames < 1)
         {
-            return "crossfadeFrames and turnFrames can't be negative, and holdFrames must be at least 1";
+            return "crossfadeFrames, reHitFadeFrames and turnFrames can't be negative, and holdFrames must be at least 1";
         }
 
         if (file.CameraTurnDegrees is < 0f or > 90f)
@@ -287,6 +287,7 @@ public static class FighterArtFile
         {
             KnockOut = file.KnockOut is { } knockOut ? ToSettings(knockOut, null) : null,
             CrossfadeFrames = file.CrossfadeFrames,
+            ReHitFadeFrames = file.ReHitFadeFrames,
             TurnFrames = file.TurnFrames,
             CameraTurnDegrees = file.CameraTurnDegrees,
             HoldFrames = file.HoldFrames,
@@ -364,6 +365,8 @@ public static class FighterArtFile
         public Dictionary<string, List<SparkJson>> Sparks { get; init; } = [];
 
         public int CrossfadeFrames { get; init; }
+
+        public int ReHitFadeFrames { get; init; }
 
         public int TurnFrames { get; init; }
 

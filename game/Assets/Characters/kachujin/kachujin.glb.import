@@ -44,7 +44,7 @@ _subresources={
 "body": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://Assets/Characters/kachujin/kachujin_body.tres",
-"use_external/path": "res://Assets/Characters/kachujin/kachujin_body.tres"
+"use_external/path": "uid://fvf8m5j48a1m"
 }
 },
 "nodes": {

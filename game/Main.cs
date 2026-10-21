@@ -398,7 +398,7 @@ public partial class Main : Node2D
     private void AddFighterLookSection(DebugPanel panel)
     {
         string root = ProjectSettings.GlobalizePath(FighterArtFile.CharactersFolder);
-        DataFileSetting[] settings = ArtFileSettingList.CameraTurns(root);
+        DataFileSetting[] settings = ArtFileSettingList.LookSettings(root);
         if (settings.Length == 0)
         {
             return;

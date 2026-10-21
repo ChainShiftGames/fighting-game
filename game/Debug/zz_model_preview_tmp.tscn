@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dh7jysapl3qob"]
+
+[ext_resource type="PackedScene" uid="uid://c4pvinap7blfh" path="res://Assets/Characters/tripo_ice_mage/tripo_ice_mage.glb" id="1_20e14"]
+[ext_resource type="PackedScene" uid="uid://cc4idw81q7df7" path="res://Assets/Characters/tripo_fighter/tripo_fighter.glb" id="2_p2w4p"]
+[ext_resource type="PackedScene" uid="uid://c4mseivpy3atk" path="res://Assets/Characters/tripo_elf/tripo_elf.glb" id="3_wbo5w"]
+
+[node name="Preview" type="Node3D" unique_id=174293102]
+
+[node name="IceMage" parent="." unique_id=1010411846 instance=ExtResource("1_20e14")]
+
+[node name="Fighter" parent="." unique_id=351526011 instance=ExtResource("2_p2w4p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0, 0)
+visible = false
+
+[node name="Elf" parent="." unique_id=653889456 instance=ExtResource("3_wbo5w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, 0)
+visible = false
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=220813448]
+transform = Transform3D(0.8660254, -0.28678823, 0.40957603, 0, 0.81915206, 0.57357645, -0.5, -0.49673176, 0.7094065, 0, 0, 0)
+
+[node name="Cam" type="Camera3D" parent="." unique_id=1044193248]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0.22)
+current = true

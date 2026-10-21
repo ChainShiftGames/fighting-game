@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://tum3pkcc04mb"]
+
+[ext_resource type="Shader" uid="uid://bu24j6bce1gnd" path="res://Assets/Effects/hit_spark.gdshader" id="1"]
+
+[sub_resource type="QuadMesh" id="quad"]
+size = Vector2(5.2, 2.8)
+center_offset = Vector3(1.2, 0, 0)
+
+[sub_resource type="ShaderMaterial" id="mat"]
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/hit_core = Color(1, 1, 0.93, 1)
+shader_parameter/hit_body = Color(1, 0.8, 0.22, 1)
+shader_parameter/hit_rim = Color(1, 0.38, 0.06, 1)
+shader_parameter/counter_core = Color(1, 0.96, 0.86, 1)
+shader_parameter/counter_body = Color(1, 0.42, 0.12, 1)
+shader_parameter/counter_rim = Color(0.86, 0.04, 0.06, 1)
+shader_parameter/block_core = Color(0.95, 0.98, 1, 1)
+shader_parameter/block_body = Color(0.5, 0.82, 1, 1)
+shader_parameter/block_rim = Color(0.12, 0.36, 1, 1)
+shader_parameter/clash_core = Color(1, 1, 1, 1)
+shader_parameter/clash_body = Color(0.88, 0.88, 0.96, 1)
+shader_parameter/clash_rim = Color(0.55, 0.55, 0.7, 1)
+shader_parameter/burst_radius = 0.5
+shader_parameter/tear_reach = 1.7
+shader_parameter/tear_width = 0.1
+shader_parameter/debris = 1.0
+shader_parameter/lines = 1.0
+shader_parameter/guard_span = 1.1
+shader_parameter/guard_twinkles = 1.0
+shader_parameter/hold_frames = 2.0
+shader_parameter/card_size = Vector2(5.2, 2.8)
+shader_parameter/card_centre = Vector2(1.2, 0)
+shader_parameter/age = 4.0
+shader_parameter/kind = 1
+shader_parameter/style = 0
+shader_parameter/weight = 0.5
+shader_parameter/seed = 0.37
+shader_parameter/down = Vector2(0, -1)
+
+[node name="Preview" type="Node3D" unique_id=1951392126]
+
+[node name="Backdrop" type="CSGBox3D" parent="." unique_id=1811181584]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+size = Vector3(20, 20, 0.1)
+
+[node name="Spark" type="MeshInstance3D" parent="." unique_id=1014037436]
+mesh = SubResource("quad")
+surface_material_override/0 = SubResource("mat")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1898348927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 5)
+projection = 1
+current = true
+size = 3.0

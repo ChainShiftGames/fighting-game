@@ -12,8 +12,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen.Drawer;
 
 /// <summary>
 /// How each hit's spark is drawn (developer settings, the art file's <c>sparks</c>): where it starts relative to the
-/// contact point, its direction, burst or tear, and its size. The preview marks where the picked hit's spark starts;
-/// edits go into the art file, written on Save.
+/// contact point, its direction, burst or tear, and its size. The preview marks where the picked hit's spark starts,
+/// and dragging the mark moves it; edits go into the art file, written on Save.
 /// </summary>
 [Tool]
 public partial class SparkPanel : VBoxContainer
@@ -90,7 +90,17 @@ public partial class SparkPanel : VBoxContainer
     public event Action? Changed;
 
     /// <summary>The preview the marker is drawn on.</summary>
-    public void UseCanvas(BoxCanvas canvas) => _canvas = canvas;
+    public void UseCanvas(BoxCanvas canvas)
+    {
+        _canvas = canvas;
+        canvas.SparkMoved += (forward, up) =>
+        {
+            if (_sparks.Count > 0)
+            {
+                Edit(Current with { OffsetX = forward, OffsetY = up });
+            }
+        };
+    }
 
     public void ShowMove(DrawerMove move)
     {
@@ -118,7 +128,8 @@ public partial class SparkPanel : VBoxContainer
         _hit.Visible = cantEdit is null && hits > 1;
         _controls.Visible = cantEdit is null;
         _setAngle.GetParent<Control>().Visible = cantEdit is null;
-        _note.Text = cantEdit ?? "Offsets are in pixels from where the hit box meets the opponent, forward along the attacker's facing.";
+        _note.Text = cantEdit ?? "Drag the star on the preview, or set the offsets: pixels from where the hit box meets the " +
+            "opponent, forward along the attacker's facing.";
         ShowHit();
     }
 

@@ -131,7 +131,7 @@ public sealed class FighterArtFileTests
         const string Json = """
             {
               "artVersion": 1, "art": "model", "model": "m.glb",
-              "crossfadeFrames": 4, "turnFrames": 6, "holdFrames": 2, "cameraTurnDegrees": 30,
+              "crossfadeFrames": 4, "reHitFadeFrames": 5, "turnFrames": 6, "holdFrames": 2, "cameraTurnDegrees": 30,
               "animations": {
                 "prejump": { "clipFrom": 8, "clipTo": 28, "fit": true },
                 "jump": { "clipFrom": 28, "clipTo": 66, "holdHeight": true, "holdFrames": 1 }
@@ -143,6 +143,7 @@ public sealed class FighterArtFileTests
 
         Assert.Equal((4, 6, 2), (settings.CrossfadeFrames, settings.TurnFrames, settings.HoldFrames));
         Assert.Equal(30f, settings.CameraTurnDegrees);
+        Assert.Equal(5, settings.ReHitFadeFrames);
         Assert.Equal((8, 28, true), (settings.For("prejump").ClipFrom, settings.For("prejump").ClipTo, settings.For("prejump").Fit));
         Assert.True(settings.For("jump").HoldHeight);
         Assert.Equal(1, settings.For("jump").HoldFrames);

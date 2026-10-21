@@ -9,8 +9,8 @@ namespace FightingGame.Presentation.World;
 /// A fighter drawn as its rigged model (ADR-0028): each displayed frame it seeks the move's clip to the time
 /// <see cref="AnimationRetiming"/> gives for the logic's move frame, never advancing by elapsed time, and stands on the
 /// logic position, mirrored for facing. A move without a clip shows idle, with one warning. Hit and block reactions
-/// count from each hit and snap in. On top, by match frames: transition clips into listed moves, a crossfade into other
-/// basic moves and a turn when the facing switches.
+/// count from each hit and snap in, fading from the reaction shown on a re-hit. On top, by match frames: transition
+/// clips into listed moves, a crossfade into other basic moves and a turn when the facing switches.
 /// </summary>
 public partial class RiggedFighterModel : Node3D, IFighterArt
 {
@@ -102,17 +102,28 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
         }
 
         double seconds = transition?.Seconds ?? AnimationRetiming.SecondsAt(Timed(pose, clip), clip.Timing);
-        int crossfade = _settings.CrossfadeFramesFor(pose.MoveId);
-        bool fadesIn = !isTransition && crossfade > 0 && PoseFade.MayFadeInto(in pose);
         if (pose.MatchFrame <= 0)
         {
             _mixer.Show(clip.Name, seconds, null, 0, 1f);
             return;
         }
 
-        _fade.Observe(clip.Id, seconds, fadesIn, pose.MatchFrame);
+        bool isReHit = !isTransition && _reaction.IsReHit;
+        _fade.Observe(clip.Id, seconds, FadeFrames(pose, isTransition, isReHit), isReHit, pose.MatchFrame);
         StringName? from = _fade.FromClip >= 0 ? _clipNames[_fade.FromClip] : null;
-        _mixer.Show(clip.Name, seconds, from, _fade.FromSeconds, _fade.Weight(pose.MatchFrame, crossfade));
+        _mixer.Show(clip.Name, seconds, from, _fade.FromSeconds, _fade.Weight(pose.MatchFrame));
+    }
+
+    // A re-hit fades from the reaction shown into the new hit's held pose, so a gatling flows (as in Guilty Gear)
+    // where restarting the clip would pop; first hits, attacks and transition clips snap.
+    private int FadeFrames(in FighterPose pose, bool isTransition, bool isReHit)
+    {
+        if (isReHit)
+        {
+            return _settings.ReHitFadeFrames;
+        }
+
+        return !isTransition && PoseFade.MayFadeInto(in pose) ? _settings.CrossfadeFramesFor(pose.MoveId) : 0;
     }
 
     // Mirroring, not turning, keeps the side facing the camera the same; the model faces +X, cheated toward the

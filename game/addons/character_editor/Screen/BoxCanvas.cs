@@ -16,7 +16,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// One frame of a move, facing right: the character's model posed for the frame (<see cref="ModelPreview"/>), or the
 /// placeholder body when it has none, every box on the frame in the hitbox overlay's colours, and the selected box with handles. Left-drag moves or resizes the selected box, or draws a
 /// new box of <see cref="DrawKind"/> on empty space, or a projectile's spawn point (its cross or hitbox,
-/// <see cref="ProjectileOverlay"/>); right- or middle-drag pans; the wheel zooms.
+/// <see cref="ProjectileOverlay"/>), or the hit spark's star (<see cref="SparkMoved"/>); right- or middle-drag pans;
+/// the wheel zooms.
 /// </summary>
 /// <remarks>
 /// Edges snap to whole pixels; hold Alt to place them on any subpixel. While not <see cref="Editable"/> a left click
@@ -82,6 +83,10 @@ public partial class BoxCanvas : Control
     private JsonObject? _projectileDragged;
     private (int X, int Y) _startOffset;
 
+    // The spark marker is being dragged; its offset in pixels when the drag started.
+    private bool _sparkDragged;
+    private Vector2 _startSparkOffset;
+
     public BoxCanvas()
     {
         ClipContents = true;
@@ -97,6 +102,9 @@ public partial class BoxCanvas : Control
 
     /// <summary>A drag changed the boxes: moved, resized, split out of a range or drawn.</summary>
     public event Action? Edited;
+
+    /// <summary>The spark marker was dragged to a new offset: whole pixels forward and up from the contact point.</summary>
+    public event Action<int, int>? SparkMoved;
 
     public JsonObject? Selected { get; private set; }
 
@@ -231,6 +239,15 @@ public partial class BoxCanvas : Control
         _moved = false;
         _drawing = false;
         _handleDragged = HandleAt(position);
+        // The star sits inside a hit box, so it's picked before the box under it.
+        if (_handleDragged == BoxHandle.None && Spark is { } spark && SparkCentre() is Vector2 centre
+            && position.DistanceTo(centre) <= SparkRadius + HandleSize)
+        {
+            _sparkDragged = true;
+            _startSparkOffset = new Vector2(spark.OffsetX, spark.OffsetY);
+            return;
+        }
+
         if (_handleDragged == BoxHandle.None && _projectiles.At(position, ToScreen, ToScreen) is JsonObject projectile
             && ProjectileFields.OffsetOf(projectile) is { } offset)
         {
@@ -272,6 +289,12 @@ public partial class BoxCanvas : Control
             return;
         }
 
+        if ((motion.ButtonMask & MouseButtonMask.Left) != 0 && _sparkDragged)
+        {
+            DragSpark(motion);
+            return;
+        }
+
         if ((motion.ButtonMask & MouseButtonMask.Left) == 0 || (_handleDragged == BoxHandle.None && !_drawing))
         {
             return;
@@ -310,6 +333,7 @@ public partial class BoxCanvas : Control
 
         _handleDragged = BoxHandle.None;
         _projectileDragged = null;
+        _sparkDragged = false;
         _drawing = false;
         _moved = false;
         QueueRedraw();
@@ -323,6 +347,19 @@ public partial class BoxCanvas : Control
         ProjectileFields.SetOffset(_projectileDragged!, Snap(_startOffset.X + moved.X, snap), Snap(_startOffset.Y + moved.Y, snap));
         _moved = true;
         QueueRedraw();
+    }
+
+    // The spark's offset follows the pointer in whole pixels, as the spark panel's steppers set it; the panel writes
+    // it to the art file and hands the marker back.
+    private void DragSpark(InputEventMouseMotion motion)
+    {
+        Vector2I moved = ToData(motion.Position) - _dragStart;
+        int forward = Mathf.RoundToInt(_startSparkOffset.X + (moved.X / Subpixels));
+        int up = Mathf.RoundToInt(_startSparkOffset.Y + (moved.Y / Subpixels));
+        if (Spark is { } spark && (forward != (int)MathF.Round(spark.OffsetX) || up != (int)MathF.Round(spark.OffsetY)))
+        {
+            SparkMoved?.Invoke(forward, up);
+        }
     }
 
     private static int Snap(int value, int snap) => (int)Math.Round(value / (double)snap, MidpointRounding.AwayFromZero) * snap;
@@ -394,15 +431,20 @@ public partial class BoxCanvas : Control
         QueueRedraw();
     }
 
+    // Where the marked spark starts on this frame, on screen; null when there is no marker or no hit box.
+    private Vector2? SparkCentre() =>
+        Spark is { } spark && SparkContact.Of(_move, _frame, Opponent) is (int x, int y)
+            ? ToScreen(x + (int)MathF.Round(spark.OffsetX * Subpixels), y + (int)MathF.Round(spark.OffsetY * Subpixels))
+            : null;
+
     // A star where the spark starts on this frame, with an arrow along its angle when the art file sets one.
     private void DrawSpark()
     {
-        if (Spark is not { } spark || SparkContact.Of(_move, _frame, Opponent) is not (int x, int y))
+        if (Spark is not { } spark || SparkCentre() is not Vector2 centre)
         {
             return;
         }
 
-        Vector2 centre = ToScreen(x + (int)MathF.Round(spark.OffsetX * Subpixels), y + (int)MathF.Round(spark.OffsetY * Subpixels));
         var star = new Vector2[17];
         for (int i = 0; i < star.Length; i++)
         {

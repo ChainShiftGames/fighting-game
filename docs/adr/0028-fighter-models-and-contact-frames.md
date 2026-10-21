@@ -62,8 +62,10 @@ the authored contact pose. Something has to say where that pose is, and which ch
    the match clock: `HitReactionClock` counts them from each hit by the fighter's stun countdown, so a reaction
    restarts on every hit of a combo and holds in hitstop and freezes (air hitstun: match frames after its hitstop).
 6. **Look settings, all by match frames:** a basic move's clip crossfades in from the pose before
-   (`crossfadeFrames`, per move or for the file; attacks and hit/block reactions always snap, so an attack's first
-   frame is the frame data's and the frame a hit lands shows it);
+   (`crossfadeFrames`, per move or for the file; attacks and first hits/blocks always snap, so an attack's first
+   frame is the frame data's and the frame a hit lands shows it); a hit landing mid-reaction (gatling, juggle) fades
+   from the reaction shown into the restarted one over `reHitFadeFrames`, mostly inside its hitstop, so combos flow
+   instead of popping back to the clip's start;
    a facing switch turns the model through facing the camera, where the mirrored pose looks the same
    (`turnFrames`); `cameraTurnDegrees` (0-90) keeps the model turned that far toward the camera at rest, the 3/4
    view fighting games cheat with, so face and chest read and toon shading falls predictably; `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
