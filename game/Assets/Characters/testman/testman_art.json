@@ -17,6 +17,9 @@
   "otherModels": [
     { "model": "res://Assets/Characters/tripo_armor/tripo_armor.glb", "scale": 1.67, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/tripo_fighter/tripo_fighter.glb", "scale": 1.75, "turnDegrees": 90 },
+    // Pipeline test: Midjourney model sheet -> Tripo (A-pose, Smart Mesh, flat-lit texture) -> skeleton and skirt
+    // bone chains built in Blender; no finger bones.
+    { "model": "res://Assets/Characters/tripo_ice_mage/tripo_ice_mage.glb", "scale": 1.75, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/vroid_test/vroid_test.glb", "scale": 1.0, "turnDegrees": 90 }
   ],
   // Look settings: basic moves fade in over 4 frames (hit and block reactions snap in, as attacks do), a side switch
