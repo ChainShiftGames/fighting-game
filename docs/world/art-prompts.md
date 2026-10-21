@@ -60,6 +60,17 @@ full-body character concept, neutral standing pose, plain light background, read
 details, front view
 ```
 
+### 3D model input (Tripo)
+
+For images fed to Tripo (see [Character to 3D](#character-to-3d-midjourney--tripo)). Replaces the **Style** block:
+painted lighting ends up baked into the model's texture and fights the toon shader.
+
+```
+character model sheet, full body, A-pose, arms 45 degrees down and away from the body, fingers spread, feet
+shoulder-width apart, front view, neutral expression, eyes open, face fully visible, flat even lighting, no shadows,
+no highlights, solid flat colour regions, clean cel-shaded anime style, sharp clean edges, plain white background
+```
+
 ### Promo / key visual
 
 ```
@@ -82,3 +93,58 @@ middle distance, a tall turquoise Aether formation rising behind the towers, lig
 text, letters, watermark, signature, logo, UI, frame, border, blurry, low detail, photo, 3D render look,
 generic glowing particles everywhere
 ```
+
+3D model input adds: `dramatic lighting, rim light, cast shadows, ambient occlusion, painted shading, gradients,
+hair over face, hands touching body, crossed arms, held weapon, cropped feet, motion blur`
+
+## Character to 3D (Midjourney → Tripo)
+
+Natural-language description → Midjourney model sheet → Tripo image-to-3D → rig →
+[`tools/Blender/tripo_to_glb.py`](../../tools/Blender/tripo_to_glb.py).
+
+**Agents, asked for a character:** write only the **Content** line from the description (rules below), assemble
+the Midjourney prompt, and give the Tripo texture prompt with it. Ask nothing unless the description leaves the
+costume's main colours open.
+
+### Content line rules
+
+- Order: who (role, build, age range) → hair → face → top → bottom → shoes → accessories.
+- Name 3–5 main colours as flat colours ("crimson", "charcoal black"), each tied to a part. They become the
+  palette-swap regions.
+- Hair off the face; ponytails, braids and long sashes are fine but each needs its own bones, so keep it to a few.
+- Hands empty and open; weapons and props are separate models.
+- No thin floating or loose parts (chains, straps hanging free, separate earrings): they come out as broken geometry.
+- Slightly large head and eyes, about 6.5–7 heads tall: the face is about 30 px in game.
+- Region fashion (setting.md §8.2) only when the character is from that region.
+
+### Midjourney prompt
+
+```
+<3D model input block>, <Content line> --ar 2:3 --style raw --stylize 50 --seed <n> --sref <style image URL> --no <Avoid + 3D model input avoid>
+```
+
+- `--sref`: one approved character image shared by every character, so the cast matches. `--seed`: keep it per
+  character; changing only the Content line then changes only the character.
+- Pin the version (rule 1 above). `--oref` (same character in a new view) exists on V7 only; on later versions
+  use the chosen front image as an image prompt plus the same seed.
+- Optional side and back views for Tripo's multiview input: same prompt with "side view" / "back view" in place of
+  "front view". Use them only if they match the front; a mismatched view is worse than none.
+
+### Tripo
+
+| Setting | Value |
+|---|---|
+| Input | Image to 3D (front), or multiview when side and back match |
+| Mesh | Smart Mesh / quad, face limit ≈ 15k quads (≈ 30k triangles) |
+| Texture | Detailed (HD); try PBR on and off once per new style and keep the flatter one |
+| Seed | Record it with the prompt |
+
+Texture prompt (the texture prompt field, or appended to the main prompt where there is none):
+
+```
+flat cel-shaded base colours, unlit, no baked lighting, no shadows, no highlights, no ambient occlusion, clean solid
+colour regions, <the Content line's colours>
+```
+
+- Faces stay the weakest part: plan to repaint eyes, brows and mouth flat on the texture in Blender.
+- Save the Midjourney prompt, seed, Tripo settings and texture prompt with the character's source files.
