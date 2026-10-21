@@ -104,7 +104,7 @@
   // How each projectile-throwing move's projectiles are drawn (ProjectileEffects): in flight, the startup charge at
   // the spawn point, and the impact where it hits, is blocked, clashes or runs out.
   "projectiles": {
-    "236c": { "flight": "ice_orb", "charge": "ice_orb_charge", "impact": "ice_orb_impact" }
+    "236c": { "flight": "fire_orb", "charge": "fire_orb_charge", "impact": "fire_orb_impact" }
   },
   // Hit sparks (HitSparkLooks), one entry per hit: the way the attack travels in degrees from forward (90 up, -90
   // down), an offset in pixels, burst or tear, and a size. Moves left out get sparks from their hit data: light hits

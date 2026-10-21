@@ -11,18 +11,21 @@ public static class ProjectileEffects
     private static readonly Dictionary<string, Func<Node3D>> _flights = new(StringComparer.Ordinal)
     {
         ["dark_fireball"] = () => new DarkFireballArt(),
+        ["fire_orb"] = () => new FireOrbArt(),
         ["ice_orb"] = () => new IceOrbArt(),
     };
 
     private static readonly Dictionary<string, Func<Node3D>> _charges = new(StringComparer.Ordinal)
     {
         ["dark_fireball_charge"] = () => new DarkFireballChargeArt(),
+        ["fire_orb_charge"] = () => new FireOrbChargeArt(),
         ["ice_orb_charge"] = () => new IceOrbChargeArt(),
     };
 
     private static readonly Dictionary<string, Func<Node3D>> _impacts = new(StringComparer.Ordinal)
     {
         ["dark_fireball_impact"] = () => new DarkFireballImpactArt(),
+        ["fire_orb_impact"] = () => new FireOrbImpactArt(),
         ["ice_orb_impact"] = () => new IceOrbImpactArt(),
     };
 

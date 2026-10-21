@@ -1,6 +1,10 @@
 // Procedural value noise for effect shaders, so effects need no noise textures.
+// Sin-free hash (Dave Hoskins' hash12): fract(sin(x) * 43758) blew up rounding differences between a cell's corner
+// and its neighbour's into different values, so the noise jumped at cell borders and showed as blocks.
 float effect_hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
 }
 
 float effect_noise(vec2 p) {
