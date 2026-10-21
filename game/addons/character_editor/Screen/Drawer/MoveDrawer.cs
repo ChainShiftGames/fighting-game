@@ -55,6 +55,12 @@ public partial class MoveDrawer : PanelContainer
             FrameShown?.Invoke(frame);
         };
         _timing.FrameClicked += _hitAreas.SelectFrame;
+        _timing.UsePreview(canvas.Preview);
+        _timing.AnimationChanged += () =>
+        {
+            canvas.QueueRedraw();
+            AnimationEdited?.Invoke();
+        };
         foreach (IDrawerPage page in new IDrawerPage[] { _overview, _timing, _hitAreas, _chains })
         {
             IDrawerPage source = page;
@@ -68,6 +74,9 @@ public partial class MoveDrawer : PanelContainer
 
     /// <summary>The move's or the character's file changed; <c>true</c> when the map's cards may have changed too.</summary>
     public event Action<bool>? Edited;
+
+    /// <summary>A move's animation timing changed in the character's art file.</summary>
+    public event Action? AnimationEdited;
 
     /// <summary>The preview shows another frame.</summary>
     public event Action<int>? FrameShown;

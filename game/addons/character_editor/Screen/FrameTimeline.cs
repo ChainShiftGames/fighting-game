@@ -13,10 +13,11 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 [Tool]
 public partial class FrameTimeline : Control
 {
-    // 1× design pixels (MapLook); the drawer is narrow, so labels get less room than in a form.
-    private const float LabelWidth = 92f;
-    private const float CellWidth = 10f;
-    private const float CellGap = 1f;
+    // 1× design pixels (MapLook); the drawer is narrow, so labels get less room than in a form. The column sizes are
+    // public so the animation track below lines its frames up with these.
+    public const float LabelWidth = 92f;
+    public const float CellWidth = 10f;
+    public const float CellGap = 1f;
     private const float RowHeight = 16f;
     private const float RowGap = 3f;
     private const float HeaderHeight = 16f;

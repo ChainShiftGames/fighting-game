@@ -92,4 +92,7 @@ public sealed record FighterArtSettings(
     public string ClipFor(string moveId) => For(moveId).Clip ?? moveId;
 
     public ContactFrames? ContactsFor(string moveId) => For(moveId).Contacts;
+
+    /// <summary>A move's timing keys, in phase order; empty when it has none.</summary>
+    public IReadOnlyList<TimingKey> KeysFor(string moveId) => For(moveId).Keys ?? [];
 }

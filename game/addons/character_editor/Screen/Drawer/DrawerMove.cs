@@ -8,8 +8,10 @@ using FightingGame.Addons.CharacterEditor.Map;
 namespace FightingGame.Addons.CharacterEditor.Screen.Drawer;
 
 /// <summary>The move the drawer edits, with what its pages need to show and edit it.</summary>
+/// <param name="Art">The character's art file, for the animation timing; null when it has none.</param>
 public sealed record DrawerMove(
-    string Id, EditedFile File, CharacterDocument Document, EditingContext Context, MoveMapSettings Settings)
+    string Id, EditedFile File, CharacterDocument Document, EditingContext Context, MoveMapSettings Settings,
+    ArtTimingFile? Art = null)
 {
     /// <summary>The logic's fixed rate (ARCHITECTURE.md §3), for showing frames as seconds.</summary>
     public const int FramesPerSecond = 60;

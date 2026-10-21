@@ -202,6 +202,53 @@ public sealed class AnimationRetimingTests
         Assert.Equal(26f, shown, 3);
     }
 
+    [Theory]
+    [InlineData(1, 0f)]
+    [InlineData(2, 4f)]
+    [InlineData(3, 8f)]
+    [InlineData(4, 9f)]
+    [InlineData(5, 10f)]
+    public void PlaysStartupStraightFromKeyToKey(int frame, float clipFrame)
+    {
+        // Startup frame 3 of 4 pinned to clip frame 8: the wind-up covers most of the clip early, then lingers.
+        AnimationClipTiming keyed = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with
+        {
+            Keys = [new TimingKey(MovePhase.Startup, 3, 4, 8)],
+        };
+
+        Assert.Equal(clipFrame, AnimationRetiming.FrameAt(Attack(frame), keyed), 4);
+    }
+
+    [Fact]
+    public void StretchesAKeyWithItsPhase()
+    {
+        // Pinned halfway through a 4-frame startup; with an 8-frame startup it falls on frame 5, halfway again.
+        var longer = new FighterPose(FighterAction.Attack, "5a", 5, 19, MovePhase.Startup, 9, 11);
+        AnimationClipTiming keyed = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with
+        {
+            Keys = [new TimingKey(MovePhase.Startup, 3, 4, 8)],
+        };
+
+        Assert.Equal(8f, AnimationRetiming.FrameAt(longer, keyed), 4);
+        Assert.Equal(5, keyed.Keys![0].FrameIn(8));
+    }
+
+    [Theory]
+    [InlineData(8, 16f)]
+    [InlineData(9, 30f)]
+    [InlineData(15, 38.5714f)]
+    public void PinsRecoveryFramesWithoutMovingTheOtherPhases(int frame, float clipFrame)
+    {
+        // Recovery frame 2 of 8 pinned to clip frame 30: the arm snaps back, then the rest eases out to the clip end.
+        AnimationClipTiming keyed = Retimed(activeFrom: 10, recoveryFrom: 16, length: 40f) with
+        {
+            Keys = [new TimingKey(MovePhase.Startup, 3, 4, 8), new TimingKey(MovePhase.Recovery, 2, 8, 30)],
+        };
+
+        Assert.Equal(clipFrame, AnimationRetiming.FrameAt(Attack(frame), keyed), 3);
+        Assert.Equal(10f, AnimationRetiming.FrameAt(Attack(FirstActive), keyed), 4);
+    }
+
     private static FighterPose Attack(int frame) =>
         new(FighterAction.Attack, "5a", frame, Total, MovePhase.Startup, FirstActive, LastActive);
 
