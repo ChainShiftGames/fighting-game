@@ -10,7 +10,8 @@ internal static class TestEffectSettings
 {
     public static EffectSettings Standard { get; } = new(
         new ShakeSettings(
-            LifetimeFrames: 8, HitPixels: 3f, CounterPixels: 5f, ThrowPixels: 4f, KnockOutPixels: 8f, VerticalShare: 0.5f),
+            LifetimeFrames: 8, HitPixels: 3f, CounterPixels: 5f, ThrowPixels: 4f, KnockOutPixels: 8f, VerticalShare: 0.5f,
+            DefenderPixels: 3f),
         new SparkFeelSettings(
             LightHitstop: 8,
             HeavyHitstop: 20,
