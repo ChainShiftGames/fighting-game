@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using Sim.Fighters.States;
+
 namespace FightingGame.Presentation.World;
 
 /// <summary>
 /// Turns the logic's move frame into the time in an animation clip (ADR-0028). Without contact frames the clip plays
 /// frame for frame; with them, startup, active and recovery each stretch over their own span of the clip, so frame
-/// data can change without re-exporting the animation and the hit always lands on the authored contact pose.
+/// data can change without re-exporting the animation and the hit always lands on the authored contact pose. Timing
+/// keys pin frames inside a phase, so a phase can play its clip unevenly (a quick wind-up that lingers before the hit).
 /// </summary>
 /// <remarks>
 /// Logic frames count from 1 and the clip's first key is time 0, so move frame 1 shows the first key. Each logic frame
@@ -28,7 +32,7 @@ public static class AnimationRetiming
         }
         else if (clip.Contacts is { } contacts && pose.FirstActiveFrame > 0)
         {
-            frame = Retimed(held, contacts, clip.LengthFrames);
+            frame = Retimed(held, clip, contacts);
         }
         else
         {
@@ -73,25 +77,30 @@ public static class AnimationRetiming
         return reverse ? lengthFrames - frame : frame;
     }
 
-    private static float Retimed(FighterPose pose, ContactFrames contacts, float lengthFrames)
+    private static float Retimed(FighterPose pose, AnimationClipTiming clip, ContactFrames contacts)
     {
+        IReadOnlyList<TimingKey>? keys = clip.Keys;
         if (pose.Frame < pose.FirstActiveFrame)
         {
-            return Span(pose.Frame - 1, pose.FirstActiveFrame - 1, 0f, contacts.ActiveFrom);
+            return Span(pose.Frame - 1, pose.FirstActiveFrame - 1, 0f, contacts.ActiveFrom, keys, MovePhase.Startup);
         }
 
         if (pose.Frame <= pose.LastActiveFrame)
         {
             int activeFrames = pose.LastActiveFrame - pose.FirstActiveFrame + 1;
-            return Span(pose.Frame - pose.FirstActiveFrame, activeFrames, contacts.ActiveFrom, contacts.RecoveryFrom);
+            return Span(pose.Frame - pose.FirstActiveFrame, activeFrames, contacts.ActiveFrom, contacts.RecoveryFrom,
+                keys, MovePhase.Active);
         }
 
         int recoveryFrames = pose.TotalFrames - pose.LastActiveFrame;
-        return Span(pose.Frame - pose.LastActiveFrame - 1, recoveryFrames, contacts.RecoveryFrom, lengthFrames);
+        return Span(pose.Frame - pose.LastActiveFrame - 1, recoveryFrames, contacts.RecoveryFrom, clip.LengthFrames,
+            keys, MovePhase.Recovery);
     }
 
-    // Where logic frame `offset` of a `count`-frame phase falls in the clip span `from`..`to`.
-    private static float Span(int offset, int count, float from, float to)
+    // Where logic frame `offset` of a `count`-frame phase falls in the clip span `from`..`to`: straight through, or
+    // straight from pin to pin when the phase has timing keys.
+    private static float Span(int offset, int count, float from, float to, IReadOnlyList<TimingKey>? keys = null,
+        MovePhase phase = MovePhase.None)
     {
         if (count <= 0)
         {
@@ -99,8 +108,32 @@ public static class AnimationRetiming
         }
 
         int clamped = offset < 0 ? 0 : offset >= count ? count - 1 : offset;
-        return from + ((to - from) * clamped / count);
+        float position = clamped / (float)count;
+        float fromPosition = 0f;
+        if (keys is not null)
+        {
+            for (int i = 0; i < keys.Count; i++)
+            {
+                TimingKey key = keys[i];
+                if (key.Phase != phase)
+                {
+                    continue;
+                }
+
+                if (key.Position > position)
+                {
+                    return Between(position, fromPosition, from, key.Position, key.Clip);
+                }
+
+                (fromPosition, from) = (key.Position, key.Clip);
+            }
+        }
+
+        return Between(position, fromPosition, from, 1f, to);
     }
+
+    private static float Between(float position, float fromPosition, float from, float toPosition, float to) =>
+        from + ((to - from) * (position - fromPosition) / (toPosition - fromPosition));
 
     private static float Fit(float frame, AnimationClipTiming clip)
     {

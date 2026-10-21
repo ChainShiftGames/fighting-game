@@ -88,6 +88,9 @@ public partial class BoxCanvas : Control
 
     public JsonObject? Selected { get; private set; }
 
+    /// <summary>The model drawn behind the boxes, which the animation track retimes.</summary>
+    public ModelPreview Preview => _preview;
+
     /// <summary>The kind a drag on empty space draws; null to only select.</summary>
     public string? DrawKind { get; set; }
 

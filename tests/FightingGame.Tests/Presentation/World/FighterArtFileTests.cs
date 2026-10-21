@@ -1,6 +1,7 @@
 using FightingGame.Presentation.World;
 using FightingGame.Presentation.World.Projectiles;
 using FightingGame.Presentation.World.Sparks;
+using Sim.Fighters.States;
 using Xunit;
 
 namespace FightingGame.Tests.Presentation.World;
@@ -152,6 +153,49 @@ public sealed class FighterArtFileTests
     [InlineData("""{ "clipFrom": -1 }""")]
     [InlineData("""{ "holdFrames": 0 }""")]
     public void RefusesAClipRangeOrHoldThatCantPlay(string animation)
+    {
+        string json = $$"""{ "artVersion": 1, "art": "model", "model": "m.glb", "animations": { "5a": {{animation}} } }""";
+
+        Assert.Null(FighterArtFile.Read(json, out string error));
+        Assert.Contains("animations.5a", error);
+    }
+
+    [Fact]
+    public void ReadsTimingKeysInPhaseOrder()
+    {
+        const string Json = """
+            {
+              "artVersion": 1, "art": "model", "model": "m.glb",
+              "animations": {
+                "236c": {
+                  "activeFrom": 29, "recoveryFrom": 32,
+                  "keys": [
+                    { "phase": "startup", "frame": 10, "of": 32, "clip": 20 },
+                    { "phase": "recovery", "frame": 4, "of": 32, "clip": 40 }
+                  ]
+                }
+              }
+            }
+            """;
+
+        FighterArtSettings settings = FighterArtFile.Read(Json, out string error)!;
+
+        Assert.Equal(string.Empty, error);
+        Assert.Equal(
+            [new TimingKey(MovePhase.Startup, 10, 32, 20), new TimingKey(MovePhase.Recovery, 4, 32, 40)],
+            settings.KeysFor("236c"));
+        Assert.Empty(settings.KeysFor("5a"));
+    }
+
+    [Theory]
+    [InlineData("""{ "keys": [{ "phase": "startup", "frame": 2, "of": 4, "clip": 3 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "startup", "frame": 1, "of": 4, "clip": 3 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "startup", "frame": 5, "of": 4, "clip": 3 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "none", "frame": 2, "of": 4, "clip": 3 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "startup", "frame": 2, "of": 4, "clip": -1 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "recovery", "frame": 2, "of": 4, "clip": 9 }, { "phase": "startup", "frame": 2, "of": 4, "clip": 3 }] }""")]
+    [InlineData("""{ "activeFrom": 5, "recoveryFrom": 8, "keys": [{ "phase": "startup", "frame": 3, "of": 4, "clip": 3 }, { "phase": "startup", "frame": 4, "of": 8, "clip": 4 }] }""")]
+    public void RefusesTimingKeysThatCantPlay(string animation)
     {
         string json = $$"""{ "artVersion": 1, "art": "model", "model": "m.glb", "animations": { "5a": {{animation}} } }""";
 

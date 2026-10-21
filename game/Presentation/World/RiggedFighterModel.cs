@@ -63,6 +63,26 @@ public partial class RiggedFighterModel : Node3D, IFighterArt
 
     public bool HasLimbs => true;
 
+    /// <summary>How a move's clip is retimed now; null when the move has no clip.</summary>
+    public AnimationClipTiming? TimingOf(string moveId) =>
+        _clips.Moves.TryGetValue(moveId, out BoundClip clip) ? clip.Timing : null;
+
+    /// <summary>
+    /// Retimes a move's clip with contact frames and keys as edited, written in clip frames, without reloading the
+    /// model: the character editor's animation track. Nothing when the move has no clip.
+    /// </summary>
+    /// <returns>Why some of the timing was left out; empty when all of it applies.</returns>
+    public string Retime(string moveId, ContactFrames? contacts, IReadOnlyList<TimingKey> keys)
+    {
+        if (!_clips.Moves.TryGetValue(moveId, out BoundClip clip))
+        {
+            return string.Empty;
+        }
+
+        _clips.Moves[moveId] = clip with { Timing = ClipPartFrames.Fit(clip.Timing, contacts, keys, out string problem) };
+        return problem;
+    }
+
     public void ShowPose(FighterPose pose, IntVector2 position, int facing, List<WorldBox> boxes)
     {
         Position = WorldScale.ToWorld(position);
