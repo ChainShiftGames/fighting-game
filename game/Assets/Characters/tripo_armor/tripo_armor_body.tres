@@ -7,7 +7,7 @@
 [sub_resource type="ShaderMaterial" id="outline"]
 shader = ExtResource("outline_shader")
 shader_parameter/lit_texture = ExtResource("texture")
-shader_parameter/outline_color = Color(0.36, 0.38, 0.46, 1.0)
+shader_parameter/outline_color = Color(0.12, 0.1, 0.12, 1)
 
 [resource]
 shader = ExtResource("toon")

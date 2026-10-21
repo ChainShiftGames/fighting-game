@@ -4,7 +4,7 @@ using Godot;
 
 namespace FightingGame.Presentation.World;
 
-/// <summary>On/off switches for whole-screen looks: developer settings (ARCHITECTURE.md §6, §9), both on.</summary>
+/// <summary>On/off switches for whole-screen looks: developer settings (ARCHITECTURE.md §6, §9), all on.</summary>
 /// <remarks>Debug panel only: every F key is taken.</remarks>
 public sealed class LookToggles
 {
@@ -14,6 +14,12 @@ public sealed class LookToggles
     /// <summary>Softens the stage behind the fighters, like a painted backdrop (<see cref="BackdropBlur"/>).</summary>
     public DeveloperToggle BackdropBlur { get; } = new("Backdrop blur", Key.None, enabled: true);
 
+    /// <summary>Dry-brush shade borders, light patches and wobbly ink outlines on the fighters (<see cref="FighterBrush"/>).</summary>
+    public DeveloperToggle BrushShading { get; } = new("Brush shading", Key.None, enabled: true);
+
+    /// <summary>Ink lines inside the fighters' silhouettes (<see cref="InkLines"/>).</summary>
+    public DeveloperToggle InkLines { get; } = new("Inner ink lines", Key.None, enabled: true);
+
     /// <summary>All of them, for the debug panel.</summary>
-    public IReadOnlyList<DeveloperToggle> All => [Grade, BackdropBlur];
+    public IReadOnlyList<DeveloperToggle> All => [Grade, BackdropBlur, BrushShading, InkLines];
 }

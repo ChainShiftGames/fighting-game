@@ -21,8 +21,9 @@
 - **Reference games:** Guilty Gear (Xrd / Strive), Granblue Fantasy Versus, Under Night In-Birth.
 - Traditional **1v1 on a 2D plane**, anime "air-dasher" lineage. Not tag, not a platform fighter.
 - **Core principle: game feel above all.** Movement, hitstop, screen shake etc. must be tuned until every hit feels great.
-- **Art:** 3D models with a custom toon shader that reads as 2D (Guilty Gear Xrd style): cel shading,
-  inverted-hull outlines, edited normals, animation on 2s/3s (stepped poses). 2D sprites for effects/UI blend in
+- **Art:** 3D models with a custom toon shader that reads as 2D illustration (E's Laf++ style, ADR-0035): painted
+  shade with dry-brush borders, thin wobbly ink outlines and inner lines, edited normals, animation on 2s/3s
+  (stepped poses). 2D sprites for effects/UI blend in
   via the same colour treatment. Palette swaps via palette textures; alternate costumes are separate 3D models.
 - **Audience:** both newcomers and the competitive FGC, via GBVS-style shortcut specials (see §3) — not a separate mode.
 - **Platforms:** Windows + Linux, **Steam Deck Verified** target. Steam only. No consoles planned, but don't architect them out.
