@@ -38,6 +38,7 @@ public partial class TimingPage : VBoxContainer, IDrawerPage
     };
 
     private readonly FrameTimeline _timeline = new();
+    private readonly AnimationTimingPanel _animation = new();
     private readonly SectionTitle _projectilesTitle = SectionTitle.Of("Projectiles");
     private readonly VBoxContainer _projectiles = new();
     private DrawerMove? _move;
@@ -56,11 +57,18 @@ public partial class TimingPage : VBoxContainer, IDrawerPage
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
         };
-        timeline.AddChild(_timeline);
+        var rows = new VBoxContainer();
+        rows.AddThemeConstantOverride("separation", 6);
+        rows.AddChild(_timeline);
+        rows.AddChild(_animation.Track);
+        timeline.AddChild(rows);
+        _timeline.FrameClicked += frame => FrameClicked?.Invoke(frame);
+        _animation.Track.FrameClicked += frame => FrameClicked?.Invoke(frame);
+        _animation.Changed += () => AnimationChanged?.Invoke();
         foreach (Control control in new Control[]
         {
             _title, _bar, _steppers, _unreadable, _moveRanges, SectionTitle.Of("Frame by frame", "click a frame to see it"),
-            timeline, _projectilesTitle, _projectiles,
+            timeline, _animation, _projectilesTitle, _projectiles,
         })
         {
             AddChild(control);
@@ -69,12 +77,14 @@ public partial class TimingPage : VBoxContainer, IDrawerPage
 
     public event Action<bool>? Changed;
 
-    /// <summary>A frame was clicked on the timeline.</summary>
-    public event Action<int>? FrameClicked
-    {
-        add => _timeline.FrameClicked += value;
-        remove => _timeline.FrameClicked -= value;
-    }
+    /// <summary>A frame was clicked on the timeline or the animation track.</summary>
+    public event Action<int>? FrameClicked;
+
+    /// <summary>The animation timing changed: the art file, not the move's data file.</summary>
+    public event Action? AnimationChanged;
+
+    /// <summary>The model the preview draws, whose clips the animation track retimes.</summary>
+    public void UsePreview(ModelPreview preview) => _animation.UsePreview(preview);
 
     public void ShowMove(DrawerMove move)
     {
@@ -95,12 +105,17 @@ public partial class TimingPage : VBoxContainer, IDrawerPage
             _recovery.Show("Cool-down", "recovery · can't act", phases.Recovery, MapPalette.Recovery);
         }
 
+        _animation.ShowMove(move);
         ShowDerived();
         ShowProjectiles(move);
     }
 
     /// <summary>Outlines the frame shown in the preview.</summary>
-    public void MarkFrame(int frame) => _timeline.MarkFrame(frame);
+    public void MarkFrame(int frame)
+    {
+        _timeline.MarkFrame(frame);
+        _animation.MarkFrame(frame);
+    }
 
     private void Apply()
     {
@@ -122,6 +137,7 @@ public partial class TimingPage : VBoxContainer, IDrawerPage
         _title.Show("How long it takes", phases is null ? "" : string.Create(CultureInfo.InvariantCulture,
             $"{phases.TotalFrames} frames · {DrawerMove.Seconds(phases.TotalFrames)}"));
         _timeline.ShowTimeline(MoveTimeline.Of(_move.Root));
+        _animation.ShowFrames();
     }
 
     private void ShowProjectiles(DrawerMove move)

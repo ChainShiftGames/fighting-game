@@ -55,6 +55,14 @@ public partial class ModelPreview : SubViewport
 
     public bool HasModel => _model is not null;
 
+    /// <summary>How the model retimes a move's clip now; null without a model or a clip for the move.</summary>
+    public AnimationClipTiming? TimingOf(string moveId) => _model?.TimingOf(moveId);
+
+    /// <summary>Retimes the move's clip as the animation track edits it, until the character is shown again.</summary>
+    /// <returns>Why some of the timing was left out; empty when all of it applies.</returns>
+    public string Retime(string moveId, ContactFrames? contacts, IReadOnlyList<TimingKey> keys) =>
+        _model?.Retime(moveId, contacts, keys) ?? string.Empty;
+
     /// <summary>
     /// Loads the character's model from its art file, again on each call so Reload picks up art changes; null or a
     /// placeholder character clears it.

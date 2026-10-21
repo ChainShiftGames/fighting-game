@@ -8,6 +8,7 @@ namespace FightingGame.Presentation.World;
 /// <param name="Fit">Stretches or squeezes the part over the whole move (a 4-frame prejump).</param>
 /// <param name="HoldFrames">Shows each pose for this many logic frames (2 or 3: animation on 2s or 3s).</param>
 /// <param name="Speed">Clip frames per logic frame when played frame for frame.</param>
+/// <param name="Keys">Pins within the contact frames' spans (clip frames from the part's start), in phase order; null for none.</param>
 public readonly record struct AnimationClipTiming(
     float LengthFrames,
     bool Loops,
@@ -15,4 +16,5 @@ public readonly record struct AnimationClipTiming(
     float StartFrame = 0f,
     bool Fit = false,
     int HoldFrames = 1,
-    float Speed = 1f);
+    float Speed = 1f,
+    System.Collections.Generic.IReadOnlyList<TimingKey>? Keys = null);

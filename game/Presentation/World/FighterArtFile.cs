@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FightingGame.Presentation.World.Projectiles;
 using FightingGame.Presentation.World.Sparks;
+using Sim.Fighters.States;
 
 namespace FightingGame.Presentation.World;
 
@@ -212,10 +213,51 @@ public static class FighterArtFile
             return $"speed {animation.Speed} must be above 0";
         }
 
+        if (CheckKeys(animation) is { Length: > 0 } keyProblem)
+        {
+            return keyProblem;
+        }
+
         return animation.HoldFrames < 1 || animation.CrossfadeFrames < 0
             ? "holdFrames must be at least 1 and crossfadeFrames 0 or more"
             : string.Empty;
     }
+
+    // Keys pin frames inside the spans the contact frames set, in phase order and in order within each phase, so the
+    // retiming can walk them once.
+    private static string CheckKeys(AnimationJson animation)
+    {
+        if (animation.Keys is not { Count: > 0 } keys)
+        {
+            return string.Empty;
+        }
+
+        if (animation.ActiveFrom is null || animation.Fit)
+        {
+            return "keys need activeFrom and recoveryFrom, and don't go with fit";
+        }
+
+        for (int i = 0; i < keys.Count; i++)
+        {
+            KeyJson key = keys[i];
+            if (key.Phase == MovePhase.None || key.Of < 2 || key.Frame < 2 || key.Frame > key.Of || key.Clip < 0)
+            {
+                return $"keys[{i}]: needs a phase (startup, active or recovery), frame from 2 to of, and clip 0 or more";
+            }
+
+            if (i > 0 && !ComesAfter(key, keys[i - 1]))
+            {
+                return $"keys[{i}]: keys go in phase order, and later in their phase than the key before";
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static bool ComesAfter(KeyJson key, KeyJson before) => key.Phase > before.Phase ||
+        (key.Phase == before.Phase && ToKey(key).Position > ToKey(before).Position);
+
+    private static TimingKey ToKey(KeyJson key) => new(key.Phase, key.Frame, key.Of, key.Clip);
 
     private static FighterArtSettings ToSettings(ArtFileJson file)
     {
@@ -292,7 +334,8 @@ public static class FighterArtFile
         animation.HoldFrames,
         animation.CrossfadeFrames,
         animation.Speed,
-        animation.Reverse);
+        animation.Reverse,
+        animation.Keys?.ConvertAll(ToKey));
 
     private sealed class ArtFileJson
     {
@@ -418,5 +461,22 @@ public static class FighterArtFile
         public float Speed { get; init; } = 1f;
 
         public bool Reverse { get; init; }
+
+        public List<KeyJson>? Keys { get; init; }
+    }
+
+    private sealed class KeyJson
+    {
+        [JsonRequired]
+        public MovePhase Phase { get; init; }
+
+        [JsonRequired]
+        public int Frame { get; init; }
+
+        [JsonRequired]
+        public int Of { get; init; }
+
+        [JsonRequired]
+        public int Clip { get; init; }
     }
 }

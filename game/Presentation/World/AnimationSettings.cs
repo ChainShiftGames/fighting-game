@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace FightingGame.Presentation.World;
 
 /// <summary>How one move is animated on a fighter model, from the character's art file (ADR-0028).</summary>
@@ -18,6 +20,7 @@ namespace FightingGame.Presentation.World;
 /// (a 4-frame prejump is itself the transition).</param>
 /// <param name="Speed">Plays the clip faster or slower, so a walk cycle's feet keep up with the logic's walk speed.</param>
 /// <param name="Reverse">Plays the clip backwards, e.g. a forward walk as a walk back when a pack has none.</param>
+/// <param name="Keys">Timing keys inside the contact frames' spans, in phase order; null for none.</param>
 public sealed record AnimationSettings(
     string? Clip,
     ContactFrames? Contacts,
@@ -31,7 +34,8 @@ public sealed record AnimationSettings(
     int? HoldFrames = null,
     int? CrossfadeFrames = null,
     float Speed = 1f,
-    bool Reverse = false)
+    bool Reverse = false,
+    IReadOnlyList<TimingKey>? Keys = null)
 {
     /// <summary>A move the art file doesn't list: the clip named after it, frame for frame.</summary>
     public static AnimationSettings Default { get; } = new(null, null);

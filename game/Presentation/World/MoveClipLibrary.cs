@@ -159,25 +159,20 @@ public sealed class MoveClipLibrary
             (start, end) = (0f, clipFrames);
         }
 
-        // Contact frames are written in clip frames, as an animator reads them; the retiming counts from the part's start.
-        ContactFrames? contacts = settings.Contacts is { } frames
-            ? new ContactFrames(frames.ActiveFrom - (int)start, frames.RecoveryFrom - (int)start)
-            : null;
-        if (settings.Contacts is { } written && (written.ActiveFrom < start || written.RecoveryFrom > end))
-        {
-            GD.PushError(
-                $"{_characterId}: {what} contact frames {written.ActiveFrom}-{written.RecoveryFrom} are outside the " +
-                $"part played ({start:0.#}-{end:0.#}); playing it frame for frame");
-            contacts = null;
-        }
-
-        return new AnimationClipTiming(
+        var timing = new AnimationClipTiming(
             end - start,
             clip.LoopMode != Animation.LoopModeEnum.None,
-            contacts,
+            null,
             start,
             settings.Fit,
             settings.HoldFrames ?? _settings.HoldFrames,
             settings.Speed);
+        timing = ClipPartFrames.Fit(timing, settings.Contacts, settings.Keys, out string problem);
+        if (problem.Length > 0)
+        {
+            GD.PushError($"{_characterId}: {what} {problem}");
+        }
+
+        return timing;
     }
 }
