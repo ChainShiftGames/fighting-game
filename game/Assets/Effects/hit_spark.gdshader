@@ -1,6 +1,7 @@
 // The standard hit spark, after Guilty Gear Strive. Two styles: a star-shaped burst at the contact point (light hits),
 // or a tear: a long tapered streak along the attack's direction, through and behind the defender, with a smaller
-// burst at the contact (heavy hits and specials). Both throw impact lines and debris streaks along the attack, and
+// burst at the contact (heavy hits and specials). A block instead shows a blue guard: an arc bowed toward the attacker
+// over a small burst, with twinkles thrown back. Hits throw impact lines and debris streaks along the attack, and
 // every spark's details vary with its seed. The first frame is the biggest and brightest; then it thins, hollows out
 // and rips apart. Card space: metres, +X the way the attack travels (HitSparkArt turns the card), y up.
 // Driven by `age` in logic frames since the hit, never TIME, so it follows rollback and hitstop.
@@ -36,6 +37,9 @@ uniform float tear_width : hint_range(0.02, 0.3) = 0.1;
 // Multiplies the number of debris streaks and impact lines.
 uniform float debris : hint_range(0.0, 2.0) = 1.0;
 uniform float lines : hint_range(0.0, 2.0) = 1.0;
+// Blocks: how far the guard arc reaches round from the attacker's side (radians each way), and how many twinkles.
+uniform float guard_span : hint_range(0.3, 1.6) = 1.1;
+uniform float guard_twinkles : hint_range(0.0, 2.0) = 1.0;
 // Logic frames each drawing is held for after the first two (which always show): 1 smooth, 2-3 hand-drawn.
 uniform float hold_frames : hint_range(1.0, 3.0, 1.0) = 2.0;
 group_uniforms;
@@ -168,6 +172,44 @@ void tear(inout vec4 acc, vec2 p, float f, float n, float w, vec3 core, vec3 bod
 	}
 }
 
+// The guard, for blocks: a bright arc bowed toward the attacker, as if the hit met a shield. It flashes full on
+// frame 0, then swells, thins from its ends inward and fades.
+void guard_arc(inout vec4 acc, vec2 p, float f, float n, float size, vec3 core, vec3 body, vec3 rim) {
+	vec2 centre = vec2(size * 0.55, 0.0);
+	vec2 q = p - centre;
+	float r = length(q);
+	float a = abs(atan(q.y, -q.x));
+	float radius = size * (0.75 + 0.45 * smoothstep(0.0, 6.0, f));
+	float span = guard_span * (1.0 - 0.45 * smoothstep(0.2, 1.0, n));
+	float taper = clamp(1.0 - a / span, 0.0, 1.0);
+	float thick = size * 0.09 * (f < 1.0 ? 1.6 : 1.0) * (1.0 - 0.6 * n) * sqrt(taper);
+	float d = abs(r - radius) - thick;
+	float shown = step(a, span);
+	lay(acc, rim, fill(d - thick * 0.9) * shown * (1.0 - n));
+	lay(acc, body, fill(d) * shown);
+	lay(acc, core, fill(abs(r - radius) - thick * 0.4) * shown);
+}
+
+// Twinkles, for blocks: small four-point stars thrown back toward the attacker, slowing, each blinking out on its
+// own frame.
+void twinkles(inout vec4 acc, vec2 p, float f, float size, float count, vec3 core, vec3 body) {
+	for (int i = 0; i < 16; i++) {
+		if (float(i) >= count) {
+			break;
+		}
+		float at = PI + (pick(float(i), 40.0) - 0.5) * 2.4;
+		vec2 dir = vec2(cos(at), sin(at));
+		float travel = size * (0.6 + 1.1 * pick(float(i), 41.0)) * (1.0 - exp(-0.35 * f));
+		vec2 q = p - dir * (size * 0.35 + travel);
+		float life = 6.0 + 8.0 * pick(float(i), 42.0);
+		float s = size * (0.1 + 0.1 * pick(float(i), 43.0)) * (1.0 - f / life);
+		float star = min(abs(q.x) * 6.0 + abs(q.y), abs(q.y) * 6.0 + abs(q.x)) - s;
+		float fade = 1.0 - step(life, f);
+		lay(acc, body, fill(star) * fade);
+		lay(acc, core, fill(star + s * 0.55) * fade);
+	}
+}
+
 // Impact lines: thin tapered wedges thrown out from the contact, `spread` radians wide around the attack's way.
 void impact_lines(inout vec4 acc, vec2 p, float f, float size, float count, float spread, vec3 colour) {
 	float fade = 1.0 - smoothstep(3.0, 9.0, f);
@@ -226,7 +268,12 @@ void fragment() {
 	float size = burst_radius * (0.75 + 0.45 * w);
 	vec4 acc = vec4(0.0);
 	if (n < 1.0) {
-		if (style == 1) {
+		if (kind == 1) {
+			impact_lines(acc, p, f, size, (4.0 + 3.0 * w) * lines, TAU, body);
+			twinkles(acc, p, f, size, (6.0 + 6.0 * w) * guard_twinkles, core, body);
+			burst(acc, p, f, n, size * 0.55, core, body, rim);
+			guard_arc(acc, p, f, n, size, core, body, rim);
+		} else if (style == 1) {
 			debris_streaks(acc, p, f, size, (12.0 + 20.0 * w) * debris, 1.2, 0.2, body, rim);
 			impact_lines(acc, p, f, size, (5.0 + 5.0 * w) * lines, 1.8, body);
 			tear(acc, p, f, n, w, core, body, rim);
