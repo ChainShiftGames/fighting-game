@@ -67,9 +67,11 @@ painted lighting ends up baked into the model's texture and fights the toon shad
 
 ```
 character model sheet, full body, A-pose, arms 45 degrees down and away from the body, fingers spread, feet
-shoulder-width apart, front view, neutral expression, eyes open, face fully visible, flat even lighting, no shadows,
-no highlights, solid flat colour regions, clean cel-shaded anime style, sharp clean edges, plain white background
+shoulder-width apart, front view, neutral expression, eyes open, face fully visible, flat even lighting, solid flat
+colour regions, clean cel-shaded anime style, sharp clean edges, plain white background
 ```
+
+Negatives go only in the Avoid list: image models read "no shadows" in the prompt as "shadows".
 
 ### Promo / key visual
 
@@ -94,8 +96,9 @@ text, letters, watermark, signature, logo, UI, frame, border, blurry, low detail
 generic glowing particles everywhere
 ```
 
-3D model input adds: `dramatic lighting, rim light, cast shadows, ambient occlusion, painted shading, gradients,
-hair over face, hands touching body, crossed arms, held weapon, cropped feet, motion blur`
+3D model input adds: `dramatic lighting, rim light, cast shadows, highlights, specular shine, ambient occlusion,
+painted shading, gradients, hair over face, glasses, hands touching body, crossed arms, held weapon, cropped feet,
+motion blur`
 
 ## Character to 3D (Midjourney → Tripo)
 
