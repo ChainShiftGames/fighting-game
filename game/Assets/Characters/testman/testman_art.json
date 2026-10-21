@@ -1,20 +1,24 @@
 {
-  // Test setup: the Tripo test model (game/Assets/Characters/tripo_elf, Tripo's rigged FBX through
-  // tools/Blender/tripo_to_glb.py) with Quaternius' Universal Animation Library 1 and 2 (CC0, game/Assets/Animations),
-  // retargeted at import through Godot's humanoid bone maps. Tripo models are 1 m tall and face +Z: scale to 1.75 m,
-  // the height of testman's 120 px idle hurtbox, and turn 90°.
-  // Godot drops a clip's "_Loop" suffix on import (and makes it loop). The pack has few fighting moves, so several
+  // Main model for now: Mixamo's Kachujin (game/Assets/Characters/kachujin; Mixamo licence, ADR-0034), converted by
+  // tools/Blender/tripo_to_glb.py, with her Mixamo clips packed in place by tools/Blender/mixamo_clips_to_glb.py into
+  // kachujin_moves.glb (clips named after the moves they serve). She is 1.7 m tall and faces +Z: scale 1.0 (testman's
+  // 120 px idle hurtbox is 1.75 m) and turn 90°. Moves without a Mixamo clip yet borrow Quaternius' Universal Animation
+  // Library 1 and 2 (CC0, game/Assets/Animations). All clips are retargeted at import through Godot's humanoid bone
+  // maps, so every model below plays every clip.
+  // Godot drops a clip's "_Loop" suffix on import (and makes it loop). The packs have few fighting moves, so several
   // moves borrow the nearest clip; see game/Assets/Animations/README.md for the measurements.
   // Contact frames: measured peak hand or foot reach in each clip, contact just before it.
   "artVersion": 1,
   "art": "model",
-  "model": "res://Assets/Characters/tripo_elf/tripo_elf.glb",
+  "model": "res://Assets/Characters/kachujin/kachujin.glb",
   "turnDegrees": 90,
-  "scale": 1.75,
-  // Models to compare on the same clips, switched with the debug panel's "Switch fighter model" (F1): the Tripo
-  // armor model (50 parts joined, textures atlased by tripo_to_glb.py), the Tripo fighter (rig rebuilt in Blender:
-  // stance rest pose, solid right fist, ponytail/ribbon/sash bone chains the clips leave at rest) and the VRoid model.
+  "scale": 1.0,
+  // Models to compare on the same clips, switched with the debug panel's "Switch fighter model" (F1): the Tripo elf
+  // (the main model before Kachujin), the Tripo armor model (50 parts joined, textures atlased by tripo_to_glb.py), the
+  // Tripo fighter (rig rebuilt in Blender: stance rest pose, solid right fist, ponytail/ribbon/sash bone chains the
+  // clips leave at rest) and the VRoid model.
   "otherModels": [
+    { "model": "res://Assets/Characters/tripo_elf/tripo_elf.glb", "scale": 1.75, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/tripo_armor/tripo_armor.glb", "scale": 1.67, "turnDegrees": 90 },
     { "model": "res://Assets/Characters/tripo_fighter/tripo_fighter.glb", "scale": 1.75, "turnDegrees": 90 },
     // Pipeline test: Midjourney model sheet -> Tripo (A-pose, Smart Mesh, flat-lit texture) -> skeleton and skirt
@@ -30,53 +34,72 @@
   "cameraTurnDegrees": 30,
   "holdFrames": 2,
   // Played from the frame of the KO on, whatever the logic does meanwhile; it ends lying down.
-  "knockOut": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Death01" },
+  // Knocked Out: standing until 110, down by 180.
+  "knockOut": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "knocked_out", "clipFrom": 100 },
   "animations": {
-    "idle": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Idle", "loop": true },
-    // Speeds: logic speed over the clip's own foot speed (walk 0.057/0.0423 jog, back 0.046/0.0155 walk, run 0.129/0.0597 m per frame).
-    "walk_forward": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Jog_Fwd", "loop": true, "speed": 1.35 },
-    // No walk back in the pack: the walk played backwards.
-    "walk_back": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "loop": true, "reverse": true, "speed": 3.0 },
-    "dash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sprint", "loop": true, "speed": 2.16 },
-    // Backdash: half a backwards walk cycle, fast, then held.
-    "backdash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "reverse": true, "loop": false, "clipTo": 40, "speed": 4.0 },
-    "air_dash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sprint", "loop": true, "speed": 2.0 },
-    "air_backdash": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Walk", "reverse": true, "loop": false, "clipTo": 40, "speed": 4.0 },
-    "crouch": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
+    "idle": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "idle", "loop": true },
+    // Speeds: logic speed over the clip's own foot speed (walk 0.057/0.0345 boxing advance m per frame); the boxing
+    // steps back and forward are single steps, so they loop faster and the feet slide a little.
+    "walk_forward": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "walk_forward", "loop": true, "speed": 1.65 },
+    "walk_back": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "walk_back", "loop": true, "speed": 2.5 },
+    "dash": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "dash", "loop": true, "speed": 2.0 },
+    // Backdash: the hop back of a backward dodge (back on her feet by 60), squeezed into the move.
+    "backdash": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "backdash", "clipTo": 60, "fit": true },
+    "air_dash": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "dash", "loop": true, "speed": 2.0 },
+    "air_backdash": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "backdash", "clipTo": 60, "fit": true },
+    "crouch": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "crouch", "loop": true },
     // NinjaJump: hips lowest at 0, up by 14 (takeoff); landing lowest at 12, standing by 24.
     "prejump": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "NinjaJump_Start", "clipTo": 14, "fit": true, "crossfadeFrames": 0 },
     "jump": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Jump", "loop": true },
     "landing": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "NinjaJump_Land", "clipTo": 24, "fit": true, "crossfadeFrames": 0 },
-    "knockdown": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "fit": true },
-    "wake_up": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "LayToIdle", "fit": true },
-    "thrown": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "fit": true },
-    "throw_tech": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Hit_Chest", "fit": true },
-    // Guard up by 10, lowest at 22; held there.
-    "blockstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Block", "clipTo": 22 },
-    "air_blockstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Block", "clipTo": 22 },
-    "hitstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Hit_Chest" },
-    "air_hitstun": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Hit_Knockback", "clipTo": 20 },
+    // Knocked Out from where she starts to fall (110) to lying still (190); Getting Up from lying (40) to standing (190).
+    "knockdown": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "knocked_out", "clipFrom": 100, "clipTo": 190, "fit": true },
+    "wake_up": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "wake_up", "clipFrom": 40, "clipTo": 190, "fit": true },
+    // The shoulder throw's victim: lifted from 110, slammed down by 215.
+    "thrown": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "thrown", "clipFrom": 100, "clipTo": 230, "fit": true },
+    "throw_tech": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "throw_tech", "fit": true },
+    // Low center block, guard set by 20.
+    "blockstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "block" },
+    "air_blockstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "block" },
+    // Head snapped back furthest at 40.
+    "hitstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "hitstun", "speed": 1.5 },
+    "air_hitstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "air_hitstun", "clipTo": 30 },
     // No crouching hit or block clips: she stays crouched.
-    "crouch_blockstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
-    "crouch_hitstun": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Crouch_Idle", "loop": true },
-    // Peak reach: jab 12, cross 18, slash 14, overhand 23, low hook 16, crouching slash 15, slide 16, air chop 26.
-    "5a": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Punch_Jab", "activeFrom": 10, "recoveryFrom": 14 },
-    "5b": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Punch_Cross", "activeFrom": 15, "recoveryFrom": 20 },
-    "5c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_A", "activeFrom": 11, "recoveryFrom": 16 },
-    "5d": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "OverhandThrow", "activeFrom": 20, "recoveryFrom": 26 },
-    "2a": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Melee_Hook", "activeFrom": 13, "recoveryFrom": 18 },
+    "crouch_blockstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "crouch", "loop": true },
+    "crouch_hitstun": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "crouch", "loop": true },
+    // Her Mixamo attacks. Peak reach: jab 25, cross 25, roundhouse foot 62, spinning back kick foot 58, low front kick
+    // 19, 360 leg sweep 82, flying kick 26, Hadouken hands out 72-79, four-punch combo 19/34/48.
+    "5a": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5a", "activeFrom": 22, "recoveryFrom": 28 },
+    "5b": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5b", "activeFrom": 22, "recoveryFrom": 28 },
+    "5c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5c", "activeFrom": 57, "recoveryFrom": 66 },
+    "5d": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "5d", "activeFrom": 54, "recoveryFrom": 62 },
+    // A standing low kick: she rises out of the crouch for it.
+    "2a": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2a", "activeFrom": 16, "recoveryFrom": 22 },
+    // Peak reach: low hook 16 (no Mixamo clip yet: the downloaded one was a kick from the ground).
     "2b": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Regular_B", "activeFrom": 12, "recoveryFrom": 17 },
-    "2c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Slide_Start", "activeFrom": 13, "recoveryFrom": 19 },
-    "j_c": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Sword_Attack", "activeFrom": 23, "recoveryFrom": 28 },
-    // Rising arm swing: reach at 10, hips highest at 30.
-    "623c": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "ClimbUp_1m", "activeFrom": 8, "recoveryFrom": 20 },
-    // Hands pushed out at 32 (the clip's end), held through recovery.
-    "236c": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Spell_Simple_Enter", "activeFrom": 29, "recoveryFrom": 32 },
-    "236236d": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Sword_Dash", "activeFrom": 16, "recoveryFrom": 22 },
+    "2c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "2c", "activeFrom": 76, "recoveryFrom": 88 },
+    // Both jump by themselves (hips up to 1.7 and 2.3 m): the logic's height wins.
+    "j_c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "j_c", "activeFrom": 22, "recoveryFrom": 32, "holdHeight": true },
+    // Flying knee (highest at 58) into a punch (furthest at 80).
+    "623c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "623c", "activeFrom": 50, "recoveryFrom": 85, "holdHeight": true },
+    // Previous clip, with timing keys tuned to it:
+    // "236c": {
+    //   "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Spell_Simple_Enter", "activeFrom": 29, "recoveryFrom": 32,
+    //   "keys": [
+    //     { "phase": "startup", "frame": 16, "of": 32, "clip": 24 },
+    //     { "phase": "startup", "frame": 25, "of": 32, "clip": 27 },
+    //     { "phase": "recovery", "frame": 6, "of": 32, "clip": 32 },
+    //     { "phase": "recovery", "frame": 9, "of": 32, "clip": 21 },
+    //     { "phase": "recovery", "frame": 19, "of": 32, "clip": 0 },
+    //     { "phase": "recovery", "frame": 32, "of": 32, "clip": 2 }
+    //   ]
+    // },
+    "236c": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "236c", "activeFrom": 72, "recoveryFrom": 82 },
+    "236236d": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "236236d", "activeFrom": 17, "recoveryFrom": 52 },
     "burst": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "Idle_Shield_Break", "activeFrom": 8, "recoveryFrom": 14 },
-    // Shove: hands furthest out at 42.
-    "forward_throw": { "file": "res://Assets/Animations/ual1_standard.glb", "clip": "Push", "loop": false, "clipTo": 70, "activeFrom": 38, "recoveryFrom": 44 },
-    "back_throw": { "file": "res://Assets/Animations/ual2_standard.glb", "clip": "OverhandThrow", "activeFrom": 20, "recoveryFrom": 26 }
+    // Shoulder throw: grab by 100, lift from 150, slam at 200-215, back in stance by 260.
+    "forward_throw": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "throw", "clipTo": 260, "activeFrom": 200, "recoveryFrom": 215 },
+    "back_throw": { "file": "res://Assets/Characters/kachujin/kachujin_moves.glb", "clip": "throw", "clipTo": 260, "activeFrom": 200, "recoveryFrom": 215 }
   },
   // How each projectile-throwing move's projectiles are drawn (ProjectileEffects): in flight, the startup charge at
   // the spawn point, and the impact where it hits, is blocked, clashes or runs out.
@@ -87,13 +110,13 @@
   // down), an offset in pixels, burst or tear, and a size. Moves left out get sparks from their hit data: light hits
   // burst forward, heavy hits and specials tear, launchers point along the launch.
   "sparks": {
-    // Overhand: the arm comes down across the body.
-    "5d": [{ "angle": -50, "style": "tear" }],
-    // Air chop: straight down through the defender.
-    "j_c": [{ "angle": -70 }],
-    // Rising arm swing: up and away.
+    // Spinning back kick: high and straight through.
+    "5d": [{ "angle": 10, "style": "tear" }],
+    // Flying kick: forward and a little down.
+    "j_c": [{ "angle": -20 }],
+    // Flying knee: up and away.
     "623c": [{ "angle": 65 }],
-    // Slide: low along the floor.
+    // Leg sweep: low along the floor.
     "2c": [{ "angle": 8, "offset": { "x": 0, "y": -10 } }],
     "236236d": [{ "angle": 15, "scale": 1.3 }]
   }

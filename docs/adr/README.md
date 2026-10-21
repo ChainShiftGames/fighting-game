@@ -34,5 +34,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0031](0031-hit-sparks.md) | *Proposed*: hit events carry the hit index; spark looks derived from hit data (weight from hitstop, angle from launch, tear for specials/heavies), per-hit `angle`/`offset`/`style`/`scale` overrides in the art file; one seeded shader, no Godot particles |
 | [0032](0032-control-panel-and-effect-settings.md) | *Proposed*: developer control panel as an editor plugin (mechanics, match rules, character stats, hit feel table, effects); saves only what the game's readers accept; effect feel in `game/Assets/Effects/effect_settings.json`, outside data/ |
 | [0033](0033-input-consumption.md) | *Proposed*: a press that starts an action (move, cancel, dash, air action, accepted module cancel) is used up; global freezes no longer age input |
+| [0034](0034-mixamo-prototype-character.md) | *Proposed*: Mixamo's Kachujin and Mixamo fighting clips as the prototype fighter; free for games, raw files never redistributed; clips packed in place into `<id>_moves.glb` by `tools/Blender/mixamo_clips_to_glb.py` |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.
