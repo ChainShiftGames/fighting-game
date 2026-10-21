@@ -1,0 +1,11 @@
+# Testman's 5a gatlings into 5b in 5a's hitstun: the counter shows a 2-hit combo, without the combo limits module.
+setup: module gatlings
+setup: p1 character testman
+setup: p2 character testman
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 14: p1 5b
+
+frame 5: expect p2 combo = 1
+frame 30: expect p2 combo = 2

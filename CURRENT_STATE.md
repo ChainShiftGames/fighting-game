@@ -48,6 +48,8 @@
 
 ### Movement
 - Walk, dash (run or step per character), backdash with invulnerability, jump with prejump, high jump.
+- A ground dash cancels on any frame into any move a free fighter could start, or a jump (dash jump; no extra
+  momentum yet).
 - Air options: double jump + air dash sharing a per-character air-action budget.
 - "Negative penalty" for running away: available as a toggle.
 
@@ -55,6 +57,8 @@
 - **Gatlings** (per-character chain routes + jump cancels), normal → special → super cancels. **Yes.**
 - **Counter hits** (+ punish counter on recovery). **Yes.**
 - **Combo limits:** damage proration, hitstun decay, gravity scaling, OTG rules, all tunable. **Yes.**
+- **Combo counter** (core, `FighterState.ComboHits`): counts only true combos, hits taken while unable to act
+  (hitstun, knockdown, thrown); blocking or recovering resets it. HUD shows 2+ hits and holds the total briefly.
 - Wall bounce / ground bounce / wall splat: later.
 - **Strive-style wall break: NO.**
 

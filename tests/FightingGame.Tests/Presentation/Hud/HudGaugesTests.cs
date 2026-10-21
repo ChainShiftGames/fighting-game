@@ -18,10 +18,8 @@ public sealed class HudGaugesTests
 
         Assert.False(gauges.HasMeter);
         Assert.False(gauges.HasBurst);
-        Assert.False(gauges.HasCombo);
         Assert.Equal(0, gauges.Meter(in state, 0));
         Assert.Equal(0f, gauges.BurstFraction(in state, 1));
-        Assert.Equal(0, gauges.ComboHits(in state, 0));
     }
 
     [Fact]
@@ -52,20 +50,6 @@ public sealed class HudGaugesTests
         Assert.True(gauges.HasBurst);
         Assert.Equal(0.25f, gauges.BurstFraction(in state, 0));
         Assert.Equal(1f, gauges.BurstFraction(in state, 1));
-    }
-
-    [Fact]
-    public void ReadsTheHitsEachDefenderHasTaken()
-    {
-        MatchRules rules = Lineup(("combo_limits", null, 0));
-        var state = default(MatchState);
-        state.Modules[0][0] = 4;
-        state.Modules[0][3] = 7;
-
-        var gauges = new HudGauges(_catalog, in rules);
-
-        Assert.Equal(4, gauges.ComboHits(in state, 0));
-        Assert.Equal(7, gauges.ComboHits(in state, 1));
     }
 
     // Puts the named modules in slots 0, 1, … with one config value set by key.

@@ -66,8 +66,9 @@ public partial class MoveDrawer : PanelContainer
         _timing.AnimationChanged += () =>
         {
             canvas.QueueRedraw();
-            AnimationEdited?.Invoke();
+            ArtEdited?.Invoke("Animation timing edited");
         };
+        _hitAreas.SparksChanged += () => ArtEdited?.Invoke("Hit spark edited");
         foreach (IDrawerPage page in new IDrawerPage[] { _overview, _timing, _hitAreas, _chains })
         {
             IDrawerPage source = page;
@@ -82,8 +83,8 @@ public partial class MoveDrawer : PanelContainer
     /// <summary>The move's or the character's file changed; <c>true</c> when the map's cards may have changed too.</summary>
     public event Action<bool>? Edited;
 
-    /// <summary>A move's animation timing changed in the character's art file.</summary>
-    public event Action? AnimationEdited;
+    /// <summary>A move's animation timing or sparks changed in the character's art file; says what, for the status.</summary>
+    public event Action<string>? ArtEdited;
 
     /// <summary>The preview shows another frame.</summary>
     public event Action<int>? FrameShown;

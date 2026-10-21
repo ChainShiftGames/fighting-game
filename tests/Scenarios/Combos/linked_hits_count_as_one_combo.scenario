@@ -1,0 +1,14 @@
+# The combo counter (FighterState.ComboHits) counts hits while the defender can't act: three linked 5a jabs, each
+# landing in the last one's hitstun, are a 3-hit combo. No module needed.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 10: p1 5a
+frame 19: p1 5a
+
+frame 3: expect p2 combo = 1
+frame 12: expect p2 combo = 2
+frame 21: expect p2 combo = 3
+frame 80: expect p2 combo = 0

@@ -19,6 +19,9 @@ public sealed class InkLines
     private readonly ShaderMaterial _material = new()
     {
         Shader = GD.Load<Shader>("res://Assets/Shaders/ink_lines.gdshader"),
+        // Reading the screen puts the pass among the transparent draws, where it sorts last (nearest the camera) and
+        // would paint the pre-transparent screen over the sparks and other effects; first, they draw on top of it.
+        RenderPriority = (int)Material.RenderPriorityMin,
     };
 
     public InkLines()
