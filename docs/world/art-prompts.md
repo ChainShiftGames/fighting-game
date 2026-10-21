@@ -98,7 +98,7 @@ generic glowing particles everywhere
 
 3D model input adds: `dramatic lighting, rim light, cast shadows, highlights, specular shine, ambient occlusion,
 painted shading, gradients, hair over face, glasses, hands touching body, crossed arms, held weapon, cropped feet,
-motion blur`
+motion blur, guide lines, grid` ("model sheet" otherwise draws guide lines, which Tripo can turn into geometry)
 
 ## Character to 3D (Midjourney → Tripo)
 
