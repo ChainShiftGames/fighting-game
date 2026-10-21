@@ -28,7 +28,7 @@
       "guard": "low",
       "hitstun": 17,
       "blockstun": 13,
-      "hitstop": 6,
+      "hitstop": 12,
       "pushback": 14000
     }
   ]

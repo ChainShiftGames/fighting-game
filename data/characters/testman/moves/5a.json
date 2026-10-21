@@ -23,6 +23,6 @@
     }
   ],
   "hits": [
-    { "damage": 300, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 11, "hitstop": 4, "pushback": 12000 }
+    { "damage": 304, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 11, "hitstop": 8, "pushback": 12000 }
   ]
 }

@@ -18,7 +18,7 @@
       "guard": "overhead",
       "hitstun": 18,
       "blockstun": 15,
-      "hitstop": 11,
+      "hitstop": 21,
       "pushback": 10000
     }
   ]

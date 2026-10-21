@@ -19,7 +19,7 @@
       "guard": "mid",
       "hitstun": 30,
       "blockstun": 20,
-      "hitstop": 12,
+      "hitstop": 23,
       "pushback": 0,
       "reaction": "knockdown"
     }
