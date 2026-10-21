@@ -11,6 +11,8 @@ uniform vec4 glow_color : source_color = vec4(0.18, 0.7, 1.0, 1.0);
 uniform float tint : hint_range(0.0, 1.0) = 0.7;
 // 0 = no light; the art node fades it with the orb's size and height.
 uniform float strength : hint_range(0.0, 2.0) = 1.0;
+// How many glints sparkle in the pool: ice glints; the fire orb's pool has none.
+uniform float glints : hint_range(0.0, 1.0) = 1.0;
 uniform float t = 0.0;
 
 void fragment() {
@@ -20,7 +22,7 @@ void fragment() {
 	float pool = exp(-dot(s, s) * 3.2);
 	float streak = exp(-p.y * p.y * 40.0) * exp(-abs(p.x) * 2.5) * 0.6;
 	float shimmer = 0.85 + 0.15 * effect_noise(p * 6.0 + vec2(t * 2.0, 0.0));
-	float glint = step(0.985, effect_hash(floor((p + vec2(t * 0.3, 0.0)) * 24.0))) * pool * 2.0;
+	float glint = step(0.985, effect_hash(floor((p + vec2(t * 0.3, 0.0)) * 24.0))) * pool * 2.0 * glints;
 	float cover = clamp((pool * shimmer + streak) * tint * strength, 0.0, 1.0);
 	ALBEDO = glow_color.rgb * cover + glow_color.rgb * glint * strength;
 	ALPHA = cover;

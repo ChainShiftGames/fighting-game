@@ -8,8 +8,8 @@
 render_priority = 0
 shader = ExtResource("outline_shader")
 shader_parameter/lit_texture = ExtResource("texture")
-shader_parameter/outline_color = Color(0.36, 0.38, 0.46, 1)
-shader_parameter/outline_width_pixels = 3.0
+shader_parameter/outline_color = Color(0.12, 0.1, 0.12, 1)
+shader_parameter/outline_width_pixels = 2.2
 shader_parameter/alpha_cutoff = 0.5
 
 [resource]
@@ -25,5 +25,5 @@ shader_parameter/light_direction = Vector3(-0.15, 0.6, 0.8)
 shader_parameter/alpha_cutoff = 0.5
 shader_parameter/shade_hardness = 1.0
 shader_parameter/shade_tint = Color(0.72, 0.64, 0.84, 1)
-shader_parameter/normal_flatten = 0.0
+shader_parameter/normal_flatten = 0.2
 shader_parameter/rim_start = 0.55

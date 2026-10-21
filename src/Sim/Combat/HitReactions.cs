@@ -19,9 +19,10 @@ namespace Sim.Combat;
 public static class HitReactions
 {
     /// <summary>
-    /// A launch goes to air hitstun with the launch velocity; without one, air hits keep the defender's momentum in
-    /// air hitstun (a knockdown on landing), knockdown, KO and OTG hits on the ground knock down straight away, and
-    /// other hits go to standing or crouching hitstun after the defender's posture.
+    /// Counts the hit in the defender's combo. A launch goes to air hitstun with the launch velocity; without one, air
+    /// hits keep the defender's momentum in air hitstun (a knockdown on landing), knockdown, KO and OTG hits on the
+    /// ground knock down straight away, and other hits go to standing or crouching hitstun after the defender's
+    /// posture.
     /// </summary>
     /// <param name="direction">
     /// The way the hit sends the defender, +1 right (<see cref="HitDirection"/>; a throw passes its thrower's facing):
@@ -32,6 +33,7 @@ public static class HitReactions
         ref FighterState defender, in HitData hit, CharacterData character, int direction, int flagsClearedWhenHit)
     {
         defender.Health = LoseHealth(defender.Health, hit.Damage);
+        defender.ComboHits++;
         defender.Flags &= ~flagsClearedWhenHit;
         defender.KnockdownFrames = hit.KnockdownFrames;
         defender.GroundBounce = hit.GroundBounce;

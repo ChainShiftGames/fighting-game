@@ -144,6 +144,7 @@ none. Settable ones also work in setup: `setup: [p1|p2] <keyword> = <value>`.
 | `move` | fighter | id of the playing move, e.g. `5a` (= and != only) | no |
 | `move_frame` | fighter | frame of the playing move, 1 on its first frame | no |
 | `stun` | fighter | hitstun or blockstun frames left | no |
+| `combo` | fighter | hits taken in the current true combo; 0 once it can act or block | no |
 | `wins` | fighter | rounds won so far | yes |
 | `event <kind>` | fighter | frame events of that kind this frame (`hit`, `block`, `swing`, `landing`, `clash`, `knock_out`, `projectile_spawn`, `projectile_hit`, `projectile_block`, `projectile_clash`, `projectile_expire`, `counter_hit`, `punish_counter`, `throw_grab`, `throw_tech`, `throw_hit`, `module`; projectile and counter hit events belong to the owner or attacker, throw events to the thrower, a tech to each fighter); alone means at least one, or compare a count: `p2 event hit = 0` | no |
 | `entities` | fighter | projectiles the fighter has out in the entity pool | no |

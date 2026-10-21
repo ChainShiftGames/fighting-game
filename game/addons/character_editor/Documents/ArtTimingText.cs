@@ -36,23 +36,23 @@ public static class ArtTimingText
         if (entry is { } found)
         {
             JsonObject old = JsonNode.Parse(bytes.AsSpan(found.Start, found.End - found.Start), null, _document)!.AsObject();
-            return Splice(bytes, found.Start, found.End, Entry(old, timing, IndentOfLine(bytes, found.Start), newline));
+            return JsonTextEdits.Splice(bytes, found.Start, found.End, Entry(old, timing, JsonTextEdits.IndentOfLine(bytes, found.Start), newline));
         }
 
         if (lastEnd >= 0)
         {
-            string indent = IndentOfLine(bytes, lastEnd);
-            return Splice(bytes, lastEnd, lastEnd, $",{newline}{indent}{Added(moveId, timing, indent, newline)}");
+            string indent = JsonTextEdits.IndentOfLine(bytes, lastEnd);
+            return JsonTextEdits.Splice(bytes, lastEnd, lastEnd, $",{newline}{indent}{Added(moveId, timing, indent, newline)}");
         }
 
         // An empty object: "{}" gets the entry on its own line; anything between the braces (a comment) stays.
-        string outer = IndentOfLine(bytes, animations.Start);
+        string outer = JsonTextEdits.IndentOfLine(bytes, animations.Start);
         string inner = outer + Indent;
         string added = Added(moveId, timing, inner, newline);
         bool empty = Encoding.UTF8.GetString(bytes, animations.Start + 1, animations.End - animations.Start - 1).Trim().Length == 0;
         return empty
-            ? Splice(bytes, animations.Start + 1, animations.End, $"{newline}{inner}{added}{newline}{outer}")
-            : Splice(bytes, animations.Start + 1, animations.Start + 1, $"{newline}{inner}{added},");
+            ? JsonTextEdits.Splice(bytes, animations.Start + 1, animations.End, $"{newline}{inner}{added}{newline}{outer}")
+            : JsonTextEdits.Splice(bytes, animations.Start + 1, animations.Start + 1, $"{newline}{inner}{added},");
     }
 
     // Where `animations` is (its braces), the move's entry in it, and where its last entry ends (-1 for none).
@@ -144,24 +144,4 @@ public static class ArtTimingText
 
         return text.Append(inner).Append(']').Append(newline).Append(indent).Append('}').ToString();
     }
-
-    private static string IndentOfLine(byte[] bytes, int index)
-    {
-        int lineStart = index;
-        while (lineStart > 0 && bytes[lineStart - 1] != (byte)'\n')
-        {
-            lineStart--;
-        }
-
-        int end = lineStart;
-        while (end < bytes.Length && bytes[end] is (byte)' ' or (byte)'\t')
-        {
-            end++;
-        }
-
-        return Encoding.UTF8.GetString(bytes, lineStart, end - lineStart);
-    }
-
-    private static string Splice(byte[] bytes, int start, int end, string replacement) =>
-        Encoding.UTF8.GetString(bytes, 0, start) + replacement + Encoding.UTF8.GetString(bytes, end, bytes.Length - end);
 }

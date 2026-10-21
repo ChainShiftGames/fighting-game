@@ -1,0 +1,12 @@
+# Only true combos count: when the defender recovers before the next hit lands, that hit starts over at 1, even
+# though the attacker never stopped attacking.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 40: p1 5a
+
+frame 3: expect p2 combo = 1
+frame 30: expect p2 combo = 0
+frame 42: expect p2 combo = 1

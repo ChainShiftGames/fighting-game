@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
 using FightingGame.Addons.CharacterEditor.Map;
 using FightingGame.Presentation;
+using FightingGame.Presentation.World.Sparks;
 using Godot;
 using Sim.Characters;
 using Sim.Data.Characters.Reading;
@@ -39,12 +40,16 @@ public partial class BoxCanvas : Control
     private const float FillAlpha = 0.2f;
     private const float OutlineWidth = 1.5f;
     private const float SelectedWidth = 3f;
+    // Developer settings (editor look): the spark marker's star radius and direction arrow length, in screen pixels.
+    private const float SparkRadius = 9f;
+    private const float SparkArrow = 28f;
 
     private static readonly Color _axis = new(1f, 1f, 1f, 0.07f);
     private static readonly Color _opponent = Look.MapPalette.Muted with { A = 0.75f };
     private static readonly Color _body = new(0.55f, 0.55f, 0.6f, 0.45f);
     private static readonly Color _unknownKind = new(0.6f, 0.6f, 0.6f);
     private static readonly Color _handle = new(1f, 1f, 1f);
+    private static readonly Color _spark = new(1f, 0.8f, 0.22f);
 
     private readonly ModelPreview _preview = new();
     private readonly ProjectileOverlay _projectiles = new();
@@ -110,6 +115,9 @@ public partial class BoxCanvas : Control
     /// <summary>Hurt boxes of an opponent at point blank, outlined behind the move's boxes; empty for none.</summary>
     public IReadOnlyList<BoxArea> Opponent { get; set; } = [];
 
+    /// <summary>The spark settings of the hit being edited, marked where its spark starts; null for no marker.</summary>
+    public HitSparkSettings? Spark { get; set; }
+
     /// <summary>Shows the character's model behind the boxes, when its art file has one; null for none.</summary>
     public void ShowCharacter(string? characterId, IReadOnlyList<string> moveIds)
     {
@@ -168,6 +176,7 @@ public partial class BoxCanvas : Control
             DrawRect(rect, color, filled: false, width: box == Selected ? SelectedWidth : OutlineWidth);
         }
 
+        DrawSpark();
         _projectiles.Show(_move, _frame);
         _projectiles.Draw(this, ToScreen, ToScreen, _projectileDragged);
         if (SelectedArea() is BoxArea selected)
@@ -383,6 +392,31 @@ public partial class BoxCanvas : Control
         _origin = around + ((Origin() - around) * (zoom / _zoom));
         _zoom = zoom;
         QueueRedraw();
+    }
+
+    // A star where the spark starts on this frame, with an arrow along its angle when the art file sets one.
+    private void DrawSpark()
+    {
+        if (Spark is not { } spark || SparkContact.Of(_move, _frame, Opponent) is not (int x, int y))
+        {
+            return;
+        }
+
+        Vector2 centre = ToScreen(x + (int)MathF.Round(spark.OffsetX * Subpixels), y + (int)MathF.Round(spark.OffsetY * Subpixels));
+        var star = new Vector2[17];
+        for (int i = 0; i < star.Length; i++)
+        {
+            float radius = i % 2 == 0 ? SparkRadius : SparkRadius * 0.4f;
+            star[i] = centre + (Vector2.FromAngle(i * MathF.PI / 8f) * radius);
+        }
+
+        DrawPolyline(star, _spark, 2f, antialiased: true);
+        if (spark.Angle is float degrees)
+        {
+            Vector2 direction = Vector2.FromAngle(-degrees * MathF.PI / 180f);
+            DrawLine(centre, centre + (direction * SparkArrow), _spark, 2f, antialiased: true);
+            Look.ShapeArt.Arrowhead(this, centre + (direction * SparkArrow), direction, 7f, _spark);
+        }
     }
 
     private Vector2 Origin() => _origin ?? new Vector2(Size.X * OriginFromLeft, Size.Y * FloorFromTop);

@@ -49,3 +49,7 @@ effect_light_color={
 "type": "color",
 "value": Color(0, 0, 0, 1)
 }
+fighter_brush={
+"type": "float",
+"value": 1.0
+}

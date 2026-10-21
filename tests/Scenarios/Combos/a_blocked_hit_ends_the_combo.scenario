@@ -1,0 +1,12 @@
+# Blocking means the defender could act: a hit blocked after a combo leaves the count at 0.
+setup: p1 character sparring_dummy
+setup: p2 character sparring_dummy
+setup: p1 x = -30000
+setup: p2 x = 30000
+frame 1: p1 5a
+frame 40: p1 5a
+frames 41-50: p2 4
+
+frame 3: expect p2 combo = 1
+frame 42: expect p2 state = blockstun
+frame 42: expect p2 combo = 0

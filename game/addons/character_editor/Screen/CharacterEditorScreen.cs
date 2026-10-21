@@ -86,9 +86,9 @@ public partial class CharacterEditorScreen : VBoxContainer
         _drawer.FrameShown += _strip.MarkFrame;
         _strip.FrameClicked += _drawer.SelectFrame;
         _drawer.Edited += OnEdited;
-        _drawer.AnimationEdited += () =>
+        _drawer.ArtEdited += status =>
         {
-            _status = "Animation timing edited";
+            _status = status;
             ShowState();
         };
         _fileActions.Done += (status, index) =>
@@ -327,8 +327,8 @@ public partial class CharacterEditorScreen : VBoxContainer
         }
     }
 
-    // The art file only ever holds timing the game reads (ArtTimingFile checks each edit), so it saves even when the
-    // data files can't.
+    // The art file only ever holds timing and sparks the game reads (ArtTimingFile checks each edit), so it saves even
+    // when the data files can't.
     private void Save()
     {
         _art?.Save();

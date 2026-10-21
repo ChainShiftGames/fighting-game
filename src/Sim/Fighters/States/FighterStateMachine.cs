@@ -12,7 +12,8 @@ namespace Sim.Fighters.States;
 /// <remarks>
 /// Per frame, at most one transition: a pending cancel (core request, honoured from any state) first; otherwise the
 /// move frame advances and the current action decides. Free actions start moves in input priority, then dashes, then
-/// follow the held direction; in the air, air actions (double jump, air dash) come after moves. Attacks cancel
+/// follow the held direction; in the air, air actions (double jump, air dash) come after moves. A ground dash
+/// cancels into a move or a jump like a free fighter. Attacks cancel
 /// through their data windows where the <see cref="CancelPermission"/> allows it (into moves first, then a jump)
 /// and end into a free action. Jumps go through <see cref="JumpActions"/>. A thrown fighter is held until the throw
 /// stages let it go (<c>Sim.Throws</c>); a throw tech ends into a free action. A KO'd fighter
@@ -271,11 +272,25 @@ public sealed class FighterStateMachine
         return true;
     }
 
-    // A run (dash style from data) loops while forward or the dash button is held and stops when both are released;
-    // a step dash plays its move once.
+    // A ground dash is cancelled on any frame into any move a free fighter could start, or a jump from held up, as
+    // runs and step dashes are in most fighting games. Otherwise a run (dash style from data) loops while forward or
+    // the dash button is held and stops when both are released; a step dash plays its move once.
     private void AdvanceDash(
         ref FighterState fighter, in InputHistory history, CharacterData character, in MoveData move)
     {
+        int attack = _moves.FindFreeMove(in fighter, in history, character);
+        if (attack != CharacterData.NoMove)
+        {
+            StartAttack(ref fighter, attack, character);
+            return;
+        }
+
+        if (NumpadDirection.IsUp(NumpadDirection.Of(history.FramesAgo(0), fighter.Facing)))
+        {
+            MoveEntry.EnterBasic(ref fighter, FighterAction.Prejump, character);
+            return;
+        }
+
         if (character.Stats.DashStyle != DashStyle.Run)
         {
             EndIntoFreeAfter(ref fighter, move.TotalFrames, in history, character);
