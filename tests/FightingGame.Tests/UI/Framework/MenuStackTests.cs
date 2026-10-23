@@ -26,6 +26,18 @@ public sealed class MenuStackTests
     }
 
     [Fact]
+    public void APushedScreenStartsOnItsFirstFocus()
+    {
+        var stack = new MenuStack();
+        TestScreen main = TestScreen.Buttons(3, _chosen);
+        main.FirstFocus = 2;
+
+        stack.Push(main);
+
+        Assert.Equal(2, stack.TopFocus!.Index);
+    }
+
+    [Fact]
     public void BackPopsWhenTheScreenAgrees()
     {
         var stack = new MenuStack();
@@ -67,7 +79,7 @@ public sealed class MenuStackTests
         stack.TopFocus.Move(main.Items, 1);
 
         stack.Push(TestScreen.Buttons(2, _chosen));
-        Assert.Equal(-1, stack.TopFocus.Index);
+        Assert.Equal(0, stack.TopFocus.Index);
         stack.Back();
 
         Assert.Equal(2, stack.TopFocus!.Index);

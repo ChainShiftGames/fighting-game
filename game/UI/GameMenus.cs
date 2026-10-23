@@ -2,15 +2,18 @@ using System.Collections.Generic;
 using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
+using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
+using FightingGame.UI.MainMenu;
 using FightingGame.UI.Screens;
+using FightingGame.UI.Title;
 using Godot;
 
 namespace FightingGame.UI;
 
 /// <summary>
-/// The menus around matches: keeps the <see cref="MenuStack"/> on the screen that fits what the game is doing
-/// (<see cref="MenuScreenChoice"/>), passes menu presses to it and draws it (<see cref="MenuView"/>).
+/// The menus around matches: keeps the <see cref="MenuStack"/> on the screens the <see cref="GameFlow"/> is at,
+/// passes menu presses to them and draws them (<see cref="MenuView"/>). The pause menu opens over a match.
 /// </summary>
 /// <remarks>
 /// Escape or a joypad's Start opens the pause menu during a match; B or Escape goes back a menu where there is one. On
@@ -23,14 +26,12 @@ public partial class GameMenus : Node
     private readonly MenuInput _input = new();
     private readonly MenuView _view = new();
     private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
+    private readonly FlowScreens _screens = new();
     private MenuNavigator? _navigator;
+    private GameFlow? _flow;
     private MatchLauncher? _launcher;
     private FrameStepping? _stepping;
     private LobbyScreen? _lobby;
-    private IMenuScreen[] _mainMenuPath = [];
-    private IMenuScreen[] _lobbyPath = [];
-    private IMenuScreen[] _onlineMatchOverPath = [];
-    private IMenuScreen[] _matchOverPath = [];
     private IMenuScreen[] _pausePath = [];
     private StartedMatch? _match;
     private string _note = string.Empty;
@@ -58,16 +59,18 @@ public partial class GameMenus : Node
         _view.Pointed += index => _navigator.Point(index);
         _view.Clicked += index => _navigator.Click(index, Now());
 
-        var mainMenu = new MainMenuScreen(launcher, () => GetTree().Quit(), () => _note);
-        _mainMenuPath = [mainMenu];
-        _matchOverPath = [new MatchOverScreen(launcher, () => _note)];
-        _pausePath = [new PauseScreen(launcher, () => _isPaused = false, () => _note)];
+        GameFlow flow = _flow = new GameFlow(launcher, _screens.Has);
+        _screens.Add(FlowStep.Title, new TitleScreen(flow, () => _note));
+        _screens.Add(FlowStep.MainMenu, new MainMenuScreen(flow, launcher.PlatformName, () => _note));
+        _screens.Add(FlowStep.QuitPrompt, new QuitScreen(flow, () => GetTree().Quit()));
+        _screens.Add(FlowStep.Results, new MatchOverScreen(flow, launcher, () => _note));
         if (launcher.Matchmaking is { } matchmaking)
         {
-            _lobby = new LobbyScreen(launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
-            _lobbyPath = [mainMenu, _lobby];
-            _onlineMatchOverPath = [_lobby];
+            _lobby = new LobbyScreen(flow, launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
+            _screens.Add(FlowStep.Online, _lobby);
         }
+
+        _pausePath = [new PauseScreen(flow, launcher, () => _isPaused = false, () => _note)];
     }
 
     /// <summary>Shows the menu that fits now, or none; call once per displayed frame.</summary>
@@ -75,34 +78,37 @@ public partial class GameMenus : Node
     /// <param name="note">What the match (or a failed start) has to say, e.g. a desync; may be empty.</param>
     public void Refresh(StartedMatch? match, string note, double delta)
     {
-        if (_launcher is null)
+        if (_flow is null)
         {
             return;
         }
 
         _match = match;
         _note = note;
-        if (match is null || match.IsOver)
+        _flow.Follow(match is null ? MatchPhase.None : match.IsOver ? MatchPhase.Over : MatchPhase.Playing);
+        bool isPlaying = _flow.Step == FlowStep.Match;
+        if (!isPlaying)
         {
             _isPaused = false;
         }
 
-        MenuScreen screen = MenuScreenChoice.For(match is not null, match?.IsOver ?? false, _launcher.Mode, _isPaused);
+        IReadOnlyList<IMenuScreen> path = isPlaying ? (_isPaused ? _pausePath : []) : _screens.For(_flow.Path);
 
         // A and B are also attack buttons: after the pause menu closes, the match waits until they are let go, so the
         // press that resumed it doesn't attack.
-        bool isHeldAfterMenu = _stepping!.IsHeld && screen == MenuScreen.None &&
+        bool isHeldAfterMenu = _stepping!.IsHeld && path.Count == 0 &&
             _input.IsHeld(MenuAction.Confirm | MenuAction.Back);
-        _stepping.IsHeld = _launcher.IsLocal && (screen == MenuScreen.Pause || isHeldAfterMenu);
-        _lobby?.Follow(screen == MenuScreen.Lobby, delta);
+        _stepping.IsHeld = _launcher!.IsLocal && (_isPaused || isHeldAfterMenu);
+        bool isOnline = _flow.Step == FlowStep.Online;
+        _lobby?.Follow(isOnline, delta);
         if (_lobby is not null)
         {
-            _lobby.IsOverMatch = screen == MenuScreen.MatchOver;
+            _lobby.IsOverMatch = isOnline && match is not null;
         }
 
         long now = Now();
         bool wasOpen = IsOpen;
-        _stack.Show(PathTo(screen));
+        _stack.Show(path);
         if (!wasOpen && IsOpen)
         {
             _grace.Restart(now);
@@ -113,21 +119,22 @@ public partial class GameMenus : Node
 
     private static long Now() => (long)Time.GetTicksMsec();
 
-    private IReadOnlyList<IMenuScreen> PathTo(MenuScreen screen) => screen switch
-    {
-        MenuScreen.MainMenu => _mainMenuPath,
-        MenuScreen.Lobby => _lobbyPath,
-        MenuScreen.MatchOver when _launcher!.Mode == LaunchMode.Online => _onlineMatchOverPath,
-        MenuScreen.MatchOver => _matchOverPath,
-        MenuScreen.Pause => _pausePath,
-        _ => [],
-    };
-
     // Open menus take every press; during a match only Start, which pauses it. A pad's Start closes the pause menu
     // again even during the grace time: it was opened on purpose, not mashed into. (Escape is also back, so it goes
     // through the menu like any back.)
     private bool OnPress(MenuPress press)
     {
+        if (_flow!.Step == FlowStep.Title && !_stack.IsEmpty)
+        {
+            // Any button, back included, with the device that pressed it (the navigator would make back a Back()).
+            if (_grace.HasPassed(Now()))
+            {
+                _stack.Top!.Press(press);
+            }
+
+            return true;
+        }
+
         bool isStartOnly = press.Actions == MenuAction.Start;
         if (_isPaused && isStartOnly)
         {
@@ -140,7 +147,7 @@ public partial class GameMenus : Node
             return true;
         }
 
-        if (!press.Has(MenuAction.Start) || _match is null || _match.IsOver)
+        if (!press.Has(MenuAction.Start) || _flow.Step != FlowStep.Match || _match is null || _match.IsOver)
         {
             return false;
         }

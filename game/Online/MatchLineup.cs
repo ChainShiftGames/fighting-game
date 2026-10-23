@@ -15,12 +15,12 @@ namespace FightingGame.Online;
 /// </summary>
 public sealed class MatchLineup
 {
-    // Until there is a colour select, every character plays in its first colour.
-    private const byte DefaultColour = 0;
+    private readonly byte[] _colours;
 
-    private MatchLineup(CharacterData[] characters, MatchSimulation simulation, LogicScreen screen)
+    private MatchLineup(CharacterData[] characters, byte[] colours, MatchSimulation simulation, LogicScreen screen)
     {
         Characters = characters;
+        _colours = colours;
         Simulation = simulation;
         Screen = screen;
     }
@@ -36,21 +36,33 @@ public sealed class MatchLineup
     /// <summary>One line naming both characters, e.g. "testman vs testman".</summary>
     public string Description => $"{Characters[0].Id} vs {Characters[1].Id}";
 
-    /// <summary>P1 plays the first character (by id) and P2 the second, or a mirror with only one; until character select.</summary>
-    public static MatchLineup From(GameData data)
+    /// <summary>The default lineup: P1 plays the first character (by id) and P2 the second, or a mirror with only one.</summary>
+    public static MatchLineup From(GameData data) => From(data, FighterPick.Default, FighterPick.Default);
+
+    /// <summary>The characters the menus picked; a player without a pick plays the default lineup's character.</summary>
+    public static MatchLineup From(GameData data, FighterPick player1, FighterPick player2)
     {
-        CharacterData player1 = data.Characters[0];
-        CharacterData player2 = data.Characters[data.Characters.Count > 1 ? 1 : 0];
+        CharacterData default1 = data.Characters[0];
+        CharacterData default2 = data.Characters[data.Characters.Count > 1 ? 1 : 0];
 
         // Includes the module lineup from data/rules/modules.json (P3-01).
         MatchRules rules = data.CreateMatchRules();
-        return Compose(data, player1, player2, in rules);
+        return Compose(
+            data,
+            player1.CharacterId is { } id1 ? data.Character(id1) : default1,
+            player2.CharacterId is { } id2 ? data.Character(id2) : default2,
+            [player1.Colour, player2.Colour],
+            in rules);
     }
 
     /// <summary>The match a replay recorded: its characters, under the match rules it was played by (ADR-0018 §3).</summary>
     /// <remarks>Only for a replay <see cref="ReplayFolder.Load"/> accepted, so this build's data is the recording's.</remarks>
     public static MatchLineup FromReplay(GameData data, ReplayHeader header) => Compose(
-        data, data.Character(header.Player1.CharacterId), data.Character(header.Player2.CharacterId), in header.Rules);
+        data,
+        data.Character(header.Player1.CharacterId),
+        data.Character(header.Player2.CharacterId),
+        [header.Player1.Colour, header.Player2.Colour],
+        in header.Rules);
 
     /// <summary>The replay header for this match, recorded by this build with <paramref name="data"/>.</summary>
     /// <remarks>It holds the exact rules <see cref="Simulation"/> was built with, so playback runs the same match.</remarks>
@@ -61,8 +73,8 @@ public sealed class MatchLineup
             GameVersion.Current,
             data.Hash.ToBytes(),
             in rules,
-            new ReplayPlayer(Characters[0].Id, DefaultColour),
-            new ReplayPlayer(Characters[1].Id, DefaultColour));
+            new ReplayPlayer(Characters[0].Id, _colours[0]),
+            new ReplayPlayer(Characters[1].Id, _colours[1]));
     }
 
     /// <summary>The game logic for a match driver, recording both players' inputs of every frame into <paramref name="recorder"/>.</summary>
@@ -73,10 +85,11 @@ public sealed class MatchLineup
     public IMatchSimulation<MatchState> RecordedSimulation(ReplayRecorder recorder) =>
         new RecordingMatchSimulation(new ComposedMatchSimulation(Simulation), recorder);
 
-    private static MatchLineup Compose(GameData data, CharacterData player1, CharacterData player2, in MatchRules rules)
+    private static MatchLineup Compose(
+        GameData data, CharacterData player1, CharacterData player2, byte[] colours, in MatchRules rules)
     {
         var simulation = new MatchSimulation(
             player1, player2, data.Buttons, data.Motions.Motions, data.Motions.Movement, in rules, data.Flags.Names);
-        return new MatchLineup([player1, player2], simulation, LogicScreen.From(in rules));
+        return new MatchLineup([player1, player2], colours, simulation, LogicScreen.From(in rules));
     }
 }

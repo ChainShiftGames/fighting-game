@@ -20,8 +20,13 @@ public sealed class MenuStack
     /// <summary>The top screen's cursor; null while the stack is empty.</summary>
     public MenuFocus? TopFocus => IsEmpty ? null : _entries[^1].Focus;
 
-    /// <summary>Opens a screen on top, its cursor on its first item.</summary>
-    public void Push(IMenuScreen screen) => _entries.Add((screen, new MenuFocus()));
+    /// <summary>Opens a screen on top, its cursor on the screen's <see cref="IMenuScreen.FirstFocus"/>.</summary>
+    public void Push(IMenuScreen screen)
+    {
+        var focus = new MenuFocus();
+        focus.Set(screen.Items, screen.FirstFocus);
+        _entries.Add((screen, focus));
+    }
 
     /// <summary>Closes the top screen, showing the one under it as it was left.</summary>
     public void Pop()

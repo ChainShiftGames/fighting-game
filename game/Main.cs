@@ -364,10 +364,11 @@ public partial class Main : Node2D
             _trainingMenu);
     }
 
-    private StartedMatch? CreateVersusMatch() => TryCreateMatch("local", () => _localStartup!.Create(_data!.Load()));
+    private StartedMatch? CreateVersusMatch(MatchSetup setup) =>
+        TryCreateMatch("local", () => _localStartup!.Create(_data!.Load(), setup));
 
-    private StartedMatch? CreateTrainingMatch() =>
-        TryCreateMatch("training", () => _trainingStartup!.Create(_data!.Load()));
+    private StartedMatch? CreateTrainingMatch(MatchSetup setup) =>
+        TryCreateMatch("training", () => _trainingStartup!.Create(_data!.Load(), setup));
 
     private StartedMatch? CreateOnlineMatch(OnlineOpponent opponent)
     {

@@ -13,6 +13,9 @@ public interface IMenuScreen
 
     IReadOnlyList<MenuItem> Items { get; }
 
+    /// <summary>The item the cursor starts on when the screen opens (e.g. the last mode played).</summary>
+    int FirstFocus => 0;
+
     /// <summary>Shown over a match that stays visible behind it (pause, results), not as a full screen.</summary>
     bool IsOverMatch { get; }
 

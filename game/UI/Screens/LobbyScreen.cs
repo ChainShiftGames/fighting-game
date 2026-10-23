@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FightingGame.Online;
+using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using Platform.Steam.Lobbies;
 
@@ -15,6 +16,7 @@ public sealed class LobbyScreen : IMenuScreen
     // Developer setting: how often the friend list is re-read from the platform.
     private const double FriendRefreshSeconds = 2.0;
 
+    private readonly GameFlow _flow;
     private readonly MatchLauncher _launcher;
     private readonly LobbyFlow _lobby;
     private readonly Func<string> _note;
@@ -25,8 +27,9 @@ public sealed class LobbyScreen : IMenuScreen
 
     /// <param name="note">What the match underneath (or a failed start) has to say; may be empty.</param>
     /// <param name="log">Writes a line to the game's log (stage changes).</param>
-    public LobbyScreen(MatchLauncher launcher, LobbyFlow lobby, Func<string> note, Action<string> log)
+    public LobbyScreen(GameFlow flow, MatchLauncher launcher, LobbyFlow lobby, Func<string> note, Action<string> log)
     {
+        _flow = flow;
         _launcher = launcher;
         _lobby = lobby;
         _note = note;
@@ -55,14 +58,14 @@ public sealed class LobbyScreen : IMenuScreen
     public bool IsOverMatch { get; set; }
 
     // Out of the lobby to the Online menu, from there to the main menu. Nothing once both players are ready (the
-    // match is starting) or after a match (the menu's own buttons say where to go). The launcher's state then picks
-    // the screen, so the stack never pops this one itself.
+    // match is starting) or after a match (the menu's own buttons say where to go). The flow then picks the screen,
+    // so the stack never pops this one itself.
     public bool Back()
     {
         switch (_lobby.Stage)
         {
             case LobbyStage.Idle:
-                _launcher.ReturnToMainMenu();
+                _flow.Back();
                 break;
             case LobbyStage.Entering or LobbyStage.InLobby:
                 _lobby.Leave();
@@ -124,7 +127,7 @@ public sealed class LobbyScreen : IMenuScreen
                 _lobby.Leave();
                 break;
             case LobbyChoice.MainMenu:
-                _launcher.ReturnToMainMenu();
+                _flow.ToMainMenu();
                 break;
         }
     }

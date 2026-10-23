@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FightingGame.Online;
+using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 
 namespace FightingGame.UI.Screens;
@@ -11,14 +12,16 @@ namespace FightingGame.UI.Screens;
 /// </summary>
 public sealed class PauseScreen : IMenuScreen
 {
+    private readonly GameFlow _flow;
     private readonly MatchLauncher _launcher;
     private readonly Action _resume;
     private readonly Func<string> _note;
 
     /// <param name="resume">Closes the pause menu, back to the match.</param>
     /// <param name="note">What the match has to say, e.g. a connection warning; may be empty.</param>
-    public PauseScreen(MatchLauncher launcher, Action resume, Func<string> note)
+    public PauseScreen(GameFlow flow, MatchLauncher launcher, Action resume, Func<string> note)
     {
+        _flow = flow;
         _launcher = launcher;
         _resume = resume;
         _note = note;
@@ -32,7 +35,7 @@ public sealed class PauseScreen : IMenuScreen
     [
         new ButtonItem(MenuText.Key("MENU_RESUME"), _resume),
         new ButtonItem(
-            MenuText.Key(_launcher.IsLocal ? "MENU_MAIN_MENU" : "MENU_LEAVE_MATCH"), _launcher.ReturnToMainMenu),
+            MenuText.Key(_launcher.IsLocal ? "MENU_MAIN_MENU" : "MENU_LEAVE_MATCH"), _flow.LeaveMatch),
     ];
 
     public bool IsOverMatch => true;
