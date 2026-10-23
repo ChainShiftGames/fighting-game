@@ -168,7 +168,7 @@ public partial class Main : Node2D
         CreateStartups(args);
         _launcher = new MatchLauncher(
             CreateVersusMatch, CreateTrainingMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
-        _menus.Bind(_launcher, _stepping!);
+        _menus.Bind(_launcher, _stepping!, _devices.Joypads, new GodotDeviceState());
 
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }

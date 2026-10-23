@@ -27,6 +27,10 @@ project/solution_directory=".."
 
 enabled=PackedStringArray("res://addons/character_editor/plugin.cfg", "res://addons/control_panel/plugin.cfg", "res://addons/godot_ai/plugin.cfg")
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://Assets/UI/menu_text.en.translation")
+
 [shader_globals]
 
 stage_light_tint={

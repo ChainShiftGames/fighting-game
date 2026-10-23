@@ -1,48 +1,73 @@
-using System;
 using System.Collections.Generic;
+using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
+using FightingGame.UI.Framework;
+using FightingGame.UI.Screens;
 using Godot;
-using Platform.Steam.Lobbies;
 
 namespace FightingGame.UI;
 
 /// <summary>
-/// The placeholder menus (<see cref="MenuScreen"/>): main menu, online lobby, match over and pause. Shows the one that
-/// fits what the game is doing and turns its buttons into calls on the <see cref="MatchLauncher"/>.
+/// The menus around matches: keeps the <see cref="MenuStack"/> on the screen that fits what the game is doing
+/// (<see cref="MenuScreenChoice"/>), passes menu presses to it and draws it (<see cref="MenuView"/>).
 /// </summary>
 /// <remarks>
-/// Escape or a joypad's Start opens the pause menu during a match; B or Escape goes back a menu where there is one. On this PC it holds the match; online it can't
-/// (the other player's game keeps running), so there it only offers to leave.
+/// Escape or a joypad's Start opens the pause menu during a match; B or Escape goes back a menu where there is one. On
+/// this PC it holds the match; online it can't (the other player's game keeps running), so there it only offers to
+/// leave.
 /// </remarks>
 public partial class GameMenus : Node
 {
-    // Developer setting: how often the friend list is re-read from the platform.
-    private const double FriendRefreshSeconds = 2.0;
-
-    // Placeholder menu keys (developer settings until the menus, which will follow the player's bindings).
-    private const Key PauseKey = Key.Escape;
-    private const JoyButton PauseButton = JoyButton.Start;
-
-    private readonly MenuPanel _panel = new();
+    private readonly MenuStack _stack = new();
+    private readonly MenuInput _input = new();
+    private readonly MenuView _view = new();
+    private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
+    private MenuNavigator? _navigator;
     private MatchLauncher? _launcher;
     private FrameStepping? _stepping;
+    private LobbyScreen? _lobby;
+    private IMenuScreen[] _mainMenuPath = [];
+    private IMenuScreen[] _lobbyPath = [];
+    private IMenuScreen[] _onlineMatchOverPath = [];
+    private IMenuScreen[] _matchOverPath = [];
+    private IMenuScreen[] _pausePath = [];
     private StartedMatch? _match;
+    private string _note = string.Empty;
     private bool _isPaused;
-    private double _untilFriendRefresh;
-    private string _lastAction = string.Empty;
-    private LobbyStage _shownStage = LobbyStage.Idle;
 
     /// <summary>Whether a menu is on screen, so the host puts its match messages in it instead of over it.</summary>
-    public bool IsOpen => _panel.Visible;
+    public bool IsOpen => !_stack.IsEmpty;
 
-    public override void _Ready() => AddChild(_panel);
+    public override void _Ready()
+    {
+        AddChild(_input);
+        AddChild(_view);
+    }
 
     /// <param name="stepping">Held while the pause menu is open over a match on this PC.</param>
-    public void Bind(MatchLauncher launcher, FrameStepping stepping)
+    /// <param name="joypads">The joypads menus read (the roster's no-double-input rule).</param>
+    public void Bind(MatchLauncher launcher, FrameStepping stepping, JoypadRoster joypads, IDeviceState devices)
     {
         _launcher = launcher;
         _stepping = stepping;
+        _navigator = new MenuNavigator(_stack, _grace);
+        _input.Bind(new MenuActionReader(MenuBindings.Default, MenuTiming.Default), devices, joypads, OnPress);
+        var transition = new MenuTransition(MenuTiming.Default.TransitionMilliseconds);
+        _view.Bind(new MenuTextFormatter(new GodotMenuTranslator()), transition);
+        _view.Pointed += index => _navigator.Point(index);
+        _view.Clicked += index => _navigator.Click(index, Now());
+
+        var mainMenu = new MainMenuScreen(launcher, () => GetTree().Quit(), () => _note);
+        _mainMenuPath = [mainMenu];
+        _matchOverPath = [new MatchOverScreen(launcher, () => _note)];
+        _pausePath = [new PauseScreen(launcher, () => _isPaused = false, () => _note)];
+        if (launcher.Matchmaking is { } matchmaking)
+        {
+            _lobby = new LobbyScreen(launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
+            _lobbyPath = [mainMenu, _lobby];
+            _onlineMatchOverPath = [_lobby];
+        }
     }
 
     /// <summary>Shows the menu that fits now, or none; call once per displayed frame.</summary>
@@ -56,162 +81,71 @@ public partial class GameMenus : Node
         }
 
         _match = match;
+        _note = note;
         if (match is null || match.IsOver)
         {
             _isPaused = false;
         }
 
         MenuScreen screen = MenuScreenChoice.For(match is not null, match?.IsOver ?? false, _launcher.Mode, _isPaused);
+
         // A and B are also attack buttons: after the pause menu closes, the match waits until they are let go, so the
         // press that resumed it doesn't attack.
-        bool isHeldAfterMenu = _stepping!.IsHeld && screen == MenuScreen.None && MenuPanel.IsMenuButtonHeld();
+        bool isHeldAfterMenu = _stepping!.IsHeld && screen == MenuScreen.None &&
+            _input.IsHeld(MenuAction.Confirm | MenuAction.Back);
         _stepping.IsHeld = _launcher.IsLocal && (screen == MenuScreen.Pause || isHeldAfterMenu);
-        LobbyFlow? lobby = _launcher.Matchmaking?.Lobby;
-        FollowLobby(lobby, screen, delta);
-        switch (screen)
+        _lobby?.Follow(screen == MenuScreen.Lobby, delta);
+        if (_lobby is not null)
         {
-            case MenuScreen.MainMenu:
-                _panel.Show("FIGHTING GAME", note, MainMenuEntries(), overMatch: false);
-                break;
-            case MenuScreen.Lobby:
-                _panel.Show(
-                    "ONLINE", LobbyMenuText.Describe(lobby!, _lastAction, note), LobbyEntries(lobby!), overMatch: false,
-                    LobbyBack(lobby!));
-                break;
-            case MenuScreen.MatchOver when _launcher.Mode == LaunchMode.Online:
-                _panel.Show("MATCH OVER", LobbyMenuText.Describe(lobby!, _lastAction, note), LobbyEntries(lobby!), overMatch: true);
-                break;
-            case MenuScreen.MatchOver:
-                _panel.Show("MATCH OVER", note, MatchOverEntries(), overMatch: true);
-                break;
-            case MenuScreen.Pause:
-                _panel.Show(_launcher.IsLocal ? "PAUSED" : "MENU", note, PauseEntries(), overMatch: true, () => _isPaused = false);
-                break;
-            default:
-                _panel.Close();
-                break;
-        }
-    }
-
-    public override void _UnhandledInput(InputEvent inputEvent)
-    {
-        bool pausePressed = inputEvent switch
-        {
-            InputEventKey { Pressed: true, Echo: false } key => key.PhysicalKeycode == PauseKey,
-            InputEventJoypadButton { Pressed: true } button => button.ButtonIndex == PauseButton,
-            _ => false,
-        };
-        if (!pausePressed || _match is null || _match.IsOver)
-        {
-            return;
+            _lobby.IsOverMatch = screen == MenuScreen.MatchOver;
         }
 
-        _isPaused = !_isPaused;
-        GetViewport().SetInputAsHandled();
-    }
-
-    private List<MenuEntry> MainMenuEntries()
-    {
-        bool hasOnline = _launcher!.Matchmaking is not null;
-        return
-        [
-            new("Versus (2 players)", _launcher.StartVersus),
-            new("Training", _launcher.StartTraining),
-            new(hasOnline ? "Online" : $"Online (needs Steam: {_launcher.PlatformName})", () => _launcher.OpenOnline(), hasOnline),
-            new("Quit", () => GetTree().Quit()),
-        ];
-    }
-
-    private List<MenuEntry> MatchOverEntries()
-    {
-        var entries = new List<MenuEntry>();
-        if (_launcher!.CanRematch)
+        long now = Now();
+        bool wasOpen = IsOpen;
+        _stack.Show(PathTo(screen));
+        if (!wasOpen && IsOpen)
         {
-            entries.Add(new(_launcher.Mode == LaunchMode.Replay ? "Watch again" : "Rematch", _launcher.Rematch));
+            _grace.Restart(now);
         }
 
-        entries.Add(new("Main menu", _launcher.ReturnToMainMenu));
-        return entries;
+        _view.Show(_stack.Top, _stack.TopFocus, now);
     }
 
-    private List<MenuEntry> PauseEntries() =>
-    [
-        new("Resume", () => _isPaused = false),
-        new(_launcher!.IsLocal ? "Main menu" : "Leave the match", _launcher.ReturnToMainMenu),
-    ];
+    private static long Now() => (long)Time.GetTicksMsec();
 
-    // Back from the lobby menu: out of the lobby to the Online menu, from there to the main menu. Nothing once both
-    // players are ready (the match is starting) or after a match (the menu's own buttons say where to go).
-    private Action? LobbyBack(LobbyFlow lobby) => lobby.Stage switch
+    private IReadOnlyList<IMenuScreen> PathTo(MenuScreen screen) => screen switch
     {
-        LobbyStage.Idle => _launcher!.ReturnToMainMenu,
-        LobbyStage.Entering or LobbyStage.InLobby => lobby.Leave,
-        _ => null,
+        MenuScreen.MainMenu => _mainMenuPath,
+        MenuScreen.Lobby => _lobbyPath,
+        MenuScreen.MatchOver when _launcher!.Mode == LaunchMode.Online => _onlineMatchOverPath,
+        MenuScreen.MatchOver => _matchOverPath,
+        MenuScreen.Pause => _pausePath,
+        _ => [],
     };
 
-    private List<MenuEntry> LobbyEntries(LobbyFlow lobby)
+    // Open menus take every press; during a match only Start, which pauses it. A pad's Start closes the pause menu
+    // again even during the grace time: it was opened on purpose, not mashed into. (Escape is also back, so it goes
+    // through the menu like any back.)
+    private bool OnPress(MenuPress press)
     {
-        var entries = new List<MenuEntry>();
-        foreach (LobbyMenuItem item in LobbyMenuItems.For(lobby))
+        bool isStartOnly = press.Actions == MenuAction.Start;
+        if (_isPaused && isStartOnly)
         {
-            entries.Add(new MenuEntry(item.Label, () => Choose(lobby, item), item.Enabled));
+            _isPaused = false;
+            return true;
         }
 
-        return entries;
-    }
-
-    private void Choose(LobbyFlow lobby, LobbyMenuItem item)
-    {
-        switch (item.Choice)
+        if (_navigator!.Handle(press, Now()))
         {
-            case LobbyChoice.Host:
-                lobby.Host();
-                break;
-            case LobbyChoice.JoinFriend:
-                lobby.JoinFriend(item.FriendIndex);
-                break;
-            case LobbyChoice.InviteThroughOverlay:
-                _lastAction = lobby.OpenInviteOverlay()
-                    ? "Steam overlay open: pick a friend to invite."
-                    : "No Steam overlay (start the game from Steam to get it): invite from the list instead.";
-                break;
-            case LobbyChoice.InviteFriend:
-                string name = lobby.InvitableFriends[item.FriendIndex].Name;
-                _lastAction = lobby.Invite(item.FriendIndex) ? $"Invite sent to {name}." : $"Couldn't invite {name}.";
-                break;
-            case LobbyChoice.Ready:
-                _launcher!.Rematch();
-                break;
-            case LobbyChoice.Leave:
-                lobby.Leave();
-                break;
-            case LobbyChoice.MainMenu:
-                _launcher!.ReturnToMainMenu();
-                break;
-        }
-    }
-
-    // The friend list is re-read while it is shown (to join from, or invite); notes are for the stage they were made in.
-    private void FollowLobby(LobbyFlow? lobby, MenuScreen screen, double delta)
-    {
-        if (lobby is null)
-        {
-            return;
+            return true;
         }
 
-        if (lobby.Stage != _shownStage)
+        if (!press.Has(MenuAction.Start) || _match is null || _match.IsOver)
         {
-            GD.Print($"Lobby: {_shownStage} → {lobby.Stage}.");
-            _shownStage = lobby.Stage;
-            _lastAction = string.Empty;
+            return false;
         }
 
-        _untilFriendRefresh -= delta;
-        bool listsFriends = lobby.Stage == LobbyStage.Idle || (lobby.Stage == LobbyStage.InLobby && !lobby.HasOpponent);
-        if (screen == MenuScreen.Lobby && listsFriends && _untilFriendRefresh <= 0)
-        {
-            _untilFriendRefresh = FriendRefreshSeconds;
-            lobby.RefreshFriends();
-        }
+        _isPaused = true;
+        return true;
     }
 }

@@ -39,5 +39,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0036](0036-golden-replays-and-testman-scenarios-on-hold.md) | *Proposed*: golden replays and testman scenarios skipped while testman's tuning changes often; fixture-character scenarios still run |
 | [0037](0037-lingering-projectiles.md) | *Proposed*: projectile data `rehitInterval` (default 0 = gone on first hit): above 0 it stays out after landing and lands again after that many frames (floor fires, traps); entity `RehitCooldown` |
 | [0038](0038-device-roster-and-assignment.md) | *Proposed*: input device roster (two keyboard halves + joypads, GUID+ordinal ids), per-player device assignment read each frame, default = old slot order and claims new pads; a lost pad holds local matches until replugged or Start on a free pad, online keeps reading |
+| [0039](0039-menu-framework.md) | *Proposed*: menu framework: plain C# `MenuStack` of `IMenuScreen`s with focus memory, `MenuAction` flags tagged with the device, held-direction repeat and input grace (`MenuTiming`), item widgets, shared theme (Marcellus + M PLUS 1p fallback), CSV translation keys via `MenuText` |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.
