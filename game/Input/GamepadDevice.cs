@@ -3,33 +3,22 @@ using Sim.Input;
 
 namespace FightingGame.Input;
 
-/// <summary>
-/// Reads the joypad in one <see cref="JoypadRoster"/> slot into a raw input word. Reads neutral while no joypad
-/// fills that slot.
-/// </summary>
-public sealed class GamepadDevice : IInputDevice
+/// <summary>Reads a joypad into a raw input word through one player's joypad bindings.</summary>
+public sealed class GamepadDevice
 {
     private readonly GamepadBindings _bindings;
     private readonly IDeviceState _devices;
-    private readonly JoypadRoster _roster;
-    private readonly int _slot;
 
-    public GamepadDevice(GamepadBindings bindings, IDeviceState devices, JoypadRoster roster, int slot)
+    public GamepadDevice(GamepadBindings bindings, IDeviceState devices)
     {
         _bindings = bindings;
         _devices = devices;
-        _roster = roster;
-        _slot = slot;
     }
 
     // Raw directions only: a d-pad or leverless holding left+right sends both bits; the logic resolves SOCD.
-    public InputWord Read()
+    /// <param name="device">Godot's joypad index.</param>
+    public InputWord Read(int device)
     {
-        if (!_roster.TryGetDevice(_slot, out int device))
-        {
-            return InputWord.Neutral;
-        }
-
         ushort bits = 0;
         foreach (PadButtonBinding binding in _bindings.Buttons)
         {

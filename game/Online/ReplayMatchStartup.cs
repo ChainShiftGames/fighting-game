@@ -16,10 +16,7 @@ namespace FightingGame.Online;
 /// <summary>Plays a replay file back: the match it recorded, rebuilt from its header, run on its inputs (ADR-0018).</summary>
 public sealed class ReplayMatchStartup
 {
-    // Nobody holds a controller while watching, so nothing rumbles.
-    private static readonly int[] _noRumble = [JoypadRumbleMotor.NoSlot, JoypadRumbleMotor.NoSlot];
-
-    private readonly JoypadRoster _joypads;
+    private readonly DeviceRoster _roster;
     private readonly MatchLoopFactory _loops;
     private readonly FrameStepping _stepping;
     private readonly DeveloperToggle _hitboxOverlay;
@@ -29,13 +26,13 @@ public sealed class ReplayMatchStartup
     /// <param name="hitboxOverlay">Draws every box on top of the fighters (developer setting).</param>
     /// <param name="effectToggles">Switches each kind of event effect (developer settings).</param>
     public ReplayMatchStartup(
-        JoypadRoster joypads,
+        DeviceRoster roster,
         MatchLoopFactory loops,
         FrameStepping stepping,
         DeveloperToggle hitboxOverlay,
         EffectToggles effectToggles)
     {
-        _joypads = joypads;
+        _roster = roster;
         _loops = loops;
         _stepping = stepping;
         _hitboxOverlay = hitboxOverlay;
@@ -49,8 +46,8 @@ public sealed class ReplayMatchStartup
     {
         Replay replay = ReplayFolder.Load(ProjectSettings.GlobalizePath(path), data);
         MatchLineup lineup = MatchLineup.FromReplay(data, replay.Header);
-        var effects = new MatchEffects(
-            _effectToggles, new JoypadRumbleMotor(_joypads, _noRumble), EffectSettingsChoice.Load());
+        // Nobody holds a controller while watching, so nothing rumbles.
+        var effects = new MatchEffects(_effectToggles, JoypadRumbleMotor.None(_roster), EffectSettingsChoice.Load());
         var driver = new ReplayMatchDriver<MatchState>(
             effects.Observe(new ComposedMatchSimulation(lineup.Simulation)), replay.Inputs);
         var view = new MatchView();

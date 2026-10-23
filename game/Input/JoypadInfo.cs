@@ -6,4 +6,6 @@ namespace FightingGame.Input;
 /// <param name="IgnoredBySteam">
 /// A physical controller Steam Input already re-presents as a virtual pad (it is on SDL's ignore list).
 /// </param>
-public readonly record struct JoypadInfo(int Device, string Name, bool IsSteamInput, bool IgnoredBySteam);
+/// <param name="Guid">Godot's GUID for the model: the same for two pads of one model.</param>
+public readonly record struct JoypadInfo(
+    int Device, string Name, bool IsSteamInput, bool IgnoredBySteam, string Guid = "");

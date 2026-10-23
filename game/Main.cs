@@ -51,7 +51,7 @@ public partial class Main : Node2D
     private const string DeveloperKeys =
         "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
         "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | Esc pause menu | --replay <file> plays one | " +
-        "--training starts training (Tab menu)";
+        "--training starts training (Tab menu) | " + DeviceAssignmentArgs.Usage;
 
     // Player setting: a shortcut for the options menu's vsync entry.
     private const Key ToggleVsyncKey = Key.F2;
@@ -62,7 +62,7 @@ public partial class Main : Node2D
     private readonly PlayerSettingsStore _settingsStore = new(PlayerSettingsPath);
     private readonly InputLatencyCounter _latency = new(LatencyWindowFrames, Stopwatch.Frequency);
     private readonly RateMeter _logicRate = new(Stopwatch.Frequency);
-    private readonly JoypadRoster _joypads = new();
+    private readonly DeviceRoster _devices = new();
 
     // Developer settings, listed in the debug panel.
     private readonly DeveloperToggle _hitboxOverlay = new("Hitbox overlay", Key.F4);
@@ -79,6 +79,7 @@ public partial class Main : Node2D
     private readonly LiveNetworkSimulation _networkSimulation = new();
 
     private JoypadWatcher? _joypadWatcher;
+    private ControllerNotices? _controllerNotices;
     private InputReadout? _inputReadout;
     private PlayerSettings _settings = new();
     private GameDataLocation? _data;
@@ -257,6 +258,7 @@ public partial class Main : Node2D
         EndMatch();
         _launcher?.Dispose();
         _joypadWatcher?.Dispose();
+        _controllerNotices?.Dispose();
         _platform?.Dispose();
     }
 
@@ -327,31 +329,33 @@ public partial class Main : Node2D
 
     private void CreateStartups(string[] args)
     {
-        _joypadWatcher = new JoypadWatcher(_joypads);
+        _joypadWatcher = new JoypadWatcher(_devices);
+        var toasts = new ToastNotice();
+        AddChild(toasts);
+        _controllerNotices = new ControllerNotices(_devices, toasts.Show);
         ButtonSet? buttons = ButtonSetFile.Load();
-        _inputReadout = new InputReadout(buttons, _joypads);
+        _inputReadout = new InputReadout(buttons, _devices.Joypads);
         PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
-        var devices = new GodotDeviceState();
+        var choice = new PlayerDevicesChoice(_devices, args);
+        var reader = new InputDeviceReader(bindings, new GodotDeviceState(), _devices);
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
-        _localStartup = new LocalMatchStartup(bindings, devices, _joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
+        _localStartup = new LocalMatchStartup(choice, reader, loops, _stepping!, _hitboxOverlay, _effectToggles);
         _onlineStartup = new OnlineMatchStartup(
-            bindings,
-            devices,
-            _joypads,
+            choice,
+            reader,
             loops,
             _hitboxOverlay,
             _effectToggles,
             _networkSimulation,
             ProjectSettings.GlobalizePath(DesyncsPath),
             args);
-        _replayStartup = new ReplayMatchStartup(_joypads, loops, _stepping!, _hitboxOverlay, _effectToggles);
+        _replayStartup = new ReplayMatchStartup(_devices, loops, _stepping!, _hitboxOverlay, _effectToggles);
         var trainingStore = new TrainingSettingsStore(TrainingSettingsPath);
         _trainingMenu = new TrainingMenu();
         AddChild(_trainingMenu);
         _trainingStartup = new TrainingMatchStartup(
-            bindings[0],
-            devices,
-            _joypads,
+            choice,
+            reader,
             loops,
             _stepping!,
             _hitboxOverlay,
