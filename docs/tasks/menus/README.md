@@ -39,7 +39,8 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
 ## Where things are today
 
 - Menus: `game/UI/`, built on the menu framework ([ADR-0039](../../adr/0039-menu-framework.md)): `Framework/`
-  (stack, focus, actions, text keys), `Widgets/`, `Screens/`, `Title/`, `MainMenu/`. `Flow/GameFlow.cs` decides the
+  (stack, focus, actions, text keys), `Widgets/`, `Screens/`, `Title/`, `MainMenu/`, `CharacterSelect/`
+  (two-player screen with its own view, [ADR-0041](../../adr/0041-character-select.md)). `Flow/GameFlow.cs` decides the
   next screen and starts matches with a `MatchSetup` through `IMatchStarter` (`MatchLauncher`, `game/Online/`)
   ([ADR-0040](../../adr/0040-game-flow.md)); new screens register in `FlowScreens` (one `Add` line in
   `GameMenus.Bind`). Theme and translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay
@@ -51,8 +52,8 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
   ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Bindings: `default_bindings.jsonc`, copied to
   `user://dev_bindings.jsonc`.
 - Player settings: `game/Settings/` (`PlayerSettings` record, JSON in `user://` via `PlayerSettingsStore`).
-- Who plays what: `MatchSetup` picks, turned into a lineup by `game/Online/MatchLineup.cs` (default: first character
-  for both, colour 0).
+- Who plays what: `MatchSetup` picks, turned into a lineup by `game/Online/MatchLineup.cs`; character select fills the
+  picks, colours and descriptions come from each character's `<id>_select.json`.
 - HUD font: `HudLettering.FontPath` in `game/Presentation/Hud/`.
 - Startup wiring: `game/Main.cs`.
 

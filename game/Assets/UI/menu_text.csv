@@ -60,3 +60,15 @@ LOBBY_OVERLAY_OPEN,Steam overlay open: pick a friend to invite.
 LOBBY_NO_OVERLAY,No Steam overlay (start the game from Steam to get it): invite from the list instead.
 LOBBY_INVITE_SENT,Invite sent to {0}.
 LOBBY_INVITE_FAILED,Couldn't invite {0}.
+MENU_TITLE_CHARACTER_SELECT,CHARACTER SELECT
+MENU_SELECT_PLAYER,P{0}
+MENU_SELECT_RANDOM,Random
+MENU_SELECT_RANDOM_DESCRIPTION,A random character in a random colour
+MENU_SELECT_CHOOSE,Choose a character
+MENU_SELECT_COLOUR,< Colour {0} of {1} >
+MENU_SELECT_READY,Ready
+MENU_SELECT_ALL_READY,Ready to fight!
+MENU_SELECT_DUMMY,Training dummy: plays your character
+MENU_SELECT_NO_CONTROLLER,No controller: plays P1's character
+MENU_SELECT_HINT,Confirm to choose · Left and right for colours · Back to undo
+CHARACTER_TESTMAN_DESCRIPTION,"All-rounder: a fireball, an uppercut and a super for every situation"

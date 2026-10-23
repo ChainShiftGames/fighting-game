@@ -4,7 +4,8 @@ namespace FightingGame.UI.Framework;
 
 /// <summary>
 /// Turns menu presses into what they do on the top screen of a <see cref="MenuStack"/>: back, moving the cursor, the
-/// focused item's own reaction, then the screen's. Nothing happens during the <see cref="MenuGrace"/>.
+/// focused item's own reaction, then the screen's; a screen that <see cref="IMenuScreen.TakesEveryPress"/> gets them
+/// all. Nothing happens during the <see cref="MenuGrace"/>.
 /// </summary>
 public sealed class MenuNavigator
 {
@@ -27,6 +28,12 @@ public sealed class MenuNavigator
 
         if (!_grace.HasPassed(nowMilliseconds))
         {
+            return true;
+        }
+
+        if (screen.TakesEveryPress)
+        {
+            screen.Press(press);
             return true;
         }
 

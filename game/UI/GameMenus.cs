@@ -1,13 +1,16 @@
+using System;
 using System.Collections.Generic;
 using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
+using FightingGame.UI.CharacterSelect;
 using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using FightingGame.UI.MainMenu;
 using FightingGame.UI.Screens;
 using FightingGame.UI.Title;
 using Godot;
+using Sim.Data;
 
 namespace FightingGame.UI;
 
@@ -25,6 +28,7 @@ public partial class GameMenus : Node
     private readonly MenuStack _stack = new();
     private readonly MenuInput _input = new();
     private readonly MenuView _view = new();
+    private readonly CharacterSelectView _characterSelectView = new();
     private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
     private readonly FlowScreens _screens = new();
     private MenuNavigator? _navigator;
@@ -32,6 +36,7 @@ public partial class GameMenus : Node
     private MatchLauncher? _launcher;
     private FrameStepping? _stepping;
     private LobbyScreen? _lobby;
+    private CharacterSelectScreen? _characterSelect;
     private IMenuScreen[] _pausePath = [];
     private StartedMatch? _match;
     private string _note = string.Empty;
@@ -44,18 +49,29 @@ public partial class GameMenus : Node
     {
         AddChild(_input);
         AddChild(_view);
+        AddChild(_characterSelectView);
     }
 
     /// <param name="stepping">Held while the pause menu is open over a match on this PC.</param>
     /// <param name="joypads">The joypads menus read (the roster's no-double-input rule).</param>
-    public void Bind(MatchLauncher launcher, FrameStepping stepping, JoypadRoster joypads, IDeviceState devices)
+    /// <param name="players">Whose devices are whose, so character select moves each player's own cursor.</param>
+    /// <param name="loadData">The game data, for the characters to pick from.</param>
+    public void Bind(
+        MatchLauncher launcher,
+        FrameStepping stepping,
+        JoypadRoster joypads,
+        IDeviceState devices,
+        PlayerDevicesChoice players,
+        Func<GameData> loadData)
     {
         _launcher = launcher;
         _stepping = stepping;
         _navigator = new MenuNavigator(_stack, _grace);
         _input.Bind(new MenuActionReader(MenuBindings.Default, MenuTiming.Default), devices, joypads, OnPress);
         var transition = new MenuTransition(MenuTiming.Default.TransitionMilliseconds);
-        _view.Bind(new MenuTextFormatter(new GodotMenuTranslator()), transition);
+        var text = new MenuTextFormatter(new GodotMenuTranslator());
+        _view.Bind(text, transition);
+        _characterSelectView.Bind(text, transition);
         _view.Pointed += index => _navigator.Point(index);
         _view.Clicked += index => _navigator.Click(index, Now());
 
@@ -64,6 +80,8 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.MainMenu, new MainMenuScreen(flow, launcher.PlatformName, () => _note));
         _screens.Add(FlowStep.QuitPrompt, new QuitScreen(flow, () => GetTree().Quit()));
         _screens.Add(FlowStep.Results, new MatchOverScreen(flow, launcher, () => _note));
+        _characterSelect = CreateCharacterSelect(flow, players, loadData);
+        _screens.Add(FlowStep.CharacterSelect, _characterSelect);
         if (launcher.Matchmaking is { } matchmaking)
         {
             _lobby = new LobbyScreen(flow, launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
@@ -86,6 +104,7 @@ public partial class GameMenus : Node
         _match = match;
         _note = note;
         _flow.Follow(match is null ? MatchPhase.None : match.IsOver ? MatchPhase.Over : MatchPhase.Playing);
+        _characterSelect!.Follow(_flow.Step == FlowStep.CharacterSelect, Now());
         bool isPlaying = _flow.Step == FlowStep.Match;
         if (!isPlaying)
         {
@@ -114,7 +133,23 @@ public partial class GameMenus : Node
             _grace.Restart(now);
         }
 
-        _view.Show(_stack.Top, _stack.TopFocus, now);
+        // Character select draws itself; every other screen is a list the menu view draws.
+        bool isCharacterSelect = ReferenceEquals(_stack.Top, _characterSelect);
+        _view.Show(isCharacterSelect ? null : _stack.Top, _stack.TopFocus, now);
+        _characterSelectView.Show(isCharacterSelect ? _characterSelect : null, now);
+    }
+
+    private static CharacterSelectScreen CreateCharacterSelect(
+        GameFlow flow, PlayerDevicesChoice players, Func<GameData> loadData)
+    {
+        var selection = new CharacterSelection(CharacterSelectSettings.Default, Random.Shared.Next);
+        return new CharacterSelectScreen(
+            flow,
+            selection,
+            new PickMemory(),
+            mode => new AssignedMenuPlayers(
+                mode == LaunchMode.Training ? players.Training() : players.Versus(), players.Roster),
+            () => SelectableCharacters.From(loadData()));
     }
 
     private static long Now() => (long)Time.GetTicksMsec();
