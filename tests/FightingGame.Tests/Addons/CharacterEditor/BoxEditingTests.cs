@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using FightingGame.Addons.CharacterEditor.Documents;
-using Sim.Data.Sources;
 using Xunit;
 
 namespace FightingGame.Tests.Addons.CharacterEditor;
@@ -10,8 +9,6 @@ namespace FightingGame.Tests.Addons.CharacterEditor;
 public sealed class BoxEditingTests
 {
     private const int Pixel = 1000;
-
-    private readonly DirectoryDataSource _disk = new(TestGameData.DataRoot);
 
     [Fact]
     public void AFrameShowsTheBoxesWhoseRangeCoversIt()
@@ -88,8 +85,7 @@ public sealed class BoxEditingTests
         Assert.Equal(new BoxArea(-5 * Pixel, 0, 5 * Pixel, 3 * Pixel), BoxArea.Between(0, 3 * Pixel, -5 * Pixel, 0, Pixel));
     }
 
-    private JsonObject Read5A() =>
-        JsonNode.Parse(_disk.ReadFile("characters/testman/moves/5a.json"))!.AsObject();
+    private static JsonObject Read5A() => EditorFixtures.Testman5A();
 
     // The frame ranges of the boxes of a kind at one x, in file order.
     private static List<(int, int)> Ranges(JsonObject move, string kind, int x)

@@ -11,21 +11,31 @@ public sealed class FighterPoseTests
 {
     private static readonly CharacterData _character = TestGameData.Testman;
 
+    // The frames around 5a's active phase, read from its data so tuning 5a doesn't break the test (ADR-0036).
     [Theory]
-    [InlineData(4, MovePhase.Startup)]
-    [InlineData(5, MovePhase.Active)]
-    [InlineData(7, MovePhase.Active)]
-    [InlineData(8, MovePhase.Recovery)]
-    public void TakesTheAnimationFrameAndPhaseFromTheMoveFrame(int moveFrame, MovePhase phase)
+    [InlineData(-1, MovePhase.Startup)]
+    [InlineData(0, MovePhase.Active)]
+    [InlineData(1, MovePhase.Active)]
+    [InlineData(2, MovePhase.Recovery)]
+    public void TakesTheAnimationFrameAndPhaseFromTheMoveFrame(int around, MovePhase phase)
     {
+        MoveData move = _character.Moves[_character.MoveIds.IndexOf("5a")];
+        int moveFrame = around switch
+        {
+            < 0 => move.FirstActiveFrame - 1,
+            0 => move.FirstActiveFrame,
+            1 => move.LastActiveFrame,
+            _ => move.LastActiveFrame + 1,
+        };
+
         FighterPose pose = FighterPose.Of(_character, Fighter(FighterAction.Attack, "5a", moveFrame));
 
         Assert.Equal(moveFrame, pose.Frame);
-        Assert.Equal(15, pose.TotalFrames);
+        Assert.Equal(move.TotalFrames, pose.TotalFrames);
         Assert.Equal(phase, pose.Phase);
-        Assert.Equal(5, pose.FirstActiveFrame);
-        Assert.Equal(7, pose.LastActiveFrame);
-        Assert.Equal($"5a {moveFrame}/15", pose.Label);
+        Assert.Equal(move.FirstActiveFrame, pose.FirstActiveFrame);
+        Assert.Equal(move.LastActiveFrame, pose.LastActiveFrame);
+        Assert.Equal($"5a {moveFrame}/{move.TotalFrames}", pose.Label);
     }
 
     [Fact]

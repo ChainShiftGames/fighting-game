@@ -39,7 +39,7 @@ public sealed class TrainingDummyTests
     public void BlockAllDummyStandBlocksAnOverhead()
     {
         var guard = new GuardingDummy(_match.Player1);
-        MatchState state = Attacking("5d");
+        MatchState state = Attacking("j_c");
 
         Assert.Equal(new InputWord(BackOfDummy(in state)), guard.Next(in state));
     }

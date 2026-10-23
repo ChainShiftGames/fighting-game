@@ -57,9 +57,7 @@ public sealed class MoveEditingTests
     public void LongerStartupKeepsBoxesOnTheirPhases()
     {
         // 5a: startup 5, active 3 (5..7), recovery 8 (8..15); hit box 5..7, hurt box 1..15, cancel 5..12.
-        JsonObject move = _disk.ReadFile("characters/testman/moves/5a.json") is var bytes
-            ? JsonNode.Parse(bytes)!.AsObject()
-            : null!;
+        JsonObject move = EditorFixtures.Testman5A();
 
         MoveFrameData.Set(move, FramePhases.Attack(7, 3, 8), moveRanges: true, []);
 
@@ -84,7 +82,7 @@ public sealed class MoveEditingTests
     [Fact]
     public void TheTimelineShowsPhasesBoxesAndCancels()
     {
-        JsonObject move = JsonNode.Parse(_disk.ReadFile("characters/testman/moves/5a.json"))!.AsObject();
+        JsonObject move = EditorFixtures.Testman5A();
 
         MoveTimeline timeline = MoveTimeline.Of(move);
 

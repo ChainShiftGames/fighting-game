@@ -17,10 +17,13 @@ public sealed class FighterBoxesTests
     [Fact]
     public void ShowsOnlyTheBoxesOfTheCurrentMoveFrame()
     {
-        // Testman's 5a: hitbox on frames 5-7.
-        Assert.DoesNotContain(Collect(Attack("5a", frame: 4, facing: 1)), box => box.Kind == BoxKind.Hit);
-        Assert.Contains(Collect(Attack("5a", frame: 5, facing: 1)), box => box.Kind == BoxKind.Hit);
-        Assert.DoesNotContain(Collect(Attack("5a", frame: 8, facing: 1)), box => box.Kind == BoxKind.Hit);
+        // Testman's 5a hits on its active frames; read from its data so tuning 5a doesn't break the test (ADR-0036).
+        MoveData move = _character.Moves[_character.MoveIds.IndexOf("5a")];
+        Assert.DoesNotContain(
+            Collect(Attack("5a", frame: move.FirstActiveFrame - 1, facing: 1)), box => box.Kind == BoxKind.Hit);
+        Assert.Contains(Collect(Attack("5a", frame: move.FirstActiveFrame, facing: 1)), box => box.Kind == BoxKind.Hit);
+        Assert.DoesNotContain(
+            Collect(Attack("5a", frame: move.LastActiveFrame + 1, facing: 1)), box => box.Kind == BoxKind.Hit);
     }
 
     [Fact]

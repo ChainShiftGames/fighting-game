@@ -104,7 +104,10 @@ public sealed class JumpFramingTests
         });
 
         float viewTop = atPeak.Centre.Y + (atPeak.VisibleHeight / 2f);
-        Assert.True(highestHead > 400_000, "a high jump");
+        // Above the jump's apex from Testman's stats (v^2 / 2g): it really jumped, whatever the jump is tuned to.
+        Sim.Characters.CharacterStats stats = _lineup.Characters[0].Stats;
+        int apex = stats.HighJumpVelocity * stats.HighJumpVelocity / (2 * stats.Gravity);
+        Assert.True(highestHead > apex, $"a high jump: head at {highestHead}, apex {apex}");
         Assert.True(WorldScale.ToMetres(highestHead) < viewTop, $"head at {highestHead} is above the 3D view");
     }
 
