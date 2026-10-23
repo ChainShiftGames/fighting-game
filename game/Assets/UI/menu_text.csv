@@ -1,0 +1,46 @@
+keys,en
+MENU_TITLE_MAIN,FIGHTING GAME
+MENU_VERSUS,Versus (2 players)
+MENU_TRAINING,Training
+MENU_ONLINE,Online
+MENU_ONLINE_NEEDS_PLATFORM,Online (needs Steam: {0})
+MENU_QUIT,Quit
+MENU_BACK,Back
+MENU_MAIN_MENU,Main menu
+MENU_TITLE_MATCH_OVER,MATCH OVER
+MENU_REMATCH,Rematch
+MENU_WATCH_AGAIN,Watch again
+MENU_TITLE_PAUSED,PAUSED
+MENU_TITLE_MENU,MENU
+MENU_RESUME,Resume
+MENU_LEAVE_MATCH,Leave the match
+MENU_ON,On
+MENU_OFF,Off
+LOBBY_TITLE,ONLINE
+LOBBY_HOST,Host a lobby
+LOBBY_JOIN_FRIEND,Join {0}'s lobby
+LOBBY_INVITE_OVERLAY,Invite through the Steam overlay
+LOBBY_INVITE_FRIEND,Invite {0}
+LOBBY_READY,Ready
+LOBBY_READY_WAITING,Ready — waiting
+LOBBY_REMATCH_WAITING,Rematch — waiting
+LOBBY_LEAVE,Leave the lobby
+LOBBY_CANCEL,Cancel
+LOBBY_IDLE,"Host a lobby and invite a friend, or join a friend's lobby."
+LOBBY_IDLE_INVITES,A friend's invite accepted in Steam also joins.
+LOBBY_ENTERING,Entering the lobby…
+LOBBY_WAITING,Lobby: waiting for an opponent.
+LOBBY_WAITING_INVITE,"Invite a friend, or they join from their Online menu."
+LOBBY_PLAYERS,Lobby: {0}
+LOBBY_HOST_VS,you (P1) vs {0} (P2)
+LOBBY_GUEST_VS,{0} (P1) vs you (P2)
+LOBBY_STARTING,Both ready: starting the match…
+LOBBY_YOU_ARE,You: {0}
+LOBBY_OPPONENT_IS,{0}: {1}
+LOBBY_STATE_READY,ready
+LOBBY_STATE_REMATCH,wants a rematch
+LOBBY_STATE_NOT_YET,not yet
+LOBBY_OVERLAY_OPEN,Steam overlay open: pick a friend to invite.
+LOBBY_NO_OVERLAY,No Steam overlay (start the game from Steam to get it): invite from the list instead.
+LOBBY_INVITE_SENT,Invite sent to {0}.
+LOBBY_INVITE_FAILED,Couldn't invite {0}.

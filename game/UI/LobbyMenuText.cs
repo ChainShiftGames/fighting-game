@@ -1,4 +1,5 @@
-using System.Text;
+using System.Collections.Generic;
+using FightingGame.UI.Framework;
 using Platform.Steam.Lobbies;
 
 namespace FightingGame.UI;
@@ -8,57 +9,61 @@ public static class LobbyMenuText
 {
     /// <param name="lastAction">The menu's own note on the last button chosen (e.g. an invite sent); may be empty.</param>
     /// <param name="matchNote">What the finished match underneath says (e.g. a desync); may be empty.</param>
-    public static string Describe(LobbyFlow lobby, string lastAction, string matchNote = "")
+    public static List<MenuText> Describe(LobbyFlow lobby, MenuText lastAction, string matchNote = "")
     {
-        var text = new StringBuilder();
+        var lines = new List<MenuText>();
         switch (lobby.Stage)
         {
             case LobbyStage.Idle:
-                text.Append("Host a lobby and invite a friend, or join a friend's lobby.\n");
-                text.Append("A friend's invite accepted in Steam also joins.\n");
+                lines.Add(MenuText.Key("LOBBY_IDLE"));
+                lines.Add(MenuText.Key("LOBBY_IDLE_INVITES"));
                 break;
             case LobbyStage.Entering:
-                text.Append("Entering the lobby…\n");
+                lines.Add(MenuText.Key("LOBBY_ENTERING"));
                 break;
             case LobbyStage.InLobby when !lobby.HasOpponent:
-                text.Append("Lobby: waiting for an opponent.\nInvite a friend, or they join from their Online menu.\n");
+                lines.Add(MenuText.Key("LOBBY_WAITING"));
+                lines.Add(MenuText.Key("LOBBY_WAITING_INVITE"));
                 break;
             case LobbyStage.InLobby:
-                text.Append($"Lobby: {Players(lobby)}\n\n");
-                AppendReadiness(text, lobby, "ready");
+                lines.Add(MenuText.Key("LOBBY_PLAYERS", Players(lobby)));
+                lines.Add(MenuText.Empty);
+                AddReadiness(lines, lobby, "LOBBY_STATE_READY");
                 break;
             case LobbyStage.Starting:
-                text.Append($"{Players(lobby)}\n\nBoth ready: starting the match…\n");
+                lines.Add(Players(lobby));
+                lines.Add(MenuText.Empty);
+                lines.Add(MenuText.Key("LOBBY_STARTING"));
                 break;
             case LobbyStage.InMatch:
-                return string.Empty;
+                return lines;
             case LobbyStage.Rematch:
-                AppendReadiness(text, lobby, "wants a rematch");
+                AddReadiness(lines, lobby, "LOBBY_STATE_REMATCH");
                 break;
         }
 
-        return AppendNotes(text, matchNote, lobby.Notice, lastAction).ToString().TrimEnd('\n');
-    }
-
-    private static void AppendReadiness(StringBuilder text, LobbyFlow lobby, string readyWord)
-    {
-        text.Append($"You: {(lobby.IsLocalReady ? readyWord : "not yet")}\n");
-        text.Append($"{lobby.OpponentName}: {(lobby.IsOpponentReady ? readyWord : "not yet")}\n");
-    }
-
-    private static string Players(LobbyFlow lobby) =>
-        lobby.IsHost ? $"you (P1) vs {lobby.OpponentName} (P2)" : $"{lobby.OpponentName} (P1) vs you (P2)";
-
-    private static StringBuilder AppendNotes(StringBuilder text, params string[] notes)
-    {
-        foreach (string note in notes)
+        // Each note gets a blank line before it.
+        foreach (MenuText note in (MenuText[])[MenuText.Plain(matchNote), MenuText.Plain(lobby.Notice), lastAction])
         {
-            if (note.Length > 0)
+            if (!note.IsEmpty)
             {
-                text.Append('\n').Append(note).Append('\n');
+                lines.Add(MenuText.Empty);
+                lines.Add(note);
             }
         }
 
-        return text;
+        return lines;
     }
+
+    private static void AddReadiness(List<MenuText> lines, LobbyFlow lobby, string readyKey)
+    {
+        lines.Add(MenuText.Key("LOBBY_YOU_ARE", State(lobby.IsLocalReady, readyKey)));
+        MenuText opponent = MenuText.Plain(lobby.OpponentName);
+        lines.Add(MenuText.Key("LOBBY_OPPONENT_IS", opponent, State(lobby.IsOpponentReady, readyKey)));
+    }
+
+    private static MenuText State(bool isReady, string readyKey) => MenuText.Key(isReady ? readyKey : "LOBBY_STATE_NOT_YET");
+
+    private static MenuText Players(LobbyFlow lobby) =>
+        MenuText.Key(lobby.IsHost ? "LOBBY_HOST_VS" : "LOBBY_GUEST_VS", lobby.OpponentName);
 }

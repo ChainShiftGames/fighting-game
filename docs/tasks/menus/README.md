@@ -31,16 +31,17 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
 - **Text through translation keys** once task 01 lands: no hard-coded English in new UI code.
 - **Controllers first.** Every screen works fully with a gamepad, a leverless/hitbox controller and the keyboard;
   the mouse is a bonus. Both players can use menus at the same time where a screen needs it.
-- **Mashing is safe.** A menu that opens right after a fight ignores presses for a short grace time (today:
-  `MenuPanel.InputGraceMilliseconds`), so button mashing never chooses something by accident.
+- **Mashing is safe.** A menu that opens right after a fight ignores presses for a short grace time
+  (`MenuTiming.GraceMilliseconds`), so button mashing never chooses something by accident.
 - **Placeholder look is fine.** Clean, readable, consistent with the shared theme from task 01. Final art comes later
   and goes through the same scenes.
 
 ## Where things are today
 
-- Menus: `game/UI/`. `GameMenus.cs` picks the screen (`MenuScreenChoice`, `MenuScreen` enum) and turns buttons into
-  `MatchLauncher` calls (`game/Online/MatchLauncher.cs`). `MenuPanel.cs` is the one placeholder look (title, text,
-  column of `MenuEntry` buttons). `OptionsMenu.cs` is a key-driven F12 overlay (vsync, input delay).
+- Menus: `game/UI/`, built on the menu framework ([ADR-0039](../../adr/0039-menu-framework.md)): `Framework/`
+  (stack, focus, actions, text keys), `Widgets/`, `Screens/`. `GameMenus.cs` keeps the stack on the screen that fits
+  (`MenuScreenChoice`) and turns choices into `MatchLauncher` calls (`game/Online/MatchLauncher.cs`). Theme and
+  translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay (vsync, input delay).
 - Training menu: `game/Training/TrainingMenu*.cs`, entries implement `ITrainingMenuEntry`.
 - Input: `game/Input/`. `JoypadRoster` + `JoypadWatcher` track pads (keep the **no-double-input rule** with Steam
   Input documented in `JoypadRoster`). `GamepadDevice` reads a roster *slot*; match startups in `game/Online/` and

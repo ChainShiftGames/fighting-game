@@ -38,5 +38,6 @@ One line per decision. Read the full ADR only when it's relevant to your task.
 | [0035](0035-illustrated-brush-toon-look.md) | *Proposed*: fighters aim at an E's Laf++-style illustration: painted shade, dry-brush shade borders, light patches, wobbly thin ink outlines, inner ink lines pass; toggles in the debug panel |
 | [0036](0036-golden-replays-and-testman-scenarios-on-hold.md) | *Proposed*: golden replays and testman scenarios skipped while testman's tuning changes often; fixture-character scenarios still run |
 | [0037](0037-lingering-projectiles.md) | *Proposed*: projectile data `rehitInterval` (default 0 = gone on first hit): above 0 it stays out after landing and lands again after that many frames (floor fires, traps); entity `RehitCooldown` |
+| [0039](0039-menu-framework.md) | *Proposed*: menu framework: plain C# `MenuStack` of `IMenuScreen`s with focus memory, `MenuAction` flags tagged with the device, held-direction repeat and input grace (`MenuTiming`), item widgets, shared theme (Marcellus + M PLUS 1p fallback), CSV translation keys via `MenuText` |
 
 New ADR: copy the format of an existing one, use the next number, add a line here.
