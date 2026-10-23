@@ -39,6 +39,8 @@ public sealed class CharacterSaverTests : IDisposable
     {
         CharacterDocument document = Open();
         EditedFile move = document.Move("5a")!;
+        int startup = move.Root["frameData"]!["startup"]!.GetValue<int>();
+        int active = move.Root["frameData"]!["active"]!.GetValue<int>();
         move.Root["frameData"]!["recovery"] = 10;
         move.MarkChanged();
         string characterBefore = File.ReadAllText(PathOf(CharacterFile));
@@ -48,8 +50,8 @@ public sealed class CharacterSaverTests : IDisposable
         Assert.Empty(problems);
         Assert.False(document.HasChanges);
         CharacterData testman = Reload().Character("testman");
-        // 5a: startup 5, active 3, so 4 + 3 + 10 frames.
-        Assert.Equal(17, testman.Moves[testman.MoveIds.IndexOf("5a")].TotalFrames);
+        // Startup counts the first active frame, so the new total is (startup - 1) + active + 10.
+        Assert.Equal(startup - 1 + active + 10, testman.Moves[testman.MoveIds.IndexOf("5a")].TotalFrames);
         Assert.Equal(characterBefore, File.ReadAllText(PathOf(CharacterFile)));
     }
 

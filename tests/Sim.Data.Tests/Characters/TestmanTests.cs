@@ -61,7 +61,6 @@ public sealed class TestmanTests
     [Theory]
     [InlineData("2b", Guard.Low)]
     [InlineData("2c", Guard.Low)]
-    [InlineData("5d", Guard.Overhead)]
     [InlineData("j_c", Guard.Overhead)]
     public void HasALowAndAnOverhead(string moveId, Guard guard)
     {

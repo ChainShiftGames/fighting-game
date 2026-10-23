@@ -14,9 +14,10 @@ public sealed class CpuBotTests
 {
     private const int Frames = 10_000;
     // A pair whose 10,000 frames show every action and intent the fight test checks; re-picked when core pushback
-    // (hits push the defender away) changed how matches go, and again for the lower playtest jump.
-    private const uint Player1Seed = 51;
-    private const uint Player2Seed = 3051;
+    // (hits push the defender away) changed how matches go, again for the lower playtest jump, and again after
+    // the October tuning passes left the old pair (51) without a jump.
+    private const uint Player1Seed = 1;
+    private const uint Player2Seed = 3001;
 
     private static readonly BotSettings _defaults = new();
 
