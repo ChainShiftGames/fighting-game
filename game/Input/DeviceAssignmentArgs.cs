@@ -5,12 +5,12 @@ namespace FightingGame.Input;
 
 /// <summary>
 /// A test assignment from the command line (developer option, until side select chooses, UI-03):
-/// <c>--p1-devices pad2 --p2-devices keyboard-left</c>. Devices are <c>keyboard-left</c>, <c>keyboard-right</c> and
-/// <c>pad1</c>, <c>pad2</c>, … for the joypads connected when the match starts, in roster order.
+/// <c>--p1-devices pad2 --p2-devices keyboard</c>. Devices are <c>keyboard</c> and <c>pad1</c>, <c>pad2</c>, … for
+/// the joypads connected when the match starts, in roster order.
 /// </summary>
 public static class DeviceAssignmentArgs
 {
-    public const string Usage = "--p1-devices <list> --p2-devices <list>: keyboard-left, keyboard-right, pad1, pad2, …";
+    public const string Usage = "--p1-devices <list> --p2-devices <list>: keyboard, pad1, pad2, …";
 
     private const string PadPrefix = "pad";
 
@@ -52,14 +52,9 @@ public static class DeviceAssignmentArgs
 
     private static InputDeviceId Device(string name, DeviceRoster roster)
     {
-        if (name == "keyboard-left")
+        if (name == "keyboard")
         {
-            return InputDeviceId.KeyboardLeft;
-        }
-
-        if (name == "keyboard-right")
-        {
-            return InputDeviceId.KeyboardRight;
+            return InputDeviceId.Keyboard;
         }
 
         if (name.StartsWith(PadPrefix, StringComparison.Ordinal) &&

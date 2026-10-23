@@ -18,12 +18,11 @@ public sealed class DeviceRosterTests
     }
 
     [Fact]
-    public void BothKeyboardHalvesAreAlwaysListedFirst()
+    public void TheKeyboardIsAlwaysListedFirst()
     {
         _roster.Update([Pad(0)]);
 
-        Assert.Equal(
-            ["Keyboard (left)", "Keyboard (right)", "DualSense"], _roster.Devices.Select(device => device.Name));
+        Assert.Equal(["Keyboard", "DualSense"], _roster.Devices.Select(device => device.Name));
     }
 
     // Steam Input re-presents a physical controller as a virtual pad: only one of the two may be listed.
@@ -89,9 +88,9 @@ public sealed class DeviceRosterTests
     }
 
     [Fact]
-    public void KeyboardHalvesHaveNoJoypad()
+    public void TheKeyboardHasNoJoypad()
     {
-        Assert.False(_roster.TryGetJoypad(InputDeviceId.KeyboardLeft, out _));
-        Assert.True(_roster.IsConnected(InputDeviceId.KeyboardRight));
+        Assert.False(_roster.TryGetJoypad(InputDeviceId.Keyboard, out _));
+        Assert.True(_roster.IsConnected(InputDeviceId.Keyboard));
     }
 }

@@ -21,10 +21,10 @@ public sealed class DeviceAssignmentArgsTests
     public void PadsCountFromOneInRosterOrder()
     {
         PlayerDevices assignment = DeviceAssignmentArgs.Parse(
-            ["--p1-devices", "pad2", "--p2-devices", "keyboard-left,pad1"], 2, _roster)!;
+            ["--p1-devices", "pad2", "--p2-devices", "keyboard,pad1"], 2, _roster)!;
 
         Assert.Equal([Id(_roster, 1)], assignment.Of(0));
-        Assert.Equal([InputDeviceId.KeyboardLeft, Id(_roster, 0)], assignment.Of(1));
+        Assert.Equal([InputDeviceId.Keyboard, Id(_roster, 0)], assignment.Of(1));
         Assert.False(assignment.ClaimsNewJoypads);
     }
 
@@ -32,16 +32,17 @@ public sealed class DeviceAssignmentArgsTests
     public void OnePlayerMatchesIgnoreThePlayer2Option()
     {
         PlayerDevices assignment = DeviceAssignmentArgs.Parse(
-            ["--p1-devices", "keyboard-right", "--p2-devices", "pad1"], 1, _roster)!;
+            ["--p1-devices", "keyboard", "--p2-devices", "pad1"], 1, _roster)!;
 
         Assert.Equal(1, assignment.PlayerCount);
-        Assert.Equal([InputDeviceId.KeyboardRight], assignment.Of(0));
+        Assert.Equal([InputDeviceId.Keyboard], assignment.Of(0));
     }
 
     [Theory]
     [InlineData("pad3")]
     [InlineData("pad0")]
     [InlineData("mouse")]
+    [InlineData("keyboard-left")]
     [InlineData("pad1,pad1")]
     public void BadDevicesAreRefused(string devices) =>
         Assert.Throws<FormatException>(() => DeviceAssignmentArgs.Parse(["--p1-devices", devices], 2, _roster));

@@ -81,7 +81,7 @@ public sealed class OnlineMatchStartup
         InputDelaySettings delay = InputDelay(online, playerSettings);
         MatchLineup lineup = MatchLineup.From(data);
 
-        // One player on this PC: by default on either keyboard half or the first joypad.
+        // One player on this PC: by default on the keyboard or the first joypad.
         PlayerDevices assignment = _devices.Online();
         PlayerInputReader[] player = PlayerInputReader.All(assignment, _reader);
         var handshake = new VersionHandshake(
