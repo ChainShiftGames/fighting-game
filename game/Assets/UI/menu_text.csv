@@ -1,14 +1,30 @@
 keys,en
-MENU_TITLE_MAIN,FIGHTING GAME
-MENU_VERSUS,Versus (2 players)
+MENU_LOGO,FIGHTING GAME
+MENU_PRESS_ANY_BUTTON,Press any button
+MENU_TITLE_MAIN,MAIN MENU
+MENU_VERSUS,Versus
+MENU_VERSUS_INFO,Two players on this PC.
 MENU_TRAINING,Training
+MENU_TRAINING_INFO,Practise against the training dummy.
 MENU_ONLINE,Online
 MENU_ONLINE_NEEDS_PLATFORM,Online (needs Steam: {0})
+MENU_ONLINE_INFO,Play a friend over Steam.
+MENU_REPLAYS,Replays
+MENU_REPLAYS_INFO,Watch saved matches.
+MENU_OPTIONS,Options
+MENU_OPTIONS_INFO,"Video, audio and controls."
+MENU_OPTIONS_FOR_NOW,Not here yet: F12 opens the options.
+MENU_NOT_YET,Not here yet.
 MENU_QUIT,Quit
+MENU_QUIT_INFO,Close the game.
+MENU_TITLE_QUIT,QUIT?
+MENU_QUIT_BODY,Close the game and go back to the desktop?
+MENU_CANCEL,Cancel
 MENU_BACK,Back
 MENU_MAIN_MENU,Main menu
 MENU_TITLE_MATCH_OVER,MATCH OVER
 MENU_REMATCH,Rematch
+MENU_CHARACTER_SELECT,Character select
 MENU_WATCH_AGAIN,Watch again
 MENU_TITLE_PAUSED,PAUSED
 MENU_TITLE_MENU,MENU

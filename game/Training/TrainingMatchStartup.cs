@@ -52,9 +52,9 @@ public sealed class TrainingMatchStartup
         _menu = menu;
     }
 
-    public StartedMatch Create(GameData data)
+    public StartedMatch Create(GameData data, MatchSetup setup)
     {
-        MatchLineup lineup = MatchLineup.From(data);
+        MatchLineup lineup = MatchLineup.From(data, setup.Player1, setup.Player2);
         var timings = new TrainingTimings(GuardResetFrames, HealthRefillDelayFrames);
         PlayerDevices assignment = _devices.Training();
         var effects = new MatchEffects(

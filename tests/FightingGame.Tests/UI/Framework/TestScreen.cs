@@ -19,6 +19,8 @@ internal sealed class TestScreen : IMenuScreen
 
     IReadOnlyList<MenuItem> IMenuScreen.Items => Items;
 
+    public int FirstFocus { get; set; }
+
     public bool IsOverMatch => false;
 
     /// <summary>What <see cref="Back"/> answers: whether the stack may pop this screen.</summary>

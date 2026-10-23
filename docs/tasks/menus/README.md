@@ -39,9 +39,11 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
 ## Where things are today
 
 - Menus: `game/UI/`, built on the menu framework ([ADR-0039](../../adr/0039-menu-framework.md)): `Framework/`
-  (stack, focus, actions, text keys), `Widgets/`, `Screens/`. `GameMenus.cs` keeps the stack on the screen that fits
-  (`MenuScreenChoice`) and turns choices into `MatchLauncher` calls (`game/Online/MatchLauncher.cs`). Theme and
-  translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay (vsync, input delay).
+  (stack, focus, actions, text keys), `Widgets/`, `Screens/`, `Title/`, `MainMenu/`. `Flow/GameFlow.cs` decides the
+  next screen and starts matches with a `MatchSetup` through `IMatchStarter` (`MatchLauncher`, `game/Online/`)
+  ([ADR-0040](../../adr/0040-game-flow.md)); new screens register in `FlowScreens` (one `Add` line in
+  `GameMenus.Bind`). Theme and translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay
+  (vsync, input delay).
 - Training menu: `game/Training/TrainingMenu*.cs`, entries implement `ITrainingMenuEntry`.
 - Input: `game/Input/`. `JoypadRoster` + `JoypadWatcher` track pads (keep the **no-double-input rule** with Steam
   Input documented in `JoypadRoster`). `DeviceRoster` lists devices (the keyboard + pads) and raises
@@ -49,7 +51,8 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
   ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Bindings: `default_bindings.jsonc`, copied to
   `user://dev_bindings.jsonc`.
 - Player settings: `game/Settings/` (`PlayerSettings` record, JSON in `user://` via `PlayerSettingsStore`).
-- Who plays what: `game/Online/MatchLineup.cs` (currently the first character for both, colour 0).
+- Who plays what: `MatchSetup` picks, turned into a lineup by `game/Online/MatchLineup.cs` (default: first character
+  for both, colour 0).
 - HUD font: `HudLettering.FontPath` in `game/Presentation/Hud/`.
 - Startup wiring: `game/Main.cs`.
 

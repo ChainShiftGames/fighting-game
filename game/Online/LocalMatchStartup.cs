@@ -41,9 +41,9 @@ public sealed class LocalMatchStartup
         _effectToggles = effectToggles;
     }
 
-    public StartedMatch Create(GameData data)
+    public StartedMatch Create(GameData data, MatchSetup setup)
     {
-        MatchLineup lineup = MatchLineup.From(data);
+        MatchLineup lineup = MatchLineup.From(data, setup.Player1, setup.Player2);
         var recorder = new ReplayRecorder(lineup.CreateReplayHeader(data));
 
         PlayerDevices assignment = _devices.Versus();

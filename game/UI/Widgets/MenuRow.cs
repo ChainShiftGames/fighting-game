@@ -5,8 +5,9 @@ using Godot;
 namespace FightingGame.UI.Widgets;
 
 /// <summary>
-/// What every focusable widget shares: a themed row with the item's label on the left, the focus highlight, and
-/// mouse pointing and clicking. Widgets with a value put it in <see cref="Value"/> on the right.
+/// What every focusable widget shares: a themed row with the item's label on the left (its description, if any,
+/// under it), the focus highlight, and mouse pointing and clicking. Widgets with a value put it in
+/// <see cref="Value"/> on the right.
 /// </summary>
 public abstract partial class MenuRow : PanelContainer, IMenuWidget
 {
@@ -14,8 +15,10 @@ public abstract partial class MenuRow : PanelContainer, IMenuWidget
     private const string FocusedRowStyle = "MenuItemFocused";
     private const string LabelStyle = "MenuItemLabel";
     private const string DisabledLabelStyle = "MenuItemLabelDisabled";
+    private const string DescriptionStyle = "MenuItemDescription";
 
     private readonly Label _label = new() { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+    private readonly Label _description = new() { ThemeTypeVariation = DescriptionStyle, Visible = false };
     private Action? _pointed;
     private Action? _clicked;
 
@@ -24,7 +27,10 @@ public abstract partial class MenuRow : PanelContainer, IMenuWidget
         var line = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
         line.AddChild(_label);
         line.AddChild(Value);
-        AddChild(line);
+        var lines = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        lines.AddChild(line);
+        lines.AddChild(_description);
+        AddChild(lines);
         MouseFilter = MouseFilterEnum.Stop;
         MouseEntered += () => _pointed?.Invoke();
         GuiInput += OnGuiInput;
@@ -42,6 +48,8 @@ public abstract partial class MenuRow : PanelContainer, IMenuWidget
         ThemeTypeVariation = isFocused ? FocusedRowStyle : RowStyle;
         _label.ThemeTypeVariation = item.Enabled ? LabelStyle : DisabledLabelStyle;
         _label.Text = text.Format(item.Label);
+        _description.Text = text.Format(item.Description);
+        _description.Visible = !item.Description.IsEmpty;
         ShowValue(item, text);
     }
 
