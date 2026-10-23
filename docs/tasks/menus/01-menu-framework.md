@@ -1,5 +1,8 @@
 # UI-01 Menu framework
 
+> **Done:** merged in [PR 95](https://github.com/ChainShiftGames/fighting-game/pull/95) on 2026-10-23.
+> Decisions: [ADR-0039](../../adr/0039-menu-framework.md).
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md), then [README.md](README.md) in this folder.
 **Where:** `game/UI/` (new framework, plus porting the existing screens), `game/Assets/UI/` (theme, fonts),
 `tests/FightingGame.Tests/UI/`, a new ADR. Small wiring changes in `game/Main.cs` only.
