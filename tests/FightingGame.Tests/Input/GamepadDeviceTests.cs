@@ -11,12 +11,6 @@ public sealed class GamepadDeviceTests
 
     private readonly GamepadBindings _bindings = TestButtons.Defaults()[0].Gamepad;
     private readonly FakeDeviceState _devices = new();
-    private readonly JoypadRoster _roster = new();
-
-    public GamepadDeviceTests()
-    {
-        _roster.Update([new JoypadInfo(Pad, "pad", IsSteamInput: false, IgnoredBySteam: false)]);
-    }
 
     // A leverless controller in XInput mode reports its direction buttons as the d-pad.
     [Fact]
@@ -70,7 +64,7 @@ public sealed class GamepadDeviceTests
     {
         _devices.Move(Pad, JoyAxis.LeftX, -1).Move(Pad, JoyAxis.LeftY, 1);
 
-        InputWord raw = new GamepadDevice(_bindings with { LeftStick = false }, _devices, _roster, slot: 0).Read();
+        InputWord raw = new GamepadDevice(_bindings with { LeftStick = false }, _devices).Read(Pad);
 
         Assert.Equal(InputWord.Neutral, raw);
     }
@@ -83,13 +77,5 @@ public sealed class GamepadDeviceTests
         Assert.Equal(InputWord.Neutral, Read());
     }
 
-    [Fact]
-    public void AnEmptySlotReadsNeutral()
-    {
-        _devices.Hold(Pad, JoyButton.X);
-
-        Assert.Equal(InputWord.Neutral, new GamepadDevice(_bindings, _devices, _roster, slot: 1).Read());
-    }
-
-    private InputWord Read() => new GamepadDevice(_bindings, _devices, _roster, slot: 0).Read();
+    private InputWord Read() => new GamepadDevice(_bindings, _devices).Read(Pad);
 }

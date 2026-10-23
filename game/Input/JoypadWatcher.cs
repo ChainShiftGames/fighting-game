@@ -5,12 +5,12 @@ using Godot.Collections;
 
 namespace FightingGame.Input;
 
-/// <summary>Keeps a <see cref="JoypadRoster"/> up to date as Godot reports joypads connecting and disconnecting.</summary>
+/// <summary>Keeps a <see cref="DeviceRoster"/> up to date as Godot reports joypads connecting and disconnecting.</summary>
 public sealed class JoypadWatcher : IDisposable
 {
-    private readonly JoypadRoster _roster;
+    private readonly DeviceRoster _roster;
 
-    public JoypadWatcher(JoypadRoster roster)
+    public JoypadWatcher(DeviceRoster roster)
     {
         _roster = roster;
         Godot.Input.JoyConnectionChanged += OnJoyConnectionChanged;
@@ -30,9 +30,9 @@ public sealed class JoypadWatcher : IDisposable
         }
 
         _roster.Update(joypads);
-        foreach (JoypadInfo joypad in _roster.Connected)
+        foreach (JoypadInfo joypad in _roster.Joypads.Connected)
         {
-            GD.Print($"Joypad {joypad.Device}: {JoypadText.Describe(joypad, _roster.SlotOf(joypad.Device))}");
+            GD.Print($"Joypad {joypad.Device}: {JoypadText.Describe(joypad, _roster.Joypads.SlotOf(joypad.Device))}");
         }
     }
 
@@ -42,6 +42,11 @@ public sealed class JoypadWatcher : IDisposable
         bool ignored = info.TryGetValue("vendor_id", out Variant vendor)
             && info.TryGetValue("product_id", out Variant product)
             && Godot.Input.ShouldIgnoreDevice(vendor.AsInt32(), product.AsInt32());
-        return new JoypadInfo(device, Godot.Input.GetJoyName(device), info.ContainsKey("steam_input_index"), ignored);
+        return new JoypadInfo(
+            device,
+            Godot.Input.GetJoyName(device),
+            info.ContainsKey("steam_input_index"),
+            ignored,
+            Godot.Input.GetJoyGuid(device));
     }
 }

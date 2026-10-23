@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FightingGame.Input;
 
 namespace FightingGame.Presentation.Events;
@@ -5,41 +6,62 @@ namespace FightingGame.Presentation.Events;
 /// <summary>Rumbles the joypad a player reads on this PC, through Godot's joypad vibration.</summary>
 public sealed class JoypadRumbleMotor : IRumbleMotor
 {
-    /// <summary>Value in the slot list for a player who has no joypad slot on this PC (e.g. the online opponent).</summary>
-    public const int NoSlot = -1;
+    /// <summary>Value in the local player list for a player who doesn't play on this PC (e.g. the online opponent).</summary>
+    public const int NoLocalPlayer = -1;
 
-    private readonly JoypadRoster _joypads;
-    private readonly int[] _slotOfPlayer;
+    private readonly DeviceRoster _roster;
+    private readonly PlayerDevices _assignment;
+    private readonly int[] _localPlayerOf;
 
-    /// <param name="slotOfPlayer">
-    /// Per player, the <see cref="JoypadRoster"/> slot their input reads, or <see cref="NoSlot"/>.
+    /// <param name="assignment">The devices each local player reads; the first connected joypad among them rumbles.</param>
+    /// <param name="localPlayerOf">
+    /// Per player of the match, their place in <paramref name="assignment"/>, or <see cref="NoLocalPlayer"/>.
     /// </param>
-    public JoypadRumbleMotor(JoypadRoster joypads, int[] slotOfPlayer)
+    public JoypadRumbleMotor(DeviceRoster roster, PlayerDevices assignment, int[] localPlayerOf)
     {
-        _joypads = joypads;
-        _slotOfPlayer = slotOfPlayer;
+        _roster = roster;
+        _assignment = assignment;
+        _localPlayerOf = localPlayerOf;
     }
+
+    /// <summary>A motor for a match nobody on this PC plays (replays): nothing rumbles.</summary>
+    public static JoypadRumbleMotor None(DeviceRoster roster) =>
+        new(roster, new PlayerDevices(0), [NoLocalPlayer, NoLocalPlayer]);
 
     public void Start(int player, float weak, float strong, float seconds)
     {
-        if (TryGetDevice(player, out int device))
+        if (TryGetJoypad(player, out int joypad))
         {
-            Godot.Input.StartJoyVibration(device, weak, strong, seconds);
+            Godot.Input.StartJoyVibration(joypad, weak, strong, seconds);
         }
     }
 
     public void Stop(int player)
     {
-        if (TryGetDevice(player, out int device))
+        if (TryGetJoypad(player, out int joypad))
         {
-            Godot.Input.StopJoyVibration(device);
+            Godot.Input.StopJoyVibration(joypad);
         }
     }
 
-    private bool TryGetDevice(int player, out int device)
+    private bool TryGetJoypad(int player, out int joypad)
     {
-        device = -1;
-        int slot = _slotOfPlayer[player];
-        return slot != NoSlot && _joypads.TryGetDevice(slot, out device);
+        joypad = InputDeviceInfo.NoJoypad;
+        int local = _localPlayerOf[player];
+        if (local == NoLocalPlayer)
+        {
+            return false;
+        }
+
+        IReadOnlyList<InputDeviceId> devices = _assignment.Of(local);
+        for (int index = 0; index < devices.Count; index++)
+        {
+            if (_roster.TryGetJoypad(devices[index], out joypad))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

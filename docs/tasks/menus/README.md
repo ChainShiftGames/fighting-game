@@ -44,8 +44,9 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
   translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay (vsync, input delay).
 - Training menu: `game/Training/TrainingMenu*.cs`, entries implement `ITrainingMenuEntry`.
 - Input: `game/Input/`. `JoypadRoster` + `JoypadWatcher` track pads (keep the **no-double-input rule** with Steam
-  Input documented in `JoypadRoster`). `GamepadDevice` reads a roster *slot*; match startups in `game/Online/` and
-  `game/Training/` currently map player N → slot N. Bindings: `default_bindings.jsonc`, copied to
+  Input documented in `JoypadRoster`). `DeviceRoster` lists devices (keyboard halves + pads) and raises
+  connect/disconnect events; match startups read a `PlayerDevices` assignment from `PlayerDevicesChoice`
+  ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Bindings: `default_bindings.jsonc`, copied to
   `user://dev_bindings.jsonc`.
 - Player settings: `game/Settings/` (`PlayerSettings` record, JSON in `user://` via `PlayerSettingsStore`).
 - Who plays what: `game/Online/MatchLineup.cs` (currently the first character for both, colour 0).

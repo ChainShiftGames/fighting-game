@@ -44,13 +44,11 @@ public sealed class BindingsParserTests
     {
         PlayerBindings[] bindings =
             Parse(TwoPlayers(NoBindings, """{ "dash": ["LeftShoulder"], "c": ["TriggerLeft"] }"""));
-        var roster = new JoypadRoster();
-        roster.Update([new JoypadInfo(0, "pad", IsSteamInput: false, IgnoredBySteam: false)]);
         FakeDeviceState devices = new FakeDeviceState()
             .Hold(0, JoyButton.LeftShoulder)
             .Move(0, JoyAxis.TriggerLeft, 1);
 
-        InputWord raw = new GamepadDevice(bindings[0].Gamepad, devices, roster, slot: 0).Read();
+        InputWord raw = new GamepadDevice(bindings[0].Gamepad, devices).Read(0);
 
         ushort expected = (ushort)(TestButtons.Repository.Mask("dash") | TestButtons.Repository.Mask("c"));
         Assert.Equal(expected, raw.Bits);
