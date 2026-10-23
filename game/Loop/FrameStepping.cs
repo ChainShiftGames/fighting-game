@@ -22,6 +22,9 @@ public sealed class FrameStepping
     /// <summary>Held by the pause menu: no frames run until it is let go.</summary>
     public bool IsHeld { get; set; }
 
+    /// <summary>Held while a player's controller is disconnected: no frames run until it is back (ADR-0038).</summary>
+    public bool IsWaitingForController { get; set; }
+
     /// <summary>Queues one frame to run while paused; ignored while running.</summary>
     public void StepOnce()
     {
@@ -35,7 +38,7 @@ public sealed class FrameStepping
     /// <remarks>The clock keeps counting while paused, so resuming continues at normal speed instead of catching up.</remarks>
     public int Allow(int dueFrames)
     {
-        int allowed = IsHeld ? 0 : _pause.Enabled ? _pendingSteps : dueFrames;
+        int allowed = IsHeld || IsWaitingForController ? 0 : _pause.Enabled ? _pendingSteps : dueFrames;
         _pendingSteps = 0;
         return allowed;
     }
