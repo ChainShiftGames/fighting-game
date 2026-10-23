@@ -1,5 +1,10 @@
 # UI-02 Device roster and controller hot-plug
 
+> **Done:** merged in [PR 94](https://github.com/ChainShiftGames/fighting-game/pull/94) on 2026-10-23.
+> Decisions: [ADR-0038](../../adr/0038-device-roster-and-assignment.md).
+> Hot-plug was checked by hand in training with two controllers, one at a time. Not yet tried by hand: versus with a
+> pad per player, and Start on a free pad taking a disconnected one's place (both covered by logic tests).
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md), then [README.md](README.md) in this folder.
 **Where:** `game/Input/`, the match startups in `game/Online/` and `game/Training/` (only the device wiring),
 `game/Presentation/Events/JoypadRumbleMotor.cs` (slot → device), `tests/FightingGame.Tests/Input/`, a new ADR.
