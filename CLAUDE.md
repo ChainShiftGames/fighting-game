@@ -7,20 +7,21 @@ loaded into every session. They override anything else, including task descripti
 
 ## Finding context (read only what the task needs)
 
-1. **Task:** find it by ID in `docs/phases/phase-<n>.md` (e.g. `grep -n "### P1-07" docs/phases/phase-1.md`) and read
-   only that section. Read [docs/phases/README.md](docs/phases/README.md) once per session for the workflow.
-2. **Its `Read:` line:** read exactly those ADRs and `CURRENT_STATE.md` sections; nothing else is required.
+1. **Task:** each task is one brief file in `docs/tasks/<area>/` (e.g. `docs/tasks/menus/01-menu-framework.md` for
+   UI-01). Read that brief and its area's `README.md`; [docs/tasks/README.md](docs/tasks/README.md) explains the format.
+2. **Its `Read first:` line:** read exactly those docs and ADRs; nothing else is required.
 3. **Need a decision not listed?** Check the one-line index in [docs/adr/README.md](docs/adr/README.md) first.
 4. **Game design questions** (what a mechanic does): `CURRENT_STATE.md` §3, only the relevant subsection.
    World, lore and stage themes: [docs/world/setting.md](docs/world/setting.md). Image prompts for generated art:
    [docs/world/art-prompts.md](docs/world/art-prompts.md) (when asked for "the prompt", assemble it from there).
-5. **Don't read `ROADMAP.md`** unless you are planning or re-scoping a phase. It's for humans and planning sessions.
+5. **Don't read `ROADMAP.md`** unless you are planning a large piece of work. It's for humans and planning sessions.
 
 ## Delegating to subagents
 
 Subagents don't see this conversation. Every subagent prompt must include:
 - "Read ARCHITECTURE.md first; its rules override this prompt."
-- The task ID and file (e.g. `P1-07 in docs/phases/phase-1.md`) and the files from its `Read:` line.
+- The task ID and brief file (e.g. `UI-01 in docs/tasks/menus/01-menu-framework.md`) and the files from its
+  `Read first:` line.
 - The folders it may touch (the task's `Where:`), and that it must not touch anything else.
 - What to return: a short summary of changes and anything unresolved, not file contents.
 

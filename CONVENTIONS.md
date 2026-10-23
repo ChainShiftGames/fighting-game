@@ -1,6 +1,6 @@
 # Conventions
 
-> **Proposal (P0-07): both devs confirm before merge.** Rules live in [ARCHITECTURE.md](ARCHITECTURE.md); this file
+> **Proposal: both devs confirm before merge.** Rules live in [ARCHITECTURE.md](ARCHITECTURE.md); this file
 > only adds layout and naming it doesn't cover. Code naming and file-per-type: ARCHITECTURE.md §5.
 
 ## Folders inside each project
@@ -8,7 +8,7 @@
 - **Folder = namespace segment.** `src/Sim/Collision/PushboxSolver.cs` → `namespace Sim.Collision`. Root namespace
   = project name (`Sim`, `Sim.Data`, `Netcode`, `Platform.Steam`, `FightingGame` for `game/`).
 - **Group by feature, not by kind.** `Sim/Combat/`, not `Sim/Interfaces/` or `Sim/Structs/`. The folder names in
-  the phase task `Where:` lines are the plan; follow them.
+  a task brief's `Where:` line are the plan; follow them.
 - **`src/Sim`:** one folder per tick stage or concept (`Input/`, `Fighters/`, `Collision/`, `Combat/`, `Match/`,
   `State/`, `Rules/`, …).
   - `Sim/Modules/` holds the module contract (namespace `Sim.Modules`).
@@ -37,13 +37,14 @@
 
 ## Branches
 
-- Task work: [docs/phases/README.md](docs/phases/README.md) (lowercase task ID + short name).
+- Task work: `<area>/<nn>-<short-name>`, from the brief's file name (`ui/01-menu-framework`). Task briefs:
+  [docs/tasks/README.md](docs/tasks/README.md).
 - Other work: `docs/<short-name>` or `fix/<short-name>`.
 
 ## Commits
 
 ```
-P0-07: Add agent and team docs          ← task ID + imperative summary, ≤ 72 chars
+UI-01: Add the menu framework           ← task ID + imperative summary, ≤ 72 chars
 
 Why the change was made, wrapped at 72. Mention ADRs, golden replay
 or MatchRules changes here.
