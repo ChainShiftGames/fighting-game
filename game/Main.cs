@@ -91,6 +91,7 @@ public partial class Main : Node2D
     private TrainingMenu? _trainingMenu;
     private ReplayFolder? _replays;
     private MatchLauncher? _launcher;
+    private PlayerDevicesChoice? _deviceChoice;
     private StartedMatch? _match;
     private FrameStepping? _stepping;
     private DeveloperOverlay? _overlay;
@@ -168,7 +169,8 @@ public partial class Main : Node2D
         CreateStartups(args);
         _launcher = new MatchLauncher(
             CreateVersusMatch, CreateTrainingMatch, CreateOnlineMatch, CreateReplayMatch, _platform, args);
-        _menus.Bind(_launcher, _stepping!, _devices.Joypads, new GodotDeviceState());
+        _menus.Bind(
+            _launcher, _stepping!, _devices.Joypads, new GodotDeviceState(), _deviceChoice!, () => _data!.Load());
 
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
@@ -336,7 +338,7 @@ public partial class Main : Node2D
         ButtonSet? buttons = ButtonSetFile.Load();
         _inputReadout = new InputReadout(buttons, _devices.Joypads);
         PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
-        var choice = new PlayerDevicesChoice(_devices, args);
+        PlayerDevicesChoice choice = _deviceChoice = new PlayerDevicesChoice(_devices, args);
         var reader = new InputDeviceReader(bindings, new GodotDeviceState(), _devices);
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
         _localStartup = new LocalMatchStartup(choice, reader, loops, _stepping!, _hitboxOverlay, _effectToggles);

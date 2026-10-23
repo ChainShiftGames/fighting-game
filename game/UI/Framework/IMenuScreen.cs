@@ -19,6 +19,12 @@ public interface IMenuScreen
     /// <summary>Shown over a match that stays visible behind it (pause, results), not as a full screen.</summary>
     bool IsOverMatch { get; }
 
+    /// <summary>
+    /// Gets every press as it came, back and directions included, with its device: for screens both players use at
+    /// once (character select), where back and the cursor are each player's own.
+    /// </summary>
+    bool TakesEveryPress => false;
+
     /// <summary>Back was pressed on this screen. True lets the stack pop it; the bottom screen is never popped.</summary>
     bool Back();
 

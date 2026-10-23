@@ -1,0 +1,7 @@
+{
+  // Character select (UI-05, ADR-0041): presentation only, outside data/, so not in the data hash or the match rules.
+  // The colour index is what the match and its replay record; the swatches stand in for palettes until there is art.
+  "selectVersion": 1,
+  "description": "CHARACTER_TESTMAN_DESCRIPTION",
+  "colours": ["#ffffff", "#e0584c", "#4c8ee0", "#5cc878"]
+}
