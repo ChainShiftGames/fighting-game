@@ -19,7 +19,7 @@ public sealed class PlayerInputReaderTests
     }
 
     [Fact]
-    public void TheDefaultDrivesThePlayersAsBefore()
+    public void TheDefaultGivesPlayer1TheKeyboardAndEachPlayerAPad()
     {
         PlayerInputReader[] players = PlayerInputReader.All(DefaultPlayerDevices.Versus(_roster), _reader);
         _devices.Hold(Key.A).Hold(1, JoyButton.DpadRight);
@@ -33,24 +33,28 @@ public sealed class PlayerInputReaderTests
     {
         var assignment = new PlayerDevices(2);
         assignment.Assign(0, Id(_roster, 1));
-        assignment.Assign(1, InputDeviceId.KeyboardLeft);
+        assignment.Assign(1, InputDeviceId.Keyboard);
         PlayerInputReader[] players = PlayerInputReader.All(assignment, _reader);
 
-        _devices.Hold(1, JoyButton.DpadLeft).Hold(0, JoyButton.DpadUp).Hold(Key.D);
+        _devices.Hold(1, JoyButton.DpadLeft).Hold(0, JoyButton.DpadUp).Hold(Key.Right);
 
         Assert.Equal(InputWord.Left, players[0].Read().Bits);
         Assert.Equal(InputWord.Right, players[1].Read().Bits);
     }
 
-    // The left half is the WASD layout whoever plays on it.
+    // The keyboard reads with the bindings of whoever plays on it, like a pad.
     [Fact]
-    public void AKeyboardHalfKeepsItsLayoutOnTheOtherPlayer()
+    public void TheKeyboardUsesThePlayersOwnKeys()
     {
         var assignment = new PlayerDevices(2);
-        assignment.Assign(1, InputDeviceId.KeyboardLeft);
-        _devices.Hold(Key.W, Key.Up);
+        assignment.Assign(1, InputDeviceId.Keyboard);
+        var player2 = new PlayerInputReader(1, assignment, _reader);
 
-        Assert.Equal(InputWord.Up, new PlayerInputReader(1, assignment, _reader).Read().Bits);
+        _devices.Hold(Key.W);
+        Assert.Equal(InputWord.Neutral, player2.Read());
+
+        _devices.Hold(Key.Up);
+        Assert.Equal(InputWord.Up, player2.Read().Bits);
     }
 
     [Fact]

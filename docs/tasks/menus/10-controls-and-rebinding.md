@@ -15,7 +15,7 @@ bindings are per *player* in `user://dev_bindings.jsonc` (copied from `default_b
 ## What to build
 
 - **Profiles per device type and device:** a binding profile for each controller (by the identity from UI-02) and for
-  each keyboard half. A new controller starts from the default profile for its kind (pad / keyboard). A player's
+  the keyboard. A new controller starts from the default profile for its kind (pad / keyboard). A player's
   profile follows their device whichever side they play on (side select, UI-03).
 - **Rebinding screen:** list of the inputs from `data/input/buttons.json` (A, B, C, D, Special, Dash) plus directions
   for keyboards and leverless. Select one, press the new control. Several controls per input are allowed (today's

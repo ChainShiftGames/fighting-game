@@ -2,7 +2,7 @@ using System;
 
 namespace FightingGame.Input;
 
-/// <summary>Says when a controller connects or disconnects, through a notice such as a toast; keyboard halves never do.</summary>
+/// <summary>Says when a controller connects or disconnects, through a notice such as a toast; the keyboard never does.</summary>
 public sealed class ControllerNotices : IDisposable
 {
     private readonly DeviceRoster _roster;

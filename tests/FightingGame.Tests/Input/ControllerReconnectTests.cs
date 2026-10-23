@@ -45,7 +45,7 @@ public sealed class ControllerReconnectTests
         Assert.True(reconnect.TakeOver(1));
 
         Assert.Equal(ControllerReconnect.NobodyWaiting, reconnect.WaitingPlayer);
-        Assert.Equal([InputDeviceId.KeyboardLeft, Id(_roster, 1)], assignment.Of(0));
+        Assert.Equal([InputDeviceId.Keyboard, Id(_roster, 1)], assignment.Of(0));
     }
 
     [Fact]
@@ -114,12 +114,11 @@ public sealed class ControllerReconnectTests
         return reconnect;
     }
 
-    // Player 1 on the left keyboard half plus the given pads, player 2 on the right half.
+    // Player 1 on the keyboard, plus the given pads.
     private static PlayerDevices Explicit(params (int Player, InputDeviceId Device)[] pads)
     {
         var assignment = new PlayerDevices(2);
-        assignment.Assign(0, InputDeviceId.KeyboardLeft);
-        assignment.Assign(1, InputDeviceId.KeyboardRight);
+        assignment.Assign(0, InputDeviceId.Keyboard);
         foreach ((int player, InputDeviceId device) in pads)
         {
             assignment.Assign(player, device);

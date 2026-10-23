@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace FightingGame.Input;
 
 /// <summary>
-/// Every usable input device with a stable id: the two keyboard halves, always there, then each joypad the
+/// Every usable input device with a stable id: the keyboard, always there, then each joypad the
 /// <see cref="JoypadRoster"/> uses, lowest Godot index first (ADR-0038).
 /// </summary>
 /// <remarks>
@@ -13,13 +13,10 @@ namespace FightingGame.Input;
 /// </remarks>
 public sealed class DeviceRoster
 {
-    private static readonly InputDeviceInfo[] _keyboards =
-    [
-        new(InputDeviceId.KeyboardLeft, "Keyboard (left)", InputDeviceInfo.NoJoypad),
-        new(InputDeviceId.KeyboardRight, "Keyboard (right)", InputDeviceInfo.NoJoypad),
-    ];
+    private static readonly InputDeviceInfo _keyboard =
+        new(InputDeviceId.Keyboard, "Keyboard", InputDeviceInfo.NoJoypad);
 
-    private InputDeviceInfo[] _devices = [.. _keyboards];
+    private InputDeviceInfo[] _devices = [_keyboard];
 
     /// <summary>A device joined the roster; raised after the roster changed.</summary>
     public event Action<InputDeviceInfo>? Connected;
@@ -27,7 +24,7 @@ public sealed class DeviceRoster
     /// <summary>A device left the roster; raised after the roster changed. Players keep it assigned.</summary>
     public event Action<InputDeviceInfo>? Disconnected;
 
-    /// <summary>The keyboard halves, then the joypads in Godot's order.</summary>
+    /// <summary>The keyboard, then the joypads in Godot's order.</summary>
     public IReadOnlyList<InputDeviceInfo> Devices => _devices;
 
     /// <summary>Every joypad Godot reports, used or not, for the log and the developer overlay.</summary>
@@ -52,7 +49,7 @@ public sealed class DeviceRoster
         }
 
         InputDeviceInfo[] previous = _devices;
-        var devices = new List<InputDeviceInfo>(_keyboards);
+        var devices = new List<InputDeviceInfo> { _keyboard };
         for (int index = 0; index < used.Count; index++)
         {
             devices.Add(new InputDeviceInfo(ids[index]!.Value, used[index].Name, used[index].Device));
@@ -64,7 +61,7 @@ public sealed class DeviceRoster
 
     public bool IsConnected(InputDeviceId id) => IndexOf(_devices, id) >= 0;
 
-    /// <summary>Godot's joypad index for <paramref name="id"/>; false for a keyboard half or a disconnected pad.</summary>
+    /// <summary>Godot's joypad index for <paramref name="id"/>; false for the keyboard or a disconnected pad.</summary>
     public bool TryGetJoypad(InputDeviceId id, out int joypad)
     {
         int index = IndexOf(_devices, id);

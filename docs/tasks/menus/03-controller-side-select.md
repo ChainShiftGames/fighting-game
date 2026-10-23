@@ -15,11 +15,10 @@ how players choose which controller they play with, every time, without digging 
 
 ```
    P1 SIDE              NOT PLAYING              P2 SIDE
- ┌──────────┐      ┌──────────────────┐      ┌──────────┐
- │ [DualSense]│ ◀── │ [Xbox pad]       │ ──▶ │ [Hitbox] │
- │  READY ✓ │      │ [Keyboard left]  │      │          │
- └──────────┘      │ [Keyboard right] │      └──────────┘
-                   └──────────────────┘
+ ┌───────────┐     ┌──────────────────┐      ┌──────────┐
+ │[DualSense]│ ◀── │ [Xbox pad]       │ ──▶ │ [Hitbox] │
+ │  READY ✓  │     │ [Keyboard]       │      │          │
+ └───────────┘     └──────────────────┘      └──────────┘
 ```
 
 - Every device from the roster (UI-02) is an icon with its name, starting in the middle column.
