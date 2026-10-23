@@ -1,5 +1,11 @@
 # UI-04 Game flow, title and main menu
 
+> **Done:** merged in [PR 98](https://github.com/ChainShiftGames/fighting-game/pull/98) on 2026-10-24.
+> Decisions: [ADR-0040](../../adr/0040-game-flow.md).
+> Checked by hand in the editor with Steam running: boot to title, title → main menu → back, Online → host a lobby →
+> leave. Not yet tried by hand: a full gamepad playthrough, rematch, pause, the online lobby with a second player and
+> command-line launches. Options and Replays stay dimmed until their screens exist.
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md), then [README.md](README.md) in this folder.
 **Where:** `game/UI/Flow/`, `game/UI/Title/`, `game/UI/MainMenu/` (new), `game/UI/GameMenus.cs` (shrinks or goes),
 `game/Main.cs` (wiring only), `tests/FightingGame.Tests/UI/Flow/`.
