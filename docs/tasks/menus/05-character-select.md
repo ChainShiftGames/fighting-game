@@ -1,5 +1,11 @@
 # UI-05 Character select
 
+> **Done:** merged in [PR 100](https://github.com/ChainShiftGames/fighting-game/pull/100) on 2026-10-24.
+> Decisions: [ADR-0041](../../adr/0041-character-select.md) (colours and descriptions in
+> `game/Assets/Characters/<id>/<id>_select.json`, outside `data/`; no controller → mirror in the next free colour).
+> Checked by hand: P1 picking with P2 mirroring (no pads connected). Not yet tried by hand: two cursors on two pads.
+> Not built: the fighter isn't tinted in the chosen colour yet (recorded in the replay, not drawn).
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md) (§7 character data), then [README.md](README.md) in this
 folder.
 **Where:** `game/UI/CharacterSelect/` (new), `game/Online/MatchLineup.cs` (take the chosen characters and colours),
