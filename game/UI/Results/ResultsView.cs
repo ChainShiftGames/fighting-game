@@ -16,10 +16,13 @@ public partial class ResultsView : CanvasLayer
     // The same layer as MenuView: above the match and the training menu, below the options menu.
     private const int MenuLayer = 6;
     private const float EntryWidth = 420f;
-    private const float MarkerSize = 44f;
+    private const float MarkerSize = 36f;
 
-    // Like MenuView over a match: in the lower part, under the KO / winner banner.
-    private const float OverMatchTop = 0.4f;
+    // Under the HUD's round banner, which already announces the winner in large letters: the title here is a
+    // smaller line in the winner's colour, so the whole column fits below the banner.
+    private const float OverMatchTop = 0.44f;
+    private const int TitleFontSize = 34;
+    private const int ColumnSeparation = 4;
 
     private static readonly Color _neutral = new(1f, 1f, 1f);
 
@@ -54,6 +57,8 @@ public partial class ResultsView : CanvasLayer
         root.AddChild(new Panel { AnchorRight = 1f, AnchorBottom = 1f, ThemeTypeVariation = "MenuOverlayBackdrop" });
         root.AddChild(_centre);
         var column = new VBoxContainer { ThemeTypeVariation = "MenuColumn" };
+        column.AddThemeConstantOverride("separation", ColumnSeparation);
+        _title.AddThemeFontSizeOverride("font_size", TitleFontSize);
         column.AddChild(_title);
         column.AddChild(_body);
         column.AddChild(_entries);
