@@ -7,7 +7,8 @@ namespace FightingGame.UI.Framework;
 
 /// <summary>
 /// Turns key, joypad button and stick changes into <see cref="MenuPress"/>es through <see cref="MenuBindings"/>, and
-/// repeats held directions (<see cref="MenuTiming"/>) so long lists scroll.
+/// repeats held directions (<see cref="MenuTiming"/>) so long lists scroll. Holding the default back control long
+/// enough is back even when it is bound to something else (<see cref="MenuBindings.FallbackHoldMilliseconds"/>).
 /// </summary>
 public sealed class MenuActionReader
 {
@@ -33,11 +34,16 @@ public sealed class MenuActionReader
 
     /// <summary>A key went down or up; returns the press it makes, if any.</summary>
     public MenuPress? KeyChanged(Key key, bool pressed, long nowMilliseconds) => Change(
-        new HeldControl(MenuDevice.Keyboard, ControlKind.Key, (int)key), _bindings.ForKey(key), pressed, nowMilliseconds);
+        new HeldControl(MenuDevice.Keyboard, ControlKind.Key, (int)key),
+        _bindings.ForKey(key),
+        key == MenuBindings.FallbackBackKey,
+        pressed,
+        nowMilliseconds);
 
     public MenuPress? ButtonChanged(int device, JoyButton button, bool pressed, long nowMilliseconds) => Change(
         new HeldControl(MenuDevice.Gamepad(device), ControlKind.PadButton, (int)button),
-        _bindings.ForButton(button),
+        _bindings.ForButton(device, button),
+        button == MenuBindings.FallbackBackButton,
         pressed,
         nowMilliseconds);
 
@@ -54,17 +60,26 @@ public sealed class MenuActionReader
         {
             var control = new HeldControl(MenuDevice.Gamepad(device), ControlKind.Stick, StickCode(axis, side));
             bool pushed = side * value > _timing.StickDeadzone;
-            press = Change(control, StickAction(axis, side), pushed, nowMilliseconds) ?? press;
+            press = Change(control, StickAction(axis, side), isFallbackBack: false, pushed, nowMilliseconds) ?? press;
         }
 
         return press;
     }
 
-    /// <summary>Adds the repeats due now of every held direction to <paramref name="presses"/>, one per control.</summary>
+    /// <summary>
+    /// Adds the repeats due now of every held direction to <paramref name="presses"/>, one per control, and back for
+    /// a default back control held long enough.
+    /// </summary>
     public void AddRepeats(long nowMilliseconds, List<MenuPress> presses)
     {
         foreach ((HeldControl control, Hold hold) in _held)
         {
+            if (hold.FallbackAt is { } fallbackAt && nowMilliseconds >= fallbackAt)
+            {
+                hold.FallbackAt = null;
+                presses.Add(new MenuPress(MenuAction.Back, control.Device));
+            }
+
             MenuAction directions = hold.Actions & MenuAction.Directions;
             if (directions == MenuAction.None || nowMilliseconds < hold.NextRepeat)
             {
@@ -119,9 +134,12 @@ public sealed class MenuActionReader
 
     private static int StickCode(JoyAxis axis, int side) => ((int)axis * 2) + (side > 0 ? 1 : 0);
 
-    private MenuPress? Change(HeldControl control, MenuAction actions, bool pressed, long nowMilliseconds)
+    // A default back control that no longer means back is still tracked, for the hold fallback.
+    private MenuPress? Change(
+        HeldControl control, MenuAction actions, bool isFallbackBack, bool pressed, long nowMilliseconds)
     {
-        if (actions == MenuAction.None)
+        bool needsFallback = isFallbackBack && (actions & MenuAction.Back) == 0;
+        if (actions == MenuAction.None && !needsFallback)
         {
             return null;
         }
@@ -138,8 +156,9 @@ public sealed class MenuActionReader
             return null;
         }
 
-        _held[control] = new Hold(actions, nowMilliseconds + _timing.RepeatDelayMilliseconds);
-        return new MenuPress(actions, control.Device);
+        long? fallbackAt = needsFallback ? nowMilliseconds + MenuBindings.FallbackHoldMilliseconds : null;
+        _held[control] = new Hold(actions, nowMilliseconds + _timing.RepeatDelayMilliseconds, fallbackAt);
+        return actions == MenuAction.None ? null : new MenuPress(actions, control.Device);
     }
 
     private bool IsStillHeld(HeldControl control, IDeviceState devices)
@@ -159,10 +178,13 @@ public sealed class MenuActionReader
 
     private readonly record struct HeldControl(MenuDevice Device, ControlKind Kind, int Code);
 
-    private sealed class Hold(MenuAction actions, long nextRepeat)
+    private sealed class Hold(MenuAction actions, long nextRepeat, long? fallbackAt)
     {
         public MenuAction Actions { get; } = actions;
 
         public long NextRepeat { get; set; } = nextRepeat;
+
+        /// <summary>When the hold fallback goes back; null when it doesn't, or already did.</summary>
+        public long? FallbackAt { get; set; } = fallbackAt;
     }
 }

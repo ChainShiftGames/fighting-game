@@ -26,7 +26,64 @@ MENU_SETTINGS_TAB_ONLINE,Online
 MENU_SETTINGS_TAB_LANGUAGE,Language
 MENU_SETTINGS_TAB_ACCESSIBILITY,Accessibility
 MENU_SETTINGS_DISPLAY_COMING,"Input display, damage numbers and HUD opacity are coming."
-MENU_SETTINGS_CONTROLS_COMING,Button remapping is coming.
+MENU_SETTINGS_CONTROLS_NOTE,"Each controller keeps its own layout, whichever side it plays on."
+MENU_CONTROLS_DEVICE_TITLE,{0}
+MENU_CONTROLS_KEYBOARD_INFO,"Rebind the keyboard's keys and menu keys, or load a preset."
+MENU_CONTROLS_PAD_INFO,"Rebind this controller's buttons, menu buttons and stick, or load a preset."
+MENU_CONTROLS_FALLBACK_HINT,Hold Esc or B (Circle) for 2 s to leave any screen.
+MENU_CONTROLS_TEST,Test – press anything: {0}
+MENU_CONTROLS_TEST_LOGIC,The game sees: {0}  (left + right = neutral; up + down = up)
+MENU_CONTROLS_DIRECTIONS,Directions
+MENU_CONTROLS_DIRECTIONS_TITLE,DIRECTIONS
+MENU_CONTROLS_BUTTONS,Buttons
+MENU_CONTROLS_BUTTONS_TITLE,BUTTONS
+MENU_CONTROLS_MENU_BUTTONS,Menu buttons
+MENU_CONTROLS_MENU_BUTTONS_TITLE,MENU BUTTONS
+MENU_CONTROLS_STICK,Stick and triggers
+MENU_CONTROLS_STICK_TITLE,STICK AND TRIGGERS
+MENU_CONTROLS_PRESETS,Presets
+MENU_CONTROLS_PRESETS_TITLE,PRESETS
+MENU_CONTROLS_PRESETS_INFO,Loading a preset replaces this layout.
+MENU_CONTROLS_PRESET_CURRENT,In use now.
+MENU_CONTROLS_PRESET_KEYBOARD,Keyboard: WASD
+MENU_CONTROLS_PRESET_KEYBOARD_ARROWS,Keyboard: arrows and numpad
+MENU_CONTROLS_PRESET_KEYBOARD_LEVERLESS,Leverless (keyboard mode)
+MENU_CONTROLS_PRESET_PAD,Pad: classic
+MENU_CONTROLS_PRESET_PAD_LEVERLESS,Leverless (pad mode)
+MENU_CONTROLS_PRESET_OLD_P2_KEYBOARD,Player 2's old keyboard layout
+MENU_CONTROLS_PRESET_OLD_P2_PAD,Player 2's old pad layout
+MENU_CONTROLS_RESET,Reset to default
+MENU_CONTROLS_CANCEL,Cancel
+MENU_CONTROLS_BINDING,{0}: {1}
+MENU_CONTROLS_UNBOUND,not bound
+MENU_CONTROLS_SHARED,{0} is also on {1}.
+MENU_CONTROLS_INPUT_AND,{0} and {1}
+MENU_CONTROLS_INPUT_UP,Up
+MENU_CONTROLS_INPUT_DOWN,Down
+MENU_CONTROLS_INPUT_LEFT,Left
+MENU_CONTROLS_INPUT_RIGHT,Right
+MENU_CONTROLS_INPUT_CONFIRM,Confirm
+MENU_CONTROLS_INPUT_BACK,Back
+MENU_CONTROLS_INPUT_BUTTON,{0}
+MENU_CONTROLS_BOUND_NOW,Bound now: {0}
+MENU_CONTROLS_CHANGE,Change
+MENU_CONTROLS_CHANGE_INFO,Press one control; it replaces the ones bound now.
+MENU_CONTROLS_ADD,Add another
+MENU_CONTROLS_ADD_INFO,Press one more control for this input.
+MENU_CONTROLS_REMOVE,Remove {0}
+MENU_CONTROLS_CAPTURE_TITLE,PRESS A CONTROL
+MENU_CONTROLS_CAPTURE,Press the control for {0} on {1}.
+MENU_CONTROLS_CAPTURE_TIME,Cancels in {0} s.
+MENU_CONTROLS_DUPLICATE_TITLE,ALREADY BOUND
+MENU_CONTROLS_DUPLICATE,{0} is already on {1}. Use it for {2}?
+MENU_CONTROLS_DUPLICATE_MOVE,Only for {0}
+MENU_CONTROLS_DUPLICATE_BOTH,Keep it on both
+MENU_CONTROLS_LEFT_STICK,Left stick
+MENU_CONTROLS_LEFT_STICK_INFO,Off for leverless controllers that also send stick directions.
+MENU_CONTROLS_DEADZONE,Stick deadzone (%)
+MENU_CONTROLS_DEADZONE_INFO,How far the stick moves before it counts as a direction.
+MENU_CONTROLS_TRIGGER_THRESHOLD,Trigger threshold (%)
+MENU_CONTROLS_TRIGGER_THRESHOLD_INFO,How far a trigger bound as a button is pulled before it counts.
 MENU_SETTINGS_ACCESSIBILITY_COMING,Accessibility options are coming.
 MENU_SETTINGS_SCREEN_MODE,Window mode
 MENU_SETTINGS_SCREEN_MODE_INFO,Exclusive fullscreen has the lowest latency; borderless switches away faster.

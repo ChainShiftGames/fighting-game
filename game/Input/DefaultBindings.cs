@@ -2,7 +2,7 @@ using System.IO;
 
 namespace FightingGame.Input;
 
-/// <summary>The default bindings file (<c>default_bindings.jsonc</c>), embedded in the game assembly.</summary>
+/// <summary>The built-in controller layouts (<c>default_bindings.jsonc</c>), embedded in the game assembly.</summary>
 public static class DefaultBindings
 {
     private const string Resource = "FightingGame.Input.default_bindings.jsonc";

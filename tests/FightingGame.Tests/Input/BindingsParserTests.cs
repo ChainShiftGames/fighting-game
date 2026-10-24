@@ -11,10 +11,10 @@ public sealed class BindingsParserTests
     private const string NoBindings = "{}";
 
     [Fact]
-    public void TheDefaultsBindEveryButtonForBothPlayersOnBothDevices()
+    public void TheOldDefaultsBindEveryButtonForBothPlayersOnBothDevices()
     {
         ButtonSet buttons = TestButtons.Repository;
-        foreach (PlayerBindings player in TestButtons.Defaults())
+        foreach (PlayerBindings player in TestButtons.OldDefaults())
         {
             for (int button = 0; button < buttons.Count; button++)
             {
@@ -80,7 +80,7 @@ public sealed class BindingsParserTests
     {
         var parser = new BindingsParser(buttons: null, playerCount: 2);
 
-        PlayerBindings[]? bindings = parser.Parse(DefaultBindings.ReadJson());
+        PlayerBindings[]? bindings = parser.Parse(OldDevBindings.Defaults);
 
         Assert.Empty(parser.Errors);
         Assert.Equal(4, bindings![0].Keyboard.Keys.Length);

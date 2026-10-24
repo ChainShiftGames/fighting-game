@@ -45,10 +45,26 @@ public sealed class BindingTargets
         return false;
     }
 
+    /// <summary>The input a single input word bit is bound as; false for no input or several bits.</summary>
+    public bool TryGetName(ushort mask, out string name)
+    {
+        foreach (string input in Names())
+        {
+            if (TryGetMask(input, out ushort inputMask) && inputMask == mask)
+            {
+                name = input;
+                return true;
+            }
+        }
+
+        name = string.Empty;
+        return false;
+    }
+
     public bool HasButtons => _buttons is not null;
 
-    /// <summary>All valid names, for error messages.</summary>
-    public string Describe()
+    /// <summary>All valid names: the four directions, then the buttons in button set order.</summary>
+    public string[] Names()
     {
         int count = _buttons?.Count ?? 0;
         string[] names = new string[_directions.Length + count];
@@ -62,6 +78,9 @@ public sealed class BindingTargets
             names[_directions.Length + button] = _buttons!.IdOf(button);
         }
 
-        return string.Join(", ", names);
+        return names;
     }
+
+    /// <summary>All valid names, for error messages.</summary>
+    public string Describe() => string.Join(", ", Names());
 }

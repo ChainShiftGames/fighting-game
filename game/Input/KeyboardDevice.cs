@@ -2,7 +2,7 @@ using Sim.Input;
 
 namespace FightingGame.Input;
 
-/// <summary>Reads one player's bound keys into a raw input word.</summary>
+/// <summary>Reads the keyboard into a raw input word through a keyboard layout.</summary>
 public sealed class KeyboardDevice : IInputDevice
 {
     private readonly KeyBinding[] _keys;

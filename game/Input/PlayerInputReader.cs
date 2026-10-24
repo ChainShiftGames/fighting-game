@@ -22,9 +22,13 @@ public sealed class PlayerInputReader
         _devices = devices;
     }
 
-    /// <summary>One reader per player in <paramref name="assignment"/>.</summary>
+    /// <summary>
+    /// One reader per player in <paramref name="assignment"/>. Called as a match starts, so it also compiles each
+    /// device's layout as it is now (<see cref="InputDeviceReader.Resolve"/>).
+    /// </summary>
     public static PlayerInputReader[] All(PlayerDevices assignment, InputDeviceReader devices)
     {
+        devices.Resolve();
         var players = new PlayerInputReader[assignment.PlayerCount];
         for (int player = 0; player < players.Length; player++)
         {
@@ -41,7 +45,7 @@ public sealed class PlayerInputReader
         ushort bits = 0;
         for (int index = 0; index < assigned.Count; index++)
         {
-            bits |= _devices.Read(assigned[index], _player).Bits;
+            bits |= _devices.Read(assigned[index]).Bits;
         }
 
         return new InputWord(bits);
