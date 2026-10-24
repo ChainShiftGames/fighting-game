@@ -1,5 +1,14 @@
 # UI-09 Settings menu
 
+> **Done:** merged in [PR 109](https://github.com/ChainShiftGames/fighting-game/pull/109) on 2026-10-24.
+> Decisions: [ADR-0046](../../adr/0046-settings-menu.md) (a setting = value + one `SettingsTabs` entry + optional
+> applier; applied at once, saved on leaving; window mode/size "Keep this?" 10 s; settings file `schemaVersion` 2;
+> F12 overlay gone). Not built: UI scale, gameplay display options (nothing in presentation to switch yet).
+> Checked in the editor's embedded window with the keyboard: every tab, the keep countdown reverting, the reset
+> question, saving on back. Not yet tried by hand: gamepad, settings surviving a restart, hearing the volumes, window
+> mode/size in the standalone game. Known issue: the column is centred, so the tab picker moves between short and
+> long tabs (needs a `MenuView` change).
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md) (§6 settings audiences),
 [ADR-0004](../../adr/0004-game-loop-and-camera.md) (vsync), [ADR-0005](../../adr/0005-online-architecture.md) §4
 (input delay), then [README.md](README.md) in this folder.
