@@ -1,5 +1,14 @@
 # UI-10 Controls: rebinding and controller profiles
 
+> **Done:** merged in [PR 112](https://github.com/ChainShiftGames/fighting-game/pull/112) on 2026-10-24.
+> Decisions: [ADR-0047](../../adr/0047-controller-profiles-and-rebinding.md) (one layout per device, the keyboard
+> has one; `user://controls.json`; `dev_bindings.jsonc` migrated once, then no longer read; layouts compiled at match
+> start, so pause-menu changes count from the next match).
+> Checked in the editor: Controls tab with keyboard + pad, test area, capture, duplicate question, migrating a real
+> dev bindings file. Not yet tried by hand: rebinding a pad and a leverless controller, a match with the new layout,
+> surviving a restart, a layout following its pad across sides, remapped menu buttons and the 2 s fallback.
+> Known issues: two identical pads can swap layouts across restarts if plugged in the other order; menus don't scroll.
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md) (§6: keybinds are player settings applied before the
 input word), [ADR-0010](../../adr/0010-attack-button-layout.md) (buttons), [ADR-0020](../../adr/0020-special-button-shortcuts.md)
 (special button), [ADR-0002](../../adr/0002-input-defaults.md) (SOCD is fixed), then [README.md](README.md).
