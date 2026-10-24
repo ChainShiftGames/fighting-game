@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FightingGame.Input;
 using FightingGame.Loop;
 using FightingGame.Online;
+using FightingGame.Settings;
 using FightingGame.UI.CharacterSelect;
 using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
@@ -10,6 +11,7 @@ using FightingGame.UI.MainMenu;
 using FightingGame.UI.Online;
 using FightingGame.UI.Results;
 using FightingGame.UI.Screens;
+using FightingGame.UI.Settings;
 using FightingGame.UI.SideSelect;
 using FightingGame.UI.Title;
 using Godot;
@@ -47,10 +49,14 @@ public partial class GameMenus : Node
     private CharacterSelectScreen? _characterSelect;
     private ResultsScreen? _results;
     private ReplayBrowserScreen? _replays;
+    private SettingsScreen? _options;
+    private SettingsScreen? _pauseOptions;
     private IMenuScreen[] _pausePath = [];
+    private IMenuScreen[] _pauseOptionsPath = [];
     private StartedMatch? _match;
     private string _note = string.Empty;
     private bool _isPaused;
+    private bool _isPauseOptionsOpen;
 
     /// <summary>Whether a menu is on screen, so the host puts its match messages in it instead of over it.</summary>
     public bool IsOpen => !_stack.IsEmpty;
@@ -69,6 +75,7 @@ public partial class GameMenus : Node
     /// <param name="players">Whose devices are whose: side select chooses it, character select moves each player's own cursor by it.</param>
     /// <param name="loadData">The game data, for the characters to pick from.</param>
     /// <param name="replays">The saved replays, for the replay browser.</param>
+    /// <param name="settings">The player settings, for the options menu.</param>
     public void Bind(
         MatchLauncher launcher,
         FrameStepping stepping,
@@ -76,7 +83,8 @@ public partial class GameMenus : Node
         IDeviceState devices,
         PlayerDevicesChoice players,
         Func<GameData> loadData,
-        ReplayFolder replays)
+        ReplayFolder replays,
+        CurrentPlayerSettings settings)
     {
         _launcher = launcher;
         _stepping = stepping;
@@ -104,13 +112,18 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
         _replays = new ReplayBrowserScreen(flow, new FolderReplayLibrary(replays, loadData));
         _screens.Add(FlowStep.Replays, _replays);
+        _options = CreateOptions(settings, isOverMatch: false, flow.Back);
+        _screens.Add(FlowStep.Options, _options);
         if (lobby is not null)
         {
             _lobby = new LobbyScreen(flow, launcher, lobby, launcher.PlayerName, () => _note, line => GD.Print(line));
             _screens.Add(FlowStep.Online, _lobby);
         }
 
-        _pausePath = [new PauseScreen(flow, launcher, () => _isPaused = false, () => _note)];
+        var pause = new PauseScreen(flow, launcher, () => _isPaused = false, () => _isPauseOptionsOpen = true, () => _note);
+        _pauseOptions = CreateOptions(settings, isOverMatch: true, () => _isPauseOptionsOpen = false);
+        _pausePath = [pause];
+        _pauseOptionsPath = [pause, _pauseOptions];
     }
 
     /// <summary>Shows the menu that fits now, or none; call once per displayed frame.</summary>
@@ -135,12 +148,30 @@ public partial class GameMenus : Node
             _isPaused = false;
         }
 
+        if (!_isPaused && _isPauseOptionsOpen)
+        {
+            // The pause menu closed around the options (Start, or the match ended): they still save.
+            _isPauseOptionsOpen = false;
+            _pauseOptions!.Leave();
+        }
+
         _replays!.Follow(_flow.Step == FlowStep.Replays);
-        IReadOnlyList<IMenuScreen> path = isPlaying ? (_isPaused ? _pausePath : []) : _screens.For(_flow.Path);
+        IReadOnlyList<IMenuScreen> pausePath = _isPauseOptionsOpen ? _pauseOptionsPath : _pausePath;
+        IReadOnlyList<IMenuScreen> path = isPlaying ? (_isPaused ? pausePath : []) : _screens.For(_flow.Path);
         if (_replays.Over is { } chosen && _flow.Step == FlowStep.Replays)
         {
             // The chosen replay (or the delete question) opens over the list, so back finds the list as it was.
             path = [.. path, chosen];
+        }
+
+        // The options menu's questions ("Keep this?", "Reset?") open over it the same way.
+        if (path.Count > 0 && path[^1] is SettingsScreen options)
+        {
+            options.Follow();
+            if (options.Over is { } question)
+            {
+                path = [.. path, question];
+            }
         }
 
         // A and B are also attack buttons: after the pause menu closes, the match waits until they are let go, so the
@@ -209,6 +240,14 @@ public partial class GameMenus : Node
     }
 
     private static long Now() => (long)Time.GetTicksMsec();
+
+    // The window sizes offered are those that fit the screen the game is on.
+    private static SettingsScreen CreateOptions(CurrentPlayerSettings settings, bool isOverMatch, Action close)
+    {
+        Vector2I screen = DisplayServer.ScreenGetUsableRect(DisplayServer.WindowGetCurrentScreen()).Size;
+        IReadOnlyList<SettingsTab> tabs = SettingsTabs.Create(WindowSizeChoices.For(screen.X, screen.Y, settings.Value));
+        return new SettingsScreen(tabs, settings, SettingsMenuTiming.Default, Now, isOverMatch, close);
+    }
 
     // Open menus take every press; during a match only Start, which pauses it. A pad's Start closes the pause menu
     // again even during the grace time: it was opened on purpose, not mashed into. (Escape is also back, so it goes

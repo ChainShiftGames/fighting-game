@@ -13,9 +13,51 @@ MENU_ONLINE_NEEDS_PLATFORM_INFO,"Steam isn't running: start Steam, then restart 
 MENU_REPLAYS,Replays
 MENU_REPLAYS_INFO,Watch saved matches.
 MENU_OPTIONS,Options
-MENU_OPTIONS_INFO,"Video, audio and controls."
-MENU_OPTIONS_FOR_NOW,Not here yet: F12 opens the options.
+MENU_OPTIONS_INFO,"Video, audio, online and language."
 MENU_NOT_YET,Not here yet.
+MENU_TITLE_OPTIONS,OPTIONS
+MENU_SETTINGS_TABS_HINT,LB / RB or Q / E: change tab. Changes are saved when you leave.
+MENU_SETTINGS_TAB,Tab
+MENU_SETTINGS_TAB_VIDEO,Video
+MENU_SETTINGS_TAB_AUDIO,Audio
+MENU_SETTINGS_TAB_DISPLAY,Gameplay display
+MENU_SETTINGS_TAB_CONTROLS,Controls
+MENU_SETTINGS_TAB_ONLINE,Online
+MENU_SETTINGS_TAB_LANGUAGE,Language
+MENU_SETTINGS_TAB_ACCESSIBILITY,Accessibility
+MENU_SETTINGS_DISPLAY_COMING,"Input display, damage numbers and HUD opacity are coming."
+MENU_SETTINGS_CONTROLS_COMING,Button remapping is coming.
+MENU_SETTINGS_ACCESSIBILITY_COMING,Accessibility options are coming.
+MENU_SETTINGS_SCREEN_MODE,Window mode
+MENU_SETTINGS_SCREEN_MODE_INFO,Exclusive fullscreen has the lowest latency; borderless switches away faster.
+MENU_SETTINGS_SCREEN_WINDOWED,Windowed
+MENU_SETTINGS_SCREEN_BORDERLESS,Borderless fullscreen
+MENU_SETTINGS_SCREEN_FULLSCREEN,Fullscreen
+MENU_SETTINGS_WINDOW_SIZE,Resolution
+MENU_SETTINGS_WINDOW_SIZE_VALUE,{0} × {1}
+MENU_SETTINGS_WINDOW_SIZE_WINDOWED_ONLY,Only in windowed mode.
+MENU_SETTINGS_VSYNC,Vsync
+MENU_SETTINGS_VSYNC_INFO,"On: no tearing. Off: about one frame less input latency, but the picture may tear."
+MENU_SETTINGS_VOLUME_MASTER,Master volume
+MENU_SETTINGS_VOLUME_MUSIC,Music volume
+MENU_SETTINGS_VOLUME_EFFECTS,Effects volume
+MENU_SETTINGS_VOLUME_VOICE,Voice volume
+MENU_SETTINGS_INPUT_DELAY,Input delay
+MENU_SETTINGS_INPUT_DELAY_INFO,Auto picks 1–2 frames from the ping. Applies from the next online match.
+MENU_SETTINGS_INPUT_DELAY_AUTO,Auto
+MENU_SETTINGS_INPUT_DELAY_FIXED,Fixed: {0}
+MENU_SETTINGS_LANGUAGE,Language
+MENU_SETTINGS_LANGUAGE_EN,English
+MENU_SETTINGS_RESET,Reset to defaults
+MENU_SETTINGS_RESET_INFO,Every {0} setting goes back to its default.
+MENU_SETTINGS_RESET_TITLE,RESET?
+MENU_SETTINGS_RESET_QUESTION,Reset every {0} setting to its default?
+MENU_SETTINGS_RESET_CONFIRM,Reset
+MENU_SETTINGS_RESET_CANCEL,Cancel
+MENU_SETTINGS_KEEP_TITLE,KEEP THIS?
+MENU_SETTINGS_KEEP_COUNTDOWN,Going back to the previous setting in {0} s.
+MENU_SETTINGS_KEEP,Keep
+MENU_SETTINGS_REVERT,Go back
 MENU_QUIT,Quit
 MENU_QUIT_INFO,Close the game.
 MENU_TITLE_QUIT,QUIT?
