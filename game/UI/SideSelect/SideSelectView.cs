@@ -18,8 +18,9 @@ public partial class SideSelectView : CanvasLayer
     private const int MenuLayer = 6;
     private const float ColumnWidth = 330f;
     private const float ColumnGap = 28f;
-    private const float BoardHeight = 420f;
+    private const float BoardHeight = 400f;
     private const float HeaderHeight = 58f;
+    private const int HeaderFontSize = 34;
     private const float TokenInset = 14f;
     private const float TokenHeight = 66f;
     private const float TokenGap = 10f;
@@ -127,8 +128,10 @@ public partial class SideSelectView : CanvasLayer
         {
             ThemeTypeVariation = "MenuTitle",
             HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
             Size = new Vector2(ColumnWidth, HeaderHeight),
         };
+        header.AddThemeFontSizeOverride("font_size", HeaderFontSize);
         if (side >= 0)
         {
             header.AddThemeColorOverride("font_color", border);
