@@ -97,6 +97,32 @@ public sealed class ReplayBrowserScreenTests
     }
 
     [Fact]
+    public void ALongListShowsAPageAtATime()
+    {
+        _library.Entries.Clear();
+        for (int i = 0; i < (2 * ReplayBrowserScreen.PageSize) + 1; i++)
+        {
+            _library.Entries.Add(_playable with { Path = $"{i}.fgreplay", SavedAt = _savedAt.AddMinutes(-i) });
+        }
+
+        _screen.Follow(isShown: false);
+        _screen.Follow(isShown: true);
+        Assert.Equal(ReplayBrowserScreen.PageSize + 2, _screen.Items.Count);
+        Assert.EndsWith("1–5 of 11", MenuTextTable.Formatter.FormatLines(_screen.Body), StringComparison.Ordinal);
+        Assert.Equal(["Older replays", "Back"], Labels(_screen)[^2..]);
+
+        Choose(_screen, ReplayBrowserScreen.PageSize);
+        Choose(_screen, ReplayBrowserScreen.PageSize);
+        Assert.Equal(["2026-10-17 13:53   Testman (colour 1) vs Ken (colour 3)", "Newer replays", "Back"], Labels(_screen));
+
+        // Deleting the only replay on the last page goes back a page.
+        Choose(_screen, 0);
+        Choose(_screen.Over!, 1);
+        Choose(_screen.Over!, 0);
+        Assert.EndsWith("6–10 of 10", MenuTextTable.Formatter.FormatLines(_screen.Body), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AFolderThatCantBeReadSaysWhy()
     {
         _library.Failure = new IOException("Access denied.");

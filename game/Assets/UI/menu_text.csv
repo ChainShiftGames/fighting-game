@@ -77,6 +77,9 @@ REPLAY_TITLE_ENTRY,REPLAY
 REPLAY_TITLE_DELETE,DELETE REPLAY?
 REPLAY_NONE,"No replays saved yet: every match you play is saved here."
 REPLAY_HINT,Newest first. Choose one to watch or delete it.
+REPLAY_PAGE,{0}–{1} of {2}
+REPLAY_OLDER,Older replays
+REPLAY_NEWER,Newer replays
 REPLAY_ENTRY,{0}   {1} vs {2}
 REPLAY_PLAYER,{0} (colour {1})
 REPLAY_ENTRY_UNSUPPORTED,{0}   unsupported

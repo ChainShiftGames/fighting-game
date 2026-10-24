@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
@@ -8,15 +9,21 @@ using Sim.Data.Validation;
 namespace FightingGame.UI.Online;
 
 /// <summary>
-/// The replay browser: saved replays newest first (date, characters, colours). Choosing one opens it to watch or delete
-/// (<see cref="Over"/>); a replay from another game version is listed as unsupported and can't be watched (ADR-0018).
+/// The replay browser: saved replays newest first (date, characters, colours), a page at a time. Choosing one opens it
+/// to watch or delete (<see cref="Over"/>); a replay from another game version is listed as unsupported and can't be
+/// watched (ADR-0018).
 /// </summary>
+/// <remarks>Pages because menu lists don't scroll: a page always fits on screen.</remarks>
 public sealed class ReplayBrowserScreen : IMenuScreen
 {
+    /// <summary>Replays on one page (developer setting): as many as fit under the title with the page buttons.</summary>
+    public const int PageSize = 5;
+
     private readonly GameFlow _flow;
     private readonly IReplayLibrary _library;
     private IReadOnlyList<ReplayEntry> _entries = [];
     private MenuText _problem = MenuText.Empty;
+    private int _page;
     private bool _isOpen;
 
     public ReplayBrowserScreen(GameFlow flow, IReplayLibrary library)
@@ -27,20 +34,56 @@ public sealed class ReplayBrowserScreen : IMenuScreen
 
     public MenuText Title { get; } = MenuText.Key("REPLAY_TITLE");
 
-    public IReadOnlyList<MenuText> Body =>
-        !_problem.IsEmpty ? [_problem] : [MenuText.Key(_entries.Count == 0 ? "REPLAY_NONE" : "REPLAY_HINT")];
+    public IReadOnlyList<MenuText> Body
+    {
+        get
+        {
+            if (!_problem.IsEmpty)
+            {
+                return [_problem];
+            }
+
+            if (_entries.Count == 0)
+            {
+                return [MenuText.Key("REPLAY_NONE")];
+            }
+
+            int first = _page * PageSize;
+            return
+            [
+                MenuText.Key("REPLAY_HINT"),
+                MenuText.Key(
+                    "REPLAY_PAGE",
+                    (first + 1).ToString(CultureInfo.InvariantCulture),
+                    Math.Min(first + PageSize, _entries.Count).ToString(CultureInfo.InvariantCulture),
+                    _entries.Count.ToString(CultureInfo.InvariantCulture)),
+            ];
+        }
+    }
 
     public IReadOnlyList<MenuItem> Items
     {
         get
         {
             var items = new List<MenuItem>();
-            foreach (ReplayEntry entry in _entries)
+            int first = _page * PageSize;
+            for (int i = first; i < _entries.Count && i < first + PageSize; i++)
             {
+                ReplayEntry entry = _entries[i];
                 items.Add(new ButtonItem(ReplayEntryText.Label(entry), () => Choose(entry))
                 {
                     Description = entry.IsPlayable ? MenuText.Empty : ReplayEntryText.Reason(entry),
                 });
+            }
+
+            if (_page < LastPage)
+            {
+                items.Add(new ButtonItem(MenuText.Key("REPLAY_OLDER"), () => _page++));
+            }
+
+            if (_page > 0)
+            {
+                items.Add(new ButtonItem(MenuText.Key("REPLAY_NEWER"), () => _page--));
             }
 
             items.Add(new ButtonItem(MenuText.Key("MENU_BACK"), _flow.Back));
@@ -52,6 +95,8 @@ public sealed class ReplayBrowserScreen : IMenuScreen
 
     /// <summary>The replay chosen, or the question whether to delete it, shown over the list; null for none.</summary>
     public IMenuScreen? Over { get; private set; }
+
+    private int LastPage => Math.Max(0, (_entries.Count - 1) / PageSize);
 
     public bool Back()
     {
@@ -76,6 +121,7 @@ public sealed class ReplayBrowserScreen : IMenuScreen
         if (!_isOpen)
         {
             _isOpen = true;
+            _page = 0;
             Reload();
         }
     }
@@ -108,6 +154,9 @@ public sealed class ReplayBrowserScreen : IMenuScreen
         {
             _entries = _library.List();
             _problem = MenuText.Empty;
+
+            // A delete can empty the last page.
+            _page = Math.Min(_page, LastPage);
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or DataValidationException or InvalidDataException)
