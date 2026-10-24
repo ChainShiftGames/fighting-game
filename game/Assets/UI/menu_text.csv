@@ -112,3 +112,13 @@ REPLAY_WATCH,Watch
 REPLAY_DELETE,Delete
 REPLAY_DELETE_BODY,This deletes the replay for good.
 REPLAY_DELETE_FAILED,Couldn't delete the replay: {0}
+MENU_TITLE_SIDE_SELECT,CHOOSE YOUR SIDE
+MENU_SIDES_NOT_PLAYING,Not playing
+MENU_SIDES_KEYBOARD,Keyboard
+MENU_SIDES_READY,Ready ✓
+MENU_SIDES_FREE,Slide a controller here
+MENU_SIDES_CONFIRM,Confirm to ready
+MENU_SIDES_DUMMY,Training dummy
+MENU_SIDES_HINT,Left and right to choose a side · Confirm to ready · Back to undo
+MENU_SIDES_ALL_READY,Ready!
+MENU_SIDES_NEED_CONTROLLER,Connect a controller for P2
