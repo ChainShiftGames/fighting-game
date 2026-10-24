@@ -2,6 +2,8 @@
   <!-- Shared settings for every project (ARCHITECTURE.md §5, ADR-0001). Versions are pinned in ADR-0001. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- The release version (ADR-0044): the only place it is set. game/project.godot repeats it (a test checks). -->
+    <Version>0.1.0</Version>
     <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
     <!-- Off so no `using System.Linq;` sneaks into Sim; every using is explicit. -->

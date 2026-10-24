@@ -39,7 +39,7 @@
 
 - Task work: `<area>/<nn>-<short-name>`, from the brief's file name (`ui/01-menu-framework`). Task briefs:
   [docs/tasks/README.md](docs/tasks/README.md).
-- Other work: `docs/<short-name>` or `fix/<short-name>`.
+- Other work: `docs/<short-name>` or `fix/<short-name>`; releases: `release/<version>`.
 
 ## Commits
 
@@ -54,3 +54,15 @@ Co-Authored-By: <agent name> <noreply@…>   ← agent commits only
 
 - No task ID for non-task work: just the imperative summary.
 - One logical change per commit; PR title = the task's commit summary.
+
+## Releases
+
+Version rules: [ADR-0044](docs/adr/0044-release-versioning.md).
+
+1. Branch `release/<version>` from `main`. Set the version in `Directory.Build.props` and `game/project.godot`
+   (`config/version`); `dotnet test` checks they match.
+2. Add a `## <version> (YYYY-MM-DD)` section to `CHANGELOG.md` from the PRs merged since the last tag
+   (`git log --merges --oneline <last tag>..main`): player-facing bullets.
+3. PR `Release <version>`; once merged, tag the merge commit on `main` and push the tag:
+   `git tag -a v<version> -m "Release <version>"`, then `git push origin v<version>`.
+4. Export the builds from that tag.
