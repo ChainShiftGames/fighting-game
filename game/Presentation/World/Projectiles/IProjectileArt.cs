@@ -9,5 +9,6 @@ public interface IProjectileArt
     /// <param name="frame">Frame of its life, 1 on the frame it spawned: the animation frame, never elapsed time.</param>
     /// <param name="centre">The centre of its hitbox on the gameplay plane, in metres.</param>
     /// <param name="facing">1 flying right, -1 flying left.</param>
-    void ShowFrame(int frame, Vector3 centre, int facing);
+    /// <param name="lifetime">Its last frame (from its data), so a lasting effect can die down before it ends.</param>
+    void ShowFrame(int frame, Vector3 centre, int facing, int lifetime);
 }

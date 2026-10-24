@@ -28,6 +28,10 @@ public readonly record struct ProjectileData
 
     public int BoxCount { get; init; }
 
-    /// <summary>What it does to the fighter it touches (one hit, then it disappears).</summary>
+    /// <summary>Frames before it can land again; 0 = it disappears on its first hit or block.</summary>
+    /// <remarks>Above 0 it stays out after landing (a lingering fire, a trap) until its lifetime or a clash ends it.</remarks>
+    public int RehitInterval { get; init; }
+
+    /// <summary>What it does to the fighter it touches (one hit, then it disappears, unless it rehits).</summary>
     public HitData Hit { get; init; }
 }

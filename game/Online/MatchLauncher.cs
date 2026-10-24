@@ -9,29 +9,30 @@ namespace FightingGame.Online;
 /// <summary>
 /// Starts the match the player picks (<see cref="LaunchMode"/>) and hands it over once it can start: at once on this
 /// PC, whenever the lobby has both players ready for Steam ones (the first match and every rematch). The command line
-/// can pick one at startup instead of the main menu (development): a replay, direct UDP or <c>--training</c>. Steam
-/// matches always start from the main menu's Online entry.
+/// can pick one at startup instead of the menus (development): a replay, direct UDP or <c>--training</c>. Steam
+/// matches always start from the main menu's Online entry. The menus' flow decides when (<see cref="IMatchStarter"/>).
 /// </summary>
 /// <remarks>
 /// The platform's matchmaking stays open the whole time, so a friend's invite accepted in Steam goes to the online
 /// lobby from anywhere: the main menu, or ending a match on this PC.
 /// </remarks>
-public sealed class MatchLauncher : IDisposable
+public sealed class MatchLauncher : IMatchStarter, IDisposable
 {
-    private readonly Func<StartedMatch?> _createVersus;
-    private readonly Func<StartedMatch?> _createTraining;
+    private readonly Func<MatchSetup, StartedMatch?> _createVersus;
+    private readonly Func<MatchSetup, StartedMatch?> _createTraining;
     private readonly Func<OnlineOpponent, StartedMatch?> _createOnline;
+    private readonly Func<string, StartedMatch?> _createReplay;
     private Func<StartedMatch?>? _restart;
     private bool _restartRequested;
     private StartedMatch? _readyMatch;
 
-    /// <param name="createVersus">Builds the local two-player match; null when it can't (the host shows why).</param>
-    /// <param name="createTraining">Builds the training match; null when it can't.</param>
+    /// <param name="createVersus">Builds the local two-player match picked; null when it can't (the host shows why).</param>
+    /// <param name="createTraining">Builds the training match picked; null when it can't.</param>
     /// <param name="createOnline">Builds an online match against the opponent; null when it can't.</param>
     /// <param name="createReplay">Plays the replay file at the path back; null when it can't.</param>
     public MatchLauncher(
-        Func<StartedMatch?> createVersus,
-        Func<StartedMatch?> createTraining,
+        Func<MatchSetup, StartedMatch?> createVersus,
+        Func<MatchSetup, StartedMatch?> createTraining,
         Func<OnlineOpponent, StartedMatch?> createOnline,
         Func<string, StartedMatch?> createReplay,
         IPlatformServices platform,
@@ -40,8 +41,10 @@ public sealed class MatchLauncher : IDisposable
         _createVersus = createVersus;
         _createTraining = createTraining;
         _createOnline = createOnline;
+        _createReplay = createReplay;
         Matchmaking = platform.OpenMatchmaking();
         PlatformName = platform.PlatformName;
+        PlayerName = platform.PlayerName;
         string? replay = ReplayLaunchOptions.ParsePath(args, out string replayError);
         if (replayError.Length > 0)
         {
@@ -66,10 +69,12 @@ public sealed class MatchLauncher : IDisposable
 
             if (TrainingLaunchOptions.WantsTraining(args))
             {
-                StartTraining();
+                Start(MatchSetup.For(LaunchMode.Training));
             }
         }
     }
+
+    public event Action? OnlineJoined;
 
     public LaunchMode Mode { get; private set; } = LaunchMode.MainMenu;
 
@@ -79,17 +84,32 @@ public sealed class MatchLauncher : IDisposable
     /// <summary>The platform's name for the player, e.g. why online play isn't there ("Offline").</summary>
     public string PlatformName { get; }
 
+    /// <summary>This player's name on the platform, as the lobby shows it.</summary>
+    public string PlayerName { get; }
+
+    /// <summary>After an online match: this player wants the rematch and the other hasn't said yet.</summary>
+    public bool IsWaitingForRematch =>
+        Mode == LaunchMode.Online && Matchmaking?.Lobby is { Stage: LobbyStage.Rematch, IsLocalReady: true };
+
     /// <summary>Whether a finished match can be played again: a new match on this PC, or a rematch in the lobby.</summary>
     public bool CanRematch => Mode is LaunchMode.Online || _restart is not null;
 
     /// <summary>Whether a match or the lobby is on this PC only, so it can start over (rematch, data saved).</summary>
     public bool IsLocal => Mode is LaunchMode.Versus or LaunchMode.Training or LaunchMode.Replay;
 
-    public void StartVersus() => Play(LaunchMode.Versus, _createVersus);
+    public void Start(MatchSetup setup)
+    {
+        Func<MatchSetup, StartedMatch?> create = setup.Mode switch
+        {
+            LaunchMode.Versus => _createVersus,
+            LaunchMode.Training => _createTraining,
+            _ => throw new ArgumentException($"{setup.Mode} matches don't start from a setup.", nameof(setup)),
+        };
+        Play(setup.Mode, () => create(setup));
+    }
 
-    public void StartTraining() => Play(LaunchMode.Training, _createTraining);
+    public void Watch(string replayPath) => Play(LaunchMode.Replay, () => _createReplay(replayPath));
 
-    /// <summary>Goes to the online lobby. False when the platform has no online play.</summary>
     public bool OpenOnline()
     {
         if (Matchmaking is null)
@@ -103,7 +123,7 @@ public sealed class MatchLauncher : IDisposable
     }
 
     /// <summary>
-    /// After a finished match: plays the same mode again on this PC, or marks this player ready for a rematch in the
+    /// After a finished match: plays the same setup again on this PC, or marks this player ready for a rematch in the
     /// lobby (it starts once both are).
     /// </summary>
     public void Rematch()
@@ -130,8 +150,7 @@ public sealed class MatchLauncher : IDisposable
         return true;
     }
 
-    /// <summary>Back to the main menu: ends the running match, and leaves the lobby.</summary>
-    public void ReturnToMainMenu()
+    public void Stop()
     {
         Leave();
         Mode = LaunchMode.MainMenu;
@@ -158,7 +177,8 @@ public sealed class MatchLauncher : IDisposable
         }
 
         StartedMatch? match = _createOnline(
-            new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0));
+            new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0)
+                .WithPicks(found.LocalPick, found.OpponentPick));
         if (match is null)
         {
             // The host shows why; the lobby offers to try again.
@@ -183,6 +203,7 @@ public sealed class MatchLauncher : IDisposable
             Mode = LaunchMode.Online;
             _restart = null;
             _restartRequested = false;
+            OnlineJoined?.Invoke();
         }
 
         if (current is null)

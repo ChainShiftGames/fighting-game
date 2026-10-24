@@ -5,16 +5,16 @@
   "category": "special",
   "usableIn": "ground",
   "input": { "motion": "236", "button": "c" },
-  "frameData": { "startup": 33, "active": 1, "recovery": 32 },
+  "frameData": { "startup": 16, "active": 1, "recovery": 30 },
   "boxes": [
-    { "kind": "hurt", "firstFrame": 1, "lastFrame": 65, "x": -25000, "y": 0, "width": 55000, "height": 115000 },
-    { "kind": "push", "firstFrame": 1, "lastFrame": 65, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
+    { "kind": "hurt", "firstFrame": 1, "lastFrame": 46, "x": -25000, "y": 0, "width": 55000, "height": 115000 },
+    { "kind": "push", "firstFrame": 1, "lastFrame": 46, "x": -20000, "y": 0, "width": 40000, "height": 110000 }
   ],
   "projectiles": [
     {
-      "spawnFrame": 33,
-      "offset": { "x": 45000, "y": 55000 },
-      "velocity": { "x": 13000 },
+      "spawnFrame": 16,
+      "offset": { "x": 84000, "y": 77000 },
+      "velocity": { "x": 6500 },
       "lifetime": 120,
       "durability": 1,
       "boxes": [

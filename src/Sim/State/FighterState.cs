@@ -96,6 +96,12 @@ public struct FighterState
     /// <summary>Speed off the wall on this juggle's next wall touch (x away from it); x 0 = none.</summary>
     public IntVector2 WallBounce;
 
+    /// <summary>
+    /// Hits this fighter has taken in the current true combo (<c>Sim.Combat.ComboEndStage</c>): counted as hits land,
+    /// back to 0 once it can act or block again, so a hit it could have escaped starts a new count.
+    /// </summary>
+    public int ComboHits;
+
     /// <summary>One bit per fighter flag of <c>data/rules/flags.json</c> (ADR-0023): stances, installs, locks.</summary>
     /// <remarks>
     /// Set and cleared by attacks as they start (their data), by being hit (flags marked so), and by module requests.

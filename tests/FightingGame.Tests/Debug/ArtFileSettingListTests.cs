@@ -19,7 +19,7 @@ public sealed class ArtFileSettingListTests : IDisposable
         WriteArtFile("box", "{ \"art\": \"placeholder\" }");
         Directory.CreateDirectory(Path.Combine(_root, "no_art_file"));
 
-        DataFileSetting[] settings = ArtFileSettingList.CameraTurns(_root);
+        DataFileSetting[] settings = ArtFileSettingList.LookSettings(_root);
 
         Assert.Equal(["ann/ann_art.json", "zed/zed_art.json"], Array.ConvertAll(settings, setting => setting.File));
         Assert.Equal(10, settings[0].Read(_root));
@@ -27,9 +27,46 @@ public sealed class ArtFileSettingListTests : IDisposable
     }
 
     [Fact]
+    public void ListsTheReHitFadeAndTheClipStartOfEachAnimatedReaction()
+    {
+        WriteArtFile("ann", """
+            {
+              "art": "model",
+              "animations": {
+                "idle": { "clip": "idle" },
+                "hitstun": { "clip": "hit", "speed": 1.5 },
+                "air_hitstun": { "clip": "air", "clipFrom": 4, "clipTo": 30 }
+              }
+            }
+            """);
+
+        DataFileSetting[] settings = ArtFileSettingList.LookSettings(_root);
+
+        Assert.Equal(
+            ["reHitFadeFrames", "animations.hitstun.clipFrom", "animations.air_hitstun.clipFrom"],
+            Array.ConvertAll(settings, setting => setting.Key));
+        Assert.Equal([0, 0, 4], Array.ConvertAll(settings, setting => setting.Read(_root)));
+        Assert.Equal(29, settings[2].Max);
+    }
+
+    [Fact]
+    public void SavingAReactionsClipStartAddsItAndLeavesUnchangedRowsOut()
+    {
+        WriteArtFile("ann", "{ \"animations\": { \"hitstun\": { \"clip\": \"hit\" } } }");
+        DataFileSetting[] settings = ArtFileSettingList.LookSettings(_root);
+
+        settings[0].Write(_root, 0);
+        settings[1].Write(_root, 20);
+
+        Assert.Equal(
+            "{ \"animations\": { \"hitstun\": { \"clipFrom\": 20, \"clip\": \"hit\" } } }",
+            File.ReadAllText(Path.Combine(_root, "ann", "ann_art.json")));
+    }
+
+    [Fact]
     public void ListsNothingWithoutTheFolder()
     {
-        Assert.Empty(ArtFileSettingList.CameraTurns(Path.Combine(_root, "missing")));
+        Assert.Empty(ArtFileSettingList.LookSettings(Path.Combine(_root, "missing")));
     }
 
     private void WriteArtFile(string id, string json)

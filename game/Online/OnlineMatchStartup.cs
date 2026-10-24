@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
 using FightingGame.Input;
@@ -25,9 +27,8 @@ namespace FightingGame.Online;
 /// <summary>Builds an online match of the real game logic against one other PC, over a Backdash peer session, and records it.</summary>
 public sealed class OnlineMatchStartup
 {
-    private readonly PlayerBindings[] _bindings;
-    private readonly IDeviceState _devices;
-    private readonly JoypadRoster _joypads;
+    private readonly PlayerDevicesChoice _devices;
+    private readonly InputDeviceReader _reader;
     private readonly MatchLoopFactory _loops;
     private readonly DeveloperToggle _hitboxOverlay;
     private readonly EffectToggles _effectToggles;
@@ -35,7 +36,7 @@ public sealed class OnlineMatchStartup
     private readonly string _desyncFolder;
     private readonly string[] _args;
 
-    /// <param name="bindings">One per player on this PC (player settings).</param>
+    /// <param name="devices">Which devices the player on this PC reads (ADR-0038).</param>
     /// <param name="hitboxOverlay">Draws every box on top of the fighters (developer setting).</param>
     /// <param name="effectToggles">Switches each kind of event effect (developer settings).</param>
     /// <param name="networkSimulation">
@@ -47,9 +48,8 @@ public sealed class OnlineMatchStartup
     /// </param>
     /// <param name="args">Command line, for the online tuning options of <see cref="OnlineLaunchOptions"/>.</param>
     public OnlineMatchStartup(
-        PlayerBindings[] bindings,
-        IDeviceState devices,
-        JoypadRoster joypads,
+        PlayerDevicesChoice devices,
+        InputDeviceReader reader,
         MatchLoopFactory loops,
         DeveloperToggle hitboxOverlay,
         EffectToggles effectToggles,
@@ -57,9 +57,8 @@ public sealed class OnlineMatchStartup
         string desyncFolder,
         string[] args)
     {
-        _bindings = bindings;
         _devices = devices;
-        _joypads = joypads;
+        _reader = reader;
         _loops = loops;
         _hitboxOverlay = hitboxOverlay;
         _effectToggles = effectToggles;
@@ -82,21 +81,16 @@ public sealed class OnlineMatchStartup
     {
         PeerMatchSettings settings = Settings(online, opponent);
         InputDelaySettings delay = InputDelay(online, playerSettings);
-        MatchLineup lineup = MatchLineup.From(data);
+        MatchLineup lineup = MatchLineup.From(data, Pick(data, opponent.Player1Pick), Pick(data, opponent.Player2Pick));
 
-        // One player on this PC, on either player's keyboard bindings or the first joypad.
-        PlayerInputReader[] player =
-        [
-            new(
-                new KeyboardDevice(_bindings[0].Keyboard, _devices),
-                new KeyboardDevice(_bindings[1].Keyboard, _devices),
-                new GamepadDevice(_bindings[0].Gamepad, _devices, _joypads, slot: 0)),
-        ];
+        // One player on this PC: by default on the keyboard or the first joypad.
+        PlayerDevices assignment = _devices.Online();
+        PlayerInputReader[] player = PlayerInputReader.All(assignment, _reader);
         var handshake = new VersionHandshake(
             new MatchIdentity(GameVersion.Current, data.Hash.ToBytes(), lineup.Simulation.Rules));
         var recorder = new ReplayRecorder(lineup.CreateReplayHeader(data));
         var effects = new MatchEffects(
-            _effectToggles, new JoypadRumbleMotor(_joypads, RumbleSlots(settings)), EffectSettingsChoice.Load());
+            _effectToggles, new JoypadRumbleMotor(_devices.Roster, assignment, LocalPlayerOf(settings)), EffectSettingsChoice.Load());
 
         // The effects observe the recorded logic: both wrappers see every resimulated frame (ADR-0018 §4).
         InputDelayMatchDriver driver = PeerSession.CreateDriver(
@@ -104,6 +98,11 @@ public sealed class OnlineMatchStartup
         var connection = new ConnectionMeter(driver, opponent.Transport.Link, Stopwatch.Frequency);
         var view = new MatchView();
         view.Show(driver, lineup.Characters, lineup.Simulation.Rules, lineup.Screen, _hitboxOverlay, effects);
+
+        // No hold: a reconnected controller is just read again, and the toast says what happened.
+        var reconnect = new ControllerDisconnectOverlay();
+        reconnect.Watch(assignment, _devices.Roster, hold: null);
+        view.AddChild(reconnect);
 
         // An online match can't pause: the other player's game keeps running.
         MatchLoop<MatchState> loop = _loops.Create(driver, player, stepping: null);
@@ -116,10 +115,23 @@ public sealed class OnlineMatchStartup
             isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
     }
 
+    // A pick naming a character this build doesn't have stops the match with a message; it is never swapped for another.
+    private static FighterPick Pick(GameData data, string text)
+    {
+        FighterPick pick = OnlinePickText.Read(text);
+        if (pick.CharacterId is { } id && !data.Characters.Any(character => character.Id == id))
+        {
+            throw new InvalidDataException(
+                $"The other player picked '{id}', a character this version of the game doesn't have.");
+        }
+
+        return pick;
+    }
+
     // Only this PC's player rumbles, on the first joypad their input reads; the opponent's pad is on the other PC.
-    private static int[] RumbleSlots(PeerMatchSettings settings) => settings.LocalIsPlayer1
-        ? [0, JoypadRumbleMotor.NoSlot]
-        : [JoypadRumbleMotor.NoSlot, 0];
+    private static int[] LocalPlayerOf(PeerMatchSettings settings) => settings.LocalIsPlayer1
+        ? [0, JoypadRumbleMotor.NoLocalPlayer]
+        : [JoypadRumbleMotor.NoLocalPlayer, 0];
 
     // The command line's tuning options override the data's values for this match (exported builds can't edit data).
     private PeerMatchSettings Settings(OnlineSettings online, OnlineOpponent opponent)

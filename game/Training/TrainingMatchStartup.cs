@@ -19,9 +19,8 @@ public sealed class TrainingMatchStartup
     private const int GuardResetFrames = 20;
     private const int HealthRefillDelayFrames = 60;
 
-    private readonly PlayerBindings _bindings;
-    private readonly IDeviceState _devices;
-    private readonly JoypadRoster _joypads;
+    private readonly PlayerDevicesChoice _devices;
+    private readonly InputDeviceReader _reader;
     private readonly MatchLoopFactory _loops;
     private readonly FrameStepping _stepping;
     private readonly DeveloperToggle _hitboxOverlay;
@@ -32,11 +31,10 @@ public sealed class TrainingMatchStartup
     // Kept across training matches (restarts, reloaded data) while the game runs; never saved (P3-32).
     private readonly RecordingSlots _recordings = new();
 
-    /// <param name="bindings">Player 1's bindings (player settings): the training player.</param>
+    /// <param name="devices">Which devices the training player reads (ADR-0038).</param>
     public TrainingMatchStartup(
-        PlayerBindings bindings,
-        IDeviceState devices,
-        JoypadRoster joypads,
+        PlayerDevicesChoice devices,
+        InputDeviceReader reader,
         MatchLoopFactory loops,
         FrameStepping stepping,
         DeveloperToggle hitboxOverlay,
@@ -44,9 +42,8 @@ public sealed class TrainingMatchStartup
         CurrentTrainingSettings settings,
         TrainingMenu menu)
     {
-        _bindings = bindings;
         _devices = devices;
-        _joypads = joypads;
+        _reader = reader;
         _loops = loops;
         _stepping = stepping;
         _hitboxOverlay = hitboxOverlay;
@@ -55,12 +52,15 @@ public sealed class TrainingMatchStartup
         _menu = menu;
     }
 
-    public StartedMatch Create(GameData data)
+    public StartedMatch Create(GameData data, MatchSetup setup)
     {
-        MatchLineup lineup = MatchLineup.From(data);
+        MatchLineup lineup = MatchLineup.From(data, setup.Player1, setup.Player2);
         var timings = new TrainingTimings(GuardResetFrames, HealthRefillDelayFrames);
+        PlayerDevices assignment = _devices.Training();
         var effects = new MatchEffects(
-            _effectToggles, new JoypadRumbleMotor(_joypads, [0, JoypadRumbleMotor.NoSlot]), EffectSettingsChoice.Load());
+            _effectToggles,
+            new JoypadRumbleMotor(_devices.Roster, assignment, [0, JoypadRumbleMotor.NoLocalPlayer]),
+            EffectSettingsChoice.Load());
 
         var meter = new FrameMeter();
         IMatchSimulation<MatchState> simulation = new FrameMeterSimulation(
@@ -81,10 +81,11 @@ public sealed class TrainingMatchStartup
         view.AddChild(meterBar);
         _menu.Use(TrainingMenuEntries.Create(_settings, new TrainingSession(driver, meter, effects), _recordings));
 
-        PlayerInputReader player = new(
-            new KeyboardDevice(_bindings.Keyboard, _devices),
-            new GamepadDevice(_bindings.Gamepad, _devices, _joypads, slot: 0));
-        MatchLoop<MatchState> loop = _loops.Create(driver, [player], _stepping);
+        var disconnect = new ControllerDisconnectOverlay();
+        disconnect.Watch(assignment, _devices.Roster, hold => _stepping.IsWaitingForController = hold);
+        view.AddChild(disconnect);
+
+        MatchLoop<MatchState> loop = _loops.Create(driver, PlayerInputReader.All(assignment, _reader), _stepping);
         return new StartedMatch(loop, driver, view, () => $"training {lineup.Description}", connection: null);
     }
 }

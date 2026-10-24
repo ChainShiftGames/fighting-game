@@ -12,12 +12,15 @@ public enum LobbyStage
     /// <summary>In a lobby, as host or guest: waiting for an opponent, or for both players to be ready.</summary>
     InLobby,
 
-    /// <summary>Both players are ready: the game starts the match now (<see cref="LobbyFlow.TakeMatchToStart"/>).</summary>
+    /// <summary>Both players are ready in the lobby: each picks on character select (<see cref="LobbyFlow.Pick"/>).</summary>
+    Picking,
+
+    /// <summary>Both players are ready and picked: the game starts the match now (<see cref="LobbyFlow.TakeMatchToStart"/>).</summary>
     Starting,
 
     /// <summary>The match is being played.</summary>
     InMatch,
 
-    /// <summary>The match is over: both players ready again starts a rematch.</summary>
+    /// <summary>The match is over: both players ready again starts a rematch with the same picks.</summary>
     Rematch,
 }

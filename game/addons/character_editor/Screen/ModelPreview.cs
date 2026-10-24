@@ -12,7 +12,8 @@ namespace FightingGame.Addons.CharacterEditor.Screen;
 /// <summary>
 /// The character's rigged model, posed for the frame on the <see cref="BoxCanvas"/> and drawn behind its boxes, so
 /// boxes can be fitted to the body (ADR-0028). Renders off-screen, framed to the canvas's own origin and zoom; a
-/// character drawn as a placeholder has no model and the canvas shows its body box instead.
+/// character drawn as a placeholder has no model and the canvas shows its body box instead. The move's projectile
+/// effects (charge, then flight) are drawn with it, where the match draws them.
 /// </summary>
 [Tool]
 public partial class ModelPreview : SubViewport
@@ -33,6 +34,7 @@ public partial class ModelPreview : SubViewport
         Current = true,
     };
 
+    private readonly PreviewProjectiles _projectiles = new();
     private RiggedFighterModel? _model;
 
     public ModelPreview()
@@ -41,6 +43,7 @@ public partial class ModelPreview : SubViewport
         TransparentBg = true;
         RenderTargetUpdateMode = UpdateMode.Always;
         AddChild(_camera);
+        AddChild(_projectiles);
         AddChild(new DirectionalLight3D { RotationDegrees = _lightAngles });
         AddChild(new WorldEnvironment
         {
@@ -55,6 +58,14 @@ public partial class ModelPreview : SubViewport
 
     public bool HasModel => _model is not null;
 
+    /// <summary>How the model retimes a move's clip now; null without a model or a clip for the move.</summary>
+    public AnimationClipTiming? TimingOf(string moveId) => _model?.TimingOf(moveId);
+
+    /// <summary>Retimes the move's clip as the animation track edits it, until the character is shown again.</summary>
+    /// <returns>Why some of the timing was left out; empty when all of it applies.</returns>
+    public string Retime(string moveId, ContactFrames? contacts, IReadOnlyList<TimingKey> keys) =>
+        _model?.Retime(moveId, contacts, keys) ?? string.Empty;
+
     /// <summary>
     /// Loads the character's model from its art file, again on each call so Reload picks up art changes; null or a
     /// placeholder character clears it.
@@ -63,6 +74,10 @@ public partial class ModelPreview : SubViewport
     {
         _model?.QueueFree();
         _model = characterId is null ? null : FighterArtChoice.CreateModel(characterId, moveIds);
+        _projectiles.ShowCharacter(
+            characterId is not null && _model is not null && FighterArtChoice.ReadSettings(characterId) is { } art
+                ? art.Projectiles
+                : new Dictionary<string, Presentation.World.Projectiles.ProjectileArtSettings>());
         if (_model is not null)
         {
             AddChild(_model);
@@ -81,6 +96,7 @@ public partial class ModelPreview : SubViewport
         if (_model is not null && MovePose.Of(move, frame) is { } pose)
         {
             _model.ShowPose(pose, new IntVector2(0, 0), 1, _noBoxes);
+            _projectiles.ShowFrame(move, frame);
         }
     }
 }

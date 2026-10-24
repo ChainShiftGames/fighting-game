@@ -16,7 +16,8 @@ namespace Sim.Entities;
 /// - Touch: an entity that survives its clashes touches its owner's opponent when its hitboxes overlap the
 ///   opponent's hurtboxes and the opponent isn't invulnerable on its move frame (the same rule as fighter attacks).
 ///   The touch also goes into <see cref="HitContacts"/>, so a same-frame exchange counts it.
-/// Entities never touch their own owner, and an entity in a global freeze still has its boxes.
+/// An entity waiting out its rehit cooldown (<see cref="EntityState.RehitCooldown"/>) touches nothing but still
+/// clashes. Entities never touch their own owner, and an entity in a global freeze still has its boxes.
 /// </remarks>
 public sealed class EntityHitDetectionStage : ITickStage
 {
@@ -38,7 +39,7 @@ public sealed class EntityHitDetectionStage : ITickStage
         for (int slot = 0; slot < EntityPool.Capacity; slot++)
         {
             ref readonly EntityState entity = ref state.Entities.Slots[slot];
-            if (entity.IsActive != 0 && entity.Durability > _contacts.ClashesOf(slot))
+            if (entity.IsActive != 0 && entity.RehitCooldown == 0 && entity.Durability > _contacts.ClashesOf(slot))
             {
                 DetectTouch(in state, slot, in entity);
             }

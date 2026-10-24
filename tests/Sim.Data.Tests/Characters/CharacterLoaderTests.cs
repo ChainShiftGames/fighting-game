@@ -140,7 +140,7 @@ public sealed class CharacterLoaderTests
         Assert.Equal(14, projectile.SpawnFrame);
         Assert.Equal(new IntVector2(50000, 60000), projectile.Offset);
         Assert.Equal(new IntVector2(7000, -500), projectile.Velocity);
-        Assert.Equal((90, 2), (projectile.Lifetime, projectile.Durability));
+        Assert.Equal((90, 2, 0), (projectile.Lifetime, projectile.Durability, projectile.RehitInterval));
         Assert.Equal((700, 80, 11), (projectile.Hit.Damage, projectile.Hit.ChipDamage, projectile.Hit.Hitstop));
         BoxData box = Assert.Single(_fixture.BoxesOf(projectile).ToArray());
         Assert.Equal(BoxKind.Hit, box.Kind);

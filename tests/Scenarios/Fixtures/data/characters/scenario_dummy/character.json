@@ -17,8 +17,8 @@
     "airActions": 2
   },
   "moves": [
-    "forward_throw", "back_throw", "236b", "236c", "236d", "214c", "6b", "2a", "5a", "idle", "crouch", "dash", "jump",
-    "landing", "hitstun", "crouch_hitstun", "blockstun", "crouch_blockstun", "knockdown", "thrown", "throw_tech",
+    "forward_throw", "back_throw", "236b", "236c", "236d", "214c", "214a", "6b", "2a", "5a", "idle", "crouch", "dash",
+    "jump", "landing", "hitstun", "crouch_hitstun", "blockstun", "crouch_blockstun", "knockdown", "thrown", "throw_tech",
     "air_blockstun"
   ],
   "states": {

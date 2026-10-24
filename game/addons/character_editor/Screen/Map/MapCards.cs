@@ -23,7 +23,7 @@ public static class MapCards
             {
                 if (entry == MoveMapLayout.JumpEntry)
                 {
-                    cards[entry] = new MapCard(entry, "Jump", "cancels into the air", "↑", [], [], false,
+                    cards[entry] = new MapCard(entry, "Jump", "cancels into the air", "↑", [], [], [], false,
                         "Holding up during the window starts a jump");
                 }
                 else if (document.Move(entry) is EditedFile move)
@@ -61,6 +61,7 @@ public static class MapCards
             Meta(root, facts),
             MoveGlyphs.Arrows(MoveInput.Motion(root)),
             MoveGlyphs.Keycaps(MoveInput.Buttons(root)),
+            Tagged(root),
             facts.Phases?.Lengths ?? [],
             problemCount > 0,
             tooltip);
@@ -81,6 +82,26 @@ public static class MapCards
         return facts.HitsFromProjectile ? $"projectile · {dealt}"
             : category == "throw" ? $"throw · {dealt}"
             : $"{dealt} · {frames}";
+    }
+
+    // Only guards that change how to block it: mid is the default, and a throw is never blocked anyway.
+    private static List<string> Tagged(JsonObject move)
+    {
+        List<string> tagged = [];
+        if (JsonNodeValue.Text(move[MoveFields.Category]) == "throw")
+        {
+            return tagged;
+        }
+
+        foreach (string guard in MoveGuards.Distinct(move))
+        {
+            if (guard != "mid")
+            {
+                tagged.Add(guard);
+            }
+        }
+
+        return tagged;
     }
 
     private static int IndexOf(IReadOnlyList<string> items, string item)

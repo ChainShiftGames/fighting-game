@@ -1,6 +1,6 @@
 # Conventions
 
-> **Proposal (P0-07): both devs confirm before merge.** Rules live in [ARCHITECTURE.md](ARCHITECTURE.md); this file
+> **Proposal: both devs confirm before merge.** Rules live in [ARCHITECTURE.md](ARCHITECTURE.md); this file
 > only adds layout and naming it doesn't cover. Code naming and file-per-type: ARCHITECTURE.md §5.
 
 ## Folders inside each project
@@ -8,7 +8,7 @@
 - **Folder = namespace segment.** `src/Sim/Collision/PushboxSolver.cs` → `namespace Sim.Collision`. Root namespace
   = project name (`Sim`, `Sim.Data`, `Netcode`, `Platform.Steam`, `FightingGame` for `game/`).
 - **Group by feature, not by kind.** `Sim/Combat/`, not `Sim/Interfaces/` or `Sim/Structs/`. The folder names in
-  the phase task `Where:` lines are the plan; follow them.
+  a task brief's `Where:` line are the plan; follow them.
 - **`src/Sim`:** one folder per tick stage or concept (`Input/`, `Fighters/`, `Collision/`, `Combat/`, `Match/`,
   `State/`, `Rules/`, …).
   - `Sim/Modules/` holds the module contract (namespace `Sim.Modules`).
@@ -37,13 +37,14 @@
 
 ## Branches
 
-- Task work: [docs/phases/README.md](docs/phases/README.md) (lowercase task ID + short name).
-- Other work: `docs/<short-name>` or `fix/<short-name>`.
+- Task work: `<area>/<nn>-<short-name>`, from the brief's file name (`ui/01-menu-framework`). Task briefs:
+  [docs/tasks/README.md](docs/tasks/README.md).
+- Other work: `docs/<short-name>` or `fix/<short-name>`; releases: `release/<version>`.
 
 ## Commits
 
 ```
-P0-07: Add agent and team docs          ← task ID + imperative summary, ≤ 72 chars
+UI-01: Add the menu framework           ← task ID + imperative summary, ≤ 72 chars
 
 Why the change was made, wrapped at 72. Mention ADRs, golden replay
 or MatchRules changes here.
@@ -53,3 +54,15 @@ Co-Authored-By: <agent name> <noreply@…>   ← agent commits only
 
 - No task ID for non-task work: just the imperative summary.
 - One logical change per commit; PR title = the task's commit summary.
+
+## Releases
+
+Version rules: [ADR-0044](docs/adr/0044-release-versioning.md).
+
+1. Branch `release/<version>` from `main`. Set the version in `Directory.Build.props` and `game/project.godot`
+   (`config/version`); `dotnet test` checks they match.
+2. Add a `## <version> (YYYY-MM-DD)` section to `CHANGELOG.md` from the PRs merged since the last tag
+   (`git log --merges --oneline <last tag>..main`): player-facing bullets.
+3. PR `Release <version>`; once merged, tag the merge commit on `main` and push the tag:
+   `git tag -a v<version> -m "Release <version>"`, then `git push origin v<version>`.
+4. Export the builds from that tag.

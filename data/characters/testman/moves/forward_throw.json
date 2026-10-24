@@ -18,7 +18,7 @@
       "guard": "unblockable",
       "hitstun": 0,
       "blockstun": 0,
-      "hitstop": 8,
+      "hitstop": 15,
       "pushback": 0,
       "reaction": "knockdown"
     }

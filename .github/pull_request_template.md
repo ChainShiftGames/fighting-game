@@ -1,4 +1,4 @@
-Task: P<n>-<nn> (`docs/phases/phase-<n>.md`) · Status line updated
+Task: <ID> (`docs/tasks/<area>/<nn>-<short-name>.md`), or none
 
 - What changed, as short bullets
 - Anything unresolved

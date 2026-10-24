@@ -40,6 +40,7 @@ public partial class ProjectileCard : PanelContainer
     };
 
     private readonly NumberStepper _durability = new() { Minimum = 1, Maximum = 99 };
+    private readonly NumberStepper _rehit = new() { Minimum = 0, Maximum = 999 };
     private JsonObject _projectile = [];
 
     public ProjectileCard()
@@ -51,13 +52,14 @@ public partial class ProjectileCard : PanelContainer
         body.AddChild(_summary);
         body.AddChild(Row(_spawn, _lifetime));
         body.AddChild(Row(_forward, _up));
-        body.AddChild(Row(_durability, new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill }));
+        body.AddChild(Row(_durability, _rehit));
         AddChild(body);
         _spawn.ValueChanged += frame => Edit(() => ProjectileFields.SetSpawnFrame(_projectile, frame));
         _lifetime.ValueChanged += frames => Edit(() => ProjectileFields.SetLifetime(_projectile, frames));
         _forward.ValueChanged += speed => Edit(() => ProjectileFields.SetSpeedForward(_projectile, speed));
         _up.ValueChanged += speed => Edit(() => ProjectileFields.SetSpeedUp(_projectile, speed));
         _durability.ValueChanged += hits => Edit(() => ProjectileFields.SetDurability(_projectile, hits));
+        _rehit.ValueChanged += frames => Edit(() => ProjectileFields.SetRehitInterval(_projectile, frames));
     }
 
     public event Action? Changed;
@@ -73,6 +75,7 @@ public partial class ProjectileCard : PanelContainer
         _forward.Show("Speed forward", "px per frame", ProjectileFields.SpeedForward(projectile) ?? 0);
         _up.Show("Speed up", "px per frame", ProjectileFields.SpeedUp(projectile));
         _durability.Show("Survives clashes", "hits from other projectiles", ProjectileFields.DurabilityOf(projectile));
+        _rehit.Show("Hits again after", "frames; 0 = gone on hit", ProjectileFields.RehitIntervalOf(projectile));
         ShowSummary();
     }
 

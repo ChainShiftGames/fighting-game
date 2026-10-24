@@ -9,7 +9,8 @@
   "boxes": [
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 24, "x": -25000, "y": 10000, "width": 50000, "height": 100000 },
     { "kind": "push", "firstFrame": 1, "lastFrame": 24, "x": -20000, "y": 10000, "width": 40000, "height": 90000 },
-    { "kind": "hit", "firstFrame": 8, "lastFrame": 12, "x": 10000, "y": -15000, "width": 50000, "height": 45000 }
+    { "kind": "hit", "firstFrame": 8, "lastFrame": 12, "x": -38000, "y": 27000, "width": 115000, "height": 56000 },
+    { "kind": "hurt", "firstFrame": 8, "lastFrame": 12, "x": -1000, "y": 43000, "width": 78001, "height": 36000 }
   ],
   "hits": [
     {
@@ -18,7 +19,7 @@
       "guard": "overhead",
       "hitstun": 18,
       "blockstun": 15,
-      "hitstop": 11,
+      "hitstop": 21,
       "pushback": 10000
     }
   ]

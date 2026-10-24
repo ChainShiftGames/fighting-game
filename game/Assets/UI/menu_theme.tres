@@ -1,0 +1,101 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="FontFile" path="res://Assets/UI/Fonts/Marcellus-Regular.ttf" id="1_marcellus"]
+[ext_resource type="FontFile" path="res://Assets/UI/Fonts/MPLUS1p-Regular.ttf" id="2_mplus"]
+
+[sub_resource type="FontVariation" id="FontVariation_menu"]
+base_font = ExtResource("1_marcellus")
+fallbacks = Array[Font]([ExtResource("2_mplus")])
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
+bg_color = Color(0.05, 0.06, 0.09, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0, 0, 0, 0.45)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item"]
+content_margin_left = 18.0
+content_margin_top = 6.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item_focused"]
+content_margin_left = 18.0
+content_margin_top = 6.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+bg_color = Color(0.56, 0.96, 0.87, 0.2)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.56, 0.96, 0.87, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar"]
+bg_color = Color(1, 1, 1, 0.12)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
+bg_color = Color(0.56, 0.96, 0.87, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[resource]
+default_font = SubResource("FontVariation_menu")
+default_font_size = 26
+Label/colors/font_color = Color(0.93, 0.95, 0.97, 1)
+MenuBody/base_type = &"Label"
+MenuBody/colors/font_color = Color(0.8, 0.84, 0.88, 1)
+MenuBody/font_sizes/font_size = 22
+MenuColumn/base_type = &"VBoxContainer"
+MenuColumn/constants/separation = 14
+MenuHeader/base_type = &"Label"
+MenuHeader/colors/font_color = Color(0.56, 0.96, 0.87, 1)
+MenuHeader/font_sizes/font_size = 20
+MenuItem/base_type = &"PanelContainer"
+MenuItem/styles/panel = SubResource("StyleBoxFlat_item")
+MenuItemDescription/base_type = &"Label"
+MenuItemDescription/colors/font_color = Color(0.66, 0.7, 0.75, 1)
+MenuItemDescription/font_sizes/font_size = 17
+MenuItemFocused/base_type = &"PanelContainer"
+MenuItemFocused/styles/panel = SubResource("StyleBoxFlat_item_focused")
+MenuItemLabel/base_type = &"Label"
+MenuItemLabel/colors/font_color = Color(0.93, 0.95, 0.97, 1)
+MenuItemLabelDisabled/base_type = &"Label"
+MenuItemLabelDisabled/colors/font_color = Color(0.5, 0.53, 0.57, 1)
+MenuItems/base_type = &"VBoxContainer"
+MenuItems/constants/separation = 7
+MenuOverlayBackdrop/base_type = &"Panel"
+MenuOverlayBackdrop/styles/panel = SubResource("StyleBoxFlat_overlay")
+MenuScreenBackdrop/base_type = &"Panel"
+MenuScreenBackdrop/styles/panel = SubResource("StyleBoxFlat_screen")
+MenuTitle/base_type = &"Label"
+MenuTitle/colors/font_color = Color(1, 1, 1, 1)
+MenuTitle/colors/font_outline_color = Color(0.06, 0.24, 0.27, 0.85)
+MenuTitle/constants/outline_size = 6
+MenuTitle/font_sizes/font_size = 52
+MenuValue/base_type = &"Label"
+MenuValue/colors/font_color = Color(0.56, 0.96, 0.87, 1)
+ProgressBar/styles/background = SubResource("StyleBoxFlat_bar")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_bar_fill")

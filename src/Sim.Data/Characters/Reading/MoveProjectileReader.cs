@@ -5,7 +5,7 @@ using Sim.Math;
 
 namespace Sim.Data.Characters.Reading;
 
-/// <summary>Reads a move's optional <c>projectiles</c>: spawn frame, offset, velocity, lifetime, boxes, hit.</summary>
+/// <summary>Reads a move's optional <c>projectiles</c>: spawn frame, offset, velocity, lifetime, rehits, boxes, hit.</summary>
 /// <remarks>
 /// Projectile boxes are all hit boxes, with frames counted from the projectile's spawn (1) to its lifetime. Basic
 /// moves can't spawn projectiles: the state machine enters them on its own (hitstun, walking…).
@@ -39,6 +39,7 @@ public static class MoveProjectileReader
         IntVector2 velocity = ReadVector(entry.RequiredObject("velocity"), requireY: false);
         int lifetime = entry.RequiredInt("lifetime", 1, CharacterSchema.MaxMoveFrames);
         int durability = entry.OptionalInt("durability", 1, 1, CharacterSchema.MaxDurability);
+        int rehitInterval = entry.OptionalInt("rehitInterval", 0, 0, CharacterSchema.MaxMoveFrames);
         IReadOnlyList<BoxData> boxes = ReadBoxes(entry, lifetime);
         FieldReader? hit = entry.RequiredObject("hit");
         HitData hitData = hit is null ? default : MoveHitReader.ReadHit(hit);
@@ -51,6 +52,7 @@ public static class MoveProjectileReader
             Velocity = velocity,
             Lifetime = lifetime,
             Durability = durability,
+            RehitInterval = rehitInterval,
             Hit = hitData,
         };
         return new ProjectileRecord(projectile, boxes);

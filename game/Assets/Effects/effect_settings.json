@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
   "screenShake": {
-    "lifetimeFrames": 9,
-    "hitPixels": 11,
+    "lifetimeFrames": 3,
+    "hitPixels": 0.5,
     "counterPixels": 5,
     "throwPixels": 4,
-    "knockOutPixels": 8,
-    "verticalShare": 0.5
+    "knockOutPixels": 5.5,
+    "verticalShare": 0.5,
+    "defenderPixels": 3
   },
   "hitSparks": {
-    "lightHitstop": 8,
-    "heavyHitstop": 20,
+    "lightHitstop": 10,
+    "heavyHitstop": 14,
     "counterWeight": 0.3,
     "blockShare": 0.6,
-    "tearFromWeight": 0.5,
+    "tearFromWeight": 0.8,
     "techWeight": 0.3,
-    "scale": 1
+    "scale": 2.15
   },
   "rumble": {
     "heavyStrength": 0.8,

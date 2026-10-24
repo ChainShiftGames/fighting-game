@@ -42,7 +42,7 @@ public sealed class MoveMapTests
     [Fact]
     public void StandingMediumChainsIntoHeaviesJumpSpecialsAndSupers()
     {
-        IReadOnlyList<ChainLink> links = MoveChains.From("5b", Move("5b"));
+        IReadOnlyList<ChainLink> links = MoveChains.From("5b", EditorFixtures.Testman5B());
 
         Assert.Equal(
             [
@@ -68,7 +68,7 @@ public sealed class MoveMapTests
         Assert.Equal(["5b", "2b", MoveMapLayout.JumpEntry], layout.Columns[1].Entries);
         Assert.Equal(["5c", "2c", "j_c", "5d"], layout.Columns[2].Entries);
         Assert.Equal(["burst"], layout.Columns[3].Entries);
-        Assert.Equal(["623c", "236c", "236236d"], layout.Columns[4].Entries);
+        Assert.Equal(["623c", "236c", "214a", "214b", "214c", "236236d"], layout.Columns[4].Entries);
         Assert.Equal(["special"], layout.Groups.Select(group => group.Category));
         Assert.Null(layout.Find("idle"));
     }
@@ -96,7 +96,7 @@ public sealed class MoveMapTests
     [Fact]
     public void StandingMediumIsPlusTwoOnHitAndMinusTwoOnBlock()
     {
-        MoveFacts facts = MoveFacts.Of(Move("5b"));
+        MoveFacts facts = MoveFacts.Of(EditorFixtures.Testman5B());
 
         Assert.Equal(7, facts.ComesOutOn);
         Assert.Equal(500, facts.Damage);

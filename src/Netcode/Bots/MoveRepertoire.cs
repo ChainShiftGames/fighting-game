@@ -128,15 +128,24 @@ public sealed class MoveRepertoire
         return found.AsSpan(0, count).ToArray();
     }
 
-    // Origin to the far end of its hit or throw boxes, plus the target's body in front of its origin.
+    // Origin to the far end of its hit or throw boxes, plus the target's body in front of its origin. A projectile
+    // flying forward reaches full screen; one that stays put (a floor fire) reaches as far as its boxes do.
     private static int ReachOf(CharacterData character, in MoveData move, int targetDepth)
     {
-        if (!character.ProjectilesOf(in move).IsEmpty)
+        int reach = 0;
+        foreach (ProjectileData projectile in character.ProjectilesOf(in move))
         {
-            return BotMove.FullScreen;
+            if (projectile.Velocity.X > 0)
+            {
+                return BotMove.FullScreen;
+            }
+
+            foreach (BoxData box in character.BoxesOf(in projectile))
+            {
+                reach = Math.Max(reach, projectile.Offset.X + box.Area.MaxX + targetDepth);
+            }
         }
 
-        int reach = 0;
         foreach (BoxData box in character.BoxesOf(in move))
         {
             if (box.Kind is BoxKind.Hit or BoxKind.Throw)

@@ -24,12 +24,21 @@ public sealed class HitReactionClock
     private int _lastHitstop;
     private int _stunAtHit;
     private int _hitstopEnd;
+    private bool _wasReacting;
+
+    /// <summary>
+    /// The pose last observed is a new hit or block landing while the fighter was already reacting to one (a gatling,
+    /// a juggle): the model fades into it from the reaction shown, where a first hit snaps. Never after a rollback.
+    /// </summary>
+    public bool IsReHit { get; private set; }
 
     /// <summary>Sees the pose shown this frame; call it every frame, in a reaction or not, so a new one is noticed.</summary>
     public void Observe(in FighterPose pose)
     {
+        bool isReacting = HitReactionActions.Includes(pose.Action);
         bool isNewHit = pose.MoveId != _move || pose.MatchFrame < _lastMatchFrame ||
             pose.StunFramesLeft > _lastStun || pose.HitstopFramesLeft > _lastHitstop;
+        IsReHit = isNewHit && isReacting && _wasReacting && pose.MatchFrame > _lastMatchFrame;
         if (isNewHit)
         {
             _stunAtHit = pose.StunFramesLeft;
@@ -43,6 +52,7 @@ public sealed class HitReactionClock
         }
 
         _move = pose.MoveId;
+        _wasReacting = isReacting;
         _lastMatchFrame = pose.MatchFrame;
         _lastStun = pose.StunFramesLeft;
         _lastHitstop = pose.HitstopFramesLeft;

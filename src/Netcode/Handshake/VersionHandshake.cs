@@ -23,6 +23,7 @@ public sealed class VersionHandshake
     private HandshakeOutcome _outcome;
     private bool _matchedTheirs;
     private string _refusal = string.Empty;
+    private HandshakeRefusal _reasons;
 
     public VersionHandshake(MatchIdentity local)
     {
@@ -54,6 +55,18 @@ public sealed class VersionHandshake
         }
     }
 
+    /// <summary>What differs, once refused; <see cref="HandshakeRefusal.None"/> otherwise.</summary>
+    public HandshakeRefusal Reasons
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _reasons;
+            }
+        }
+    }
+
     /// <summary>Whether this PC's hello should tell the other PC that its hello arrived and matched.</summary>
     internal bool HasMatchedTheirs
     {
@@ -72,6 +85,7 @@ public sealed class VersionHandshake
     internal void OnHello(MatchIdentity theirs, bool theySawOurs)
     {
         IReadOnlyList<string> differences = Local.DifferencesFrom(theirs);
+        HandshakeRefusal reasons = Local.RefusalFrom(theirs);
         lock (_lock)
         {
             if (_outcome != HandshakeOutcome.Waiting)
@@ -81,7 +95,7 @@ public sealed class VersionHandshake
 
             if (differences.Count > 0)
             {
-                Refuse(string.Join("; ", differences));
+                Refuse(string.Join("; ", differences), reasons);
                 return;
             }
 
@@ -99,7 +113,7 @@ public sealed class VersionHandshake
         {
             if (_outcome == HandshakeOutcome.Waiting)
             {
-                Refuse($"handshake format {HelloMessage.Format} here, {format} there");
+                Refuse($"handshake format {HelloMessage.Format} here, {format} there", HandshakeRefusal.HandshakeFormat);
             }
         }
     }
@@ -118,9 +132,10 @@ public sealed class VersionHandshake
         }
     }
 
-    private void Refuse(string differences)
+    private void Refuse(string differences, HandshakeRefusal reasons)
     {
         _outcome = HandshakeOutcome.Refused;
+        _reasons = reasons;
         _refusal = $"{Mismatch}\n({differences})";
     }
 }

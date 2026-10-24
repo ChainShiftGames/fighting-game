@@ -162,7 +162,8 @@ public static class EffectSettingsFile
                 Number(EffectSettingFields.ShakeCounter),
                 Number(EffectSettingFields.ShakeThrow),
                 Number(EffectSettingFields.ShakeKnockOut),
-                Number(EffectSettingFields.ShakeVertical)),
+                Number(EffectSettingFields.ShakeVertical),
+                Number(EffectSettingFields.ShakeDefender)),
             sparks,
             new RumbleSettings(
                 Number(EffectSettingFields.RumbleHeavy),

@@ -337,6 +337,64 @@ public sealed class EntityHitResolutionStageTests
         Assert.Equal(SturdyHit.Hitstop, state.Fighters[1].Timing.HitstopFramesLeft);
     }
 
+    [Fact]
+    public void ALingeringProjectileStaysOutAfterLandingAndWaitsOutItsRehitInterval()
+    {
+        MatchState state = Fighters();
+        state.Entities.Slots[0] = Entity(0, TouchingP2, LingeringProjectile);
+
+        _stages.Hit(ref state);
+
+        Assert.Equal(Health - FireballHit.Damage, state.Fighters[1].Health);
+        Assert.Equal((1, LingeringRehit), (state.Entities.Slots[0].IsActive, state.Entities.Slots[0].RehitCooldown));
+        FrameEvent hit = Assert.Single(state.Events.OfFrame(Frame).ToArray());
+        Assert.Equal(FrameEventKind.ProjectileHit, hit.Kind);
+    }
+
+    [Fact]
+    public void ALingeringProjectileLandsAgainOnlyOnceItsRehitIntervalHasPassed()
+    {
+        MatchState state = Fighters();
+        state.Entities.Slots[0] = Entity(0, TouchingP2, LingeringProjectile);
+        int landings = 0;
+
+        for (int frame = 0; frame <= LingeringRehit; frame++)
+        {
+            int before = state.Fighters[1].Health;
+            _stages.Tick(ref state);
+            landings += state.Fighters[1].Health < before ? 1 : 0;
+        }
+
+        Assert.Equal(2, landings);
+    }
+
+    [Fact]
+    public void ALingeringProjectileBlockedKeepsTheDefenderInBlockstunAndStaysOut()
+    {
+        MatchState state = Fighters();
+        state.Inputs[1].Record(new InputWord(InputWord.Right));
+        state.Entities.Slots[0] = Entity(0, TouchingP2, LingeringProjectile);
+
+        _stages.Hit(ref state);
+
+        Assert.Equal(FighterAction.Blockstun, state.Fighters[1].Action);
+        Assert.Equal(1, state.Entities.Slots[0].IsActive);
+    }
+
+    [Fact]
+    public void UnderTheClashRuleAnExchangeLeavesALingeringProjectileOut()
+    {
+        EntityStages stages = new(tradeRule: TradeRule.Clash);
+        MatchState state = Fighters();
+        state.Entities.Slots[0] = Entity(0, TouchingP2, LingeringProjectile);
+        state.Entities.Slots[_player2Slot] = Entity(1, TouchingP1);
+
+        stages.Hit(ref state);
+
+        Assert.Equal(Health, state.Fighters[1].Health);
+        Assert.Equal((1, 0), (state.Entities.Slots[0].IsActive, state.Entities.Slots[0].RehitCooldown));
+    }
+
     private static MatchState Fighters()
     {
         MatchState state = default;

@@ -8,16 +8,17 @@
     "walkForwardSpeed": 4000,
     "walkBackSpeed": 3200,
     "dashStyle": "run",
-    "prejumpFrames": 4,
-    "jumpVelocity": 12400,
-    "highJumpVelocity": 25000,
+    "prejumpFrames": 2,
+    "jumpVelocity": 15500,
+    "highJumpVelocity": 18000,
     "jumpForwardSpeed": 4500,
     "jumpBackSpeed": 4000,
-    "gravity": 1000,
+    "gravity": 900,
     "airActions": 1
   },
   "moves": [
-    "forward_throw", "back_throw", "236236d", "623c", "236c", "2a", "2b", "2c", "5a", "5b", "5c", "5d", "j_c",
+    "forward_throw", "back_throw", "236236d", "623c", "236c", "214a", "214b", "214c", "2a", "2b", "2c", "5a", "5b",
+    "5c", "5d", "j_c",
     "idle", "crouch", "walk_forward", "walk_back", "prejump", "jump", "landing", "dash", "backdash", "air_dash",
     "air_backdash", "hitstun", "crouch_hitstun", "air_hitstun", "blockstun", "crouch_blockstun", "knockdown",
     "wake_up", "thrown", "throw_tech", "air_blockstun", "burst"

@@ -44,6 +44,10 @@ public static class EffectSettingFields
         ShakeSection, "verticalShare", "Vertical share", 0, 2, 0.05f, whole: false,
         "Up-down movement as a share of the sideways one. 0 shakes sideways only.");
 
+    public static readonly EffectSettingField ShakeDefender = new(
+        ShakeSection, "defenderPixels", "Defender hitstop shake (px)", 0, MaxShakePixels, 0.5f, whole: false,
+        "How far a fighter being hit or blocking jitters sideways while the hit freezes both fighters. 0 freezes still.");
+
     public static readonly EffectSettingField SparkLightHitstop = new(
         SparkSection, "lightHitstop", "Lightest hit's hitstop", 0, MaxSparkHitstop, 1, whole: true,
         "Hits with this much hitstop or less get the smallest spark (weight 0).");
@@ -94,7 +98,7 @@ public static class EffectSettingFields
     /// <summary>All fields, in file order.</summary>
     public static IReadOnlyList<EffectSettingField> All { get; } =
     [
-        ShakeLifetime, ShakeHit, ShakeCounter, ShakeThrow, ShakeKnockOut, ShakeVertical,
+        ShakeLifetime, ShakeHit, ShakeCounter, ShakeThrow, ShakeKnockOut, ShakeVertical, ShakeDefender,
         SparkLightHitstop, SparkHeavyHitstop, SparkCounterWeight, SparkBlockShare, SparkTearFrom, SparkTechWeight,
         SparkScale,
         RumbleHeavy, RumbleLight, RumbleHitSeconds, RumbleKnockOutSeconds,

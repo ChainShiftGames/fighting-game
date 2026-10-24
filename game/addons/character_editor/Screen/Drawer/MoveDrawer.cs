@@ -18,6 +18,7 @@ public partial class MoveDrawer : PanelContainer
 {
     private const float PreviewHeight = 236f;
     private const int HitAreasTab = 2;
+    private const int PlaybackMargin = 8;
     private static readonly string[] _tabNames = ["Overview", "Timing", "Hit areas", "Chains"];
 
     private readonly Control _preview = new() { ClipContents = true };
@@ -28,6 +29,7 @@ public partial class MoveDrawer : PanelContainer
     private readonly TimingPage _timing = new();
     private readonly HitAreasPage _hitAreas = new();
     private readonly ChainsPage _chains = new();
+    private readonly PreviewPlayback _playback = new();
     private readonly CharacterPanel _character = new();
     private readonly Control[] _pages;
     private DrawerMove? _move;
@@ -40,6 +42,11 @@ public partial class MoveDrawer : PanelContainer
         BoxCanvas canvas = _hitAreas.Canvas;
         canvas.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         _preview.AddChild(canvas);
+        _preview.AddChild(_playback);
+        _playback.SetAnchorsAndOffsetsPreset(LayoutPreset.BottomLeft, LayoutPresetMode.Minsize, PlaybackMargin);
+        _playback.TotalFrames = () => _move is null ? 1 : Math.Max(1, FramePhases.Of(_move.Root)?.TotalFrames ?? 1);
+        _playback.CurrentFrame = () => _hitAreas.Frame;
+        _playback.FrameDue += _hitAreas.SelectFrame;
         column.AddChild(_preview);
         column.AddChild(Body());
         AddChild(column);
@@ -54,7 +61,14 @@ public partial class MoveDrawer : PanelContainer
             _timing.MarkFrame(frame);
             FrameShown?.Invoke(frame);
         };
-        _timing.FrameClicked += _hitAreas.SelectFrame;
+        _timing.FrameClicked += SelectFrame;
+        _timing.UsePreview(canvas.Preview);
+        _timing.AnimationChanged += () =>
+        {
+            canvas.QueueRedraw();
+            ArtEdited?.Invoke("Animation timing edited");
+        };
+        _hitAreas.SparksChanged += () => ArtEdited?.Invoke("Hit spark edited");
         foreach (IDrawerPage page in new IDrawerPage[] { _overview, _timing, _hitAreas, _chains })
         {
             IDrawerPage source = page;
@@ -68,6 +82,9 @@ public partial class MoveDrawer : PanelContainer
 
     /// <summary>The move's or the character's file changed; <c>true</c> when the map's cards may have changed too.</summary>
     public event Action<bool>? Edited;
+
+    /// <summary>A move's animation timing or sparks changed in the character's art file; says what, for the status.</summary>
+    public event Action<string>? ArtEdited;
 
     /// <summary>The preview shows another frame.</summary>
     public event Action<int>? FrameShown;
@@ -83,6 +100,7 @@ public partial class MoveDrawer : PanelContainer
     /// <summary>Edits the move; nothing when null.</summary>
     public void ShowMove(DrawerMove? move)
     {
+        _playback.Stop();
         _move = move;
         _character.Visible = false;
         _tabs.Visible = move is not null;
@@ -108,6 +126,7 @@ public partial class MoveDrawer : PanelContainer
     /// <summary>Edits the character file instead of a move.</summary>
     public void ShowCharacterFile(CharacterDocument document, EditingContext context)
     {
+        _playback.Stop();
         _move = null;
         _tabs.Visible = _preview.Visible = false;
         ShowTab(-1);
@@ -117,8 +136,12 @@ public partial class MoveDrawer : PanelContainer
         _character.ShowCharacter(document.Character, context);
     }
 
-    /// <summary>Shows the frame in the preview, e.g. one clicked on the frame strip.</summary>
-    public void SelectFrame(int frame) => _hitAreas.SelectFrame(frame);
+    /// <summary>Shows the frame in the preview, e.g. one clicked on the frame strip; stops playing on it.</summary>
+    public void SelectFrame(int frame)
+    {
+        _playback.Stop();
+        _hitAreas.SelectFrame(frame);
+    }
 
     private Control Body()
     {

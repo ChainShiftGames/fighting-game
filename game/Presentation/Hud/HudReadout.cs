@@ -3,12 +3,16 @@ using Sim.State;
 
 namespace FightingGame.Presentation.Hud;
 
-/// <summary>Turns the game state into what the HUD shows for each player, keeping the damage trails between frames.</summary>
+/// <summary>
+/// Turns the game state into what the HUD shows for each player, keeping the damage trails and finished combo counts
+/// between frames.
+/// </summary>
 public sealed class HudReadout
 {
     private readonly CharacterData[] _characters;
     private readonly HudGauges _gauges;
     private readonly DamageTrail[] _trails = [new(), new()];
+    private readonly ComboCountHold[] _combos = [new(), new()];
 
     /// <param name="characters">P1's and P2's character, for their max health.</param>
     public HudReadout(CharacterData[] characters, HudGauges gauges)
@@ -27,14 +31,15 @@ public sealed class HudReadout
         DamageTrail trail = _trails[player];
         trail.Follow(state.Frame, health, isHeld: fighter.StunFramesLeft > 0);
 
-        // The counter shows on the attacker's side: the hits the other fighter is taking.
+        // The counter shows on the attacker's side: the hits the other fighter is taking (a true combo, ComboEndStage).
         int opponent = 1 - player;
+        int comboHits = _combos[player].Follow(state.Frame, state.Fighters[opponent].ComboHits);
         return new HudPlayerValues(
             health,
             trail.Fraction,
             _gauges.BurstFraction(in state, player),
             _gauges.Meter(in state, player),
             state.Round.Wins[player],
-            _gauges.ComboHits(in state, opponent));
+            comboHits);
     }
 }

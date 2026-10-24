@@ -3,7 +3,7 @@ namespace FightingGame.Online;
 /// <summary>What the game is doing: at the main menu, or which kind of match it plays (<see cref="MatchLauncher"/>).</summary>
 public enum LaunchMode
 {
-    /// <summary>At the main menu; no match.</summary>
+    /// <summary>No match: the menus are up.</summary>
     MainMenu,
 
     /// <summary>Two players on this PC.</summary>

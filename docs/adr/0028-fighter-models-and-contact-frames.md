@@ -46,6 +46,11 @@ the authored contact pose. Something has to say where that pose is, and which ch
    - With contact frames, three linear spans: startup frames → clip `0..activeFrom`, active frames →
      `activeFrom..recoveryFrom`, recovery frames → `recoveryFrom..end`. The first active frame always shows
      `activeFrom`. Multi-hit moves (ADR-0022) use first-hit start to last-hit end as "active" for now.
+   - **Timing keys** (`keys`, per move, needs the contact frames, not with `fit`) pin frames inside a span:
+     `{ "phase": "startup", "frame": 10, "of": 32, "clip": 20 }` = startup frame 10 of 32 shows clip frame 20, and
+     the clip plays straight from pin to pin, so a phase can play its clip unevenly (quick wind-up, linger before the
+     hit). `frame` 2..`of` (frame 1 is the span's own start); keys in phase order, then in order within a phase.
+     The key sits at `(frame − 1)/of` of its phase, so it stretches with the phase when the frame data changes.
    - Past the end: looping clips wrap, others hold the last pose. Hitstop holds the pose, as the move frame holds.
 5. **Transitions and the match clock.** The art file's `transitions` list clips played over the first `frames`
    logic frames of a move entered from certain moves (`from`/`to` lists, optional `reverse`), e.g. one "crouch to
@@ -57,8 +62,10 @@ the authored contact pose. Something has to say where that pose is, and which ch
    the match clock: `HitReactionClock` counts them from each hit by the fighter's stun countdown, so a reaction
    restarts on every hit of a combo and holds in hitstop and freezes (air hitstun: match frames after its hitstop).
 6. **Look settings, all by match frames:** a basic move's clip crossfades in from the pose before
-   (`crossfadeFrames`, per move or for the file; attacks and hit/block reactions always snap, so an attack's first
-   frame is the frame data's and the frame a hit lands shows it);
+   (`crossfadeFrames`, per move or for the file; attacks and first hits/blocks always snap, so an attack's first
+   frame is the frame data's and the frame a hit lands shows it); a hit landing mid-reaction (gatling, juggle) fades
+   from the reaction shown into the restarted one over `reHitFadeFrames`, mostly inside its hitstop, so combos flow
+   instead of popping back to the clip's start;
    a facing switch turns the model through facing the camera, where the mirrored pose looks the same
    (`turnFrames`); `cameraTurnDegrees` (0-90) keeps the model turned that far toward the camera at rest, the 3/4
    view fighting games cheat with, so face and chest read and toon shading falls predictably; `holdFrames` 2 or 3 shows each pose on 2s or 3s (the hand-animated look), per move or for the
@@ -69,7 +76,16 @@ the authored contact pose. Something has to say where that pose is, and which ch
    clip played from the frame a fighter is KO'd (`FighterPose.IsKnockedOut`), whatever its moves do meanwhile.
 7. **The character editor shows the same model behind the box canvas** (`ModelPreview`): posed with the same
    retiming from the move's frame data as edited, framed to the canvas's origin and zoom at 1 m = 70 px, so boxes
-   are drawn against the body. Placeholder characters keep the body box. Editor only; nothing new is saved.
+   are drawn against the body. Placeholder characters keep the body box.
+   - **Animation track** (Timing tab, under the frame timeline): the clip frame each move frame shows, with the
+     contact frames and keys as pins. Drag a pin, double-click a frame to pin it, right-click a key to remove it, or
+     type the clip frame for the picked frame. Edits retime the preview at once and rewrite only that move's
+     `animations` entry in the art file on Save (`ArtTimingText`: comments and other entries kept); an edit the
+     art file reader would refuse is not made. Keys are rewritten against the phases' lengths at that moment.
+   - **Projectiles in the preview:** each of the move's projectiles where the match moves it (offset on the spawn
+     frame, then on by its speed; the fighter standing at the origin): its hitbox, dashed before it spawns, and a
+     cross on its spawn point; the model preview draws the art file's charge and flight effects with it. Dragging
+     the cross or hitbox (Hit areas tab) moves the projectile's `offset` in the move's data file.
 8. **Missing clip → idle, one warning per move; missing idle → rest pose.** A contact frame past the clip end is an
    error in the log and the clip plays frame for frame. Nothing here crashes a match.
 9. **Projectile art, named per move in the art file:**

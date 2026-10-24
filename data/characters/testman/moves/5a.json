@@ -5,23 +5,24 @@
   "category": "normal",
   "usableIn": "ground",
   "input": { "motion": "5", "button": "a" },
-  "frameData": { "startup": 5, "active": 3, "recovery": 8 },
+  "frameData": { "startup": 5, "active": 4, "recovery": 7 },
   "boxes": [
     { "kind": "hurt", "firstFrame": 1, "lastFrame": 15, "x": -25000, "y": 0, "width": 50000, "height": 120000 },
-    { "kind": "hurt", "firstFrame": 5, "lastFrame": 9, "x": 20000, "y": 80000, "width": 30000, "height": 15000 },
+    { "kind": "hurt", "firstFrame": 5, "lastFrame": 8, "x": 22000, "y": 96000, "width": 30000, "height": 15000 },
+    { "kind": "hurt", "firstFrame": 9, "lastFrame": 10, "x": 20000, "y": 80000, "width": 30000, "height": 15000 },
     { "kind": "push", "firstFrame": 1, "lastFrame": 15, "x": -20000, "y": 0, "width": 40000, "height": 110000 },
-    { "kind": "hit", "firstFrame": 5, "lastFrame": 7, "x": 20000, "y": 80000, "width": 40000, "height": 15000 }
+    { "kind": "hit", "firstFrame": 5, "lastFrame": 8, "x": 22000, "y": 73000, "width": 31000, "height": 39000 }
   ],
   "cancels": [
     {
       "firstFrame": 5,
-      "lastFrame": 12,
+      "lastFrame": 13,
       "on": ["hit", "block"],
-      "into": ["5a", "2a", "5b", "2b"],
+      "into": ["5a", "2a", "5b", "2b", "2c", "236236d", "623c", "236c", "214a", "214b", "214c", "5d", "5c"],
       "intoCategories": ["special", "super"]
     }
   ],
   "hits": [
-    { "damage": 300, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 11, "hitstop": 8, "pushback": 12000 }
+    { "damage": 306, "chipDamage": 0, "guard": "mid", "hitstun": 13, "blockstun": 9, "hitstop": 8, "pushback": 12000 }
   ]
 }

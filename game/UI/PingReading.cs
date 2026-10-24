@@ -10,6 +10,12 @@ public readonly record struct PingReading(int Milliseconds)
     private const int MaxGoodMilliseconds = 100;
     private const int MaxFairMilliseconds = 150;
 
+    /// <summary>Most bars a connection shows (<see cref="Bars"/>).</summary>
+    public const int MaxBars = 3;
+
+    /// <summary>Connection bars: 3 good, 2 fair, 1 poor (the order of <see cref="PingQuality"/>).</summary>
+    public int Bars => MaxBars - (int)Quality;
+
     public PingQuality Quality => Milliseconds switch
     {
         <= MaxGoodMilliseconds => PingQuality.Good,

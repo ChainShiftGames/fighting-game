@@ -10,7 +10,7 @@ public sealed class ProjectileMovesTests
     {
         string[] moves = ProjectileMoves.Of(TestGameData.Testman);
 
-        // Testman's only projectile is 236C's fireball.
-        Assert.Equal(["236c"], moves);
+        // Testman's projectiles: 236C's fireball and 214A/B/C's floor fires, in the character's move order.
+        Assert.Equal(["236c", "214a", "214b", "214c"], moves);
     }
 }

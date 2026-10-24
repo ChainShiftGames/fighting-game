@@ -6,6 +6,7 @@ using FightingGame.Addons.CharacterEditor.Map;
 using FightingGame.Addons.CharacterEditor.Screen.Drawer;
 using FightingGame.Addons.CharacterEditor.Screen.Look;
 using FightingGame.Addons.CharacterEditor.Screen.Map;
+using FightingGame.Presentation.World;
 using Godot;
 using Sim.Data.Characters.Reading;
 using Sim.Data.Sources;
@@ -41,6 +42,7 @@ public partial class CharacterEditorScreen : VBoxContainer
     private string? _dataRoot;
     private CharacterSaver? _saver;
     private CharacterDocument? _document;
+    private ArtTimingFile? _art;
     private EditingContext? _context;
     private IReadOnlyList<DataError> _problems = [];
     private string? _selected;
@@ -84,6 +86,11 @@ public partial class CharacterEditorScreen : VBoxContainer
         _drawer.FrameShown += _strip.MarkFrame;
         _strip.FrameClicked += _drawer.SelectFrame;
         _drawer.Edited += OnEdited;
+        _drawer.ArtEdited += status =>
+        {
+            _status = status;
+            ShowState();
+        };
         _fileActions.Done += (status, index) =>
         {
             IReadOnlyList<string> ids = _document!.MoveIds;
@@ -95,7 +102,10 @@ public partial class CharacterEditorScreen : VBoxContainer
     }
 
     /// <summary>The open character's id when it has unsaved changes; else null.</summary>
-    public string? UnsavedCharacter => _document is { HasChanges: true } ? _document.Id : null;
+    public string? UnsavedCharacter => HasChanges ? _document!.Id : null;
+
+    // The data files or the art file's animation timing.
+    private bool HasChanges => _document is { HasChanges: true } || _art is { IsChanged: true };
 
     /// <param name="dataRoot">Full path of the <c>data/</c> folder; null when there is none (nothing to edit).</param>
     public void Build(string? dataRoot)
@@ -119,11 +129,11 @@ public partial class CharacterEditorScreen : VBoxContainer
 
     private void OpenUnlessUnsaved(string? characterId)
     {
-        if (_document is { HasChanges: true })
+        if (UnsavedCharacter is string open)
         {
             _pendingCharacter = characterId;
-            _topBar.Select(_document.Id);
-            _discard.DialogText = $"Discard the unsaved changes to '{_document.Id}'?";
+            _topBar.Select(open);
+            _discard.DialogText = $"Discard the unsaved changes to '{open}'?";
             _discard.PopupCentered();
             return;
         }
@@ -134,6 +144,7 @@ public partial class CharacterEditorScreen : VBoxContainer
     private void Open(string? characterId)
     {
         _document = null;
+        _art = null;
         _selected = null;
         _problems = [];
         _status = "No characters in data/characters/";
@@ -144,6 +155,7 @@ public partial class CharacterEditorScreen : VBoxContainer
                 var source = new DirectoryDataSource(_dataRoot);
                 _document = CharacterDocument.Open(source, characterId);
                 _context = EditingContext.Read(source);
+                _art = ArtTimingFile.Open(ProjectSettings.GlobalizePath(FighterArtFile.PathFor(characterId)));
                 _status = $"Opened {characterId}";
                 // Show problems already on disk (e.g. from a hand edit) straight away.
                 _problems = _saver!.Validate(_document);
@@ -195,7 +207,7 @@ public partial class CharacterEditorScreen : VBoxContainer
     private void ShowSelected(string? moveId)
     {
         DrawerMove? move = moveId is not null && _document?.Move(moveId) is EditedFile file
-            ? new DrawerMove(moveId, file, _document, _context!, _settings)
+            ? new DrawerMove(moveId, file, _document, _context!, _settings, _art)
             : null;
         _drawer.ShowMove(move);
         ShowStrip();
@@ -315,15 +327,18 @@ public partial class CharacterEditorScreen : VBoxContainer
         }
     }
 
+    // The art file only ever holds timing and sparks the game reads (ArtTimingFile checks each edit), so it saves even
+    // when the data files can't.
     private void Save()
     {
+        _art?.Save();
         _problems = _saver!.Save(_document!);
         _status = _problems.Count == 0 ? $"Saved {_document!.Id}" : "Not saved: fix the problems first";
         ShowMap(refit: false);
     }
 
     private void ShowState() => _topBar.ShowState(
-        _document?.MoveIds.Count, _problems.Count, _document?.HasChanges ?? false, _status);
+        _document?.MoveIds.Count, _problems.Count, HasChanges, _status);
 
     private int? SelectedIndex() =>
         _selected is not null && IndexOf(_document!.MoveIds, _selected) is int index and >= 0 ? index : null;

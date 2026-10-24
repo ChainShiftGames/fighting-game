@@ -46,6 +46,8 @@ public partial class MatchView : Node2D
     private StageCamera? _camera;
     private System.Func<Sim.Events.FrameEvent, bool>? _sparkDrawnElsewhere;
     private readonly BackdropBlur _backdropBlur = new();
+    private readonly InkLines _inkLines = new();
+    private readonly FighterBrush _brush = new();
     private LookToggles? _look;
     private int _modelVariant;
     private AnimeGrade? _grade;
@@ -142,6 +144,7 @@ public partial class MatchView : Node2D
         AddChild(_stage);
         _worldCamera.Attributes = _backdropBlur.Attributes;
         AddChild(_worldCamera);
+        _worldCamera.AddChild(_inkLines.Pass);
         foreach (Node3D? fighter in _fighterNodes)
         {
             if (fighter is not null)
@@ -179,7 +182,8 @@ public partial class MatchView : Node2D
             ref readonly FighterState fighter = ref state.Fighters[player];
             CollectBoxes(in fighter, _characters[player]);
             FighterPose pose = FighterPose.Of(_characters[player], in fighter) with { MatchFrame = state.Frame };
-            _fighterArt[player]!.ShowPose(pose, fighter.Position, fighter.Facing, _boxes);
+            IntVector2 drawnAt = fighter.Position + _effects.DefenderShake.Offset(in pose);
+            _fighterArt[player]!.ShowPose(pose, drawnAt, fighter.Facing, _boxes);
         }
 
         _charges.ShowFrame(in state.Fighters);
@@ -215,6 +219,8 @@ public partial class MatchView : Node2D
         _grade?.Show(_look?.Grade.Enabled ?? false);
         bool blurred = (_look?.BackdropBlur.Enabled ?? false) && _worldCamera.Projection == Camera3D.ProjectionType.Perspective;
         _backdropBlur.Show(blurred, _worldCamera.PlaneDistance);
+        _brush.Show(_look?.BrushShading.Enabled ?? true);
+        _inkLines.Show(_look?.InkLines.Enabled ?? true, _worldCamera.PlaneDistance);
     }
 
     // The 2D layers and the 3D camera both take their framing from this one view, so they stay lined up (ADR-0027 §3).

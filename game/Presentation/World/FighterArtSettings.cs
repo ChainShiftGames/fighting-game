@@ -25,6 +25,12 @@ public sealed record FighterArtSettings(
     /// <summary>Frames a basic move's clip takes to fade in from the pose before; 0 snaps.</summary>
     public int CrossfadeFrames { get; init; }
 
+    /// <summary>
+    /// Frames a hit or block reaction takes to fade in when a hit lands mid-reaction (a gatling, a juggle), from the
+    /// reaction shown; 0 snaps, as first hits always do.
+    /// </summary>
+    public int ReHitFadeFrames { get; init; }
+
     /// <summary>Frames the model takes to turn round when the facing switches; 0 mirrors at once.</summary>
     public int TurnFrames { get; init; }
 
@@ -92,4 +98,7 @@ public sealed record FighterArtSettings(
     public string ClipFor(string moveId) => For(moveId).Clip ?? moveId;
 
     public ContactFrames? ContactsFor(string moveId) => For(moveId).Contacts;
+
+    /// <summary>A move's timing keys, in phase order; empty when it has none.</summary>
+    public IReadOnlyList<TimingKey> KeysFor(string moveId) => For(moveId).Keys ?? [];
 }

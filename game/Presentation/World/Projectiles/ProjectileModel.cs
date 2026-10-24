@@ -38,4 +38,7 @@ public partial class ProjectileModel : Node3D
         _mesh?.SetInstanceShaderParameter(_time, seconds);
         _mesh?.SetInstanceShaderParameter(_flare, flare);
     }
+
+    /// <summary>Sets one more per-instance uniform of the model's material, for this instance only.</summary>
+    public void SetParameter(StringName name, Variant value) => _mesh?.SetInstanceShaderParameter(name, value);
 }

@@ -119,8 +119,10 @@ public sealed class MapPainter(CanvasItem canvas, MapLook look, Vector2 offset)
             HorizontalAlignment.Left, nameWidth, look.FontSize(13f), MapPalette.Text with { A = alpha });
         KeycapArt.Draw(canvas, look, right - inputWidth, rect.Position.Y + look.Px(NameY - 4.5f), card.Arrows,
             card.Keycaps, alpha);
+        float tagsLeft = GuardTags(right, rect.Position.Y + look.Px(MetaY), card.Guards, alpha);
         canvas.DrawString(look.Body, new Vector2(left, rect.Position.Y + look.Px(MetaY)), card.Meta,
-            HorizontalAlignment.Left, right - left, look.FontSize(11.5f), MapPalette.Muted with { A = alpha });
+            HorizontalAlignment.Left, tagsLeft - left - look.Px(4f), look.FontSize(11.5f),
+            MapPalette.Muted with { A = alpha });
         Bar(new Rect2(left, rect.Position.Y + look.Px(BarTop), right - left, look.Px(BarHeight)), card.Phases, alpha);
         if (card.HasProblem)
         {
@@ -128,6 +130,39 @@ public sealed class MapPainter(CanvasItem canvas, MapLook look, Vector2 offset)
                 MapPalette.Bad);
         }
     }
+
+    // Small outlined tags (LOW, OVERHEAD…) ending at `right` on the line whose baseline is `baseline`; returns where
+    // the first one starts.
+    private float GuardTags(float right, float baseline, IReadOnlyList<string> guards, float alpha)
+    {
+        int size = look.FontSize(9.5f);
+        float padding = look.Px(5f);
+        float height = look.Px(14f);
+        float x = right;
+        for (int i = guards.Count - 1; i >= 0; i--)
+        {
+            string text = guards[i].ToUpper(CultureInfo.InvariantCulture);
+            float width = look.Bold.GetStringSize(text, HorizontalAlignment.Left, -1f, size).X + (2f * padding);
+            x -= width;
+            var tag = new Rect2(x, baseline - height + look.Px(3f), width, height);
+            Color color = GuardColor(guards[i]) with { A = alpha };
+            ShapeArt.Panel(canvas, tag, color with { A = 0.16f * alpha }, height / 2f, color,
+                Mathf.Max(1f, look.Px(1f)));
+            canvas.DrawString(look.Bold, new Vector2(x + padding, baseline), text, HorizontalAlignment.Left, -1f,
+                size, color);
+            x -= look.Px(4f);
+        }
+
+        return x;
+    }
+
+    private static Color GuardColor(string guard) => guard switch
+    {
+        "low" => MapPalette.GuardLow,
+        "overhead" => MapPalette.GuardOverhead,
+        "unblockable" => MapPalette.Bad,
+        _ => MapPalette.Muted,
+    };
 
     /// <summary>A move's phases as one bar, each phase as long as its frames (the jump card: one accent bar).</summary>
     public void Bar(Rect2 rect, IReadOnlyList<int> phases, float alpha = 1f)

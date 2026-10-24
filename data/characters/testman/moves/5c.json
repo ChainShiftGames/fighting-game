@@ -17,6 +17,7 @@
       "firstFrame": 10,
       "lastFrame": 18,
       "on": ["hit", "block"],
+      "into": ["236c", "214a", "214b", "214c", "623c", "236236d", "2c", "5d"],
       "intoCategories": ["special", "super"]
     }
   ],

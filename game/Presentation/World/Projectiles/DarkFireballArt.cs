@@ -28,7 +28,7 @@ public partial class DarkFireballArt : Node3D, IProjectileArt
         AddChild(_card);
     }
 
-    public void ShowFrame(int frame, Vector3 centre, int facing)
+    public void ShowFrame(int frame, Vector3 centre, int facing, int lifetime)
     {
         Position = centre;
 

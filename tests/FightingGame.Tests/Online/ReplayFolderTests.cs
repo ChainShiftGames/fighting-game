@@ -57,6 +57,38 @@ public sealed class ReplayFolderTests : IDisposable
         Assert.Equal(ReplayRejection.OtherGameVersion, rejected.Reason);
     }
 
+    [Fact]
+    public void ListsReplaysNewestFirstAndNoneBeforeTheFirstSave()
+    {
+        var folder = new ReplayFolder(_path);
+        Assert.Empty(folder.Files());
+
+        string older = folder.Save(ReplayOf(GameVersion.Current), _savedAt, "local");
+        string newer = folder.Save(ReplayOf(GameVersion.Current), _savedAt.AddMinutes(1), "online-p1");
+        File.WriteAllText(Path.Combine(_path, "notes.txt"), "not a replay");
+
+        Assert.Equal([newer, older], folder.Files());
+    }
+
+    [Fact]
+    public void ReadsWhenAReplayWasSavedFromItsName()
+    {
+        Assert.Equal(_savedAt, ReplayFolder.SavedAt(Path.Combine(_path, ReplayFolder.FileName(_savedAt, "local", 2))));
+        Assert.Null(ReplayFolder.SavedAt("my replay.fgreplay"));
+    }
+
+    [Fact]
+    public void DeletesOnlyItsOwnReplays()
+    {
+        var folder = new ReplayFolder(_path);
+        string file = folder.Save(ReplayOf(GameVersion.Current), _savedAt, "local");
+
+        Assert.Throws<ArgumentException>(() => folder.Delete(Path.Combine(Path.GetTempPath(), "elsewhere.fgreplay")));
+        folder.Delete(file);
+
+        Assert.False(File.Exists(file));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_path))

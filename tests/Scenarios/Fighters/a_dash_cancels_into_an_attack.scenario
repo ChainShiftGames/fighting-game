@@ -1,0 +1,11 @@
+# A ground dash is cancelled on any frame into any move a free fighter could start (standard FG run cancel).
+setup: p1 character scenario_dummy
+setup: p2 character scenario_dummy
+
+# 6, neutral, 6 starts the run on frame 3; 5a pressed mid-run starts at once, forward still held.
+frame 1: p1 6, 5, 6
+frames 4-6: p1 6
+frame 7: p1 6a
+frames 3-6: expect p1 state = dash
+frame 7: expect p1 state = attack
+frame 7: expect p1 move = 5a

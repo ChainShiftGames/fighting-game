@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/module.schema.json",
   "schemaVersion": 1,
-  "enabled": false,
+  "enabled": true,
   "superCost": 5000,
   "hitGain": 300,
   "blockGain": 150,

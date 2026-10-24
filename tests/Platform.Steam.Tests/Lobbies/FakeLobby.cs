@@ -18,9 +18,13 @@ internal sealed class FakeLobby : ILobby
 
     public int OpponentReadyFor { get; set; }
 
+    public string OpponentPick { get; set; } = string.Empty;
+
+    public int? OpponentPingMilliseconds { get; set; }
+
     public ulong? AcceptedInvite { get; set; }
 
-    public string Failure { get; set; } = string.Empty;
+    public LobbyNotice Failure { get; set; } = LobbyNotice.None;
 
     public List<SteamFriend> Friends { get; } = [];
 
@@ -29,6 +33,12 @@ internal sealed class FakeLobby : ILobby
 
     /// <summary>The ready mark the other PC would read now.</summary>
     public int LastReadyMark => ReadyMarks.Count == 0 ? 0 : ReadyMarks[^1];
+
+    /// <summary>Every pick mark published, in order (empty = none).</summary>
+    public List<string> PickMarks { get; } = [];
+
+    /// <summary>The pick mark the other PC would read now.</summary>
+    public string LastPickMark => PickMarks.Count == 0 ? string.Empty : PickMarks[^1];
 
     public List<ulong> Invited { get; } = [];
 
@@ -56,10 +66,10 @@ internal sealed class FakeLobby : ILobby
         return invite;
     }
 
-    public string TakeFailure()
+    public LobbyNotice TakeFailure()
     {
-        string failure = Failure;
-        Failure = string.Empty;
+        LobbyNotice failure = Failure;
+        Failure = LobbyNotice.None;
         return failure;
     }
 
@@ -82,9 +92,12 @@ internal sealed class FakeLobby : ILobby
         IsOwner = false;
         Opponent = null;
         OpponentReadyFor = 0;
+        OpponentPick = string.Empty;
     }
 
     public void MarkReadyFor(int matchNumber) => ReadyMarks.Add(matchNumber);
+
+    public void MarkPick(string pick) => PickMarks.Add(pick);
 
     public bool Invite(ulong friendSteamId)
     {

@@ -78,6 +78,7 @@ public sealed class MatchSimulation
             Input = new RoundInputLock(new ButtonSetInputStage(buttons)),
             StateMachines = stateMachines,
             Movement = new StageSequence(
+                new ComboEndStage(),
                 new MovementStage(player1, player2),
                 new EntityMovementStage(owners),
                 new MoveSpawnStage(owners, spawner),

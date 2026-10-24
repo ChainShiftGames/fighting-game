@@ -40,6 +40,28 @@ public sealed class MatchIdentity
     /// <summary>The same hash the P1-20 test checks changes with every rules field (ADR-0011 §7).</summary>
     public ulong RulesHash { get; }
 
+    /// <summary>Each part that differs from <paramref name="other"/>; <see cref="HandshakeRefusal.None"/> when none does.</summary>
+    public HandshakeRefusal RefusalFrom(MatchIdentity other)
+    {
+        HandshakeRefusal refusal = HandshakeRefusal.None;
+        if (!string.Equals(GameVersion, other.GameVersion, StringComparison.Ordinal))
+        {
+            refusal |= HandshakeRefusal.GameVersion;
+        }
+
+        if (!DataHash.SequenceEqual(other.DataHash))
+        {
+            refusal |= HandshakeRefusal.GameData;
+        }
+
+        if (RulesHash != other.RulesHash)
+        {
+            refusal |= HandshakeRefusal.MatchRules;
+        }
+
+        return refusal;
+    }
+
     /// <summary>Each part that differs from <paramref name="other"/>, described for the devs; empty when none does.</summary>
     public IReadOnlyList<string> DifferencesFrom(MatchIdentity other)
     {

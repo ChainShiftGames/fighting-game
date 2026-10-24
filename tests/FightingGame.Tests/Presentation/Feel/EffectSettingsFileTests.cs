@@ -62,7 +62,8 @@ public sealed class EffectSettingsFileTests
             "counterPixels": 5,
             "throwPixels": 4,
             "knockOutPixels": 8,
-            "verticalShare": 0.5
+            "verticalShare": 0.5,
+            "defenderPixels": 3
           },
           "hitSparks": {
             "lightHitstop": 8,

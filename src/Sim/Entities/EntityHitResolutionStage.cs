@@ -17,7 +17,8 @@ namespace Sim.Entities;
 ///   and disappears at 0, with a <see cref="FrameEventKind.ProjectileClash"/> event. A destroyed one hits nothing.
 /// - A same-frame exchange (<see cref="HitContacts.IsSameFrameExchange"/>: both fighters touched by the other's
 ///   attacks or projectiles) under <see cref="TradeRule.Clash"/>: no projectile lands; each touching one disappears
-///   with a clash event, as the fighters' moves are spent. Otherwise every touch lands (trades included).
+///   with a clash event, as the fighters' moves are spent; a lingering one (below) just doesn't land that frame.
+///   Otherwise every touch lands (trades included).
 /// - A touch is blocked or hits with the fighters' rules (<see cref="Blocking"/> holding away from the owner, as
 ///   against any attack, even when the projectile comes from behind, and in the air only through a module,
 ///   <see cref="Guarding"/>; <see cref="HitReactions"/> for damage, chip,
@@ -30,7 +31,9 @@ namespace Sim.Entities;
 ///   doesn't record the outcome (no cancel on a projectile's hit).
 /// - The modules adjust a hit before it lands (<see cref="IHitAdjustmentHook"/>); one they make whiff leaves the
 ///   projectile flying and the defender untouched.
-/// - One hit per projectile: it disappears on hit or block. Several touching the same defender land in slot order.
+/// - One hit per projectile: it disappears on hit or block, unless its data has a <c>RehitInterval</c>: then it
+///   stays out and can't touch again for that many frames (a lingering fire). Several touching the same defender
+///   land in slot order.
 /// - Each landed touch emits its event and runs the modules' hit or block hooks with the owner as the attacker.
 /// A projectile only ever changes its owner's opponent, so P1's and P2's projectiles can't affect each other here.
 /// </remarks>
@@ -85,7 +88,10 @@ public sealed class EntityHitResolutionStage : ITickStage
 
             if (cancelsOut)
             {
-                Remove(ref state, slot, FrameEventKind.ProjectileClash, _contacts.TouchPointOf(slot));
+                if (_characters.ProjectileOf(in state.Entities.Slots[slot]).RehitInterval == 0)
+                {
+                    Remove(ref state, slot, FrameEventKind.ProjectileClash, _contacts.TouchPointOf(slot));
+                }
             }
             else
             {
@@ -123,7 +129,8 @@ public sealed class EntityHitResolutionStage : ITickStage
     {
         EntityState entity = state.Entities.Slots[slot];
         int defender = MatchState.PlayerCount - 1 - entity.Owner;
-        HitData hit = _shortcutDamage.Apply(_characters.ProjectileOf(in entity).Hit, entity.IsShortcut != 0);
+        ref readonly ProjectileData data = ref _characters.ProjectileOf(in entity);
+        HitData hit = _shortcutDamage.Apply(data.Hit, entity.IsShortcut != 0);
         int direction = HitDirection.AlongFlight(in entity);
         CounterHitKind counter = Defend(
             ref state, defender, in hit, entity.Owner, direction, out bool isBlocked, out bool whiffs);
@@ -133,7 +140,17 @@ public sealed class EntityHitResolutionStage : ITickStage
         }
 
         IntVector2 point = _contacts.TouchPointOf(slot);
-        Remove(ref state, slot, isBlocked ? FrameEventKind.ProjectileBlock : FrameEventKind.ProjectileHit, point);
+        FrameEventKind kind = isBlocked ? FrameEventKind.ProjectileBlock : FrameEventKind.ProjectileHit;
+        if (data.RehitInterval > 0)
+        {
+            state.Entities.Slots[slot].RehitCooldown = data.RehitInterval;
+            state.Events.Emit(state.Frame, kind, entity.Owner, point, entity.Projectile);
+        }
+        else
+        {
+            Remove(ref state, slot, kind, point);
+        }
+
         CounterHitEvent.Emit(ref state, counter, entity.Owner, point);
 
         FighterContact contact = new(entity.Owner, defender);
