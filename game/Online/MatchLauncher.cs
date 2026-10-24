@@ -44,6 +44,7 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
         _createReplay = createReplay;
         Matchmaking = platform.OpenMatchmaking();
         PlatformName = platform.PlatformName;
+        PlayerName = platform.PlayerName;
         string? replay = ReplayLaunchOptions.ParsePath(args, out string replayError);
         if (replayError.Length > 0)
         {
@@ -82,6 +83,13 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
 
     /// <summary>The platform's name for the player, e.g. why online play isn't there ("Offline").</summary>
     public string PlatformName { get; }
+
+    /// <summary>This player's name on the platform, as the lobby shows it.</summary>
+    public string PlayerName { get; }
+
+    /// <summary>After an online match: this player wants the rematch and the other hasn't said yet.</summary>
+    public bool IsWaitingForRematch =>
+        Mode == LaunchMode.Online && Matchmaking?.Lobby is { Stage: LobbyStage.Rematch, IsLocalReady: true };
 
     /// <summary>Whether a finished match can be played again: a new match on this PC, or a rematch in the lobby.</summary>
     public bool CanRematch => Mode is LaunchMode.Online || _restart is not null;
@@ -169,7 +177,8 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
         }
 
         StartedMatch? match = _createOnline(
-            new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0));
+            new OnlineOpponent(found.Opponent, found.OpponentName, found.LocalIsPlayer1, found.Transport, LocalPort: 0)
+                .WithPicks(found.LocalPick, found.OpponentPick));
         if (match is null)
         {
             // The host shows why; the lobby offers to try again.

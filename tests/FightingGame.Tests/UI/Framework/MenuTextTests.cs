@@ -10,9 +10,9 @@ public sealed partial class MenuTextTests
     [Fact]
     public void KeysAreTranslatedAndFilledWithTranslatedArguments()
     {
-        MenuText text = MenuText.Key("LOBBY_PLAYERS", MenuText.Key("LOBBY_HOST_VS", "Rival"));
+        MenuText text = MenuText.Key("LOBBY_OPPONENT_IS", MenuText.Plain("Rival"), MenuText.Key("LOBBY_STATE_READY"));
 
-        Assert.Equal("Lobby: you (P1) vs Rival (P2)", MenuTextTable.Formatter.Format(text));
+        Assert.Equal("Rival: ready", MenuTextTable.Formatter.Format(text));
     }
 
     [Fact]

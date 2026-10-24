@@ -24,6 +24,10 @@ public sealed class SteamLobbyMatchmaking : IMatchmaking
             match.OpponentName,
             match.LocalIsPlayer1,
             SteamTransport.For(match.OpponentSteamId))
+        {
+            LocalPick = match.LocalPick,
+            OpponentPick = match.OpponentPick,
+        }
         : null;
 
     public void Dispose() => Lobby.Dispose();

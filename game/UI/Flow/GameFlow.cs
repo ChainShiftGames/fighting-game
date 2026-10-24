@@ -18,7 +18,8 @@ public sealed class GameFlow
     private static readonly FlowStep[] _localRoute =
         [FlowStep.SideSelect, FlowStep.CharacterSelect, FlowStep.StageSelect, FlowStep.Match];
 
-    private static readonly FlowStep[] _onlineRoute = [FlowStep.Online, FlowStep.Match];
+    // Online the lobby moves the players on: both ready → character select, both picked → the match (ADR-0042).
+    private static readonly FlowStep[] _onlineRoute = [FlowStep.Online, FlowStep.CharacterSelect, FlowStep.Match];
     private static readonly FlowStep[] _launchedRoute = [FlowStep.Match];
 
     private readonly IMatchStarter _matches;
@@ -53,7 +54,9 @@ public sealed class GameFlow
     public IReadOnlyList<FlowStep> Path => _path;
 
     /// <summary>Whether the results can go back to character select (once it exists) for this mode.</summary>
-    public bool CanReselect => IsOnRoute(FlowStep.CharacterSelect) && Has(FlowStep.CharacterSelect);
+    /// <remarks>Not online: the rematch keeps both picks, and new picks start from the lobby.</remarks>
+    public bool CanReselect =>
+        Setup.Mode != LaunchMode.Online && IsOnRoute(FlowStep.CharacterSelect) && Has(FlowStep.CharacterSelect);
 
     private FlowStep Home => Setup.Mode == LaunchMode.Online ? FlowStep.Online : FlowStep.MainMenu;
 
@@ -165,7 +168,7 @@ public sealed class GameFlow
         }
     }
 
-    /// <summary>After a finished match on this PC: the same setup again.</summary>
+    /// <summary>After a finished match: the same setup again. Online the results stay up until both want it.</summary>
     public void Rematch()
     {
         if (Step != FlowStep.Results)
@@ -174,7 +177,10 @@ public sealed class GameFlow
         }
 
         _matches.Rematch();
-        GoTo(FlowStep.Match);
+        if (Home != FlowStep.Online)
+        {
+            GoTo(FlowStep.Match);
+        }
     }
 
     /// <summary>After a finished match: back to character select with the same mode.</summary>
@@ -189,11 +195,14 @@ public sealed class GameFlow
         GoTo(FlowStep.CharacterSelect);
     }
 
-    /// <summary>Leaves a match being played (the pause menu): back where its mode was picked.</summary>
+    /// <summary>
+    /// Leaves a match being played (the pause menu), or a finished online one (its results): back where its mode was
+    /// picked.
+    /// </summary>
     /// <remarks>Online that is the online screens, out of the lobby; on this PC, the main menu.</remarks>
     public void LeaveMatch()
     {
-        if (Step != FlowStep.Match)
+        if (Step != FlowStep.Match && !(Step == FlowStep.Results && Home == FlowStep.Online))
         {
             return;
         }
@@ -230,8 +239,7 @@ public sealed class GameFlow
                 GoTo(FlowStep.Match);
                 break;
             case MatchPhase.Over when Step == FlowStep.Match:
-                // Online, the lobby offers the rematch over the finished match.
-                GoTo(Home == FlowStep.Online ? FlowStep.Online : FlowStep.Results);
+                GoTo(FlowStep.Results);
                 break;
             case MatchPhase.None when Step is FlowStep.Match or FlowStep.Results:
                 GoTo(Home);

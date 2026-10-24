@@ -9,7 +9,8 @@ namespace FightingGame.UI.CharacterSelect;
 /// The rules of character select for both players at once: each moves their cursor, chooses a character, cycles its
 /// colours and readies; back undoes one step. In a mirror match the player who readies second can't take the
 /// first's colour: theirs shifts to the next free one. A player without a controller (the training dummy, or player 2
-/// with no pad) plays the other player's character in the next free colour.
+/// with no pad) plays the other player's character in the next free colour. Online, the other PC's player is a remote
+/// side: it shows their pick once it arrives and counts as locked in (ADR-0042).
 /// </summary>
 /// <remarks>Plain C#: the screen hands it presses per player and draws it.</remarks>
 public sealed class CharacterSelection
@@ -17,11 +18,16 @@ public sealed class CharacterSelection
     /// <summary>Character select always picks for two players, whether one or both choose.</summary>
     public const int SideCount = 2;
 
+    /// <summary>For <see cref="Begin"/>: both sides are on this PC.</summary>
+    public const int NoRemoteSide = -1;
+
     private readonly SideSelection[] _sides = [new(), new()];
     private readonly CharacterSelectSettings _settings;
     private readonly Func<int, int> _randomBelow;
     private Func<int, bool> _canPress = _ => false;
     private long? _readySince;
+    private int _remoteSide = NoRemoteSide;
+    private FighterPick? _remotePick;
 
     /// <param name="randomBelow">A random number from 0 up to (not including) its argument: presentation randomness,
     /// never the logic's.</param>
@@ -42,17 +48,30 @@ public sealed class CharacterSelection
     public SideSelection Side(int side) => _sides[side];
 
     /// <summary>Whether <paramref name="side"/> chooses for themselves; the other plays a mirror.</summary>
-    public bool Chooses(int side) => _canPress(side);
+    public bool Chooses(int side) => side != _remoteSide && _canPress(side);
+
+    /// <summary>Whether <paramref name="side"/> is the other PC's player (online).</summary>
+    public bool IsRemote(int side) => side == _remoteSide;
+
+    /// <summary>Whether the remote side's pick has arrived; false when there is no remote side.</summary>
+    public bool HasRemotePick => _remotePick is not null;
+
+    /// <summary>The remote side's pick as it arrives (null until then); ignored without a remote side.</summary>
+    public void ShowRemotePick(FighterPick? pick) => _remotePick = _remoteSide == NoRemoteSide ? null : pick;
 
     /// <summary>Starts over with every cursor on the character that player last played.</summary>
     /// <param name="canPress">Whether a player has a controller to choose with; asked every time, so a pad plugged in
     /// later joins.</param>
-    public void Begin(IReadOnlyList<SelectableCharacter> characters, Func<int, bool> canPress, PickMemory memory)
+    /// <param name="remoteSide">The other PC's side online; <see cref="NoRemoteSide"/> when both are on this PC.</param>
+    public void Begin(
+        IReadOnlyList<SelectableCharacter> characters, Func<int, bool> canPress, PickMemory memory, int remoteSide = NoRemoteSide)
     {
         Characters = characters;
         Grid = new CharacterGrid(characters.Count, _settings.Columns);
         _canPress = canPress;
         _readySince = null;
+        _remoteSide = remoteSide;
+        _remotePick = null;
         for (int side = 0; side < SideCount; side++)
         {
             FighterPick last = memory.Of(side);
@@ -140,6 +159,11 @@ public sealed class CharacterSelection
             return (selection.Slot, FirstColour(selection));
         }
 
+        if (IsRemote(side))
+        {
+            return RemoteShown();
+        }
+
         int other = Other(side);
         if (!Chooses(other))
         {
@@ -154,8 +178,21 @@ public sealed class CharacterSelection
     public bool IsTaken(int side, int character, int colour)
     {
         int other = Other(side);
+        if (IsRemote(other))
+        {
+            (int remoteCharacter, int remoteColour) = RemoteShown();
+            return remoteCharacter >= 0 && remoteCharacter == character && remoteColour == colour;
+        }
+
         SideSelection them = _sides[other];
         return Chooses(other) && them.Step == SelectStep.Ready && them.Character == character && them.Colour == colour;
+    }
+
+    // The remote pick on this PC's grid; a character this PC doesn't list shows as nothing (the match start says why).
+    private (int Character, int Colour) RemoteShown()
+    {
+        int character = _remotePick is { } pick ? IndexOf(pick.CharacterId) : -1;
+        return character < 0 ? (-1, 0) : (character, Wrap(_remotePick!.Value.Colour, Characters[character].Colours.Count));
     }
 
     private static int Other(int side) => 1 - side;

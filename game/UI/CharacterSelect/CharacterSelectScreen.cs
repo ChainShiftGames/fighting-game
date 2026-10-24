@@ -12,6 +12,8 @@ namespace FightingGame.UI.CharacterSelect;
 /// Character select: both players pick a character and a colour at once, each with their own devices
 /// (<see cref="CharacterSelection"/>), then the picks go into the match setup and on to stage select. It starts on
 /// each player's last pick this session (<see cref="PickMemory"/>). Drawn by <see cref="CharacterSelectView"/>.
+/// Online, only this PC's side picks; its pick goes to the other PC and the match starts once both picks are in
+/// (<see cref="IOnlinePicking"/>).
 /// </summary>
 public sealed class CharacterSelectScreen : IMenuScreen
 {
@@ -20,24 +22,29 @@ public sealed class CharacterSelectScreen : IMenuScreen
     private readonly PickMemory _memory;
     private readonly Func<LaunchMode, IMenuPlayers> _playersFor;
     private readonly Func<IReadOnlyList<SelectableCharacter>> _load;
+    private readonly Func<LaunchMode, IOnlinePicking?> _onlineFor;
     private IMenuPlayers? _players;
+    private IOnlinePicking? _online;
     private MenuText _problem = MenuText.Empty;
     private bool _isOpen;
 
     /// <param name="playersFor">Whose devices are whose for a mode, read each time the screen opens.</param>
     /// <param name="load">The characters to pick from, loaded again each time the screen opens (data edits show up).</param>
+    /// <param name="onlineFor">The other PC for a mode, read each time the screen opens; null for modes on this PC.</param>
     public CharacterSelectScreen(
         GameFlow flow,
         CharacterSelection selection,
         PickMemory memory,
         Func<LaunchMode, IMenuPlayers> playersFor,
-        Func<IReadOnlyList<SelectableCharacter>> load)
+        Func<IReadOnlyList<SelectableCharacter>> load,
+        Func<LaunchMode, IOnlinePicking?>? onlineFor = null)
     {
         _flow = flow;
         _selection = selection;
         _memory = memory;
         _playersFor = playersFor;
         _load = load;
+        _onlineFor = onlineFor ?? (_ => null);
     }
 
     public MenuText Title { get; } = MenuText.Key("MENU_TITLE_CHARACTER_SELECT");
@@ -57,6 +64,9 @@ public sealed class CharacterSelectScreen : IMenuScreen
     /// <summary>Training: player 2 is the dummy, not a player without a controller.</summary>
     public bool IsTraining => _flow.Setup.Mode == LaunchMode.Training;
 
+    /// <summary>Online, this PC's pick went out and the other PC's hasn't arrived yet.</summary>
+    public bool IsWaitingForOpponent => _online is { HasSent: true } && !_selection.HasRemotePick;
+
     /// <summary>Opens and closes with the flow, and moves on once both are ready; call once per displayed frame.</summary>
     public void Follow(bool isShown, long nowMilliseconds)
     {
@@ -72,6 +82,7 @@ public sealed class CharacterSelectScreen : IMenuScreen
             Open();
         }
 
+        _selection.ShowRemotePick(_online?.OpponentPick);
         if (_selection.Update(nowMilliseconds))
         {
             Finish();
@@ -86,8 +97,13 @@ public sealed class CharacterSelectScreen : IMenuScreen
             return;
         }
 
-        if (_selection.Press(side, press.Actions))
+        // A pick sent online can't be taken back: back leaves the lobby instead.
+        bool leaves = _online is { HasSent: true }
+            ? (press.Actions & MenuAction.Back) != 0
+            : _selection.Press(side, press.Actions);
+        if (leaves)
         {
+            _online?.Leave();
             _flow.Back();
         }
     }
@@ -98,6 +114,7 @@ public sealed class CharacterSelectScreen : IMenuScreen
     private void Open()
     {
         IMenuPlayers players = _players = _playersFor(_flow.Setup.Mode);
+        IOnlinePicking? online = _online = _onlineFor(_flow.Setup.Mode);
         IReadOnlyList<SelectableCharacter> characters;
         try
         {
@@ -111,11 +128,24 @@ public sealed class CharacterSelectScreen : IMenuScreen
             _problem = MenuText.Plain(exception.Message);
         }
 
-        _selection.Begin(characters, players.CanPress, _memory);
+        int remoteSide = online is null ? CharacterSelection.NoRemoteSide : 1 - online.LocalSide;
+        _selection.Begin(characters, players.CanPress, _memory, remoteSide);
     }
 
     private void Finish()
     {
+        if (_online is { } online)
+        {
+            if (!online.HasSent)
+            {
+                FighterPick pick = _selection.Pick(online.LocalSide);
+                _memory.Remember(online.LocalSide, pick);
+                online.Send(pick);
+            }
+
+            return;
+        }
+
         FighterPick player1 = _selection.Pick(0);
         FighterPick player2 = _selection.Pick(1);
         for (int side = 0; side < CharacterSelection.SideCount; side++)

@@ -5,11 +5,12 @@ using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using Platform.Steam.Lobbies;
 
-namespace FightingGame.UI.Screens;
+namespace FightingGame.UI.Online;
 
 /// <summary>
-/// The online lobby: host, join or invite, ready. After an online match the same screen is shown over it, offering the
-/// rematch (<see cref="IsOverMatch"/>).
+/// The online screens: the online menu (host, join a friend), then the lobby (both players, their readiness, the
+/// connection, invites, leave). Once both are ready it moves the flow on to character select, and back here when the
+/// lobby drops out of picking (the opponent left).
 /// </summary>
 public sealed class LobbyScreen : IMenuScreen
 {
@@ -19,26 +20,30 @@ public sealed class LobbyScreen : IMenuScreen
     private readonly GameFlow _flow;
     private readonly MatchLauncher _launcher;
     private readonly LobbyFlow _lobby;
+    private readonly string _playerName;
     private readonly Func<string> _note;
     private readonly Action<string> _log;
     private MenuText _lastAction = MenuText.Empty;
     private LobbyStage _shownStage = LobbyStage.Idle;
     private double _untilFriendRefresh;
 
-    /// <param name="note">What the match underneath (or a failed start) has to say; may be empty.</param>
+    /// <param name="playerName">This player's name on the platform.</param>
+    /// <param name="note">What a failed match start has to say; may be empty.</param>
     /// <param name="log">Writes a line to the game's log (stage changes).</param>
-    public LobbyScreen(GameFlow flow, MatchLauncher launcher, LobbyFlow lobby, Func<string> note, Action<string> log)
+    public LobbyScreen(
+        GameFlow flow, MatchLauncher launcher, LobbyFlow lobby, string playerName, Func<string> note, Action<string> log)
     {
         _flow = flow;
         _launcher = launcher;
         _lobby = lobby;
+        _playerName = playerName;
         _note = note;
         _log = log;
     }
 
-    public MenuText Title => MenuText.Key(IsOverMatch ? "MENU_TITLE_MATCH_OVER" : "LOBBY_TITLE");
+    public MenuText Title => MenuText.Key(_lobby.Stage == LobbyStage.Idle ? "LOBBY_TITLE" : "LOBBY_TITLE_LOBBY");
 
-    public IReadOnlyList<MenuText> Body => LobbyMenuText.Describe(_lobby, _lastAction, _note());
+    public IReadOnlyList<MenuText> Body => LobbyMenuText.Describe(_lobby, _playerName, _lastAction, _note());
 
     public IReadOnlyList<MenuItem> Items
     {
@@ -47,19 +52,17 @@ public sealed class LobbyScreen : IMenuScreen
             var items = new List<MenuItem>();
             foreach (LobbyMenuItem item in LobbyMenuItems.For(_lobby))
             {
-                items.Add(new ButtonItem(item.Label, () => Choose(item), item.Enabled));
+                items.Add(new ButtonItem(item.Label, () => Choose(item), item.Enabled) { Description = item.Description });
             }
 
             return items;
         }
     }
 
-    /// <summary>Over the online match that just finished, rather than as a full screen.</summary>
-    public bool IsOverMatch { get; set; }
+    public bool IsOverMatch => false;
 
-    // Out of the lobby to the Online menu, from there to the main menu. Nothing once both players are ready (the
-    // match is starting) or after a match (the menu's own buttons say where to go). The flow then picks the screen,
-    // so the stack never pops this one itself.
+    // Out of the lobby to the online menu, from there to the main menu. Nothing once both players are ready (the
+    // match is starting). The flow then picks the screen, so the stack never pops this one itself.
     public bool Back()
     {
         switch (_lobby.Stage)
@@ -67,7 +70,7 @@ public sealed class LobbyScreen : IMenuScreen
             case LobbyStage.Idle:
                 _flow.Back();
                 break;
-            case LobbyStage.Entering or LobbyStage.InLobby:
+            case LobbyStage.Entering or LobbyStage.InLobby or LobbyStage.Rematch:
                 _lobby.Leave();
                 break;
         }
@@ -80,8 +83,8 @@ public sealed class LobbyScreen : IMenuScreen
     }
 
     /// <summary>
-    /// Call once per displayed frame: re-reads the friend list while it is shown (to join from, or invite); notes are
-    /// for the stage they were made in.
+    /// Call once per displayed frame: follows the lobby with the flow (on to character select, back from it), re-reads
+    /// the friend list while it is shown (to join from, or invite); notes are for the stage they were made in.
     /// </summary>
     public void Follow(bool isShown, double delta)
     {
@@ -92,6 +95,7 @@ public sealed class LobbyScreen : IMenuScreen
             _lastAction = MenuText.Empty;
         }
 
+        FollowWithFlow();
         _untilFriendRefresh -= delta;
         bool listsFriends =
             _lobby.Stage == LobbyStage.Idle || (_lobby.Stage == LobbyStage.InLobby && !_lobby.HasOpponent);
@@ -99,6 +103,24 @@ public sealed class LobbyScreen : IMenuScreen
         {
             _untilFriendRefresh = FriendRefreshSeconds;
             _lobby.RefreshFriends();
+        }
+    }
+
+    private void FollowWithFlow()
+    {
+        if (_flow.Setup.Mode != LaunchMode.Online)
+        {
+            return;
+        }
+
+        bool isPicking = _lobby.Stage is LobbyStage.Picking or LobbyStage.Starting;
+        if (_flow.Step == FlowStep.Online && isPicking)
+        {
+            _flow.Advance(_flow.Setup);
+        }
+        else if (_flow.Step == FlowStep.CharacterSelect && !isPicking && _lobby.Stage != LobbyStage.InMatch)
+        {
+            _flow.Back();
         }
     }
 
@@ -128,6 +150,8 @@ public sealed class LobbyScreen : IMenuScreen
                 break;
             case LobbyChoice.MainMenu:
                 _flow.ToMainMenu();
+                break;
+            case LobbyChoice.QuickMatch:
                 break;
         }
     }

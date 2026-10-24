@@ -43,7 +43,7 @@ public sealed class MainMenuScreen : IMenuScreen
                 Entry("MENU_TRAINING", "MENU_TRAINING_INFO", () => _flow.Choose(LaunchMode.Training)),
                 new ButtonItem(online, () => _flow.Choose(LaunchMode.Online), hasOnline)
                 {
-                    Description = MenuText.Key("MENU_ONLINE_INFO"),
+                    Description = MenuText.Key(hasOnline ? "MENU_ONLINE_INFO" : "MENU_ONLINE_NEEDS_PLATFORM_INFO"),
                 },
                 Opens(FlowStep.Replays, "MENU_REPLAYS", "MENU_REPLAYS_INFO", "MENU_NOT_YET"),
                 Opens(FlowStep.Options, "MENU_OPTIONS", "MENU_OPTIONS_INFO", "MENU_OPTIONS_FOR_NOW"),
