@@ -46,7 +46,7 @@ public sealed class MainMenuScreen : IMenuScreen
                     Description = MenuText.Key(hasOnline ? "MENU_ONLINE_INFO" : "MENU_ONLINE_NEEDS_PLATFORM_INFO"),
                 },
                 Opens(FlowStep.Replays, "MENU_REPLAYS", "MENU_REPLAYS_INFO", "MENU_NOT_YET"),
-                Opens(FlowStep.Options, "MENU_OPTIONS", "MENU_OPTIONS_INFO", "MENU_OPTIONS_FOR_NOW"),
+                Opens(FlowStep.Options, "MENU_OPTIONS", "MENU_OPTIONS_INFO", "MENU_NOT_YET"),
                 Entry("MENU_QUIT", "MENU_QUIT_INFO", () => _flow.Open(FlowStep.QuitPrompt)),
             ];
         }

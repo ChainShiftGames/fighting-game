@@ -45,15 +45,16 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
   player, session score, [ADR-0045](../../adr/0045-results-and-rematch.md)). `Flow/GameFlow.cs` decides the
   next screen and starts matches with a `MatchSetup` through `IMatchStarter` (`MatchLauncher`, `game/Online/`)
   ([ADR-0040](../../adr/0040-game-flow.md)); new screens register in `FlowScreens` (one `Add` line in
-  `GameMenus.Bind`). Theme and translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay
-  (vsync, input delay).
+  `GameMenus.Bind`). Theme and translation table: `game/Assets/UI/`. Options menu: `Settings/` (tabs of player
+  settings, [ADR-0046](../../adr/0046-settings-menu.md)), from the main and pause menus.
 - Training menu: `game/Training/TrainingMenu*.cs`, entries implement `ITrainingMenuEntry`.
 - Input: `game/Input/`. `JoypadRoster` + `JoypadWatcher` track pads (keep the **no-double-input rule** with Steam
   Input documented in `JoypadRoster`). `DeviceRoster` lists devices (the keyboard + pads) and raises
   connect/disconnect events; match startups read a `PlayerDevices` assignment from `PlayerDevicesChoice`
   ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Bindings: `default_bindings.jsonc`, copied to
   `user://dev_bindings.jsonc`.
-- Player settings: `game/Settings/` (`PlayerSettings` record, JSON in `user://` via `PlayerSettingsStore`).
+- Player settings: `game/Settings/` (`PlayerSettings` record, versioned JSON in `user://` via `PlayerSettingsStore`,
+  live value in `CurrentPlayerSettings`, engine side in `PlayerSettingAppliers`).
 - Who plays what: `MatchSetup` picks, turned into a lineup by `game/Online/MatchLineup.cs`; character select fills the
   picks, colours and descriptions come from each character's `<id>_select.json`.
 - HUD font: `HudLettering.FontPath` in `game/Presentation/Hud/`.

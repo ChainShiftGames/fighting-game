@@ -49,11 +49,11 @@ public partial class Main : Node2D
     // Developer setting: how often editor runs look for data saved from outside the game (character editor, P3-43).
     private const double DataCheckSeconds = 0.5;
     private const string DeveloperKeys =
-        "F1 panel | F2 vsync (player setting) | F12 options | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
+        "F1 panel | F2 vsync (player setting) | F3 overlay | F4 hitboxes | F5 pause | F6 step one frame | " +
         "F7 sparks | F8 shake | F9 sounds | F10 rumble | F11 save replays | Esc pause menu | --replay <file> plays one | " +
         "--training starts training (Tab menu) | " + DeviceAssignmentArgs.Usage;
 
-    // Player setting: a shortcut for the options menu's vsync entry.
+    // Player setting: a shortcut for the options menu's vsync entry; saved at once.
     private const Key ToggleVsyncKey = Key.F2;
 
     // Developer setting: Valve's public test app (Spacewar) until the game has its own app ID.
@@ -81,7 +81,7 @@ public partial class Main : Node2D
     private JoypadWatcher? _joypadWatcher;
     private ControllerNotices? _controllerNotices;
     private InputReadout? _inputReadout;
-    private PlayerSettings _settings = new();
+    private CurrentPlayerSettings? _settings;
     private GameDataLocation? _data;
     private DataChangeWatch? _dataWatch;
     private LocalMatchStartup? _localStartup;
@@ -98,7 +98,6 @@ public partial class Main : Node2D
     private DebugPanel? _debugPanel;
     private MatchStatusLabel? _status;
     private GameMenus? _menus;
-    private OptionsMenu? _optionsMenu;
     private PingIndicator? _pingIndicator;
     private NetworkReadout? _networkReadout;
     private IPlatformServices? _platform;
@@ -109,8 +108,7 @@ public partial class Main : Node2D
     public override void _Ready()
     {
         _platform = PlatformStartup.Start(SteamAppId);
-        _settings = _settingsStore.Load();
-        ApplyVsync();
+        _settings = new CurrentPlayerSettings(_settingsStore.Load(), _settingsStore.Save, PlayerSettingAppliers.Create());
         _data = GameDataLocation.Choose();
         if (_data.Folder is string folder)
         {
@@ -157,13 +155,9 @@ public partial class Main : Node2D
         _status = new MatchStatusLabel();
         AddChild(_status);
 
-        // Before the options and training menus, so they see Escape first while open.
+        // Before the training menu, so it sees Escape first while open.
         _menus = new GameMenus();
         AddChild(_menus);
-
-        _optionsMenu = new OptionsMenu();
-        AddChild(_optionsMenu);
-        _optionsMenu.Bind(() => _settings, ChangeSettings);
 
         string[] args = OS.GetCmdlineUserArgs();
         CreateStartups(args);
@@ -176,7 +170,8 @@ public partial class Main : Node2D
             new GodotDeviceState(),
             _deviceChoice!,
             () => _data!.Load(),
-            _replays!);
+            _replays!,
+            _settings);
 
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
@@ -223,7 +218,7 @@ public partial class Main : Node2D
 
         if (_overlay!.Visible)
         {
-            _overlay.Refresh(_logicRate.PerSecond, _settings.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
+            _overlay.Refresh(_logicRate.PerSecond, _settings!.Value.Vsync, _latency.AverageMilliseconds, _latency.MaxMilliseconds);
             _overlay.ShowInputs(_inputReadout!.Describe(_match.Loop.LastInputs));
             _overlay.ShowNetwork(_match.IsOnline ? _networkReadout!.Describe() : string.Empty);
             _overlay.ShowMatch(_match.Description, _match.Loop.CurrentFrame, _match.Connection?.Describe("\n") ?? string.Empty);
@@ -240,7 +235,8 @@ public partial class Main : Node2D
         Key pressed = key.PhysicalKeycode;
         if (pressed == ToggleVsyncKey)
         {
-            ChangeSettings(_settings with { Vsync = !_settings.Vsync });
+            _settings!.Change(_settings.Value with { Vsync = !_settings.Value.Vsync });
+            _settings.Save();
         }
         else if (pressed == ToggleOverlayKey)
         {
@@ -268,13 +264,6 @@ public partial class Main : Node2D
         _joypadWatcher?.Dispose();
         _controllerNotices?.Dispose();
         _platform?.Dispose();
-    }
-
-    private void ChangeSettings(PlayerSettings settings)
-    {
-        _settings = settings;
-        _settingsStore.Save(settings);
-        ApplyVsync();
     }
 
     private void FlipTogglesOf(Key pressed)
@@ -382,7 +371,7 @@ public partial class Main : Node2D
     {
         _networkReadout!.Watch(opponent.Transport.Dropped);
         return TryCreateMatch(
-            "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), _settings, opponent));
+            "online", () => _onlineStartup!.Create(_data!.Load(), _data.LoadOnlineSettings(), _settings!.Value, opponent));
     }
 
     private StartedMatch? CreateReplayMatch(string path) =>
@@ -504,7 +493,4 @@ public partial class Main : Node2D
     }
 
     private void OnFramePostDraw() => _latency.FrameDrawn(Stopwatch.GetTimestamp());
-
-    private void ApplyVsync() =>
-        DisplayServer.WindowSetVsyncMode(_settings.Vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
 }

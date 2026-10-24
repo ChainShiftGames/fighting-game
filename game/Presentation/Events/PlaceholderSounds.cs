@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using FightingGame.Settings;
 using Godot;
 using Sim.Events;
 
@@ -30,7 +31,7 @@ public partial class PlaceholderSounds : Node, IFrameEventEffect
     {
         for (int voice = 0; voice < VoiceCount; voice++)
         {
-            _players[voice] = new AudioStreamPlayer();
+            _players[voice] = new AudioStreamPlayer { Bus = AudioBus.Effects };
             AddChild(_players[voice]);
         }
 

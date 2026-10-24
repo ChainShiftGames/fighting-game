@@ -7,7 +7,7 @@ using FightingGame.UI.Framework;
 namespace FightingGame.UI.Screens;
 
 /// <summary>
-/// Opened during a match: resume or leave it. On this PC the match is held meanwhile; online it can't be (the other
+/// Opened during a match: resume, the options, or leave it. On this PC the match is held meanwhile; online it can't be (the other
 /// player's game keeps running), so there it is only a menu to leave from.
 /// </summary>
 public sealed class PauseScreen : IMenuScreen
@@ -15,15 +15,18 @@ public sealed class PauseScreen : IMenuScreen
     private readonly GameFlow _flow;
     private readonly MatchLauncher _launcher;
     private readonly Action _resume;
+    private readonly Action _openOptions;
     private readonly Func<string> _note;
 
     /// <param name="resume">Closes the pause menu, back to the match.</param>
+    /// <param name="openOptions">Opens the options menu over this one.</param>
     /// <param name="note">What the match has to say, e.g. a connection warning; may be empty.</param>
-    public PauseScreen(GameFlow flow, MatchLauncher launcher, Action resume, Func<string> note)
+    public PauseScreen(GameFlow flow, MatchLauncher launcher, Action resume, Action openOptions, Func<string> note)
     {
         _flow = flow;
         _launcher = launcher;
         _resume = resume;
+        _openOptions = openOptions;
         _note = note;
     }
 
@@ -34,6 +37,7 @@ public sealed class PauseScreen : IMenuScreen
     public IReadOnlyList<MenuItem> Items =>
     [
         new ButtonItem(MenuText.Key("MENU_RESUME"), _resume),
+        new ButtonItem(MenuText.Key("MENU_OPTIONS"), _openOptions),
         new ButtonItem(
             MenuText.Key(_launcher.IsLocal ? "MENU_MAIN_MENU" : "MENU_LEAVE_MATCH"), _flow.LeaveMatch),
     ];
