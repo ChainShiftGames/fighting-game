@@ -39,8 +39,9 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
 ## Where things are today
 
 - Menus: `game/UI/`, built on the menu framework ([ADR-0039](../../adr/0039-menu-framework.md)): `Framework/`
-  (stack, focus, actions, text keys), `Widgets/`, `Screens/`, `Title/`, `MainMenu/`, `CharacterSelect/`
-  (two-player screen with its own view, [ADR-0041](../../adr/0041-character-select.md)). `Flow/GameFlow.cs` decides the
+  (stack, focus, actions, text keys), `Widgets/`, `Screens/`, `Title/`, `MainMenu/`, `SideSelect/`
+  (devices slide to P1/P2, [ADR-0043](../../adr/0043-side-select.md)), `CharacterSelect/` (two-player screen with its
+  own view, [ADR-0041](../../adr/0041-character-select.md)). `Flow/GameFlow.cs` decides the
   next screen and starts matches with a `MatchSetup` through `IMatchStarter` (`MatchLauncher`, `game/Online/`)
   ([ADR-0040](../../adr/0040-game-flow.md)); new screens register in `FlowScreens` (one `Add` line in
   `GameMenus.Bind`). Theme and translation table: `game/Assets/UI/`. `OptionsMenu.cs` is a key-driven F12 overlay

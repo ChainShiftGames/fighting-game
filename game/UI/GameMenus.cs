@@ -9,6 +9,7 @@ using FightingGame.UI.Framework;
 using FightingGame.UI.MainMenu;
 using FightingGame.UI.Online;
 using FightingGame.UI.Screens;
+using FightingGame.UI.SideSelect;
 using FightingGame.UI.Title;
 using Godot;
 using Netcode.Handshake;
@@ -32,6 +33,7 @@ public partial class GameMenus : Node
     private readonly MenuInput _input = new();
     private readonly MenuView _view = new();
     private readonly CharacterSelectView _characterSelectView = new();
+    private readonly SideSelectView _sideSelectView = new();
     private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
     private readonly FlowScreens _screens = new();
     private MenuNavigator? _navigator;
@@ -39,6 +41,7 @@ public partial class GameMenus : Node
     private MatchLauncher? _launcher;
     private FrameStepping? _stepping;
     private LobbyScreen? _lobby;
+    private SideSelectScreen? _sideSelect;
     private CharacterSelectScreen? _characterSelect;
     private ReplayBrowserScreen? _replays;
     private IMenuScreen[] _pausePath = [];
@@ -54,11 +57,12 @@ public partial class GameMenus : Node
         AddChild(_input);
         AddChild(_view);
         AddChild(_characterSelectView);
+        AddChild(_sideSelectView);
     }
 
     /// <param name="stepping">Held while the pause menu is open over a match on this PC.</param>
     /// <param name="joypads">The joypads menus read (the roster's no-double-input rule).</param>
-    /// <param name="players">Whose devices are whose, so character select moves each player's own cursor.</param>
+    /// <param name="players">Whose devices are whose: side select chooses it, character select moves each player's own cursor by it.</param>
     /// <param name="loadData">The game data, for the characters to pick from.</param>
     /// <param name="replays">The saved replays, for the replay browser.</param>
     public void Bind(
@@ -78,6 +82,7 @@ public partial class GameMenus : Node
         var text = new MenuTextFormatter(new GodotMenuTranslator());
         _view.Bind(text, transition);
         _characterSelectView.Bind(text, transition);
+        _sideSelectView.Bind(text, transition, SideSelectSettings.Default);
         _view.Pointed += index => _navigator.Point(index);
         _view.Clicked += index => _navigator.Click(index, Now());
 
@@ -88,6 +93,8 @@ public partial class GameMenus : Node
         _screens.Add(
             FlowStep.Results,
             new MatchOverScreen(flow, launcher, () => _note, () => _match?.Refusal ?? HandshakeRefusal.None));
+        _sideSelect = new SideSelectScreen(flow, new DeviceSides(SideSelectSettings.Default), players);
+        _screens.Add(FlowStep.SideSelect, _sideSelect);
         LobbyFlow? lobby = launcher.Matchmaking?.Lobby;
         _characterSelect = CreateCharacterSelect(flow, players, loadData, lobby);
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
@@ -115,6 +122,7 @@ public partial class GameMenus : Node
         _match = match;
         _note = note;
         _flow.Follow(match is null ? MatchPhase.None : match.IsOver ? MatchPhase.Over : MatchPhase.Playing);
+        _sideSelect!.Follow(_flow.Step == FlowStep.SideSelect, Now());
         _characterSelect!.Follow(_flow.Step == FlowStep.CharacterSelect, Now());
         bool isPlaying = _flow.Step == FlowStep.Match;
         if (!isPlaying)
@@ -145,10 +153,12 @@ public partial class GameMenus : Node
             _grace.Restart(now);
         }
 
-        // Character select draws itself; every other screen is a list the menu view draws.
+        // Side and character select draw themselves; every other screen is a list the menu view draws.
         bool isCharacterSelect = ReferenceEquals(_stack.Top, _characterSelect);
-        _view.Show(isCharacterSelect ? null : _stack.Top, _stack.TopFocus, now);
+        bool isSideSelect = ReferenceEquals(_stack.Top, _sideSelect);
+        _view.Show(isCharacterSelect || isSideSelect ? null : _stack.Top, _stack.TopFocus, now);
         _characterSelectView.Show(isCharacterSelect ? _characterSelect : null, now);
+        _sideSelectView.Show(isSideSelect ? _sideSelect : null, now);
     }
 
     // Online only this PC's player picks, on the side the lobby gives them (ADR-0042).

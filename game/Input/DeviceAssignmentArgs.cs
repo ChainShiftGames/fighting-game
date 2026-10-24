@@ -4,7 +4,7 @@ using System.Globalization;
 namespace FightingGame.Input;
 
 /// <summary>
-/// A test assignment from the command line (developer option, until side select chooses, UI-03):
+/// A test assignment from the command line (developer option; an assignment chosen on side select wins, ADR-0043):
 /// <c>--p1-devices pad2 --p2-devices keyboard</c>. Devices are <c>keyboard</c> and <c>pad1</c>, <c>pad2</c>, … for
 /// the joypads connected when the match starts, in roster order.
 /// </summary>
