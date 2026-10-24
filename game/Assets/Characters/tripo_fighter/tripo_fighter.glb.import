@@ -44,7 +44,7 @@ _subresources={
 "body": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://Assets/Characters/tripo_fighter/tripo_fighter_body.tres",
-"use_external/path": "res://Assets/Characters/tripo_fighter/tripo_fighter_body.tres"
+"use_external/path": "uid://pru7yepurecv"
 }
 },
 "nodes": {
