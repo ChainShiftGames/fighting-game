@@ -36,6 +36,8 @@ does, training's player 2, online, and how the choice is remembered.
    The animations only change the look; input counts from the press.
 8. **Icons**: generic keyboard / gamepad / arcade stick drawn from shapes; sticks are told from pads by name
    (`DeviceIcons`). UI-11 replaces them.
+9. **Pads that share a name are numbered** ("XInput Controller 1", "… 2") in screen order, so two pads of one
+   model can be told apart; a name that is unique on the screen has no number.
 
 No player settings.
 

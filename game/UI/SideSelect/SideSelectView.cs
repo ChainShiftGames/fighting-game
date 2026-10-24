@@ -186,15 +186,24 @@ public partial class SideSelectView : CanvasLayer
             var target = new Vector2(
                 ((int)device.Column * (ColumnWidth + ColumnGap)) + TokenInset,
                 HeaderHeight + (row * (TokenHeight + TokenGap)));
-            string name = device.Icon == DeviceIcon.Keyboard
-                ? _text!.Format(MenuText.Key("MENU_SIDES_KEYBOARD"))
-                : device.Name;
+            string name = Name(sides, device);
             string status = device.IsReady ? _text!.Format(MenuText.Key("MENU_SIDES_READY")) : string.Empty;
             token.Show(device.Icon, name, status, device.Side, device.IsReady);
             token.MoveTo(target, nowMilliseconds);
             token.Refused(device.Refusals, nowMilliseconds);
             token.Animate(_settings, nowMilliseconds);
         }
+    }
+
+    private new string Name(DeviceSides sides, SideSelectDevice device)
+    {
+        string name = device.Icon == DeviceIcon.Keyboard
+            ? _text!.Format(MenuText.Key("MENU_SIDES_KEYBOARD"))
+            : device.Name;
+        int number = sides.NumberOf(device);
+        return number == 0
+            ? name
+            : _text!.Format(MenuText.Key("MENU_SIDES_NUMBERED", name, number.ToString(CultureInfo.InvariantCulture)));
     }
 
     private void RemoveGone(DeviceSides sides)

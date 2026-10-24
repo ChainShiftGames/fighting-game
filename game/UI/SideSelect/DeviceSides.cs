@@ -125,6 +125,31 @@ public sealed class DeviceSides
         return null;
     }
 
+    /// <summary>
+    /// 1, 2… among the devices on the screen with the same name as <paramref name="device"/>, in screen order (the
+    /// roster's, then joining order); 0 when its name is unique. Two pads of one model would look the same otherwise.
+    /// </summary>
+    public int NumberOf(SideSelectDevice device)
+    {
+        int number = 0;
+        int sameName = 0;
+        foreach (SideSelectDevice other in _devices)
+        {
+            if (other.Name != device.Name)
+            {
+                continue;
+            }
+
+            sameName++;
+            if (ReferenceEquals(other, device))
+            {
+                number = sameName;
+            }
+        }
+
+        return sameName > 1 ? number : 0;
+    }
+
     /// <summary>A press on <paramref name="device"/>; true when it leaves the screen (back from the middle).</summary>
     /// <remarks>A device not on the screen yet only appears: its first press doesn't move it.</remarks>
     public bool Press(InputDeviceInfo device, MenuAction actions)

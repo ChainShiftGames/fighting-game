@@ -122,3 +122,4 @@ MENU_SIDES_DUMMY,Training dummy
 MENU_SIDES_HINT,Left and right to choose a side · Confirm to ready · Back to undo
 MENU_SIDES_ALL_READY,Ready!
 MENU_SIDES_NEED_CONTROLLER,Connect a controller for P2
+MENU_SIDES_NUMBERED,{0} {1}

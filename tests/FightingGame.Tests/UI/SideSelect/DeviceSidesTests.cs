@@ -314,6 +314,29 @@ public sealed class DeviceSidesTests
         Assert.False(_sides.Update(ReadyTime));
     }
 
+    [Fact]
+    public void PadsWithTheSameNameAreNumberedInScreenOrder()
+    {
+        Begin(SideRules.Versus, Pad(0), Pad(1, Hitbox), Pad(2));
+
+        Assert.Equal(0, _sides.NumberOf(Find(Keyboard)));
+        Assert.Equal(1, _sides.NumberOf(Find(Device(0))));
+        Assert.Equal(0, _sides.NumberOf(Find(Device(1))));
+        Assert.Equal(2, _sides.NumberOf(Find(Device(2))));
+    }
+
+    [Fact]
+    public void ThePadLeftAloneWithItsNameLosesItsNumber()
+    {
+        Begin(SideRules.Versus, Pad(0), Pad(1));
+        InputDeviceId second = Device(1);
+
+        _roster.Update([Pad(1)]);
+        _sides.Follow(_roster.Devices);
+
+        Assert.Equal(0, _sides.NumberOf(Find(second)));
+    }
+
     private static InputDeviceId Keyboard => InputDeviceId.Keyboard;
 
     private void Begin(SideRules rules, params JoypadInfo[] pads)

@@ -12,11 +12,18 @@ public partial class DeviceToken : PanelContainer
     private const float ShakePixels = 8f;
     private const float ShakeSwings = 3f;
 
+    // Smaller than menu values, so a numbered pad name ("XInput Controller 2") fits beside the icon.
+    private const int NameFontSize = 22;
+
     private static readonly Color _middle = new(1f, 1f, 1f, 0.06f);
     private static readonly Color _middleBorder = new(1f, 1f, 1f, 0.25f);
 
     private readonly DeviceIconShape _icon = new();
-    private readonly Label _name = new() { ThemeTypeVariation = "MenuValue", ClipText = true };
+    private readonly Label _name = new()
+    {
+        ThemeTypeVariation = "MenuValue",
+        TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis,
+    };
     private readonly Label _status = new() { ThemeTypeVariation = "MenuItemDescription" };
     private readonly StyleBoxFlat _style = SelectStyles.Box(_middle, _middleBorder, 2, 8f);
     private Vector2 _from;
@@ -30,6 +37,7 @@ public partial class DeviceToken : PanelContainer
     {
         MouseFilter = MouseFilterEnum.Ignore;
         AddThemeStyleboxOverride("panel", _style);
+        _name.AddThemeFontSizeOverride("font_size", NameFontSize);
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 12);
         var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, Alignment = BoxContainer.AlignmentMode.Center };
