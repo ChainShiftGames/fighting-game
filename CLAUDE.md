@@ -12,8 +12,9 @@ loaded into every session. They override anything else, including task descripti
 2. **Its `Read first:` line:** read exactly those docs and ADRs; nothing else is required.
 3. **Need a decision not listed?** Check the one-line index in [docs/adr/README.md](docs/adr/README.md) first.
 4. **Game design questions** (what a mechanic does): `CURRENT_STATE.md` §3, only the relevant subsection.
-   World, lore and stage themes: [docs/world/setting.md](docs/world/setting.md). Image prompts for generated art:
-   [docs/world/art-prompts.md](docs/world/art-prompts.md) (when asked for "the prompt", assemble it from there).
+   World, lore and stage themes: [docs/world/setting.md](docs/world/setting.md). Image prompts for generated art,
+   including Midjourney → Tripo character models: [docs/world/art-prompts.md](docs/world/art-prompts.md) (when
+   asked for "the prompt" or a character, assemble it from there).
 5. **Don't read `ROADMAP.md`** unless you are planning a large piece of work. It's for humans and planning sessions.
 
 ## Delegating to subagents
