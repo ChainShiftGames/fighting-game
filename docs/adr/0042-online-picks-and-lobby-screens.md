@@ -25,7 +25,7 @@ lineup. The lobby (`LobbyFlow`, ADR-0014) already syncs ready marks as Steam lob
 5. **Stage hook:** no stage select yet (UI-06). When there is one, **the host's stage is played**: it travels in the
    host's pick text, which gets a stage field then. Until then every online match uses the default stage.
 6. **Online route:** Online (menu + lobby) → Character select (one local side, the remote side shows "waiting" until
-   its pick arrives) → Match → Results (`ResultsScreen`, ADR-0044: rematch waits for both, leave the lobby, main menu).
+   its pick arrives) → Match → Results (`ResultsScreen`, ADR-0045: rematch waits for both, leave the lobby, main menu).
 7. **Ping before the match** is Steam's estimate from each member's published ping location (member data
    `ping_location`, `SteamNetworkingUtils`), shown with `PingReading`'s bars. No setting.
 8. **Failed pre-match checks** are reported as reasons (`HandshakeRefusal` flags beside the existing refusal text) so
@@ -36,5 +36,5 @@ lineup. The lobby (`LobbyFlow`, ADR-0014) already syncs ready marks as Steam lob
 - No new settings. Picks are visible to anyone who can read the lobby's member data (friends-only lobby).
 - A pick naming a character this build doesn't have fails the match start with a message (it can only happen
   between different builds, which the handshake refuses anyway).
-- Stage select (UI-06) adds the host's stage to the pick text; results (UI-07, ADR-0044) replaced `MatchOverScreen` online too.
+- Stage select (UI-06) adds the host's stage to the pick text; results (UI-07, ADR-0045) replaced `MatchOverScreen` online too.
 - Steam avatars, join by code and quick match are not built.

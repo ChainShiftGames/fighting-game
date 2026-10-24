@@ -1,4 +1,4 @@
-# ADR-0044: Results screen: per-player choices, rematch agreement, session score
+# ADR-0045: Results screen: per-player choices, rematch agreement, session score
 
 - **Status:** Proposed (Oct 2026)
 
