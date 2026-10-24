@@ -6,7 +6,8 @@ namespace FightingGame.UI.CharacterSelect;
 
 /// <summary>
 /// Draws <see cref="CharacterSelectScreen"/> with the shared menu theme: the title, player 1's preview, the grid with
-/// both cursors, player 2's preview, the controls line and the "both ready" banner. Only reads the selection.
+/// both cursors, player 2's preview, the controls line and the "both ready" banner (online: waiting for the other
+/// PC's pick). Only reads the selection.
 /// </summary>
 /// <remarks>The menus show it in place of <see cref="MenuView"/> while character select is on top.</remarks>
 public partial class CharacterSelectView : CanvasLayer
@@ -126,7 +127,8 @@ public partial class CharacterSelectView : CanvasLayer
         _sides[0].Show(screen, _text);
         _sides[1].Show(screen, _text);
         _hint.Text = _text.Format(MenuText.Key("MENU_SELECT_HINT"));
-        _allReady.Text = _text.Format(MenuText.Key("MENU_SELECT_ALL_READY"));
+        string banner = screen.IsWaitingForOpponent ? "ONLINE_SELECT_WAITING" : "MENU_SELECT_ALL_READY";
+        _allReady.Text = _text.Format(MenuText.Key(banner));
         _allReadyBand.Visible = selection.IsAllReady;
     }
 

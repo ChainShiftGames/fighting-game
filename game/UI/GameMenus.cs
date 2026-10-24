@@ -7,9 +7,12 @@ using FightingGame.UI.CharacterSelect;
 using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using FightingGame.UI.MainMenu;
+using FightingGame.UI.Online;
 using FightingGame.UI.Screens;
 using FightingGame.UI.Title;
 using Godot;
+using Netcode.Handshake;
+using Platform.Steam.Lobbies;
 using Sim.Data;
 
 namespace FightingGame.UI;
@@ -79,12 +82,15 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.Title, new TitleScreen(flow, () => _note));
         _screens.Add(FlowStep.MainMenu, new MainMenuScreen(flow, launcher.PlatformName, () => _note));
         _screens.Add(FlowStep.QuitPrompt, new QuitScreen(flow, () => GetTree().Quit()));
-        _screens.Add(FlowStep.Results, new MatchOverScreen(flow, launcher, () => _note));
-        _characterSelect = CreateCharacterSelect(flow, players, loadData);
+        _screens.Add(
+            FlowStep.Results,
+            new MatchOverScreen(flow, launcher, () => _note, () => _match?.Refusal ?? HandshakeRefusal.None));
+        LobbyFlow? lobby = launcher.Matchmaking?.Lobby;
+        _characterSelect = CreateCharacterSelect(flow, players, loadData, lobby);
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
-        if (launcher.Matchmaking is { } matchmaking)
+        if (lobby is not null)
         {
-            _lobby = new LobbyScreen(flow, launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
+            _lobby = new LobbyScreen(flow, launcher, lobby, launcher.PlayerName, () => _note, line => GD.Print(line));
             _screens.Add(FlowStep.Online, _lobby);
         }
 
@@ -118,12 +124,7 @@ public partial class GameMenus : Node
         bool isHeldAfterMenu = _stepping!.IsHeld && path.Count == 0 &&
             _input.IsHeld(MenuAction.Confirm | MenuAction.Back);
         _stepping.IsHeld = _launcher!.IsLocal && (_isPaused || isHeldAfterMenu);
-        bool isOnline = _flow.Step == FlowStep.Online;
-        _lobby?.Follow(isOnline, delta);
-        if (_lobby is not null)
-        {
-            _lobby.IsOverMatch = isOnline && match is not null;
-        }
+        _lobby?.Follow(_flow.Step == FlowStep.Online, delta);
 
         long now = Now();
         bool wasOpen = IsOpen;
@@ -139,17 +140,25 @@ public partial class GameMenus : Node
         _characterSelectView.Show(isCharacterSelect ? _characterSelect : null, now);
     }
 
+    // Online only this PC's player picks, on the side the lobby gives them (ADR-0042).
     private static CharacterSelectScreen CreateCharacterSelect(
-        GameFlow flow, PlayerDevicesChoice players, Func<GameData> loadData)
+        GameFlow flow, PlayerDevicesChoice players, Func<GameData> loadData, LobbyFlow? lobby)
     {
         var selection = new CharacterSelection(CharacterSelectSettings.Default, Random.Shared.Next);
+        LobbyPicking? online = lobby is null ? null : new LobbyPicking(lobby);
         return new CharacterSelectScreen(
             flow,
             selection,
             new PickMemory(),
-            mode => new AssignedMenuPlayers(
-                mode == LaunchMode.Training ? players.Training() : players.Versus(), players.Roster),
-            () => SelectableCharacters.From(loadData()));
+            mode => mode switch
+            {
+                LaunchMode.Online when online is not null => new OnlineMenuPlayers(
+                    new AssignedMenuPlayers(players.Online(), players.Roster), online.LocalSide),
+                LaunchMode.Training => new AssignedMenuPlayers(players.Training(), players.Roster),
+                _ => new AssignedMenuPlayers(players.Versus(), players.Roster),
+            },
+            () => SelectableCharacters.From(loadData()),
+            mode => mode == LaunchMode.Online ? online : null);
     }
 
     private static long Now() => (long)Time.GetTicksMsec();

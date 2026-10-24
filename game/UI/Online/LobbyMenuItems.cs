@@ -3,9 +3,9 @@ using FightingGame.UI.Framework;
 using Platform.Steam.Friends;
 using Platform.Steam.Lobbies;
 
-namespace FightingGame.UI;
+namespace FightingGame.UI.Online;
 
-/// <summary>The buttons of the online lobby menu at each <see cref="LobbyStage"/>.</summary>
+/// <summary>The buttons of the online screens at each <see cref="LobbyStage"/>: the online menu, then the lobby.</summary>
 public static class LobbyMenuItems
 {
     /// <summary>Most friends listed with their own button.</summary>
@@ -17,8 +17,15 @@ public static class LobbyMenuItems
         switch (lobby.Stage)
         {
             case LobbyStage.Idle:
-                items.Add(new LobbyMenuItem(LobbyChoice.Host, MenuText.Key("LOBBY_HOST")));
+                items.Add(new LobbyMenuItem(LobbyChoice.Host, MenuText.Key("LOBBY_HOST"))
+                {
+                    Description = MenuText.Key("LOBBY_HOST_INFO"),
+                });
                 AddFriends(items, lobby, LobbyChoice.JoinFriend);
+                items.Add(new LobbyMenuItem(LobbyChoice.QuickMatch, MenuText.Key("ONLINE_QUICK_MATCH"), Enabled: false)
+                {
+                    Description = MenuText.Key("ONLINE_QUICK_MATCH_INFO"),
+                });
                 items.Add(new LobbyMenuItem(LobbyChoice.MainMenu, MenuText.Key("MENU_BACK")));
                 return items;
             case LobbyStage.Entering:
@@ -32,10 +39,10 @@ public static class LobbyMenuItems
                 items.Add(ReadyItem(lobby, "LOBBY_READY", "LOBBY_READY_WAITING"));
                 break;
             case LobbyStage.Rematch:
+                // A rematch that failed to start (the results screen offers it otherwise).
                 items.Add(ReadyItem(lobby, "MENU_REMATCH", "LOBBY_REMATCH_WAITING"));
-                items.Add(new LobbyMenuItem(LobbyChoice.MainMenu, MenuText.Key("MENU_MAIN_MENU")));
-                return items;
-            case LobbyStage.Starting or LobbyStage.InMatch:
+                break;
+            case LobbyStage.Picking or LobbyStage.Starting or LobbyStage.InMatch:
                 return items;
         }
 

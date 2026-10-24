@@ -1,20 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Platform.Steam.Friends;
 
 namespace Platform.Steam.Lobbies;
 
 /// <summary>
-/// The lobby from this player's side: host one, join a friend's or accept their invite, both ready → match, then rematch
-/// (<see cref="LobbyStage"/>). Steam sits behind <see cref="ILobby"/>; call <see cref="Update"/> once per displayed
+/// The lobby from this player's side: host one, join a friend's or accept their invite, both ready → both pick → match,
+/// then rematch with the same picks (<see cref="LobbyStage"/>, ADR-0042). Steam sits behind <see cref="ILobby"/>; call <see cref="Update"/> once per displayed
 /// frame, after Steam's callbacks.
 /// </summary>
 /// <remarks>
-/// - Each PC decides on its own that both are ready; there is no start message. Ready marks name the match they are
-///   for (1, 2, …), so a mark left over from the last match can never start the next one, and the PCs never need to
-///   agree on when a match ended.
-/// - Ready can't be taken back: one PC may already have seen both marks and started, and the other would never
-///   follow. Leaving the lobby is the way out.
+/// - Each PC decides on its own that both are ready and both picked; there is no start message. Ready and pick marks
+///   name the match they are for (1, 2, …), so a mark left over from the last match can never start the next one, and
+///   the PCs never need to agree on when a match ended.
+/// - Ready and picks can't be taken back: one PC may already have seen both marks and started, and the other would
+///   never follow. Leaving the lobby is the way out.
+/// - Picks are opaque text to the lobby; the game writes and reads them.
 /// - Match numbers count per opponent: when the opponent leaves or changes, the next match is number 1 again.
 /// - While a match runs, lobby changes wait until it ends (<see cref="MatchEnded"/>); the netcode handles an opponent
 ///   who disappears mid-match. An accepted invite is the exception: the player chose to go.
@@ -23,12 +25,14 @@ public sealed class LobbyFlow : IDisposable
 {
     private const int FirstMatch = 1;
     private const int NotReady = 0;
+    private const char PickSeparator = ':';
 
     private readonly ILobby _lobby;
     private IReadOnlyList<SteamFriend> _friends = [];
     private ulong? _opponentSteamId;
     private string _opponentName = string.Empty;
     private int _matchNumber = FirstMatch;
+    private string _localPick = string.Empty;
 
     public LobbyFlow(ILobby lobby)
     {
@@ -52,8 +56,17 @@ public sealed class LobbyFlow : IDisposable
 
     public bool IsOpponentReady => HasOpponent && _lobby.OpponentReadyFor == _matchNumber;
 
-    /// <summary>The last thing that went wrong or changed on its own (a failed join, the opponent leaving); may be empty.</summary>
-    public string Notice { get; private set; } = string.Empty;
+    /// <summary>This player's pick for the match being readied (kept for rematches); empty before they picked.</summary>
+    public string LocalPick => _localPick;
+
+    /// <summary>The opponent's pick for the match being readied; empty until it arrives.</summary>
+    public string OpponentPick => HasOpponent ? PickFor(_lobby.OpponentPick, _matchNumber) : string.Empty;
+
+    /// <summary>Round trip to the opponent as Steam estimates it before a match; null while unknown or alone.</summary>
+    public int? OpponentPingMilliseconds => HasOpponent ? _lobby.OpponentPingMilliseconds : null;
+
+    /// <summary>The last thing that went wrong or changed on its own (a failed join, the opponent leaving).</summary>
+    public LobbyNotice Notice { get; private set; } = LobbyNotice.None;
 
     /// <summary>
     /// Friends running this game, as of the last <see cref="RefreshFriends"/>: the ones who can be invited, and those
@@ -69,7 +82,7 @@ public sealed class LobbyFlow : IDisposable
             return;
         }
 
-        Notice = string.Empty;
+        Notice = LobbyNotice.None;
         _lobby.Create();
         Stage = LobbyStage.Entering;
     }
@@ -85,7 +98,10 @@ public sealed class LobbyFlow : IDisposable
         JoinInvited(_friends[friendIndex].LobbyId);
     }
 
-    /// <summary>Marks this player ready for the next match: the first one, or a rematch. Needs an opponent.</summary>
+    /// <summary>
+    /// Marks this player ready for the next match: in the lobby, on to picking; for a rematch, with the same pick as
+    /// the last match. Needs an opponent.
+    /// </summary>
     public void Ready()
     {
         if (Stage is not (LobbyStage.InLobby or LobbyStage.Rematch) || !HasOpponent || IsLocalReady)
@@ -93,8 +109,28 @@ public sealed class LobbyFlow : IDisposable
             return;
         }
 
+        if (Stage == LobbyStage.Rematch)
+        {
+            MarkPick();
+        }
+
         IsLocalReady = true;
         _lobby.MarkReadyFor(_matchNumber);
+        Settle();
+    }
+
+    /// <summary>This player's pick for the match, once, while <see cref="LobbyStage.Picking"/>.</summary>
+    /// <param name="pick">Opaque to the lobby; must not be empty.</param>
+    public void Pick(string pick)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(pick);
+        if (Stage != LobbyStage.Picking || _localPick.Length > 0)
+        {
+            return;
+        }
+
+        _localPick = pick;
+        MarkPick();
         Settle();
     }
 
@@ -124,8 +160,8 @@ public sealed class LobbyFlow : IDisposable
     /// <summary>Catches up with what Steam reported: entering, invites, the opponent coming and going, ready marks.</summary>
     public void Update()
     {
-        string failure = _lobby.TakeFailure();
-        if (failure.Length > 0)
+        LobbyNotice failure = _lobby.TakeFailure();
+        if (!failure.IsNone)
         {
             Notice = failure;
         }
@@ -147,7 +183,11 @@ public sealed class LobbyFlow : IDisposable
         }
 
         Stage = LobbyStage.InMatch;
-        return new LobbyMatch(opponent, _opponentName, LocalIsPlayer1: _lobby.IsOwner, _matchNumber);
+        return new LobbyMatch(opponent, _opponentName, LocalIsPlayer1: _lobby.IsOwner, _matchNumber)
+        {
+            LocalPick = _localPick,
+            OpponentPick = OpponentPick,
+        };
     }
 
     /// <summary>The game says the match is over (or never started): the lobby offers a rematch.</summary>
@@ -177,7 +217,7 @@ public sealed class LobbyFlow : IDisposable
 
         string opponent = _opponentName;
         Leave();
-        Notice = $"Lost the connection to {opponent}: the match ended without a result.";
+        Notice = new LobbyNotice(LobbyNoticeKind.ConnectionLost, opponent);
     }
 
     public void Dispose() => _lobby.Dispose();
@@ -190,7 +230,7 @@ public sealed class LobbyFlow : IDisposable
         }
 
         Forget();
-        Notice = string.Empty;
+        Notice = LobbyNotice.None;
         _lobby.Join(lobbyId);
         Stage = LobbyStage.Entering;
     }
@@ -219,11 +259,32 @@ public sealed class LobbyFlow : IDisposable
         }
 
         FollowOpponent();
-        if (Stage is LobbyStage.InLobby or LobbyStage.Rematch && IsLocalReady && IsOpponentReady)
+        bool bothReady = IsLocalReady && IsOpponentReady;
+        if (Stage == LobbyStage.InLobby && bothReady)
+        {
+            Stage = LobbyStage.Picking;
+        }
+
+        if (Stage is LobbyStage.Picking or LobbyStage.Rematch && bothReady && _localPick.Length > 0 &&
+            OpponentPick.Length > 0)
         {
             Stage = LobbyStage.Starting;
         }
     }
+
+    // The pick in a mark when the mark is for this match; empty otherwise.
+    private static string PickFor(string mark, int matchNumber)
+    {
+        int separator = mark.IndexOf(PickSeparator, StringComparison.Ordinal);
+        return separator > 0 &&
+            int.TryParse(mark.AsSpan(0, separator), NumberStyles.None, CultureInfo.InvariantCulture, out int number) &&
+            number == matchNumber
+            ? mark[(separator + 1)..]
+            : string.Empty;
+    }
+
+    private void MarkPick() =>
+        _lobby.MarkPick(string.Create(CultureInfo.InvariantCulture, $"{_matchNumber}{PickSeparator}{_localPick}"));
 
     // A different opponent (or none) is a new pairing: back to the lobby, match 1, nobody ready.
     private void FollowOpponent()
@@ -236,7 +297,7 @@ public sealed class LobbyFlow : IDisposable
 
         if (opponent is null && _opponentName.Length > 0)
         {
-            Notice = $"{_opponentName} left the lobby.";
+            Notice = new LobbyNotice(LobbyNoticeKind.OpponentLeft, _opponentName);
         }
 
         _opponentSteamId = opponent?.SteamId;
@@ -248,6 +309,12 @@ public sealed class LobbyFlow : IDisposable
             _lobby.MarkReadyFor(NotReady);
         }
 
+        if (_localPick.Length > 0)
+        {
+            _localPick = string.Empty;
+            _lobby.MarkPick(string.Empty);
+        }
+
         Stage = LobbyStage.InLobby;
     }
 
@@ -257,6 +324,7 @@ public sealed class LobbyFlow : IDisposable
         _opponentSteamId = null;
         _opponentName = string.Empty;
         _matchNumber = FirstMatch;
+        _localPick = string.Empty;
         IsLocalReady = false;
     }
 }

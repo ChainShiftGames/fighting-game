@@ -1,12 +1,15 @@
-namespace FightingGame.UI;
+namespace FightingGame.UI.Online;
 
-/// <summary>What a button of the online lobby menu does (<see cref="LobbyMenuItems"/>).</summary>
+/// <summary>What a button of the online screens does (<see cref="LobbyMenuItems"/>).</summary>
 public enum LobbyChoice
 {
     Host,
 
     /// <summary>Join the listed friend's lobby.</summary>
     JoinFriend,
+
+    /// <summary>Matchmaking with strangers: listed, not there yet.</summary>
+    QuickMatch,
 
     InviteThroughOverlay,
 

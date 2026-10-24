@@ -79,7 +79,7 @@ public sealed class LobbyFlowTests
     }
 
     [Fact]
-    public void BothReadyStartsTheMatchOnceWithTheHostAsPlayer1()
+    public void BothReadyGoesToPicking()
     {
         var lobby = new FakeLobby();
         using LobbyFlow flow = HostWithRival(lobby);
@@ -88,10 +88,81 @@ public sealed class LobbyFlowTests
         lobby.OpponentReadyFor = 1;
         flow.Update();
 
+        Assert.Equal(LobbyStage.Picking, flow.Stage);
+        Assert.Null(flow.TakeMatchToStart());
+    }
+
+    [Fact]
+    public void BothPicksStartTheMatchOnceWithTheHostAsPlayer1()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = Picking(lobby);
+
+        flow.Pick("mine");
+        Assert.Equal(["1:mine"], lobby.PickMarks);
+        Assert.Equal(LobbyStage.Picking, flow.Stage);
+        lobby.OpponentPick = "1:theirs";
+        flow.Update();
+
         Assert.Equal(LobbyStage.Starting, flow.Stage);
-        Assert.Equal(new LobbyMatch(_rival.SteamId, "Rival", LocalIsPlayer1: true, Number: 1), flow.TakeMatchToStart());
+        Assert.Equal(
+            new LobbyMatch(_rival.SteamId, "Rival", LocalIsPlayer1: true, Number: 1)
+            {
+                LocalPick = "mine",
+                OpponentPick = "theirs",
+            },
+            flow.TakeMatchToStart());
         Assert.Equal(LobbyStage.InMatch, flow.Stage);
         Assert.Null(flow.TakeMatchToStart());
+    }
+
+    [Fact]
+    public void TheOpponentsPickArrivingFirstWaitsForOurs()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = Picking(lobby);
+
+        lobby.OpponentPick = "1:theirs";
+        flow.Update();
+        Assert.Equal("theirs", flow.OpponentPick);
+        Assert.Equal(LobbyStage.Picking, flow.Stage);
+
+        flow.Pick("mine");
+
+        Assert.Equal(LobbyStage.Starting, flow.Stage);
+    }
+
+    [Fact]
+    public void APickForAnotherMatchDoesNotCount()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = Picking(lobby);
+        flow.Pick("mine");
+
+        lobby.OpponentPick = "2:theirs";
+        flow.Update();
+
+        Assert.Empty(flow.OpponentPick);
+        Assert.Equal(LobbyStage.Picking, flow.Stage);
+    }
+
+    [Fact]
+    public void APickIsOnlyTakenWhilePickingAndOnlyOnce()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = HostWithRival(lobby);
+
+        flow.Pick("early");
+        Assert.Empty(lobby.PickMarks);
+
+        flow.Ready();
+        lobby.OpponentReadyFor = 1;
+        flow.Update();
+        flow.Pick("mine");
+        flow.Pick("changed");
+
+        Assert.Equal(["1:mine"], lobby.PickMarks);
+        Assert.Equal("mine", flow.LocalPick);
     }
 
     [Fact]
@@ -105,6 +176,9 @@ public sealed class LobbyFlowTests
 
         flow.Ready();
         lobby.OpponentReadyFor = 1;
+        flow.Update();
+        flow.Pick("mine");
+        lobby.OpponentPick = "1:theirs";
         flow.Update();
 
         Assert.False(flow.IsHost);
@@ -131,7 +205,27 @@ public sealed class LobbyFlowTests
     }
 
     [Fact]
-    public void BothWantingARematchStartsTheNextMatch()
+    public void BothWantingARematchStartsTheNextMatchWithTheSamePicks()
+    {
+        var lobby = new FakeLobby();
+        using LobbyFlow flow = InMatch(lobby);
+        flow.MatchEnded();
+
+        flow.Ready();
+        Assert.Equal("2:mine", lobby.LastPickMark);
+        lobby.OpponentReadyFor = 2;
+        lobby.OpponentPick = "2:theirs";
+        flow.Update();
+
+        Assert.Equal(LobbyStage.Starting, flow.Stage);
+        LobbyMatch rematch = flow.TakeMatchToStart()!;
+        Assert.Equal(2, rematch.Number);
+        Assert.Equal("mine", rematch.LocalPick);
+        Assert.Equal("theirs", rematch.OpponentPick);
+    }
+
+    [Fact]
+    public void ARematchWaitsForTheOpponentsPickForIt()
     {
         var lobby = new FakeLobby();
         using LobbyFlow flow = InMatch(lobby);
@@ -141,8 +235,7 @@ public sealed class LobbyFlowTests
         lobby.OpponentReadyFor = 2;
         flow.Update();
 
-        Assert.Equal(LobbyStage.Starting, flow.Stage);
-        Assert.Equal(2, flow.TakeMatchToStart()!.Number);
+        Assert.Equal(LobbyStage.Rematch, flow.Stage);
     }
 
     [Fact]
@@ -152,6 +245,7 @@ public sealed class LobbyFlowTests
         using LobbyFlow flow = InMatch(lobby);
 
         lobby.OpponentReadyFor = 2;
+        lobby.OpponentPick = "2:theirs";
         flow.Update();
         Assert.Equal(LobbyStage.InMatch, flow.Stage);
 
@@ -176,7 +270,7 @@ public sealed class LobbyFlowTests
 
         Assert.Equal(LobbyStage.InLobby, flow.Stage);
         Assert.False(flow.HasOpponent);
-        Assert.Contains("Rival left", flow.Notice, System.StringComparison.Ordinal);
+        Assert.Equal(new LobbyNotice(LobbyNoticeKind.OpponentLeft, "Rival"), flow.Notice);
     }
 
     [Fact]
@@ -196,6 +290,8 @@ public sealed class LobbyFlowTests
         Assert.Equal(1, flow.MatchNumber);
         Assert.False(flow.IsLocalReady);
         Assert.Equal(0, lobby.LastReadyMark);
+        Assert.Empty(flow.LocalPick);
+        Assert.Empty(lobby.LastPickMark);
     }
 
     [Fact]
@@ -226,7 +322,7 @@ public sealed class LobbyFlowTests
         Assert.Equal(LobbyStage.Idle, flow.Stage);
         Assert.Equal(1, lobby.Leaves);
         Assert.False(flow.HasOpponent);
-        Assert.Equal("Lost the connection to Rival: the match ended without a result.", flow.Notice);
+        Assert.Equal(new LobbyNotice(LobbyNoticeKind.ConnectionLost, "Rival"), flow.Notice);
     }
 
     [Fact]
@@ -252,7 +348,7 @@ public sealed class LobbyFlowTests
 
         Assert.Equal(LobbyStage.InLobby, flow.Stage);
         Assert.Equal(0, lobby.Leaves);
-        Assert.Empty(flow.Notice);
+        Assert.True(flow.Notice.IsNone);
     }
 
     [Fact]
@@ -289,11 +385,11 @@ public sealed class LobbyFlowTests
         flow.Host();
 
         lobby.Presence = LobbyPresence.Outside;
-        lobby.Failure = "Couldn't create a lobby (k_EResultTimeout).";
+        lobby.Failure = new LobbyNotice(LobbyNoticeKind.CreateFailed, "k_EResultTimeout");
         flow.Update();
 
         Assert.Equal(LobbyStage.Idle, flow.Stage);
-        Assert.Equal("Couldn't create a lobby (k_EResultTimeout).", flow.Notice);
+        Assert.Equal(new LobbyNotice(LobbyNoticeKind.CreateFailed, "k_EResultTimeout"), flow.Notice);
     }
 
     [Fact]
@@ -427,11 +523,30 @@ public sealed class LobbyFlowTests
             Assert.Null(guest.TakeMatchToStart());
             guest.Ready();
             Exchange(hostLobby, guestLobby, host, guest);
+            if (expectedNumber == 1)
+            {
+                Assert.Equal(LobbyStage.Picking, host.Stage);
+                host.Pick("host pick");
+                guest.Pick("guest pick");
+                Exchange(hostLobby, guestLobby, host, guest);
+            }
 
             LobbyMatch? hostMatch = host.TakeMatchToStart();
             LobbyMatch? guestMatch = guest.TakeMatchToStart();
-            Assert.Equal(new LobbyMatch(2, "Guest", LocalIsPlayer1: true, expectedNumber), hostMatch);
-            Assert.Equal(new LobbyMatch(1, "Host", LocalIsPlayer1: false, expectedNumber), guestMatch);
+            Assert.Equal(
+                new LobbyMatch(2, "Guest", LocalIsPlayer1: true, expectedNumber)
+                {
+                    LocalPick = "host pick",
+                    OpponentPick = "guest pick",
+                },
+                hostMatch);
+            Assert.Equal(
+                new LobbyMatch(1, "Host", LocalIsPlayer1: false, expectedNumber)
+                {
+                    LocalPick = "guest pick",
+                    OpponentPick = "host pick",
+                },
+                guestMatch);
 
             host.MatchEnded();
             guest.MatchEnded();
@@ -442,6 +557,8 @@ public sealed class LobbyFlowTests
     {
         hostLobby.OpponentReadyFor = guestLobby.LastReadyMark;
         guestLobby.OpponentReadyFor = hostLobby.LastReadyMark;
+        hostLobby.OpponentPick = guestLobby.LastPickMark;
+        guestLobby.OpponentPick = hostLobby.LastPickMark;
         host.Update();
         guest.Update();
     }
@@ -463,11 +580,20 @@ public sealed class LobbyFlowTests
         return flow;
     }
 
-    private static LobbyFlow InMatch(FakeLobby lobby)
+    private static LobbyFlow Picking(FakeLobby lobby)
     {
         LobbyFlow flow = HostWithRival(lobby);
         flow.Ready();
         lobby.OpponentReadyFor = 1;
+        flow.Update();
+        return flow;
+    }
+
+    private static LobbyFlow InMatch(FakeLobby lobby)
+    {
+        LobbyFlow flow = Picking(lobby);
+        flow.Pick("mine");
+        lobby.OpponentPick = "1:theirs";
         flow.Update();
         Assert.NotNull(flow.TakeMatchToStart());
         return flow;
