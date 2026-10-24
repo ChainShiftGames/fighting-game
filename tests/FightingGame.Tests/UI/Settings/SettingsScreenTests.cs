@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using FightingGame.Settings;
 using FightingGame.Tests.UI.Framework;
+using FightingGame.Tests.UI.Settings.Controls;
 using FightingGame.UI.Framework;
 using FightingGame.UI.Settings;
+using FightingGame.UI.Settings.Controls;
 using Xunit;
 
 namespace FightingGame.Tests.UI.Settings;
@@ -10,6 +12,7 @@ namespace FightingGame.Tests.UI.Settings;
 public sealed class SettingsScreenTests
 {
     private const int Audio = 1;
+    private const int Display = 2;
     private const int Controls = 3;
     private const int Online = 4;
     private const long KeepMilliseconds = 10_000;
@@ -23,7 +26,10 @@ public sealed class SettingsScreenTests
     public SettingsScreenTests()
     {
         _settings = new CurrentPlayerSettings(new PlayerSettings(), _saved.Add, []);
-        IReadOnlyList<SettingsTab> tabs = SettingsTabs.Create(WindowSizeChoices.For(1920, 1080, _settings.Value));
+        var controls = new TestControls();
+        IReadOnlyList<SettingsTab> tabs = SettingsTabs.Create(
+            WindowSizeChoices.For(1920, 1080, _settings.Value),
+            new ControlsTabEntries(controls.Menu, controls.Roster, isOverMatch: false));
         _screen = new SettingsScreen(
             tabs, _settings, new SettingsMenuTiming(KeepMilliseconds), () => _now, isOverMatch: false, () => _closed++);
     }
@@ -186,10 +192,18 @@ public sealed class SettingsScreenTests
     [Fact]
     public void TabsStillToComeOnlySayWhatWillBeThere()
     {
-        ShowTab(Controls);
+        ShowTab(Display);
 
         Assert.Single(_screen.Items);
-        Assert.Equal("Button remapping is coming.", Format(_screen.Body[^1]));
+        Assert.Equal("Input display, damage numbers and HUD opacity are coming.", Format(_screen.Body[^1]));
+    }
+
+    [Fact]
+    public void TheControlsTabListsEachDevice()
+    {
+        ShowTab(Controls);
+
+        Assert.Equal(["Keyboard", "DualSense", "Hitbox", "Reset to defaults"], [.. Labels()]);
     }
 
     [Fact]
@@ -219,6 +233,17 @@ public sealed class SettingsScreenTests
     }
 
     private static string Format(MenuText text) => MenuTextTable.Formatter.Format(text);
+
+    private List<string> Labels()
+    {
+        var labels = new List<string>();
+        foreach (MenuItem item in _screen.Items)
+        {
+            labels.Add(Format(item.Label));
+        }
+
+        return labels[1..];
+    }
 
     private static void AssertTranslated(MenuText text)
     {

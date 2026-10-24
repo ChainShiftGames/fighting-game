@@ -51,8 +51,9 @@ Title → Main menu → Mode (Versus / Training / Online / Replays / Options)
 - Input: `game/Input/`. `JoypadRoster` + `JoypadWatcher` track pads (keep the **no-double-input rule** with Steam
   Input documented in `JoypadRoster`). `DeviceRoster` lists devices (the keyboard + pads) and raises
   connect/disconnect events; match startups read a `PlayerDevices` assignment from `PlayerDevicesChoice`
-  ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Bindings: `default_bindings.jsonc`, copied to
-  `user://dev_bindings.jsonc`.
+  ([ADR-0038](../../adr/0038-device-roster-and-assignment.md)). Layouts per device in `Input/Profiles/`
+  (`ControlProfiles`, `user://controls.json`, shipped presets in `default_bindings.jsonc`), edited in the options
+  menu's Controls tab (`UI/Settings/Controls/`, [ADR-0047](../../adr/0047-controller-profiles-and-rebinding.md)).
 - Player settings: `game/Settings/` (`PlayerSettings` record, versioned JSON in `user://` via `PlayerSettingsStore`,
   live value in `CurrentPlayerSettings`, engine side in `PlayerSettingAppliers`).
 - Who plays what: `MatchSetup` picks, turned into a lineup by `game/Online/MatchLineup.cs`; character select fills the

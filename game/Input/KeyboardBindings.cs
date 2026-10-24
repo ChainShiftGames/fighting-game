@@ -1,4 +1,4 @@
 namespace FightingGame.Input;
 
-/// <summary>One player's keyboard bindings (player setting, applied before the input word).</summary>
+/// <summary>A keyboard layout as the reader uses it: keys and the input word bits they set (player setting).</summary>
 public sealed record KeyboardBindings(KeyBinding[] Keys);

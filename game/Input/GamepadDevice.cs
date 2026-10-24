@@ -3,7 +3,7 @@ using Sim.Input;
 
 namespace FightingGame.Input;
 
-/// <summary>Reads a joypad into a raw input word through one player's joypad bindings.</summary>
+/// <summary>Reads a joypad into a raw input word through a joypad layout.</summary>
 public sealed class GamepadDevice
 {
     private readonly GamepadBindings _bindings;

@@ -7,7 +7,7 @@ namespace FightingGame.Tests.Input;
 
 public sealed class KeyboardDeviceTests
 {
-    private readonly PlayerBindings _player1 = TestButtons.Defaults()[0];
+    private readonly KeyboardBindings _keyboard = TestButtons.KeyboardDefault();
     private readonly FakeDeviceState _devices = new();
 
     [Fact]
@@ -56,5 +56,5 @@ public sealed class KeyboardDeviceTests
         Assert.Equal(InputWord.Neutral, Read());
     }
 
-    private InputWord Read() => new KeyboardDevice(_player1.Keyboard, _devices).Read();
+    private InputWord Read() => new KeyboardDevice(_keyboard, _devices).Read();
 }

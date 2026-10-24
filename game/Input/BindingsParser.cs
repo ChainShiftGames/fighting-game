@@ -6,7 +6,11 @@ using Sim.Input;
 
 namespace FightingGame.Input;
 
-/// <summary>Reads a bindings file (player settings; format in <c>default_bindings.jsonc</c>) into per-player bindings.</summary>
+/// <summary>
+/// Reads the old per-player dev bindings file (<c>user://dev_bindings.jsonc</c>, schema version 1: a <c>players</c>
+/// list, each with <c>keyboard</c> and <c>gamepad</c> bindings) so <see cref="Profiles.DevBindingsMigration"/> can move
+/// it to per-device layouts once (ADR-0047).
+/// </summary>
 /// <remarks>
 /// Every problem is reported with its place in the file; a file with any problem gives no bindings, so a typo never
 /// leaves a button silently unbound.
@@ -14,6 +18,9 @@ namespace FightingGame.Input;
 public sealed class BindingsParser
 {
     public const int SchemaVersion = 1;
+
+    /// <summary>Players the old file seats: two for local matches.</summary>
+    public const int PlayerCount = 2;
 
     private static readonly JsonDocumentOptions _json = new()
     {

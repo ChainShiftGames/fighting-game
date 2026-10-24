@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using FightingGame.Input;
+using FightingGame.Input.Profiles;
 using FightingGame.Tests.Input;
 using FightingGame.UI.Framework;
 using Godot;
@@ -122,10 +124,76 @@ public sealed class MenuActionReaderTests
         Assert.False(_reader.IsHeld(MenuAction.Start));
     }
 
+    [Fact]
+    public void ConfirmAndBackComeFromEachDevicesLayout()
+    {
+        var profiles = new RemappedMenus();
+        var reader = new MenuActionReader(MenuBindings.Default.WithProfiles(profiles), _timing);
+
+        Assert.Equal(MenuAction.Confirm, reader.KeyChanged(Key.J, true, 0)!.Value.Actions);
+        Assert.Null(reader.KeyChanged(Key.Enter, true, 0));
+        Assert.Equal(MenuAction.Start, reader.KeyChanged(Key.Escape, true, 0)!.Value.Actions);
+        Assert.Equal(MenuAction.Back, reader.ButtonChanged(0, JoyButton.Y, true, 0)!.Value.Actions);
+        Assert.Equal(MenuAction.Up, reader.KeyChanged(Key.Up, true, 0)!.Value.Actions);
+    }
+
+    // Nobody locks themselves out: the default back control held long enough is back, however back was rebound.
+    [Fact]
+    public void HoldingTheDefaultBackControlGoesBackWhenBackWasRemapped()
+    {
+        var reader = new MenuActionReader(MenuBindings.Default.WithProfiles(new RemappedMenus()), _timing);
+        reader.KeyChanged(Key.Escape, true, 0);
+        Assert.Null(reader.ButtonChanged(1, JoyButton.B, true, 0));
+
+        var early = new List<MenuPress>();
+        reader.AddRepeats(MenuBindings.FallbackHoldMilliseconds - 1, early);
+        var due = new List<MenuPress>();
+        reader.AddRepeats(MenuBindings.FallbackHoldMilliseconds, due);
+        var later = new List<MenuPress>();
+        reader.AddRepeats(MenuBindings.FallbackHoldMilliseconds * 3, later);
+
+        Assert.Empty(early);
+        Assert.Equal([new MenuPress(MenuAction.Back, MenuDevice.Keyboard), new MenuPress(MenuAction.Back, MenuDevice.Gamepad(1))], due);
+        Assert.Empty(later);
+    }
+
+    [Fact]
+    public void LettingGoBeforeTheTimeIsUpDoesNothing()
+    {
+        var reader = new MenuActionReader(MenuBindings.Default.WithProfiles(new RemappedMenus()), _timing);
+        reader.ButtonChanged(1, JoyButton.B, true, 0);
+        reader.ButtonChanged(1, JoyButton.B, false, 500);
+
+        var presses = new List<MenuPress>();
+        reader.AddRepeats(MenuBindings.FallbackHoldMilliseconds, presses);
+
+        Assert.Empty(presses);
+    }
+
+    [Fact]
+    public void WhileBIsStillBackHoldingItGoesBackOnlyOnce()
+    {
+        _reader.ButtonChanged(1, JoyButton.B, true, 0);
+
+        Assert.Empty(Repeats(MenuBindings.FallbackHoldMilliseconds * 2));
+    }
+
     private List<MenuPress> Repeats(long now)
     {
         var presses = new List<MenuPress>();
         _reader.AddRepeats(now, presses);
         return presses;
+    }
+
+    // Keyboard: confirm on J, back on K. Pads: confirm on X, back on Y.
+    private sealed class RemappedMenus : IMenuProfiles
+    {
+        public BindingProfile Keyboard { get; } = Menu(InputDeviceKind.Keyboard, BoundControl.OfKey(Key.J), BoundControl.OfKey(Key.K));
+
+        public BindingProfile? Joypad(int joypad) =>
+            Menu(InputDeviceKind.Joypad, BoundControl.OfButton(JoyButton.X), BoundControl.OfButton(JoyButton.Y));
+
+        private static BindingProfile Menu(InputDeviceKind kind, BoundControl confirm, BoundControl back) =>
+            new(kind, [], [new(MenuInputs.Confirm, confirm), new(MenuInputs.Back, back)], StickOptions.None);
     }
 }

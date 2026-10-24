@@ -18,12 +18,17 @@ public static class SettingsTabs
     private const int VolumeStep = 5;
 
     /// <param name="windowSizes">The sizes offered for the window (<see cref="WindowSizeChoices"/>).</param>
-    public static IReadOnlyList<SettingsTab> Create(IReadOnlyList<SettingChoice<(int Width, int Height)>> windowSizes) =>
+    /// <param name="controls">
+    /// The Controls tab's entries, one per device (<c>Controls/ControlsTabEntries</c>); their layouts live in the
+    /// controls file, not in <see cref="PlayerSettings"/>.
+    /// </param>
+    public static IReadOnlyList<SettingsTab> Create(
+        IReadOnlyList<SettingChoice<(int Width, int Height)>> windowSizes, IReadOnlyList<ISettingEntry> controls) =>
     [
         new(MenuText.Key("MENU_SETTINGS_TAB_VIDEO"), Video(windowSizes), MenuText.Empty),
         new(MenuText.Key("MENU_SETTINGS_TAB_AUDIO"), Audio(), MenuText.Empty),
         new(MenuText.Key("MENU_SETTINGS_TAB_DISPLAY"), [], MenuText.Key("MENU_SETTINGS_DISPLAY_COMING")),
-        new(MenuText.Key("MENU_SETTINGS_TAB_CONTROLS"), [], MenuText.Key("MENU_SETTINGS_CONTROLS_COMING")),
+        new(MenuText.Key("MENU_SETTINGS_TAB_CONTROLS"), controls, MenuText.Key("MENU_SETTINGS_CONTROLS_NOTE")),
         new(MenuText.Key("MENU_SETTINGS_TAB_ONLINE"), [InputDelay()], MenuText.Empty),
         new(MenuText.Key("MENU_SETTINGS_TAB_LANGUAGE"), [Language()], MenuText.Empty),
         new(MenuText.Key("MENU_SETTINGS_TAB_ACCESSIBILITY"), [], MenuText.Key("MENU_SETTINGS_ACCESSIBILITY_COMING")),

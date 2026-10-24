@@ -5,6 +5,7 @@ using System.IO;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
 using FightingGame.Input;
+using FightingGame.Input.Profiles;
 using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Platform;
@@ -14,6 +15,7 @@ using FightingGame.Presentation.World;
 using FightingGame.Settings;
 using FightingGame.Training;
 using FightingGame.UI;
+using FightingGame.UI.Settings.Controls;
 using Godot;
 using Netcode.Desync;
 using Netcode.Online;
@@ -32,6 +34,9 @@ namespace FightingGame;
 public partial class Main : Node2D
 {
     private const string PlayerSettingsPath = "user://player_settings.json";
+    private const string ControlsPath = "user://controls.json";
+
+    // The old per-player bindings file, migrated into ControlsPath once (ADR-0047).
     private const string DevBindingsPath = "user://dev_bindings.jsonc";
     private const string ReplaysPath = "user://replays";
     private const string TrainingSettingsPath = "user://training_settings.json";
@@ -92,6 +97,8 @@ public partial class Main : Node2D
     private ReplayFolder? _replays;
     private MatchLauncher? _launcher;
     private PlayerDevicesChoice? _deviceChoice;
+    private ControlsMenu? _controls;
+    private IMenuProfiles? _menuProfiles;
     private StartedMatch? _match;
     private FrameStepping? _stepping;
     private DeveloperOverlay? _overlay;
@@ -171,7 +178,9 @@ public partial class Main : Node2D
             _deviceChoice!,
             () => _data!.Load(),
             _replays!,
-            _settings);
+            _settings,
+            _controls!,
+            _menuProfiles!);
 
         RenderingServer.FramePostDraw += OnFramePostDraw;
     }
@@ -332,9 +341,19 @@ public partial class Main : Node2D
         _controllerNotices = new ControllerNotices(_devices, toasts.Show);
         ButtonSet? buttons = ButtonSetFile.Load();
         _inputReadout = new InputReadout(buttons, _devices.Joypads);
-        PlayerBindings[] bindings = new DevBindingsFile(DevBindingsPath).Load(buttons);
+        var controlsStore = new ControlsStore(ControlsPath, DevBindingsPath, buttons);
+        ControlProfiles profiles = controlsStore.Load();
+        var compiler = new ProfileCompiler(controlsStore.Targets);
+        _menuProfiles = new ConnectedProfiles(profiles, _devices);
+        _controls = new ControlsMenu(
+            profiles,
+            controlsStore.Targets.Names(),
+            new ProfileTester(compiler, new GodotDeviceState(), _devices, buttons),
+            ControlsMenuTiming.Default,
+            () => (long)Time.GetTicksMsec(),
+            () => controlsStore.Save(profiles));
         PlayerDevicesChoice choice = _deviceChoice = new PlayerDevicesChoice(_devices, args);
-        var reader = new InputDeviceReader(bindings, new GodotDeviceState(), _devices);
+        var reader = new InputDeviceReader(profiles, compiler, new GodotDeviceState(), _devices);
         var loops = new MatchLoopFactory(LoopSettings.Default, Stopwatch.Frequency, _latency);
         _localStartup = new LocalMatchStartup(choice, reader, loops, _stepping!, _hitboxOverlay, _effectToggles);
         _onlineStartup = new OnlineMatchStartup(

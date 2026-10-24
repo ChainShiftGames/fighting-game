@@ -9,7 +9,7 @@ public sealed class GamepadDeviceTests
 {
     private const int Pad = 3;
 
-    private readonly GamepadBindings _bindings = TestButtons.Defaults()[0].Gamepad;
+    private readonly GamepadBindings _bindings = TestButtons.GamepadDefault();
     private readonly FakeDeviceState _devices = new();
 
     // A leverless controller in XInput mode reports its direction buttons as the d-pad.

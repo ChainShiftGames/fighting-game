@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FightingGame.Input;
+using FightingGame.Input.Profiles;
 using FightingGame.Loop;
 using FightingGame.Online;
 using FightingGame.Settings;
@@ -12,6 +13,7 @@ using FightingGame.UI.Online;
 using FightingGame.UI.Results;
 using FightingGame.UI.Screens;
 using FightingGame.UI.Settings;
+using FightingGame.UI.Settings.Controls;
 using FightingGame.UI.SideSelect;
 using FightingGame.UI.Title;
 using Godot;
@@ -38,6 +40,7 @@ public partial class GameMenus : Node
     private readonly CharacterSelectView _characterSelectView = new();
     private readonly SideSelectView _sideSelectView = new();
     private readonly ResultsView _resultsView = new();
+    private readonly ControlCaptureInput _capture = new();
     private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
     private readonly FlowScreens _screens = new();
     private MenuNavigator? _navigator;
@@ -51,6 +54,7 @@ public partial class GameMenus : Node
     private ReplayBrowserScreen? _replays;
     private SettingsScreen? _options;
     private SettingsScreen? _pauseOptions;
+    private ControlsMenu? _controls;
     private IMenuScreen[] _pausePath = [];
     private IMenuScreen[] _pauseOptionsPath = [];
     private StartedMatch? _match;
@@ -68,6 +72,7 @@ public partial class GameMenus : Node
         AddChild(_characterSelectView);
         AddChild(_sideSelectView);
         AddChild(_resultsView);
+        AddChild(_capture);
     }
 
     /// <param name="stepping">Held while the pause menu is open over a match on this PC.</param>
@@ -76,6 +81,8 @@ public partial class GameMenus : Node
     /// <param name="loadData">The game data, for the characters to pick from.</param>
     /// <param name="replays">The saved replays, for the replay browser.</param>
     /// <param name="settings">The player settings, for the options menu.</param>
+    /// <param name="controls">The options menu's controls screens (UI-10).</param>
+    /// <param name="menuProfiles">Each device's layout, for its menu confirm and back buttons.</param>
     public void Bind(
         MatchLauncher launcher,
         FrameStepping stepping,
@@ -84,12 +91,17 @@ public partial class GameMenus : Node
         PlayerDevicesChoice players,
         Func<GameData> loadData,
         ReplayFolder replays,
-        CurrentPlayerSettings settings)
+        CurrentPlayerSettings settings,
+        ControlsMenu controls,
+        IMenuProfiles menuProfiles)
     {
         _launcher = launcher;
         _stepping = stepping;
         _navigator = new MenuNavigator(_stack, _grace);
-        _input.Bind(new MenuActionReader(MenuBindings.Default, MenuTiming.Default), devices, joypads, OnPress);
+        _controls = controls;
+        _capture.Bind(controls, players.Roster);
+        var bindings = MenuBindings.Default.WithProfiles(menuProfiles);
+        _input.Bind(new MenuActionReader(bindings, MenuTiming.Default), devices, joypads, OnPress);
         var transition = new MenuTransition(MenuTiming.Default.TransitionMilliseconds);
         var text = new MenuTextFormatter(new GodotMenuTranslator());
         _view.Bind(text, transition);
@@ -112,7 +124,7 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
         _replays = new ReplayBrowserScreen(flow, new FolderReplayLibrary(replays, loadData));
         _screens.Add(FlowStep.Replays, _replays);
-        _options = CreateOptions(settings, isOverMatch: false, flow.Back);
+        _options = CreateOptions(settings, players.Roster, isOverMatch: false, flow.Back);
         _screens.Add(FlowStep.Options, _options);
         if (lobby is not null)
         {
@@ -121,7 +133,7 @@ public partial class GameMenus : Node
         }
 
         var pause = new PauseScreen(flow, launcher, () => _isPaused = false, () => _isPauseOptionsOpen = true, () => _note);
-        _pauseOptions = CreateOptions(settings, isOverMatch: true, () => _isPauseOptionsOpen = false);
+        _pauseOptions = CreateOptions(settings, players.Roster, isOverMatch: true, () => _isPauseOptionsOpen = false);
         _pausePath = [pause];
         _pauseOptionsPath = [pause, _pauseOptions];
     }
@@ -164,7 +176,8 @@ public partial class GameMenus : Node
             path = [.. path, chosen];
         }
 
-        // The options menu's questions ("Keep this?", "Reset?") open over it the same way.
+        // The options menu's questions ("Keep this?", "Reset?") open over it the same way, and so do the controls
+        // screens; those close (and save) when the options menu does.
         if (path.Count > 0 && path[^1] is SettingsScreen options)
         {
             options.Follow();
@@ -172,6 +185,13 @@ public partial class GameMenus : Node
             {
                 path = [.. path, question];
             }
+
+            _controls!.Follow();
+            path = [.. path, .. _controls.Path];
+        }
+        else
+        {
+            _controls!.CloseAll();
         }
 
         // A and B are also attack buttons: after the pause menu closes, the match waits until they are let go, so the
@@ -242,10 +262,13 @@ public partial class GameMenus : Node
     private static long Now() => (long)Time.GetTicksMsec();
 
     // The window sizes offered are those that fit the screen the game is on.
-    private static SettingsScreen CreateOptions(CurrentPlayerSettings settings, bool isOverMatch, Action close)
+    private SettingsScreen CreateOptions(
+        CurrentPlayerSettings settings, DeviceRoster roster, bool isOverMatch, Action close)
     {
         Vector2I screen = DisplayServer.ScreenGetUsableRect(DisplayServer.WindowGetCurrentScreen()).Size;
-        IReadOnlyList<SettingsTab> tabs = SettingsTabs.Create(WindowSizeChoices.For(screen.X, screen.Y, settings.Value));
+        IReadOnlyList<SettingsTab> tabs = SettingsTabs.Create(
+            WindowSizeChoices.For(screen.X, screen.Y, settings.Value),
+            new ControlsTabEntries(_controls!, roster, isOverMatch));
         return new SettingsScreen(tabs, settings, SettingsMenuTiming.Default, Now, isOverMatch, close);
     }
 

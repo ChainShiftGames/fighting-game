@@ -1,35 +1,73 @@
+using System.Collections.Generic;
+using FightingGame.Input.Profiles;
 using Sim.Input;
 
 namespace FightingGame.Input;
 
 /// <summary>
-/// Reads any roster device for a local player, with that player's bindings: their keyboard keys for the keyboard,
-/// their joypad bindings for a pad (ADR-0038).
+/// Reads any roster device with that device's own layout (ADR-0047), whichever player it is on: the layout follows
+/// the device to either side. <see cref="Resolve"/> compiles the layouts when a match starts, so a frame only looks up
+/// what is already built.
 /// </summary>
+/// <remarks>
+/// Layouts changed in the options menu during a match count from the next match. A pad first seen during a match is
+/// compiled once, on its first frame.
+/// </remarks>
 public sealed class InputDeviceReader
 {
-    private readonly KeyboardDevice[] _keyboardOfPlayer;
-    private readonly GamepadDevice[] _gamepadOfPlayer;
+    private readonly ControlProfiles _profiles;
+    private readonly ProfileCompiler _compiler;
+    private readonly IDeviceState _devices;
     private readonly DeviceRoster _roster;
+    private readonly Dictionary<InputDeviceId, GamepadDevice> _joypads = [];
+    private KeyboardDevice _keyboard;
 
-    /// <param name="bindings">One per player on this PC (player settings).</param>
-    public InputDeviceReader(PlayerBindings[] bindings, IDeviceState devices, DeviceRoster roster)
+    public InputDeviceReader(ControlProfiles profiles, ProfileCompiler compiler, IDeviceState devices, DeviceRoster roster)
     {
-        _keyboardOfPlayer = new KeyboardDevice[bindings.Length];
-        _gamepadOfPlayer = new GamepadDevice[bindings.Length];
-        for (int player = 0; player < bindings.Length; player++)
-        {
-            _keyboardOfPlayer[player] = new KeyboardDevice(bindings[player].Keyboard, devices);
-            _gamepadOfPlayer[player] = new GamepadDevice(bindings[player].Gamepad, devices);
-        }
-
+        _profiles = profiles;
+        _compiler = compiler;
+        _devices = devices;
         _roster = roster;
+        _keyboard = Keyboard();
     }
 
-    /// <summary>The raw word <paramref name="device"/> gives <paramref name="player"/>; neutral while it is disconnected.</summary>
-    public InputWord Read(InputDeviceId device, int player) => device.Kind switch
+    /// <summary>Compiles every connected device's layout as it is now; call when a match starts.</summary>
+    public void Resolve()
     {
-        InputDeviceKind.Keyboard => _keyboardOfPlayer[player].Read(),
-        _ => _roster.TryGetJoypad(device, out int joypad) ? _gamepadOfPlayer[player].Read(joypad) : InputWord.Neutral,
-    };
+        _keyboard = Keyboard();
+        _joypads.Clear();
+        foreach (InputDeviceInfo device in _roster.Devices)
+        {
+            if (device.Id.IsJoypad)
+            {
+                _joypads[device.Id] = Joypad(device.Id);
+            }
+        }
+    }
+
+    /// <summary>The raw word <paramref name="device"/> gives; neutral while it is disconnected.</summary>
+    public InputWord Read(InputDeviceId device)
+    {
+        if (!device.IsJoypad)
+        {
+            return _keyboard.Read();
+        }
+
+        if (!_roster.TryGetJoypad(device, out int joypad))
+        {
+            return InputWord.Neutral;
+        }
+
+        if (!_joypads.TryGetValue(device, out GamepadDevice? gamepad))
+        {
+            gamepad = _joypads[device] = Joypad(device);
+        }
+
+        return gamepad.Read(joypad);
+    }
+
+    private KeyboardDevice Keyboard() =>
+        new(_compiler.Keyboard(_profiles.For(InputDeviceId.Keyboard)), _devices);
+
+    private GamepadDevice Joypad(InputDeviceId device) => new(_compiler.Gamepad(_profiles.For(device)), _devices);
 }
