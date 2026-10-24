@@ -8,6 +8,7 @@ using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using FightingGame.UI.MainMenu;
 using FightingGame.UI.Online;
+using FightingGame.UI.Results;
 using FightingGame.UI.Screens;
 using FightingGame.UI.SideSelect;
 using FightingGame.UI.Title;
@@ -34,6 +35,7 @@ public partial class GameMenus : Node
     private readonly MenuView _view = new();
     private readonly CharacterSelectView _characterSelectView = new();
     private readonly SideSelectView _sideSelectView = new();
+    private readonly ResultsView _resultsView = new();
     private readonly MenuGrace _grace = new(MenuTiming.Default.GraceMilliseconds);
     private readonly FlowScreens _screens = new();
     private MenuNavigator? _navigator;
@@ -43,6 +45,7 @@ public partial class GameMenus : Node
     private LobbyScreen? _lobby;
     private SideSelectScreen? _sideSelect;
     private CharacterSelectScreen? _characterSelect;
+    private ResultsScreen? _results;
     private ReplayBrowserScreen? _replays;
     private IMenuScreen[] _pausePath = [];
     private StartedMatch? _match;
@@ -58,6 +61,7 @@ public partial class GameMenus : Node
         AddChild(_view);
         AddChild(_characterSelectView);
         AddChild(_sideSelectView);
+        AddChild(_resultsView);
     }
 
     /// <param name="stepping">Held while the pause menu is open over a match on this PC.</param>
@@ -83,6 +87,7 @@ public partial class GameMenus : Node
         _view.Bind(text, transition);
         _characterSelectView.Bind(text, transition);
         _sideSelectView.Bind(text, transition, SideSelectSettings.Default);
+        _resultsView.Bind(text, transition);
         _view.Pointed += index => _navigator.Point(index);
         _view.Clicked += index => _navigator.Click(index, Now());
 
@@ -90,12 +95,11 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.Title, new TitleScreen(flow, () => _note));
         _screens.Add(FlowStep.MainMenu, new MainMenuScreen(flow, launcher.PlatformName, () => _note));
         _screens.Add(FlowStep.QuitPrompt, new QuitScreen(flow, () => GetTree().Quit()));
-        _screens.Add(
-            FlowStep.Results,
-            new MatchOverScreen(flow, launcher, () => _note, () => _match?.Refusal ?? HandshakeRefusal.None));
+        LobbyFlow? lobby = launcher.Matchmaking?.Lobby;
+        _results = CreateResults(flow, launcher, players, lobby);
+        _screens.Add(FlowStep.Results, _results);
         _sideSelect = new SideSelectScreen(flow, new DeviceSides(SideSelectSettings.Default), players);
         _screens.Add(FlowStep.SideSelect, _sideSelect);
-        LobbyFlow? lobby = launcher.Matchmaking?.Lobby;
         _characterSelect = CreateCharacterSelect(flow, players, loadData, lobby);
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
         _replays = new ReplayBrowserScreen(flow, new FolderReplayLibrary(replays, loadData));
@@ -124,6 +128,7 @@ public partial class GameMenus : Node
         _flow.Follow(match is null ? MatchPhase.None : match.IsOver ? MatchPhase.Over : MatchPhase.Playing);
         _sideSelect!.Follow(_flow.Step == FlowStep.SideSelect, Now());
         _characterSelect!.Follow(_flow.Step == FlowStep.CharacterSelect, Now());
+        _results!.Follow(_flow.Step);
         bool isPlaying = _flow.Step == FlowStep.Match;
         if (!isPlaying)
         {
@@ -153,13 +158,34 @@ public partial class GameMenus : Node
             _grace.Restart(now);
         }
 
-        // Side and character select draw themselves; every other screen is a list the menu view draws.
+        // Side select, character select and results draw themselves; every other screen is a list the menu view draws.
         bool isCharacterSelect = ReferenceEquals(_stack.Top, _characterSelect);
         bool isSideSelect = ReferenceEquals(_stack.Top, _sideSelect);
-        _view.Show(isCharacterSelect || isSideSelect ? null : _stack.Top, _stack.TopFocus, now);
+        bool isResults = ReferenceEquals(_stack.Top, _results);
+        _view.Show(isCharacterSelect || isSideSelect || isResults ? null : _stack.Top, _stack.TopFocus, now);
         _characterSelectView.Show(isCharacterSelect ? _characterSelect : null, now);
         _sideSelectView.Show(isSideSelect ? _sideSelect : null, now);
+        _resultsView.Show(isResults ? _results : null, now);
     }
+
+    // In versus each player chooses with their own devices; online the one player on this PC; after a replay anyone.
+    private ResultsScreen CreateResults(
+        GameFlow flow, MatchLauncher launcher, PlayerDevicesChoice players, LobbyFlow? lobby) =>
+        new(
+            flow,
+            new ResultsChoices(),
+            new SessionScore(),
+            () => _match is { } match ? MatchResult.From(match.Round) : MatchResult.Unfinished,
+            mode => mode switch
+            {
+                LaunchMode.Versus => new AssignedMenuPlayers(players.Versus(), players.Roster),
+                LaunchMode.Online => new AssignedMenuPlayers(players.Online(), players.Roster),
+                _ => new AnyDevicePlayer(),
+            },
+            () => launcher.CanRematch,
+            () => _note,
+            lobby,
+            () => _match?.Refusal ?? HandshakeRefusal.None);
 
     // Online only this PC's player picks, on the side the lobby gives them (ADR-0042).
     private static CharacterSelectScreen CreateCharacterSelect(
