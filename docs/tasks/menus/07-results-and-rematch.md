@@ -1,5 +1,14 @@
 # UI-07 Results screen and rematch
 
+> **Done:** merged in [PR 107](https://github.com/ChainShiftGames/fighting-game/pull/107) on 2026-10-24.
+> Decisions: [ADR-0045](../../adr/0045-results-and-rematch.md) (a player with no controller counts as in for rematch;
+> session score held by the results screen, reset at title / main menu / online screens; no "Save replay", every
+> match is saved; no stage entry until UI-06).
+> Checked by hand: versus to the end with keyboard + pad, both rematching, score kept, character select keeping
+> picks, score reset after the main menu. Not yet tried by hand: "Watch again" after a replay, online rematch (two
+> PCs). Known risk: online, the result is read from the newest, possibly predicted state; a late rollback that
+> changes the winner wouldn't correct the session score.
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md), then [README.md](README.md) in this folder.
 **Where:** `game/UI/Results/` (new), replaces the "match over" screen ported in UI-01, `tests/FightingGame.Tests/UI/`.
 **Depends on:** UI-01, UI-04 (flow). Better after UI-05 (character select to go back to).
