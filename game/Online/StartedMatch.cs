@@ -70,6 +70,9 @@ public sealed class StartedMatch : IDisposable
     /// <summary>Whether the other PC is still heard from; always connected for matches on this PC.</summary>
     public ConnectionStatus ConnectionStatus => _connectionStatus?.ReadConnectionStatus() ?? ConnectionStatus.Connected;
 
+    /// <summary>Why the pre-match checks refused an online match; <see cref="HandshakeRefusal.None"/> otherwise.</summary>
+    public HandshakeRefusal Refusal => _handshake?.Reasons ?? HandshakeRefusal.None;
+
     /// <summary>The other PC stopped answering for good: the match is over without a result.</summary>
     public bool OpponentDisconnected => ConnectionStatus.State == ConnectionState.Disconnected;
 

@@ -32,14 +32,15 @@ public sealed class VersionHandshakeTests
         MatchRules rules = SameBuild.Rules;
         rules.ButtonBuffer++;
 
-        AssertRefusedOnBothSides(new MatchIdentity(SameBuild.GameVersion, SameBuild.DataHash, rules), "match rules differ");
+        AssertRefusedOnBothSides(new MatchIdentity(SameBuild.GameVersion, SameBuild.DataHash, rules), "match rules differ", HandshakeRefusal.MatchRules);
     }
 
     [Fact]
     public void APeerOnAnotherBuildIsRefused()
     {
         AssertRefusedOnBothSides(
-            new MatchIdentity("1.0.0+other", SameBuild.DataHash, SameBuild.Rules), "game version 1.0.0+test here, 1.0.0+other there");
+            new MatchIdentity("1.0.0+other", SameBuild.DataHash, SameBuild.Rules), "game version 1.0.0+test here, 1.0.0+other there",
+            HandshakeRefusal.GameVersion);
     }
 
     [Fact]
@@ -48,7 +49,7 @@ public sealed class VersionHandshakeTests
         byte[] otherData = SameBuild.DataHash;
         otherData[^1] ^= 1;
 
-        AssertRefusedOnBothSides(new MatchIdentity(SameBuild.GameVersion, otherData, SameBuild.Rules), "game data differs");
+        AssertRefusedOnBothSides(new MatchIdentity(SameBuild.GameVersion, otherData, SameBuild.Rules), "game data differs", HandshakeRefusal.GameData);
     }
 
     [Fact]
@@ -62,6 +63,7 @@ public sealed class VersionHandshakeTests
 
         Assert.Equal(HandshakeOutcome.Refused, match.Player1Handshake.Outcome);
         Assert.Contains($"handshake format 1 here, 2 there", match.Player1Handshake.Refusal, StringComparison.Ordinal);
+        Assert.Equal(HandshakeRefusal.HandshakeFormat, match.Player1Handshake.Reasons);
     }
 
     // P1-20's test proves this hash changes with every rules field; the handshake must compare exactly it.
@@ -73,7 +75,7 @@ public sealed class VersionHandshakeTests
         Assert.Equal(rules.ComputeHash(), new MatchIdentity(SameBuild.GameVersion, SameBuild.DataHash, rules).RulesHash);
     }
 
-    private static void AssertRefusedOnBothSides(MatchIdentity player2, string difference)
+    private static void AssertRefusedOnBothSides(MatchIdentity player2, string difference, HandshakeRefusal reasons)
     {
         using var match = new InMemoryMatch(FightingFrames, player2Identity: player2);
         int stepsLeft = StepsAfterRefusal;
@@ -87,6 +89,8 @@ public sealed class VersionHandshakeTests
         Assert.Equal(0, match.Player2.CurrentFrame);
         Assert.StartsWith(VersionHandshake.Mismatch, match.Player1Handshake.Refusal, StringComparison.Ordinal);
         Assert.Contains(difference, match.Player1Handshake.Refusal, StringComparison.Ordinal);
+        Assert.Equal(reasons, match.Player1Handshake.Reasons);
+        Assert.Equal(reasons, match.Player2Handshake.Reasons);
 
         // Not one netcode packet crossed: only hellos.
         Assert.All(match.Player1Transport.Sent.Concat(match.Player2Transport.Sent), packet => Assert.True(HelloMessage.IsHello(packet)));

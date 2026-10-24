@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using FightingGame.Debug;
 using FightingGame.Diagnostics;
 using FightingGame.Input;
@@ -79,7 +81,7 @@ public sealed class OnlineMatchStartup
     {
         PeerMatchSettings settings = Settings(online, opponent);
         InputDelaySettings delay = InputDelay(online, playerSettings);
-        MatchLineup lineup = MatchLineup.From(data);
+        MatchLineup lineup = MatchLineup.From(data, Pick(data, opponent.Player1Pick), Pick(data, opponent.Player2Pick));
 
         // One player on this PC: by default on the keyboard or the first joypad.
         PlayerDevices assignment = _devices.Online();
@@ -111,6 +113,19 @@ public sealed class OnlineMatchStartup
             loop, driver, view, () => Describe(settings, delay, driver, opponent, lineup), connection, recording, handshake,
             connectionStatus: driver,
             isOver: () => driver.State.Round.Phase == RoundPhase.MatchOver);
+    }
+
+    // A pick naming a character this build doesn't have stops the match with a message; it is never swapped for another.
+    private static FighterPick Pick(GameData data, string text)
+    {
+        FighterPick pick = OnlinePickText.Read(text);
+        if (pick.CharacterId is { } id && !data.Characters.Any(character => character.Id == id))
+        {
+            throw new InvalidDataException(
+                $"The other player picked '{id}', a character this version of the game doesn't have.");
+        }
+
+        return pick;
     }
 
     // Only this PC's player rumbles, on the first joypad their input reads; the opponent's pad is on the other PC.

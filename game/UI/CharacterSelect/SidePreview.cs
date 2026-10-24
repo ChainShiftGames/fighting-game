@@ -89,6 +89,11 @@ public partial class SidePreview : VBoxContainer
     private MenuText Status(CharacterSelectScreen screen, SelectableCharacter? shown, int colour)
     {
         CharacterSelection selection = screen.Selection;
+        if (selection.IsRemote(_side))
+        {
+            return MenuText.Key(selection.HasRemotePick ? "MENU_SELECT_READY" : "ONLINE_SELECT_OPPONENT_PICKING");
+        }
+
         if (!selection.Chooses(_side))
         {
             return MenuText.Key(screen.IsTraining ? "MENU_SELECT_DUMMY" : "MENU_SELECT_NO_CONTROLLER");

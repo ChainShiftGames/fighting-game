@@ -6,13 +6,19 @@ using Steamworks;
 namespace Platform.Steam.Lobbies;
 
 /// <summary>
-/// <see cref="ILobby"/> over Steamworks.NET: a friends-only two-player Steam lobby, ready marks as lobby member data.
+/// <see cref="ILobby"/> over Steamworks.NET: a friends-only two-player Steam lobby; ready marks, picks and ping
+/// locations as lobby member data.
 /// </summary>
-/// <remarks>Steam delivers the callbacks below from <see cref="SteamSession.RunCallbacks"/>.</remarks>
+/// <remarks>
+/// Steam delivers the callbacks below from <see cref="SteamSession.RunCallbacks"/>. The ping is Steam's estimate from
+/// both PCs' locations relative to its relays (ADR-0042), available a few seconds after the relay network starts.
+/// </remarks>
 public sealed class SteamLobby : ILobby
 {
     private const int MaxMembers = 2;
     private const string ReadyForKey = "ready_for";
+    private const string PickKey = "pick_for";
+    private const string PingLocationKey = "ping_location";
     private const int NotReady = 0;
 
     private readonly Callback<LobbyCreated_t> _created;
@@ -22,10 +28,12 @@ public sealed class SteamLobby : ILobby
     private CSteamID _joining = CSteamID.Nil;
     private bool _creating;
     private ulong? _acceptedInvite;
-    private string _failure = string.Empty;
+    private LobbyNotice _failure = LobbyNotice.None;
+    private bool _hasPublishedPingLocation;
 
     internal SteamLobby()
     {
+        SteamNetworkingUtils.InitRelayNetworkAccess();
         _created = Callback<LobbyCreated_t>.Create(OnCreated);
         _entered = Callback<LobbyEnter_t>.Create(OnEntered);
         _inviteAccepted = Callback<GameLobbyJoinRequested_t>.Create(OnInviteAccepted);
@@ -52,6 +60,27 @@ public sealed class SteamLobby : ILobby
             ? matchNumber
             : NotReady;
 
+    public string OpponentPick =>
+        OpponentId() is { } opponent ? SteamMatchmaking.GetLobbyMemberData(_lobby, opponent, PickKey) : string.Empty;
+
+    public int? OpponentPingMilliseconds
+    {
+        get
+        {
+            // Our location may not be known yet when the lobby is entered: published from here until it is.
+            PublishPingLocation();
+            if (OpponentId() is not { } opponent ||
+                !SteamNetworkingUtils.ParsePingLocationString(
+                    SteamMatchmaking.GetLobbyMemberData(_lobby, opponent, PingLocationKey), out SteamNetworkPingLocation_t location))
+            {
+                return null;
+            }
+
+            int ping = SteamNetworkingUtils.EstimatePingTimeFromLocalHost(ref location);
+            return ping >= 0 ? ping : null;
+        }
+    }
+
     public ulong? TakeAcceptedInvite()
     {
         ulong? invite = _acceptedInvite;
@@ -59,10 +88,10 @@ public sealed class SteamLobby : ILobby
         return invite;
     }
 
-    public string TakeFailure()
+    public LobbyNotice TakeFailure()
     {
-        string failure = _failure;
-        _failure = string.Empty;
+        LobbyNotice failure = _failure;
+        _failure = LobbyNotice.None;
         return failure;
     }
 
@@ -88,6 +117,7 @@ public sealed class SteamLobby : ILobby
         _lobby = CSteamID.Nil;
         _joining = CSteamID.Nil;
         _creating = false;
+        _hasPublishedPingLocation = false;
     }
 
     public void MarkReadyFor(int matchNumber)
@@ -95,6 +125,14 @@ public sealed class SteamLobby : ILobby
         if (_lobby.IsValid())
         {
             SteamMatchmaking.SetLobbyMemberData(_lobby, ReadyForKey, matchNumber.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    public void MarkPick(string pick)
+    {
+        if (_lobby.IsValid())
+        {
+            SteamMatchmaking.SetLobbyMemberData(_lobby, PickKey, pick);
         }
     }
 
@@ -144,6 +182,20 @@ public sealed class SteamLobby : ILobby
         return null;
     }
 
+    private void PublishPingLocation()
+    {
+        if (_hasPublishedPingLocation || !_lobby.IsValid() ||
+            SteamNetworkingUtils.GetLocalPingLocation(out SteamNetworkPingLocation_t location) < 0)
+        {
+            return;
+        }
+
+        SteamNetworkingUtils.ConvertPingLocationToString(
+            ref location, out string text, Constants.k_cchMaxSteamNetworkingPingLocationString);
+        SteamMatchmaking.SetLobbyMemberData(_lobby, PingLocationKey, text);
+        _hasPublishedPingLocation = true;
+    }
+
     private void OnCreated(LobbyCreated_t created)
     {
         if (created.m_eResult == EResult.k_EResultOK)
@@ -160,7 +212,7 @@ public sealed class SteamLobby : ILobby
         if (_creating)
         {
             _creating = false;
-            _failure = $"Couldn't create a lobby ({created.m_eResult}).";
+            _failure = new LobbyNotice(LobbyNoticeKind.CreateFailed, created.m_eResult.ToString());
         }
     }
 
@@ -173,7 +225,7 @@ public sealed class SteamLobby : ILobby
         {
             if (wanted)
             {
-                _failure = $"Couldn't join the lobby ({response}).";
+                _failure = new LobbyNotice(LobbyNoticeKind.JoinFailed, response.ToString());
                 _joining = CSteamID.Nil;
                 _creating = false;
             }
@@ -190,6 +242,7 @@ public sealed class SteamLobby : ILobby
         _lobby = lobby;
         _joining = CSteamID.Nil;
         _creating = false;
+        PublishPingLocation();
     }
 
     // An invite to the lobby this PC is already in changes nothing.

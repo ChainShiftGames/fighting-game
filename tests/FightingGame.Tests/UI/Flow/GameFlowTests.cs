@@ -162,16 +162,75 @@ public sealed class GameFlowTests
     }
 
     [Fact]
-    public void AFinishedOnlineMatchShowsTheOnlineScreensOverIt()
+    public void OnlineGoesFromTheLobbyToCharacterSelectAndTheLobbyStartsTheMatch()
     {
+        _screens.Add(FlowStep.CharacterSelect);
+        GameFlow flow = AtMainMenu();
+        flow.Choose(LaunchMode.Online);
+
+        // Both ready in the lobby.
+        flow.Advance(flow.Setup);
+        Assert.Equal(FlowStep.CharacterSelect, flow.Step);
+        Assert.Equal([FlowStep.MainMenu, FlowStep.Online, FlowStep.CharacterSelect], flow.Path);
+
+        // Both picked: the lobby starts it, the flow doesn't.
+        flow.Follow(MatchPhase.Playing);
+        Assert.Equal(FlowStep.Match, flow.Step);
+        Assert.Empty(_matches.Started);
+    }
+
+    [Fact]
+    public void BackFromOnlineCharacterSelectGoesToTheOnlineScreens()
+    {
+        _screens.Add(FlowStep.CharacterSelect);
+        GameFlow flow = AtMainMenu();
+        flow.Choose(LaunchMode.Online);
+        flow.Advance(flow.Setup);
+
+        flow.Back();
+
+        Assert.Equal(FlowStep.Online, flow.Step);
+    }
+
+    [Fact]
+    public void AFinishedOnlineMatchShowsTheResultsWhichWaitForTheRematch()
+    {
+        _screens.Add(FlowStep.CharacterSelect);
         GameFlow flow = InOnlineMatch();
 
         flow.Follow(MatchPhase.Over);
-        Assert.Equal(FlowStep.Online, flow.Step);
+        Assert.Equal(FlowStep.Results, flow.Step);
+        Assert.False(flow.CanReselect);
 
-        // Both ready again: the lobby starts the rematch.
+        flow.Rematch();
+        Assert.Equal(1, _matches.Rematches);
+        Assert.Equal(FlowStep.Results, flow.Step);
+
+        // Both want it: the lobby starts the rematch.
         flow.Follow(MatchPhase.Playing);
         Assert.Equal(FlowStep.Match, flow.Step);
+    }
+
+    [Fact]
+    public void LeavingTheResultsOfAnOnlineMatchGoesBackToTheOnlineScreens()
+    {
+        GameFlow flow = InOnlineMatch();
+        flow.Follow(MatchPhase.Over);
+
+        flow.LeaveMatch();
+
+        Assert.Equal(FlowStep.Online, flow.Step);
+        Assert.Equal(LaunchMode.Online, _matches.Mode);
+    }
+
+    [Fact]
+    public void LeavingTheResultsOfALocalMatchDoesNothing()
+    {
+        GameFlow flow = AtResults();
+
+        flow.LeaveMatch();
+
+        Assert.Equal(FlowStep.Results, flow.Step);
     }
 
     [Fact]
