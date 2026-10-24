@@ -14,6 +14,9 @@ public interface IMatchStarter
     /// <summary>Starts a match on this PC (versus or training) with what the menus picked.</summary>
     void Start(MatchSetup setup);
 
+    /// <summary>Plays a saved replay file back (the replay browser).</summary>
+    void Watch(string replayPath);
+
     /// <summary>Goes to the online lobby, leaving whatever runs. False when the platform has no online play.</summary>
     bool OpenOnline();
 

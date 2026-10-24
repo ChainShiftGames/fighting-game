@@ -258,6 +258,25 @@ public sealed class GameFlowTests
     }
 
     [Fact]
+    public void AReplayChosenInTheBrowserPlaysAndItsResultsOfferToWatchItAgain()
+    {
+        _screens.Add(FlowStep.Replays);
+        GameFlow flow = AtMainMenu();
+        flow.Watch("a.fgreplay");
+        Assert.Empty(_matches.Watched);
+
+        flow.Open(FlowStep.Replays);
+        flow.Watch("a.fgreplay");
+
+        Assert.Equal(["a.fgreplay"], _matches.Watched);
+        Assert.Equal(FlowStep.Match, flow.Step);
+        Assert.Equal(LaunchMode.Replay, flow.Setup.Mode);
+        flow.Follow(MatchPhase.Playing);
+        flow.Follow(MatchPhase.Over);
+        Assert.Equal(FlowStep.Results, flow.Step);
+    }
+
+    [Fact]
     public void BackFromTheOnlineScreensLeavesTheLobby()
     {
         GameFlow flow = AtMainMenu();

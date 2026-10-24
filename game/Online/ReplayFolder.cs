@@ -8,13 +8,15 @@ namespace FightingGame.Online;
 
 /// <summary>Where this PC keeps its replays: one file per match, named after when it was saved.</summary>
 /// <remarks>
-/// Every saved match is kept; when to delete old ones, and a menu to pick one, are undecided. No engine calls, so the
-/// host passes the folder as a plain path (it uses <c>user://replays</c>).
+/// Every saved match is kept until the player deletes it in the replay browser. No engine calls, so the host passes
+/// the folder as a plain path (it uses <c>user://replays</c>).
 /// </remarks>
 public sealed class ReplayFolder
 {
     /// <summary>The file extension of replay files.</summary>
     public const string Extension = ".fgreplay";
+
+    private const string TimeFormat = "yyyy-MM-dd_HH-mm-ss";
 
     // Two matches saved within one second get a numbered name rather than overwriting each other.
     private const int MaxNumberedNames = 100;
@@ -32,9 +34,19 @@ public sealed class ReplayFolder
     /// <param name="number">More than 1 when another replay was saved within the same second.</param>
     public static string FileName(DateTime savedAt, string kind, int number = 1)
     {
-        string time = savedAt.ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture);
+        string time = savedAt.ToString(TimeFormat, CultureInfo.InvariantCulture);
         string suffix = number > 1 ? string.Create(CultureInfo.InvariantCulture, $"_{number}") : string.Empty;
         return $"{time}_{kind}{suffix}{Extension}";
+    }
+
+    /// <summary>When the replay at <paramref name="path"/> was saved, read from its name; null for a name it didn't give.</summary>
+    public static DateTime? SavedAt(string path)
+    {
+        string name = Path.GetFileName(path);
+        return name.Length >= TimeFormat.Length && DateTime.TryParseExact(
+            name[..TimeFormat.Length], TimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime savedAt)
+            ? savedAt
+            : null;
     }
 
     /// <summary>Loads a replay file this build can play back.</summary>
@@ -66,5 +78,34 @@ public sealed class ReplayFolder
         }
 
         throw new IOException($"Too many replays named {FileName(savedAt, kind)} in {_path}.");
+    }
+
+    /// <summary>The full paths of every replay file, newest first (names start with the time); none before the first save.</summary>
+    /// <exception cref="IOException">The folder can't be read.</exception>
+    public string[] Files()
+    {
+        if (!Directory.Exists(_path))
+        {
+            return [];
+        }
+
+        string[] files = Directory.GetFiles(_path, "*" + Extension);
+        Array.Sort(files, (a, b) => string.CompareOrdinal(Path.GetFileName(b), Path.GetFileName(a)));
+        return files;
+    }
+
+    /// <summary>Deletes one replay file of this folder for good.</summary>
+    /// <exception cref="IOException">The file can't be deleted.</exception>
+    /// <exception cref="ArgumentException">The path isn't a replay in this folder.</exception>
+    public void Delete(string path)
+    {
+        string full = Path.GetFullPath(path);
+        if (!string.Equals(Path.GetDirectoryName(full), Path.GetFullPath(_path), StringComparison.OrdinalIgnoreCase) ||
+            !full.EndsWith(Extension, StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"{path} isn't a replay in {_path}.", nameof(path));
+        }
+
+        File.Delete(full);
     }
 }

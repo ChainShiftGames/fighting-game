@@ -93,3 +93,22 @@ MENU_SELECT_DUMMY,Training dummy: plays your character
 MENU_SELECT_NO_CONTROLLER,No controller: plays P1's character
 MENU_SELECT_HINT,Confirm to choose · Left and right for colours · Back to undo
 CHARACTER_TESTMAN_DESCRIPTION,"All-rounder: a fireball, an uppercut and a super for every situation"
+REPLAY_TITLE,REPLAYS
+REPLAY_TITLE_ENTRY,REPLAY
+REPLAY_TITLE_DELETE,DELETE REPLAY?
+REPLAY_NONE,"No replays saved yet: every match you play is saved here."
+REPLAY_HINT,Newest first. Choose one to watch or delete it.
+REPLAY_PAGE,{0}–{1} of {2}
+REPLAY_OLDER,Older replays
+REPLAY_NEWER,Newer replays
+REPLAY_ENTRY,{0}   {1} vs {2}
+REPLAY_PLAYER,{0} (colour {1})
+REPLAY_ENTRY_UNSUPPORTED,{0}   unsupported
+REPLAY_DATE_UNKNOWN,Unknown date
+REPLAY_OTHER_VERSION,"Recorded with another version of the game, so it can't be played here."
+REPLAY_OTHER_DATA,"Recorded with different game data, so it can't be played here."
+REPLAY_DAMAGED,"This replay file is damaged, so it can't be played."
+REPLAY_WATCH,Watch
+REPLAY_DELETE,Delete
+REPLAY_DELETE_BODY,This deletes the replay for good.
+REPLAY_DELETE_FAILED,Couldn't delete the replay: {0}

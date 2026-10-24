@@ -58,6 +58,6 @@ public sealed partial class MenuTextTests
         Assert.Equal(1f, new MenuTransition(0).Opacity(0));
     }
 
-    [GeneratedRegex("\"((?:MENU|LOBBY|ONLINE)_[A-Z_]+)\"")]
+    [GeneratedRegex("\"((?:MENU|LOBBY|ONLINE|REPLAY)_[A-Z_]+)\"")]
     private static partial Regex KeyLiteral();
 }
