@@ -23,12 +23,20 @@ internal sealed class RecordingMatchStarter : IMatchStarter
 
     public int Rematches { get; private set; }
 
+    public List<string> Watched { get; } = [];
+
     public int Stops { get; private set; }
 
     public void Start(MatchSetup setup)
     {
         Started.Add(setup);
         Mode = setup.Mode;
+    }
+
+    public void Watch(string replayPath)
+    {
+        Watched.Add(replayPath);
+        Mode = LaunchMode.Replay;
     }
 
     public bool OpenOnline()

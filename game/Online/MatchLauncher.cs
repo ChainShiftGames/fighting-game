@@ -21,6 +21,7 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
     private readonly Func<MatchSetup, StartedMatch?> _createVersus;
     private readonly Func<MatchSetup, StartedMatch?> _createTraining;
     private readonly Func<OnlineOpponent, StartedMatch?> _createOnline;
+    private readonly Func<string, StartedMatch?> _createReplay;
     private Func<StartedMatch?>? _restart;
     private bool _restartRequested;
     private StartedMatch? _readyMatch;
@@ -40,6 +41,7 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
         _createVersus = createVersus;
         _createTraining = createTraining;
         _createOnline = createOnline;
+        _createReplay = createReplay;
         Matchmaking = platform.OpenMatchmaking();
         PlatformName = platform.PlatformName;
         string? replay = ReplayLaunchOptions.ParsePath(args, out string replayError);
@@ -97,6 +99,8 @@ public sealed class MatchLauncher : IMatchStarter, IDisposable
         };
         Play(setup.Mode, () => create(setup));
     }
+
+    public void Watch(string replayPath) => Play(LaunchMode.Replay, () => _createReplay(replayPath));
 
     public bool OpenOnline()
     {

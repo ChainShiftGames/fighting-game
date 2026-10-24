@@ -7,6 +7,7 @@ using FightingGame.UI.CharacterSelect;
 using FightingGame.UI.Flow;
 using FightingGame.UI.Framework;
 using FightingGame.UI.MainMenu;
+using FightingGame.UI.Online;
 using FightingGame.UI.Screens;
 using FightingGame.UI.Title;
 using Godot;
@@ -37,6 +38,7 @@ public partial class GameMenus : Node
     private FrameStepping? _stepping;
     private LobbyScreen? _lobby;
     private CharacterSelectScreen? _characterSelect;
+    private ReplayBrowserScreen? _replays;
     private IMenuScreen[] _pausePath = [];
     private StartedMatch? _match;
     private string _note = string.Empty;
@@ -56,13 +58,15 @@ public partial class GameMenus : Node
     /// <param name="joypads">The joypads menus read (the roster's no-double-input rule).</param>
     /// <param name="players">Whose devices are whose, so character select moves each player's own cursor.</param>
     /// <param name="loadData">The game data, for the characters to pick from.</param>
+    /// <param name="replays">The saved replays, for the replay browser.</param>
     public void Bind(
         MatchLauncher launcher,
         FrameStepping stepping,
         JoypadRoster joypads,
         IDeviceState devices,
         PlayerDevicesChoice players,
-        Func<GameData> loadData)
+        Func<GameData> loadData,
+        ReplayFolder replays)
     {
         _launcher = launcher;
         _stepping = stepping;
@@ -82,6 +86,8 @@ public partial class GameMenus : Node
         _screens.Add(FlowStep.Results, new MatchOverScreen(flow, launcher, () => _note));
         _characterSelect = CreateCharacterSelect(flow, players, loadData);
         _screens.Add(FlowStep.CharacterSelect, _characterSelect);
+        _replays = new ReplayBrowserScreen(flow, new FolderReplayLibrary(replays, loadData));
+        _screens.Add(FlowStep.Replays, _replays);
         if (launcher.Matchmaking is { } matchmaking)
         {
             _lobby = new LobbyScreen(flow, launcher, matchmaking.Lobby, () => _note, line => GD.Print(line));
@@ -111,7 +117,13 @@ public partial class GameMenus : Node
             _isPaused = false;
         }
 
+        _replays!.Follow(_flow.Step == FlowStep.Replays);
         IReadOnlyList<IMenuScreen> path = isPlaying ? (_isPaused ? _pausePath : []) : _screens.For(_flow.Path);
+        if (_replays.Over is { } chosen && _flow.Step == FlowStep.Replays)
+        {
+            // The chosen replay (or the delete question) opens over the list, so back finds the list as it was.
+            path = [.. path, chosen];
+        }
 
         // A and B are also attack buttons: after the pause menu closes, the match waits until they are let go, so the
         // press that resumed it doesn't attack.

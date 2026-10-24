@@ -114,6 +114,19 @@ public sealed class GameFlow
         }
     }
 
+    /// <summary>A replay chosen in the replay browser: it plays now; afterwards the results offer to watch it again.</summary>
+    public void Watch(string replayPath)
+    {
+        if (Step != FlowStep.Replays)
+        {
+            return;
+        }
+
+        Setup = MatchSetup.For(LaunchMode.Replay);
+        _matches.Watch(replayPath);
+        GoTo(FlowStep.Match);
+    }
+
     /// <summary>A screen before the match is done (sides, characters, stage picked): on to the next one.</summary>
     /// <param name="setup">The setup with what that screen picked.</param>
     public void Advance(MatchSetup setup)
