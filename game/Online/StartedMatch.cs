@@ -3,8 +3,10 @@ using FightingGame.Diagnostics;
 using FightingGame.Loop;
 using FightingGame.Presentation;
 using Godot;
+using Netcode.Drivers;
 using Netcode.Handshake;
 using Netcode.Online;
+using Sim.State;
 
 namespace FightingGame.Online;
 
@@ -17,7 +19,7 @@ public sealed class StartedMatch : IDisposable
 {
     private const string WaitingForOpponent = "Waiting for the other player…";
 
-    private readonly IDisposable _driver;
+    private readonly IMatchDriver<MatchState> _driver;
     private readonly VersionHandshake? _handshake;
     private readonly IConnectionStatusReadout? _connectionStatus;
     private readonly Func<bool>? _isOver;
@@ -30,7 +32,7 @@ public sealed class StartedMatch : IDisposable
     /// <param name="isOver">Whether the match logic has finished the match; null when nothing asks.</param>
     public StartedMatch(
         IMatchLoop loop,
-        IDisposable driver,
+        IMatchDriver<MatchState> driver,
         MatchView view,
         Func<string> describe,
         ConnectionMeter? connection,
@@ -58,6 +60,9 @@ public sealed class StartedMatch : IDisposable
     public string Description => _describe();
 
     public ConnectionMeter? Connection { get; }
+
+    /// <summary>Rounds won and, once the match is over, who won it; for the results screen. Read only (ARCHITECTURE.md §9).</summary>
+    public RoundState Round => _driver.State.Round;
 
     public MatchRecording? Recording { get; }
 
