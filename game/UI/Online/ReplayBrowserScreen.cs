@@ -17,7 +17,7 @@ namespace FightingGame.UI.Online;
 public sealed class ReplayBrowserScreen : IMenuScreen
 {
     /// <summary>Replays on one page (developer setting): as many as fit under the title with the page buttons.</summary>
-    public const int PageSize = 5;
+    public const int PageSize = 4;
 
     private readonly GameFlow _flow;
     private readonly IReplayLibrary _library;
