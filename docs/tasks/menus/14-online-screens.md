@@ -1,5 +1,14 @@
 # UI-14 Online screens
 
+> **Done:** merged in [PR 101](https://github.com/ChainShiftGames/fighting-game/pull/101) (online screens) and
+> [PR 102](https://github.com/ChainShiftGames/fighting-game/pull/102) (replay browser) on 2026-10-24.
+> Decisions: [ADR-0042](../../adr/0042-online-picks-and-lobby-screens.md) (picks as lobby member data; host's stage
+> once there is stage select).
+> Checked by hand on one PC with Steam running: online menu, hosting a lobby alone, leaving it, the replay browser
+> (list, unsupported replays, entry, delete confirmation, watching). Not yet tried by hand: anything with a second
+> player (lobby with an opponent and ping, online character select, the match, rematch, disconnects, a refused
+> version check); needs two PCs with Steam. Not built: Steam avatars, join by code, the winner in the replay list.
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md) (§8 online), [ADR-0005](../../adr/0005-online-architecture.md),
 [ADR-0014](../../adr/0014-spike-c-steam-p2p-go.md), [ADR-0018](../../adr/0018-replay-format.md) (replays), then
 [README.md](README.md) in this folder.
