@@ -34,7 +34,8 @@ UI-02 ([brief](../tasks/menus/02-device-roster-and-hot-plug.md)) builds them.
 7. **Notices**: `DeviceRoster.Connected` / `Disconnected` events; `ControllerNotices` shows each as a toast
    (`ToastNotice`, top-right below the HUD gauges).
 8. **Test assignment**: `--p1-devices` / `--p2-devices <list>` (`keyboard`, `pad1`, `pad2`, …) — **developer
-   option** on the command line, until side select exists. Invalid options are logged and the default is used.
+   option** on the command line. Invalid options are logged and the default is used. Since UI-03, an assignment
+   chosen on side select takes precedence ([ADR-0043](0043-side-select.md)).
 
 No new settings for players; the toast's timing is a developer setting in code.
 

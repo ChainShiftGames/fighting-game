@@ -1,5 +1,14 @@
 # UI-03 Controller side select
 
+> **Done:** merged in [PR 104](https://github.com/ChainShiftGames/fighting-game/pull/104) on 2026-10-24.
+> Decisions: [ADR-0043](../../adr/0043-side-select.md) (confirm in the middle takes the first free side ready,
+> training's P2 is the dummy, online skips side select, the chosen assignment is the session memory, pads that share
+> a name are numbered).
+> Checked by hand: keyboard alone in versus and training, two XInput pads plus the keyboard on the screen, back from
+> character select. Not yet tried by hand: a match with the chosen pads, rematch → character select, plugging a pad
+> in on the screen, and ADR-0038's untried items (versus with one pad per player, Start on a free pad replacing a
+> disconnected one).
+
 **Read first:** [ARCHITECTURE.md](../../../ARCHITECTURE.md), then [README.md](README.md) in this folder.
 **Where:** `game/UI/SideSelect/` (new), `tests/FightingGame.Tests/UI/SideSelect/`. A one-line hook into the flow.
 **Depends on:** UI-01 (menu framework, menu actions with device identity) and UI-02 (device roster, assignment,
